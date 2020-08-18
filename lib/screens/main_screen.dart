@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:lets_play_cities/screens/common/buttons.dart';
+import 'package:lets_play_cities/screens/common/common_widgets.dart';
+import 'package:lets_play_cities/screens/game_screen.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 /// Describes the main screen
 class MainScreen extends StatelessWidget {
@@ -7,19 +9,14 @@ class MainScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Stack(
       children: [
-        SizedBox.expand(
-          child: Image.asset(
-            "assets/images/backgrounds/bg_geo.png",
-            fit: BoxFit.cover,
-          ),
-        ),
+        createBackground("bg_geo"),
         Column(
           children: [
             _createAppLogo(),
             _createNavigationButtonsGroup(context),
           ],
         ),
-        SizedBox.expand(
+        Positioned.fill(
           child: Container(
             alignment: Alignment.topRight,
             padding: EdgeInsets.only(top: 26.0, right: 16.0),
@@ -99,7 +96,7 @@ class _AnimatedMainButtonsState extends State<AnimatedMainButtons>
       end: const Offset(-1.5, 0.0),
     ).animate(CurvedAnimation(
       parent: _controller,
-      curve: Curves.easeIn,
+      curve: Curves.easeOut,
     ));
     _secondaryButtonsOffset = Tween<Offset>(
       begin: const Offset(1.5, 0.0),
@@ -142,25 +139,28 @@ class _AnimatedMainButtonsState extends State<AnimatedMainButtons>
   _createPrimaryButtons(BuildContext context) => Column(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          createButton(context, "Играть", Icon(Icons.play_arrow), () {
+          CustomMaterialButton("Играть", Icon(Icons.play_arrow), () {
             setPrimaryButtonsVisibility(false);
           }),
-          createButton(context, "Достижения",
-              Image.asset("assets/images/icons/achievements.png"), () {}),
-          createButton(context, "Рейтинги", Icon(Icons.trending_up), () {}),
-          createButton(context, "Города", Icon(Icons.apartment), () {}),
+          CustomMaterialButton(
+              "Достижения", FaIcon(FontAwesomeIcons.medal), () {}),
+          CustomMaterialButton("Рейтинги", Icon(Icons.trending_up), () {}),
+          CustomMaterialButton("Города", Icon(Icons.apartment), () {}),
         ],
       );
 
   _createSecondaryButtons(BuildContext context) => Column(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          createButton(
-              context, "Игрок против андроида", Icon(Icons.android), () {}),
-          createButton(
-              context, "Игрок против игрока", Icon(Icons.person), () {}),
-          createButton(context, "Онлайн", Icon(Icons.language), () {}),
-          createButton(context, "Мультиплеер", Icon(Icons.wifi), () {}),
+          CustomMaterialButton("Игрок против андроида", Icon(Icons.android),
+              () {
+            Navigator.of(context)
+                .push(MaterialPageRoute(builder: (_) => GameScreen()));
+          }),
+          CustomMaterialButton(
+              "Игрок против игрока", Icon(Icons.person), () {}),
+          CustomMaterialButton("Онлайн", Icon(Icons.language), () {}),
+          CustomMaterialButton("Мультиплеер", Icon(Icons.wifi), () {}),
         ],
       );
 }

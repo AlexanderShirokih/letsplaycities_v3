@@ -9,6 +9,7 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  font_awesome_flutter: ^8.8.1
 
 dev_dependencies:
   flutter_test:
@@ -21,5 +22,4 @@ flutter:
 
   assets:
     - assets/images/
-    - assets/images/icons/
     - assets/images/backgrounds/
