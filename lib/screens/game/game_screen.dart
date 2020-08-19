@@ -3,7 +3,8 @@ import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
-import 'common/common_widgets.dart';
+import '../common/common_widgets.dart';
+import 'cities_list.dart';
 
 class GameScreen extends StatelessWidget {
   @override
@@ -12,44 +13,22 @@ class GameScreen extends StatelessWidget {
       body: Stack(
         children: [
           createBackground("bg_geo"),
-          _createTopBar(context),
           SizedBox.expand(
-            child: Container(
-              alignment: Alignment.bottomCenter,
-              child: Container(
-                margin: const EdgeInsets.all(8.0),
-                color: Colors.white,
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    _createRoundIcon(context, Icons.keyboard_voice),
-                    _createKeyboardField(context),
-                    _createRoundIcon(context, Icons.add_circle_outline),
-                  ],
-                ),
-              ),
+            child: Column(
+              children: [
+                _createTopBar(context),
+                CitiesList(),
+                Container(
+                  alignment: Alignment.bottomCenter,
+                  child: _CityInputField(),
+                )
+              ],
             ),
           )
         ],
       ),
     );
   }
-
-  Widget _createKeyboardField(BuildContext context) => Expanded(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 4.0),
-          child: TextField(
-            cursorColor: Theme.of(context).primaryColor,
-            textCapitalization: TextCapitalization.words,
-            decoration: const InputDecoration(border: InputBorder.none),
-            inputFormatters: [
-              FilteringTextInputFormatter.allow(
-                RegExp("^[А-я-.' ]+\$"),
-              )
-            ],
-          ),
-        ),
-      );
 
   Widget _createTopBar(BuildContext context) => Container(
         padding: EdgeInsets.fromLTRB(10.0, 40.0, 10.0, 24.0),
@@ -97,16 +76,6 @@ class GameScreen extends StatelessWidget {
               style: Theme.of(context).textTheme.headline6,
             ),
           ],
-        ),
-      );
-
-  Widget _createRoundIcon(BuildContext context, IconData iconData) => Material(
-        child: IconButton(
-          onPressed: () {},
-          highlightColor: Colors.transparent,
-          padding: EdgeInsets.zero,
-          color: Theme.of(context).primaryColor,
-          icon: Icon(iconData),
         ),
       );
 
@@ -168,5 +137,38 @@ class _UserAvatar extends StatelessWidget {
           SizedBox(height: 4.0),
           Text(userName)
         ],
+      );
+}
+
+/// Input field for entering cities
+class _CityInputField extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) => Container(
+        margin: const EdgeInsets.all(8.0),
+        color: Colors.white,
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const MaterialIconButton(Icons.keyboard_voice),
+            _createKeyboardField(context),
+            const MaterialIconButton(Icons.add_circle_outline),
+          ],
+        ),
+      );
+
+  Widget _createKeyboardField(BuildContext context) => Expanded(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 4.0),
+          child: TextField(
+            cursorColor: Theme.of(context).primaryColor,
+            textCapitalization: TextCapitalization.words,
+            decoration: const InputDecoration(border: InputBorder.none),
+            inputFormatters: [
+              FilteringTextInputFormatter.allow(
+                RegExp("^[А-я-.' ]+\$"),
+              )
+            ],
+          ),
+        ),
       );
 }

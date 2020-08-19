@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:lets_play_cities/screens/main_screen.dart';
+import 'package:lets_play_cities/screens/main/main_screen.dart';
 
 void main() => runApp(LetsPlayCitiesApp());
 

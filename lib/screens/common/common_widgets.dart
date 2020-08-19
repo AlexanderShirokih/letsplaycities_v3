@@ -30,6 +30,24 @@ class CustomMaterialButton extends StatelessWidget {
       );
 }
 
+/// Creates button with icon and ripple effect
+class MaterialIconButton extends StatelessWidget {
+  final IconData iconData;
+
+  const MaterialIconButton(this.iconData);
+
+  @override
+  Widget build(BuildContext context) => Material(
+        child: IconButton(
+          onPressed: () {},
+          highlightColor: Colors.transparent,
+          padding: EdgeInsets.zero,
+          color: Theme.of(context).primaryColor,
+          icon: Icon(iconData),
+        ),
+      );
+}
+
 /// Creates expanded background image with [name] from assets/images/backgrounds directory
 Widget createBackground(String name) => Positioned.fill(
       child: Image.asset(

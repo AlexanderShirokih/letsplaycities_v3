@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:lets_play_cities/screens/common/common_widgets.dart';
-import 'package:lets_play_cities/screens/game_screen.dart';
+import 'package:lets_play_cities/screens/game/game_screen.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 /// Describes the main screen
