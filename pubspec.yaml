@@ -10,6 +10,9 @@ dependencies:
   flutter:
     sdk: flutter
   font_awesome_flutter: ^8.8.1
+  meta: ^1.1.7
+  package_info: ^0.4.1
+  flutter_bloc: ^6.0.1
 
 dev_dependencies:
   flutter_test:

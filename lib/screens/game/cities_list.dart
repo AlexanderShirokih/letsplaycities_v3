@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:lets_play_cities/base/data/city_data.dart';
-import 'package:lets_play_cities/base/game/GameItem.dart';
+import 'package:lets_play_cities/base/game/game_item.dart';
 import 'package:lets_play_cities/utils/string_utils.dart';
 
 /// Represents ListView containing cities and messages
@@ -13,7 +13,7 @@ class CitiesList extends StatelessWidget {
       itemCount: 10,
       itemBuilder: (context, index) {
         return _CityItemListTile(CityInfo(
-            city: index % 2 == 0 ? "Left" : "Right", //"Керчь",
+            city: index % 2 == 0 ? "Left" : "Right",
             position: index % 2 == 0 ? Position.LEFT : Position.RIGHT));
       },
     ),

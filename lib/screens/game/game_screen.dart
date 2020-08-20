@@ -2,6 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:lets_play_cities/base/auth.dart';
+import 'package:lets_play_cities/base/data.dart';
+import 'package:lets_play_cities/base/data/app_version.dart';
+import 'package:lets_play_cities/base/dictionary.dart';
+import 'package:lets_play_cities/base/game/game_facade.dart';
+import 'package:lets_play_cities/base/preferences.dart';
+import 'package:lets_play_cities/base/users.dart';
+import 'package:lets_play_cities/screens/game/user_avatar.dart';
 
 import '../common/common_widgets.dart';
 import 'cities_list.dart';
@@ -30,31 +38,38 @@ class GameScreen extends StatelessWidget {
     );
   }
 
-  Widget _createTopBar(BuildContext context) => Container(
-        padding: EdgeInsets.fromLTRB(10.0, 40.0, 10.0, 24.0),
-        color: Theme.of(context).accentColor,
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            _UserAvatar(
-              userName: "Игрок",
-              imageProvider: AssetImage("assets/images/player_big.png"),
-              alignment: CrossAxisAlignment.start,
-              isActive: true,
-              onPressed: () {},
+  Widget _createTopBar(BuildContext context) {
+    var exclusions = ExclusionsService();
+    var dictionary = DictionaryService();
+    var gamePreferences = GamePreferences();
+    var gameFacade = new GameFacade(exclusions, dictionary, gamePreferences);
+
+    return Container(
+      padding: EdgeInsets.fromLTRB(10.0, 40.0, 10.0, 24.0),
+      color: Theme.of(context).accentColor,
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          UserAvatar.ofUser(
+            onPressed: () {},
+            user: Player(
+              gameFacade,
+              PlayerData(
+                accountInfo: ClientAccountInfo.forName("Игрок"),
+                versionInfo: VersionInfo.stub(),
+              ),
             ),
-            _createActionButtons(context),
-            _UserAvatar(
-              userName: "Андроид",
-              imageProvider: AssetImage("assets/images/android_big.png"),
-              alignment: CrossAxisAlignment.end,
-              isActive: false,
-              onPressed: () {},
-            ),
-          ],
-        ),
-      );
+          ),
+          _createActionButtons(context),
+          UserAvatar.ofUser(
+            user: Android(gameFacade, "Андроид"),
+            onPressed: () {},
+          ),
+        ],
+      ),
+    );
+  }
 
   Widget _createActionButtons(BuildContext context) => Expanded(
         child: Column(
@@ -92,51 +107,6 @@ class GameScreen extends StatelessWidget {
           shape:
               StadiumBorder(side: BorderSide(color: Colors.white, width: 3.0)),
         ),
-      );
-}
-
-/// Creates circular user avatar with border around it.
-class _UserAvatar extends StatelessWidget {
-  final String userName;
-  final CrossAxisAlignment alignment;
-  final ImageProvider imageProvider;
-  final bool isActive;
-  final Function onPressed;
-
-  const _UserAvatar({
-    @required this.userName,
-    @required this.imageProvider,
-    @required this.alignment,
-    this.isActive = false,
-    this.onPressed,
-    Key key,
-  }) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) => Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: alignment,
-        children: [
-          Container(
-            width: 70.0,
-            height: 70.0,
-            child: FlatButton(
-              onPressed: onPressed,
-              color: Colors.white,
-              padding: EdgeInsets.zero,
-              child: Image(image: imageProvider),
-              shape: StadiumBorder(
-                side: BorderSide(
-                    color: isActive
-                        ? Theme.of(context).primaryColorDark
-                        : Colors.white,
-                    width: 5.0),
-              ),
-            ),
-          ),
-          SizedBox(height: 4.0),
-          Text(userName)
-        ],
       );
 }
 

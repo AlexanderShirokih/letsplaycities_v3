@@ -22,3 +22,35 @@ int indexOfLastSuitableChar(String city) {
   final c = city.lastIndexOf(RegExp(r"[^ь^ъ^ы^ё]"));
   return (c == -1) ? 0 : c;
 }
+
+/// Replaces some invalid chars in the [city]
+String formatCity(String city) {
+  final s = city.trim().toLowerCase();
+  final replaced = s.replaceAll("ё", "е");
+  final sb = StringBuffer();
+  var prev = 0;
+
+  final dash = '-'.codeUnitAt(0);
+
+  for (var element in replaced.codeUnits) {
+    if (!(element == dash && prev == dash)) {
+      sb.write(element);
+    }
+    prev = element;
+  }
+  return sb.toString();
+}
+
+/// Converts [time] in millis to string representation
+String timeFormat(int time) {
+  var t = time;
+  var ret = "";
+  var min = t ~/ 60000;
+  t -= min * 60000;
+  t ~/= 1000;
+  if (min > 0) {
+    ret = min.toString() + "мин ";
+  }
+  ret += t.toString() + "сек";
+  return ret;
+}
