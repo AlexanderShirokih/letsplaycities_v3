@@ -14,9 +14,9 @@ class UserIdIdentity implements UserIdentity {
   UserIdIdentity(this.userId);
 
   UserIdIdentity.fromUser(User user)
-      : this(user.playerData.accountInfo.credential.userId);
+      : this(user?.accountInfo?.credential?.userId ?? -1);
 
   @override
   bool isTheSameUser(User user) =>
-      userId == user.playerData.accountInfo.credential.userId;
+      userId == user?.accountInfo?.credential?.userId ?? -1;
 }

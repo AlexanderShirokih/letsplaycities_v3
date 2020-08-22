@@ -1,47 +1,54 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
-import 'package:lets_play_cities/base/data/city_data.dart';
+import 'package:lets_play_cities/base/data.dart';
 import 'package:lets_play_cities/base/game/game_item.dart';
+import 'package:lets_play_cities/base/repositories/game_session_repo.dart';
 import 'package:lets_play_cities/utils/string_utils.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 /// Represents ListView containing cities and messages
 class CitiesList extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Expanded(
-    child: ListView.builder(
-      reverse: true,
-      itemCount: 10,
-      itemBuilder: (context, index) {
-        return _CityItemListTile(CityInfo(
-            city: index % 2 == 0 ? "Left" : "Right",
-            position: index % 2 == 0 ? Position.LEFT : Position.RIGHT));
-      },
-    ),
-  );
+        child: StreamBuilder<List<GameItem>>(
+          stream: context
+              .repository<GameSessionRepository>()
+              .createGameItemsRepository()
+              .getItemsList(),
+          builder: (context, state) => ListView(
+            reverse: true,
+            children: state.hasData
+                ? state.data.reversed
+                    .map((e) => _GameItemListTile(e))
+                    .toList(growable: false)
+                : [],
+          ),
+        ),
+      );
 }
 
-class _CityItemListTile extends StatelessWidget {
+class _GameItemListTile extends StatelessWidget {
   final GameItem _gameItem;
 
-  _CityItemListTile(this._gameItem);
+  _GameItemListTile(this._gameItem);
 
   @override
   Widget build(BuildContext context) => ListTile(
-    title: Row(
-      mainAxisSize: MainAxisSize.min,
-      mainAxisAlignment: _gameItem.position == Position.LEFT
-          ? MainAxisAlignment.start
-          : MainAxisAlignment.end,
-      children: [
-        Container(
-          padding: EdgeInsets.symmetric(vertical: 8.0, horizontal: 14.0),
-          margin: EdgeInsets.zero,
-          decoration: _buildDecoration(),
-          child: _buildText(context),
+        title: Row(
+          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: _gameItem.owner.position == Position.LEFT
+              ? MainAxisAlignment.start
+              : MainAxisAlignment.end,
+          children: [
+            Container(
+              padding: EdgeInsets.symmetric(vertical: 8.0, horizontal: 14.0),
+              margin: EdgeInsets.zero,
+              decoration: _buildDecoration(),
+              child: _buildText(context),
+            ),
+          ],
         ),
-      ],
-    ),
-  );
+      );
 
   BoxDecoration _buildDecoration() {
     const kFillColor = const Color(0xFFFFD2AE);
@@ -52,7 +59,9 @@ class _CityItemListTile extends StatelessWidget {
     return BoxDecoration(
       color: (_gameItem is CityInfo)
           ? kFillColor
-          : (_gameItem.position == Position.LEFT ? kMessageOther : kMessageMe),
+          : (_gameItem.owner.position == Position.LEFT
+              ? kMessageOther
+              : kMessageMe),
       borderRadius: BorderRadius.circular(8.0),
       border: Border.all(
         width: 1.0,
@@ -67,7 +76,7 @@ class _CityItemListTile extends StatelessWidget {
 
     if (_gameItem is CityInfo) {
       final textStyle =
-      Theme.of(context).textTheme.bodyText1.copyWith(fontSize: 16);
+          Theme.of(context).textTheme.bodyText1.copyWith(fontSize: 16);
       final spanTextStyle = textStyle.copyWith(color: kForegroundSpanColor);
       return RichText(text: _buildCitySpans(textStyle, spanTextStyle));
     }

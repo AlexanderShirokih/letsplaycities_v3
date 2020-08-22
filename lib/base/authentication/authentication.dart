@@ -16,7 +16,8 @@ class Credential {
 
   const Credential({this.userId, this.accessToken});
 
-  const Credential.empty() : this(userId: 0, accessToken: "");
+  const Credential.withUserId(int userId)
+      : this(userId: userId, accessToken: "");
 }
 
 /// Response from authentication request
@@ -36,8 +37,8 @@ class ClientAccountInfo {
     this.pictureUri,
   });
 
-  const ClientAccountInfo.forName(String name)
-      : this(credential: const Credential.empty(), name: name, pictureUri: null);
+  ClientAccountInfo.basic(String name, int userId)
+      : this(credential: Credential.withUserId(userId), name: name);
 }
 
 /// Used when some authorization error happened

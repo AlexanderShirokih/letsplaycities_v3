@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:lets_play_cities/base/data.dart';
 import 'package:lets_play_cities/base/game/management/events_channel.dart';
 import 'package:lets_play_cities/base/game/management/result_with_city.dart';
@@ -11,7 +12,7 @@ class GameSession {
   final List<User> users;
   final AbstractEventChannel eventChannel;
 
-  GameSession({this.users, this.eventChannel}) {
+  GameSession({@required this.users, @required this.eventChannel}) {
     // Setup users positions
     for (int i = 0; i < users.length; i++)
       users[i].position = Position.values[i];
@@ -30,6 +31,15 @@ class GameSession {
   User get prevUser => users[_floorMod(_currentUserIndex - 1, users.length)];
 
   static int _floorMod(num x, num y) => ((x % y) + y) % y;
+
+  /// Returns user attached to the [position]
+  /// Throws [StateError] if there is no user attached to the [position].
+  User getUserByPosition(Position position) =>
+      users.firstWhere((element) => element.position == position);
+
+  /// Returns user by this ID in account data
+  User getUserById(int userId) =>
+      users.firstWhere((element) => userId == element.id);
 
   /// Last accepted word
   String _lastAcceptedWord = "";

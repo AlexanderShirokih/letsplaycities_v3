@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
-import 'package:lets_play_cities/base/data/city_data.dart';
-import 'package:lets_play_cities/base/data/picture_source.dart';
 
+import 'package:lets_play_cities/base/data.dart';
 import 'package:lets_play_cities/base/users.dart';
 
 /// Creates circular user avatar with border around it.
@@ -29,7 +28,7 @@ class UserAvatar extends StatelessWidget {
     bool isActive = false,
   }) : this(
           userName: user.name,
-          imageProvider: _getProviderByPictureSource(user.pictureSource),
+          imageProvider: _getProviderByPictureSource(user.playerData.picture),
           alignment: _getAlignmentByPosition(user.position),
           onPressed: onPressed,
           isActive: isActive,

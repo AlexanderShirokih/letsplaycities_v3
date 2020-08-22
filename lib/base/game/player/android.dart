@@ -2,7 +2,6 @@ import 'dart:math';
 
 import 'package:lets_play_cities/base/auth.dart';
 import 'package:lets_play_cities/base/data.dart';
-import 'package:lets_play_cities/base/data/app_version.dart';
 import 'package:lets_play_cities/base/management.dart';
 
 import 'user.dart';
@@ -13,7 +12,8 @@ import '../game_facade.dart';
 /// [PlayerData] model class that contains info about user.
 /// [PictureSource] represents android's picture.
 class Android extends User {
-  static const kAndroidAvatarPath = "assets/images/android_big.png";
+  static const _kAndroidAvatarPath = "assets/images/android_big.png";
+  static const _kDefaultAndroidUserId = -2;
 
 //  final AbstractEventChannel _eventChannel;
   final GameFacade _gameFacade;
@@ -27,11 +27,13 @@ class Android extends User {
     String androidName,
   )   : _estimatedMoves = _calculateEstimatedMoves(_gameFacade.difficultyIndex),
         super(
-            PlayerData(
-              versionInfo: VersionInfo.stub(),
-              accountInfo: ClientAccountInfo.forName(androidName),
-            ),
-            const AssetPictureSource(kAndroidAvatarPath));
+          PlayerData(
+            name: androidName,
+            canReceiveMessages: false,
+            picture: const AssetPictureSource(_kAndroidAvatarPath),
+          ),
+          ClientAccountInfo.basic(androidName, _kDefaultAndroidUserId),
+        );
 
   @override
   Stream<ResultWithCity> onMakeMove(String firstChar) async* {

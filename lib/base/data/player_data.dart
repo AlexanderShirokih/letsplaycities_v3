@@ -1,18 +1,21 @@
-import 'package:lets_play_cities/base/auth.dart';
+import 'package:lets_play_cities/base/data.dart';
 
-import 'app_version.dart';
-
-/// Describes player data and its account data
+/// Describes player data
 class PlayerData {
-  final VersionInfo versionInfo;
-  final ClientAccountInfo accountInfo;
+  /// User name
+  final String name;
+
+  /// Profile picture URI
+  final PictureSource picture;
+
+  /// `True` is the user wants receive messages from the other users.
   final bool canReceiveMessages;
-  final bool isFriend;
 
   const PlayerData({
-    this.versionInfo,
-    this.accountInfo,
+    this.name,
+    this.picture,
     this.canReceiveMessages = false,
-    this.isFriend = false,
   });
+
+
 }
