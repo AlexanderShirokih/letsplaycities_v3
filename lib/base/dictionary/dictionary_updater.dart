@@ -7,13 +7,13 @@ class DictionaryUpdater {
   /// fetching update starts. Emits downloading percents from 0 to 100.
   Stream<int> checkForUpdates() async* {
     // Simulate fetching updates
-    yield -1;
-    await Future.delayed(Duration(milliseconds: 500));
+//    yield -1;
+//    await Future.delayed(Duration(milliseconds: 500));
 
     // Simulate downloading update
     for (int i = 0; i < 100; i += 10) {
       yield i;
-      await Future.delayed(Duration(milliseconds: 100));
+      await Future.delayed(Duration(milliseconds: 80));
     }
   }
 }

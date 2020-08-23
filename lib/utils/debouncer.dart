@@ -7,8 +7,9 @@ class Debouncer {
   Timer _timer;
   Duration delay;
 
-  Debouncer(this.delay)
-      : _lastTime = DateTime.now().millisecondsSinceEpoch;
+  Debouncer(this.delay, {Duration offset})
+      : _lastTime =
+            DateTime.now().millisecondsSinceEpoch + (offset?.inMilliseconds ?? 0);
 
   run(Function runnable) {
     _timer?.cancel();
@@ -26,5 +27,9 @@ class Debouncer {
       // setup the timer
       _timer = Timer(delay, runnable);
     }
+  }
+
+  void cancel() {
+    _timer?.cancel();
   }
 }

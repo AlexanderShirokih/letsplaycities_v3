@@ -1,9 +1,14 @@
 import 'package:meta/meta.dart';
 
-/// [WordCheckingResult] describes states when [ru.aleshi.letsplaycities.base.player.User] should
+/// [WordCheckingResult] describes states when [User] should
 /// return after receiving input from keyboard.
 @sealed
-class WordCheckingResult {}
+@immutable
+class WordCheckingResult {
+  bool isDescriptiveError() => true;
+
+  bool isSuccessful() => false;
+}
 
 /// Used when input [word] has already used.
 class AlreadyUsed extends WordCheckingResult {
@@ -31,6 +36,9 @@ class Corrections extends WordCheckingResult {
   final List<String> corrections;
 
   Corrections(this.corrections);
+
+  @override
+  bool isDescriptiveError() => false;
 }
 
 /// Used when no corrections available.
@@ -44,6 +52,11 @@ class NotFound extends WordCheckingResult {
 /// Note that [word] can be formatted to proper format.
 class Accepted extends WordCheckingResult {
   final String word;
+
+  @override
+  bool isDescriptiveError() => false;
+
+  bool isSuccessful() => true;
 
   Accepted(this.word);
 }

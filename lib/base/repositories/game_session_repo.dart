@@ -1,4 +1,7 @@
+import 'dart:async';
+
 import 'package:lets_play_cities/base/data.dart';
+import 'package:lets_play_cities/base/game/word_checking_result.dart';
 import 'package:lets_play_cities/base/repos.dart';
 import 'package:lets_play_cities/base/users.dart';
 import 'package:lets_play_cities/base/management.dart';
@@ -9,6 +12,9 @@ import 'package:lets_play_cities/utils/debouncer.dart';
 class GameSessionRepository {
   final Debouncer _userInputDebounce =
       Debouncer(const Duration(milliseconds: 1000));
+  final StreamController<WordCheckingResult> _wordCheckingResults =
+      StreamController.broadcast();
+
   GameSession _session;
 
   GameSessionRepository(GameFacade gameFacade) {
@@ -29,6 +35,9 @@ class GameSessionRepository {
     );
   }
 
+  Stream<WordCheckingResult> get wordCheckingResults =>
+      _wordCheckingResults.stream;
+
   /// Creates new instance of [GameItemsRepository]
   GameItemsRepository createGameItemsRepository() =>
       GameItemsRepository(_session);
@@ -44,13 +53,16 @@ class GameSessionRepository {
   /// Called when the game starts
   void start() => _session.start();
 
+  /// Called to dispose internal StreamControllers
+  void dispose() {
+    _wordCheckingResults.close();
+    _userInputDebounce.cancel();
+  }
+
   /// Dispatches input word to the game session
   void sendInputWord(String input) {
     _userInputDebounce.run(() {
-      //TODO: Temp code
-      _session.deliverUserInput(input).listen((event) {
-        print("Event=$event");
-      });
+      _wordCheckingResults.sink.addStream(_session.deliverUserInput((input)));
     });
   }
 }

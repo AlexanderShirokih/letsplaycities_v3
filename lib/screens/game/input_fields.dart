@@ -12,9 +12,11 @@ class InputFieldsGroup extends StatelessWidget {
   }
 }
 
+typedef InputMatcherCallback = void Function(String);
+
 /// Input field for entering cities
 class _CityInputField extends StatefulWidget {
-  final Function(String) _onPressed;
+  final InputMatcherCallback _onPressed;
 
   _CityInputField(this._onPressed);
 
@@ -23,7 +25,7 @@ class _CityInputField extends StatefulWidget {
 }
 
 class _CityInputFieldState extends State<_CityInputField> {
-  final Function(String) _onPressed;
+  final InputMatcherCallback _onPressed;
   final inputController = TextEditingController();
 
   _CityInputFieldState(this._onPressed);

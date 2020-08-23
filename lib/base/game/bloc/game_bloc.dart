@@ -59,7 +59,7 @@ class GameBloc extends Bloc<GameStateEvent, GameLifecycleState> {
 
     // Simulate dictionary loading
     yield DataLoadingState();
-    await Future.delayed(Duration(seconds: 2));
+//    await Future.delayed(Duration(seconds: 2));
 
     add(GameStateEvent.GameStart);
   }
