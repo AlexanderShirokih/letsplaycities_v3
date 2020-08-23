@@ -2,37 +2,29 @@ import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 
 import 'package:lets_play_cities/base/data.dart';
+import 'package:lets_play_cities/base/repositories/game_service_events.dart';
 import 'package:lets_play_cities/base/users.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 /// Creates circular user avatar with border around it.
 class UserAvatar extends StatelessWidget {
-  static const kImagePlaceholder = "assets/images/player_big.png";
+  static const _kImagePlaceholder = "assets/images/player_big.png";
+
+  final int _userId;
   final String userName;
   final CrossAxisAlignment alignment;
   final ImageProvider imageProvider;
-  final bool isActive;
   final Function onPressed;
 
-  const UserAvatar({
-    @required this.userName,
-    @required this.imageProvider,
-    @required this.alignment,
-    this.isActive = false,
-    this.onPressed,
-    Key key,
-  }) : super(key: key);
-
-  UserAvatar.ofUser({
+  UserAvatar({
     @required User user,
-    @required Function onPressed,
-    bool isActive = false,
-  }) : this(
-          userName: user.name,
-          imageProvider: _getProviderByPictureSource(user.playerData.picture),
-          alignment: _getAlignmentByPosition(user.position),
-          onPressed: onPressed,
-          isActive: isActive,
-        );
+    @required this.onPressed,
+    Key key,
+  })  : userName = user.name,
+        imageProvider = _getProviderByPictureSource(user.playerData.picture),
+        alignment = _getAlignmentByPosition(user.position),
+        _userId = user.id,
+        super(key: key);
 
   @override
   Widget build(BuildContext context) => Column(
@@ -42,22 +34,29 @@ class UserAvatar extends StatelessWidget {
           Container(
             width: 70.0,
             height: 70.0,
-            child: FlatButton(
-              onPressed: onPressed,
-              color: Colors.white,
-              padding: EdgeInsets.zero,
-              child: _buildImage(
-                imageProvider,
-                const AssetImage(kImagePlaceholder),
-              ),
-              shape: StadiumBorder(
-                side: BorderSide(
-                    color: isActive
-                        ? Theme.of(context).primaryColorDark
-                        : Colors.white,
-                    width: 5.0),
-              ),
-            ),
+            child: StreamBuilder<User>(
+                stream: context
+                    .repository<GameServiceEventsRepository>()
+                    .getUserSwitches(),
+                builder: (context, snapshot) {
+                  return FlatButton(
+                    onPressed: onPressed,
+                    color: Colors.white,
+                    padding: EdgeInsets.zero,
+                    child: _buildImage(
+                      imageProvider,
+                      const AssetImage(_kImagePlaceholder),
+                    ),
+                    shape: StadiumBorder(
+                      side: BorderSide(
+                        color: snapshot.hasData && snapshot.data.id == _userId
+                            ? Theme.of(context).primaryColorDark
+                            : Colors.white,
+                        width: 5.0,
+                      ),
+                    ),
+                  );
+                }),
           ),
           SizedBox(height: 4.0),
           Text(userName)
@@ -72,7 +71,7 @@ class UserAvatar extends StatelessWidget {
       return NetworkImage(source.pictureURL);
     }
     // PlaceholderImageSource
-    return AssetImage(kImagePlaceholder);
+    return AssetImage(_kImagePlaceholder);
   }
 
   static CrossAxisAlignment _getAlignmentByPosition(Position position) =>

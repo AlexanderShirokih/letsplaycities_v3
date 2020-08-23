@@ -3,9 +3,9 @@ import 'package:lets_play_cities/base/dictionary.dart';
 import '../preferences.dart';
 
 class GameFacade {
-  ExclusionsService _exclusionsService;
-  DictionaryService _dictionaryService;
-  GamePreferences _prefs;
+  final ExclusionsService _exclusionsService;
+  final DictionaryService _dictionaryService;
+  final GamePreferences _prefs;
 
   GameFacade(this._exclusionsService, this._dictionaryService, this._prefs);
 

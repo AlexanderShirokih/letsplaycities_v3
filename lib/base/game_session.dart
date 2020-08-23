@@ -1,10 +1,11 @@
-import 'package:flutter/cupertino.dart';
+import 'dart:async';
+
 import 'package:lets_play_cities/base/data.dart';
-import 'package:lets_play_cities/base/game/management/events_channel.dart';
-import 'package:lets_play_cities/base/game/management/result_with_city.dart';
-import 'package:lets_play_cities/base/game/player/player.dart';
+import 'package:lets_play_cities/base/management.dart';
+import 'package:lets_play_cities/base/users.dart';
 import 'package:lets_play_cities/base/game/word_checking_result.dart';
 import 'package:lets_play_cities/utils/string_utils.dart';
+import 'package:meta/meta.dart';
 
 import 'game/player/user.dart';
 
@@ -17,6 +18,9 @@ class GameSession {
     for (int i = 0; i < users.length; i++)
       users[i].position = Position.values[i];
   }
+
+  /// True until game finishes
+  bool _gameRunning = true;
 
   /// Keeps index of current user
   int _currentUserIndex = 0;
@@ -49,7 +53,7 @@ class GameSession {
       users.whereType<Player>().single.onUserInput(userInput);
 
   /// Call to start game turn for current user.
-  Stream<ResultWithCity> makeMoveForCurrentUser() async* {
+  Future<ResultWithCity> makeMoveForCurrentUser() async {
     var lastSuitableChar =
         _lastAcceptedWord[indexOfLastSuitableChar(_lastAcceptedWord)];
 
@@ -58,7 +62,18 @@ class GameSession {
         _lastAcceptedWord = moveResult.city;
         _currentUserIndex = nextIndex;
       }
-      yield moveResult;
+      return moveResult;
+    }
+
+    return null;
+  }
+
+  /// Completes all user moves
+  Future doAllMoves() async {
+    while (_gameRunning) {
+      eventChannel.sendEvent(OnUserSwitchedEvent(currentUser.id));
+      await makeMoveForCurrentUser();
     }
   }
+
 }

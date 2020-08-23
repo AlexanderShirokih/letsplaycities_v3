@@ -3,7 +3,7 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:lets_play_cities/base/data.dart';
-import 'package:lets_play_cities/base/repositories/game_session_repo.dart';
+import 'package:lets_play_cities/base/repos.dart';
 
 import 'user_avatar.dart';
 
@@ -12,28 +12,36 @@ class TopBar extends StatelessWidget {
   Widget build(BuildContext context) => Container(
         padding: EdgeInsets.fromLTRB(10.0, 40.0, 10.0, 24.0),
         color: Theme.of(context).accentColor,
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            UserAvatar.ofUser(
-              onPressed: () {},
-              user: context
-                  .repository<GameSessionRepository>()
-                  .getUserByPosition(Position.LEFT),
-            ),
-            _createActionButtons(context),
-            UserAvatar.ofUser(
-              onPressed: () {},
-              user: context
-                  .repository<GameSessionRepository>()
-                  .getUserByPosition(Position.RIGHT),
-            ),
-          ],
+        child: RepositoryProvider<GameServiceEventsRepository>(
+          create: (context) => context
+              .repository<GameSessionRepository>()
+              .createGameServiceEventsRepository(),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              UserAvatar(
+                onPressed: () {},
+                user: context
+                    .repository<GameSessionRepository>()
+                    .getUserByPosition(Position.LEFT),
+              ),
+              _ActionButtons(),
+              UserAvatar(
+                onPressed: () {},
+                user: context
+                    .repository<GameSessionRepository>()
+                    .getUserByPosition(Position.RIGHT),
+              ),
+            ],
+          ),
         ),
       );
+}
 
-  Widget _createActionButtons(BuildContext context) => Expanded(
+class _ActionButtons extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) => Expanded(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -48,10 +56,16 @@ class TopBar extends StatelessWidget {
               ],
             ),
             SizedBox(width: 0.0, height: 16.0),
-            Text(
-              "23:15",
-              style: Theme.of(context).textTheme.headline6,
-            ),
+            StreamBuilder<String>(
+                stream: context
+                    .repository<GameServiceEventsRepository>()
+                    .getTimerTicks(),
+                builder: (context, snapshot) {
+                  return Text(
+                    snapshot.hasData ? snapshot.data : "",
+                    style: Theme.of(context).textTheme.headline6,
+                  );
+                }),
           ],
         ),
       );
