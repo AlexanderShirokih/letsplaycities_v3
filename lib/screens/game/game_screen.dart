@@ -1,17 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:lets_play_cities/base/dictionary.dart';
-import 'package:lets_play_cities/base/game/bloc/game_bloc.dart';
-import 'package:lets_play_cities/base/game/game_mode.dart';
-import 'package:lets_play_cities/base/preferences.dart';
 
-import 'package:lets_play_cities/base/repositories/game_session_repo.dart';
-import 'package:lets_play_cities/screens/game/input_fields.dart';
-import 'package:lets_play_cities/screens/game/top_bar.dart';
+import 'package:lets_play_cities/base/repos.dart';
+import 'package:lets_play_cities/base/dictionary.dart';
+import 'package:lets_play_cities/base/preferences.dart';
+import 'package:lets_play_cities/base/game/game_mode.dart';
+import 'package:lets_play_cities/base/game/bloc/game_bloc.dart';
 
 import '../common/common_widgets.dart';
+
+import 'top_bar.dart';
+import 'input_fields.dart';
 import 'cities_list.dart';
+import 'city_checking_result_bar.dart';
 
 class GameScreen extends StatelessWidget {
   @override
@@ -54,19 +56,46 @@ class GameScreen extends StatelessWidget {
 Widget _buildGameStateLayout(GameState gameState) => RepositoryProvider(
       create: (BuildContext context) =>
           GameSessionRepository(gameState.gameFacade),
-      child: Column(
+      child: _GameStarter(),
+    );
+
+typedef String FunctionStringCallback();
+
+class _GameStarter extends StatefulWidget {
+  @override
+  _GameStarterState createState() => _GameStarterState();
+}
+
+class _GameStarterState extends State<_GameStarter> {
+  @override
+  Widget build(BuildContext context) => Column(
         children: [
           TopBar(),
           CitiesList(),
           Container(
             alignment: Alignment.bottomCenter,
-            child: InputFieldsGroup(),
+            child: Column(
+              children: [
+                CityCheckingResultBar(),
+                InputFieldsGroup(),
+              ],
+            ),
           )
         ],
-      ),
-    );
+      );
 
-typedef String FunctionStringCallback();
+  @override
+  void initState() {
+    super.initState();
+
+    _test();
+  }
+
+  _test() async {
+    await Future.delayed(Duration(seconds: 2));
+    context.repository<GameSessionRepository>().start();
+  }
+}
 
 class _LoadingStateView extends StatelessWidget {
   final String _text;

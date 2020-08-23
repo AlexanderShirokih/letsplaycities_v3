@@ -23,7 +23,7 @@ class GameSession {
   }
 
   /// Called when the game starts
-  start() {
+  void start() {
     eventChannel.onStart();
   }
 
@@ -44,9 +44,9 @@ class GameSession {
 
   /// Call to start game turn for current user.
   Future _makeMoveForCurrentUser() async {
-    var lastSuitableChar =
-        _lastAcceptedWord[indexOfLastSuitableChar(_lastAcceptedWord)];
-
+    var lastSuitableChar = _lastAcceptedWord.isEmpty
+        ? ""
+        : _lastAcceptedWord[indexOfLastSuitableChar(_lastAcceptedWord)];
     final city = await usersList.current.onCreateWord(lastSuitableChar);
     eventChannel.sendEvent(OutputWordEvent(city.city, city.owner));
   }

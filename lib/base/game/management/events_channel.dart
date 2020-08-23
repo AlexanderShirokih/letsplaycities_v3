@@ -19,6 +19,7 @@ abstract class AbstractEventChannel {
   @protected
   Stream<InputEvent> provideInputEvents();
 
+  /// Called when the game starts
   onStart();
 
   sendEvent(OutputEvent event) {
@@ -36,13 +37,17 @@ abstract class AbstractEventChannel {
     }
     //TODO: Temp code
     if (event is OutputWordEvent) {
+      print("Hit!");
       _streamController.sink.add(InputWordEvent(
           word: event.word,
           wordResult: WordResult.ACCEPTED,
           ownerId: event.owner.id));
+      _streamController.sink
+          .add(OnUserSwitchedEvent(event.owner.id == -2 ? -1 : -2));
     }
   }
 
+  /// Emits game countdown values in seconds
   @protected
   Stream<int> buildTimerStream();
 
@@ -67,7 +72,7 @@ class StubEventChannel extends AbstractEventChannel {
 
   @override
   Stream<int> buildTimerStream() =>
-      Stream.periodic(Duration(seconds: 1)).take(92);
+      Stream<int>.periodic(Duration(seconds: 1), (i) => 92 - i).take(92);
 
   @override
   Stream<InputEvent> provideInputEvents() async* {}

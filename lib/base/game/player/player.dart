@@ -13,7 +13,7 @@ import '../game_facade.dart';
 class Player extends User implements UserInputConsumer {
   static const _kDefaultPlayerId = -1;
 
-  final StreamController<String> _userInput = StreamController<String>();
+  final StreamController<String> _userInput = StreamController<String>.broadcast();
 
   final GameFacade _gameFacade;
 
@@ -29,7 +29,7 @@ class Player extends User implements UserInputConsumer {
   @override
   Future<City> onCreateWord(String firstChar) {
     _firstChar = firstChar;
-
+    print("Listening...");
     return _userInput.stream.map((city) => City(city, this)).first;
   }
 
@@ -40,7 +40,9 @@ class Player extends User implements UserInputConsumer {
     if (input.isEmpty) return;
 
     await for (var event in _checkUserInput(input)) {
-      if (event is Accepted) _userInput.add(event.word);
+      if (event is Accepted) {
+        _userInput.add(event.word);
+      }
       yield event;
     }
   }
@@ -54,7 +56,7 @@ class Player extends User implements UserInputConsumer {
 
     // Check the city in the exclusions list
     var exclusion = _gameFacade.checkForExclusion(input);
-    if (exclusion != null) {
+    if (exclusion.isNotEmpty) {
       yield Exclusion(exclusion);
       return;
     }

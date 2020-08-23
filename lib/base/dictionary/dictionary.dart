@@ -36,7 +36,7 @@ class DictionaryService {
   /// Returns random word from database starting at [firstChar].
   /// Returns a [Future] with a random city or an empty string if there are no available words
   /// starting at [firstChar]
-  Future<String> getRandomWord(String firstChar) => Future.value("");
+  Future<String> getRandomWord(String firstChar) => Future.value("Заглушка");
 
   /// Returns country code for [city] or `0` if country code for the [city] is not found.
   int getCountryCode(String city) => 0;
