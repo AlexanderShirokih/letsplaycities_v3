@@ -4,8 +4,11 @@ import 'package:lets_play_cities/base/users.dart';
 import 'package:lets_play_cities/base/management.dart';
 import 'package:lets_play_cities/base/game_session.dart';
 import 'package:lets_play_cities/base/game/game_facade.dart';
+import 'package:lets_play_cities/utils/debouncer.dart';
 
 class GameSessionRepository {
+  final Debouncer _userInputDebounce =
+      Debouncer(const Duration(milliseconds: 1000));
   GameSession _session;
 
   GameSessionRepository(GameFacade gameFacade) {
@@ -43,9 +46,11 @@ class GameSessionRepository {
 
   /// Dispatches input word to the game session
   void sendInputWord(String input) {
-    //TODO: Temp code
-    _session.deliverUserInput(input).listen((event) {
-      print("Event=$event");
+    _userInputDebounce.run(() {
+      //TODO: Temp code
+      _session.deliverUserInput(input).listen((event) {
+        print("Event=$event");
+      });
     });
   }
 }
