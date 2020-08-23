@@ -1,10 +1,9 @@
 import 'package:lets_play_cities/base/data.dart';
-import 'package:lets_play_cities/base/management.dart';
-import 'package:lets_play_cities/base/game/game_facade.dart';
-import 'package:lets_play_cities/base/repositories/game_items_repo.dart';
-import 'package:lets_play_cities/base/game_session.dart';
-import 'package:lets_play_cities/base/repositories/game_service_events.dart';
+import 'package:lets_play_cities/base/repos.dart';
 import 'package:lets_play_cities/base/users.dart';
+import 'package:lets_play_cities/base/management.dart';
+import 'package:lets_play_cities/base/game_session.dart';
+import 'package:lets_play_cities/base/game/game_facade.dart';
 
 class GameSessionRepository {
   GameSession _session;
@@ -39,9 +38,12 @@ class GameSessionRepository {
   User getUserByPosition(Position position) =>
       _session.getUserByPosition(position);
 
+  /// Called when the game starts
+  void start() => _session.start();
+
   /// Dispatches input word to the game session
-  sendInputWord(String input) {
-    print("Delivered input=$input");
+  void sendInputWord(String input) {
+    //TODO: Temp code
     _session.deliverUserInput(input).listen((event) {
       print("Event=$event");
     });

@@ -32,9 +32,9 @@ String formatCity(String city) {
 
   final dash = '-'.codeUnitAt(0);
 
-  for (var element in replaced.codeUnits) {
+  for (var element in replaced.runes) {
     if (!(element == dash && prev == dash)) {
-      sb.write(element);
+      sb.writeCharCode(element);
     }
     prev = element;
   }
@@ -45,9 +45,8 @@ String formatCity(String city) {
 String timeFormat(int time) {
   var t = time;
   var ret = "";
-  var min = t ~/ 60000;
-  t -= min * 60000;
-  t ~/= 1000;
+  var min = t ~/ 60;
+  t -= min * 60;
   if (min > 0) {
     ret = min.toString() + "мин ";
   }

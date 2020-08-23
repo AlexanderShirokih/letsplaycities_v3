@@ -84,7 +84,7 @@ class _GameItemListTile extends StatelessWidget {
   }
 
   TextSpan _buildCitySpans(TextStyle textStyle, TextStyle spanTextStyle) {
-    final city = (_gameItem as CityInfo).city;
+    final city = (_gameItem as CityInfo).city.toTitleCase();
     final lastSuitable = indexOfLastSuitableChar(city);
 
     return TextSpan(children: [
