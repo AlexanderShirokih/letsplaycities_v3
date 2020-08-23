@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:lets_play_cities/base/auth.dart';
 import 'package:lets_play_cities/base/data.dart';
 import 'package:lets_play_cities/base/users.dart';
-import 'package:lets_play_cities/base/management.dart';
 import 'package:lets_play_cities/base/dictionary.dart';
 import 'package:lets_play_cities/base/game/user_input_consumer.dart';
 import 'package:lets_play_cities/base/game/word_checking_result.dart';
@@ -16,15 +15,11 @@ class Player extends User implements UserInputConsumer {
 
   final StreamController<String> _userInput = StreamController<String>();
 
-//  final AbstractEventChannel _eventChannel;
   final GameFacade _gameFacade;
 
   String _firstChar = "";
 
-  Player(
-      this._gameFacade,
-//    this._eventChannel,
-      PlayerData playerData,
+  Player(this._gameFacade, PlayerData playerData,
       [ClientAccountInfo accountInfo])
       : super(
             playerData,
@@ -32,17 +27,10 @@ class Player extends User implements UserInputConsumer {
                 ClientAccountInfo.basic(playerData.name, _kDefaultPlayerId));
 
   @override
-  Stream<ResultWithCity> onMakeMove(String firstChar) {
+  Future<City> onCreateWord(String firstChar) {
     _firstChar = firstChar;
 
-    //TODO: Send city to the channel
-    return _userInput.stream.map(
-      (event) => ResultWithCity(
-        wordResult: WordResult.ACCEPTED,
-        city: event,
-        identity: UserIdIdentity(0),
-      ),
-    );
+    return _userInput.stream.map((city) => City(city, this)).first;
   }
 
   @override

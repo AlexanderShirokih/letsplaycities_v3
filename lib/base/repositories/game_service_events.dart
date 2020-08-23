@@ -17,7 +17,7 @@ class GameServiceEventsRepository {
   Stream<User> getUserSwitches() => _filterControlEvents()
       .where((event) => event is OnUserSwitchedEvent)
       .cast<OnUserSwitchedEvent>()
-      .map((userSwitchEvent) => _session.getUserById(userSwitchEvent.userId));
+      .map((userSwitchEvent) => _session.getUserById(userSwitchEvent.nextUserId));
 
   /// Returns stream that emits timer ticks
   Stream<String> getTimerTicks() => _filterControlEvents()

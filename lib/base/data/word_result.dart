@@ -18,3 +18,9 @@ enum WordResult {
   /// Undefined state
   UNKNOWN,
 }
+
+extension WordResultExtensions on WordResult {
+  /// Returns true if after this result move can be passed.
+  bool isSuccessful() =>
+      this == WordResult.RECEIVED || this == WordResult.ACCEPTED;
+}

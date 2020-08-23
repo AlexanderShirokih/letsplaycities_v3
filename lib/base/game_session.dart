@@ -10,70 +10,57 @@ import 'package:meta/meta.dart';
 import 'game/player/user.dart';
 
 class GameSession {
-  final List<User> users;
+  final UsersList usersList;
   final AbstractEventChannel eventChannel;
 
-  GameSession({@required this.users, @required this.eventChannel}) {
-    // Setup users positions
-    for (int i = 0; i < users.length; i++)
-      users[i].position = Position.values[i];
+  StreamSubscription _eventChannelSubscription;
+
+  GameSession({@required this.usersList, @required this.eventChannel})
+      : assert(usersList != null),
+        assert(eventChannel != null) {
+    _eventChannelSubscription =
+        eventChannel.getInputEvents().listen(_handleInputEvents);
   }
 
-  /// True until game finishes
-  bool _gameRunning = true;
-
-  /// Keeps index of current user
-  int _currentUserIndex = 0;
-
-  /// Returns index of next [User] in array [users]. Index looped in range 0..users.size.
-  int get nextIndex => (_currentUserIndex + 1) % users.length;
-
-  /// Returns current [User]
-  User get currentUser => users[_currentUserIndex];
-
-  /// Returns previous [User] in queue
-  User get prevUser => users[_floorMod(_currentUserIndex - 1, users.length)];
-
-  static int _floorMod(num x, num y) => ((x % y) + y) % y;
+  /// Called when the game starts
+  start() {
+    eventChannel.onStart();
+  }
 
   /// Returns user attached to the [position]
   /// Throws [StateError] if there is no user attached to the [position].
   User getUserByPosition(Position position) =>
-      users.firstWhere((element) => element.position == position);
+      usersList.getUserByPosition(position);
 
   /// Returns user by this ID in account data
-  User getUserById(int userId) =>
-      users.firstWhere((element) => userId == element.id);
+  User getUserById(int userId) => usersList.getUserById(userId);
 
   /// Last accepted word
   String _lastAcceptedWord = "";
 
   /// Dispatches user input to the first [Player] in users list
   Stream<WordCheckingResult> deliverUserInput(String userInput) =>
-      users.whereType<Player>().single.onUserInput(userInput);
+      usersList.requirePlayer.onUserInput(userInput);
 
   /// Call to start game turn for current user.
-  Future<ResultWithCity> makeMoveForCurrentUser() async {
+  Future _makeMoveForCurrentUser() async {
     var lastSuitableChar =
         _lastAcceptedWord[indexOfLastSuitableChar(_lastAcceptedWord)];
 
-    await for (var moveResult in currentUser.onMakeMove(lastSuitableChar)) {
-      if (moveResult.isSuccessful()) {
-        _lastAcceptedWord = moveResult.city;
-        _currentUserIndex = nextIndex;
-      }
-      return moveResult;
-    }
-
-    return null;
+    final city = await usersList.current.onCreateWord(lastSuitableChar);
+    eventChannel.sendEvent(OutputWordEvent(city.city, city.owner));
   }
 
-  /// Completes all user moves
-  Future doAllMoves() async {
-    while (_gameRunning) {
-      eventChannel.sendEvent(OnUserSwitchedEvent(currentUser.id));
-      await makeMoveForCurrentUser();
+  _handleInputEvents(InputEvent event) async {
+    if (event is OnUserSwitchedEvent) {
+      usersList.current = usersList.getUserById(event.nextUserId);
+      await _makeMoveForCurrentUser();
+    } else if (event is InputWordEvent && event.wordResult.isSuccessful()) {
+      _lastAcceptedWord = event.word;
     }
   }
 
+  Future dispose() async {
+    await _eventChannelSubscription.cancel();
+  }
 }

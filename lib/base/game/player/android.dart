@@ -2,7 +2,6 @@ import 'dart:math';
 
 import 'package:lets_play_cities/base/auth.dart';
 import 'package:lets_play_cities/base/data.dart';
-import 'package:lets_play_cities/base/management.dart';
 
 import 'user.dart';
 import 'surrender_exception.dart';
@@ -15,7 +14,6 @@ class Android extends User {
   static const _kAndroidAvatarPath = "assets/images/android_big.png";
   static const _kDefaultAndroidUserId = -2;
 
-//  final AbstractEventChannel _eventChannel;
   final GameFacade _gameFacade;
 
   /// Count of moves before Android surrenders
@@ -23,7 +21,6 @@ class Android extends User {
 
   Android(
     this._gameFacade,
-//    this._eventChannel,
     String androidName,
   )   : _estimatedMoves = _calculateEstimatedMoves(_gameFacade.difficultyIndex),
         super(
@@ -36,7 +33,7 @@ class Android extends User {
         );
 
   @override
-  Stream<ResultWithCity> onMakeMove(String firstChar) async* {
+  Future<City> onCreateWord(String firstChar) async {
     await Future.delayed(Duration(milliseconds: 1500));
 
     final word = await _gameFacade.getRandomWord(firstChar);
@@ -44,11 +41,7 @@ class Android extends User {
     if (_estimatedMoves-- <= 0 || word.isEmpty)
       throw SurrenderException(this, false);
 
-    yield ResultWithCity(
-      wordResult: WordResult.ACCEPTED,
-      identity: UserIdIdentity.fromUser(this),
-      city: word,
-    );
+    return City(word, this);
   }
 
   static int _calculateEstimatedMoves(int difficultyIndex) {

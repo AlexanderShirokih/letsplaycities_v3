@@ -1,6 +1,5 @@
 import 'package:lets_play_cities/base/auth.dart';
 import 'package:lets_play_cities/base/data.dart';
-import 'package:lets_play_cities/base/management.dart';
 
 /// Base class that keeps users data and defines user behaviour.
 /// [playerData] is a users data model class
@@ -38,10 +37,10 @@ abstract class User {
     _score += points; //points * comboSystem.multiplier
   }
 
+  /// TODO: refactor documentary comment
   /// Called by system when users turn begins
   /// [firstChar] is a first letter of that the city should begin.
   /// Will be an empty string if it's should be the first word in game.
-  /// Returns Stream with word response [ResultWithCity]. To finish move, [User]
-  /// should complete the stream.
-  Stream<ResultWithCity> onMakeMove(String firstChar) async* {}
+  /// Returns future of the word response [City].
+  Future<City> onCreateWord(String firstChar);
 }

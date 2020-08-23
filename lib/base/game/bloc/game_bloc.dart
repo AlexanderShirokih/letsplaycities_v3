@@ -16,10 +16,11 @@ class GameBloc extends Bloc<GameStateEvent, GameLifecycleState> {
   final DictionaryUpdater _dictionaryUpdater;
   final GameMode _gameMode;
 
-  GameBloc({GamePreferences prefs,
+  GameBloc({
+    GamePreferences prefs,
     DictionaryUpdater dictionaryUpdater,
-    GameMode gameMode,})
-      : assert(prefs != null),
+    GameMode gameMode,
+  })  : assert(prefs != null),
         assert(dictionaryUpdater != null),
         assert(gameMode != null),
         _prefs = prefs,
@@ -33,7 +34,7 @@ class GameBloc extends Bloc<GameStateEvent, GameLifecycleState> {
   Stream<GameLifecycleState> mapEventToState(GameStateEvent event) async* {
     switch (event) {
       case GameStateEvent.BeginDataLoading:
-        yield* beginLoading();
+        yield* _beginLoading();
         break;
       case GameStateEvent.GameStart:
         yield GameState(
@@ -45,12 +46,13 @@ class GameBloc extends Bloc<GameStateEvent, GameLifecycleState> {
         );
         break;
       default:
-      // TODO: Handle this case.
+        // TODO: Handle this case.
         break;
     }
   }
 
-  Stream<GameLifecycleState> beginLoading() async* {
+  /// Begins game loading sequence
+  Stream<GameLifecycleState> _beginLoading() async* {
     if (_gameMode.isLocal()) {
       yield* _checkForUpdates();
     }
@@ -63,7 +65,7 @@ class GameBloc extends Bloc<GameStateEvent, GameLifecycleState> {
   }
 
   /// Calls [DictionaryUpdater.checkForUpdates] to fetch updates from the server.
-  /// Doesn't work in remote modes, just completes with empty stream.
+  /// Doesn't work in remote modes, just completes with an empty stream.
   Stream<CheckingForUpdatesState> _checkForUpdates() {
     return _dictionaryUpdater.checkForUpdates().map((downloadPercent) =>
         CheckingForUpdatesState(

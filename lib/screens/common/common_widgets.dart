@@ -33,13 +33,14 @@ class CustomMaterialButton extends StatelessWidget {
 /// Creates button with icon and ripple effect
 class MaterialIconButton extends StatelessWidget {
   final IconData iconData;
+  final Function onPressed;
 
-  const MaterialIconButton(this.iconData);
+  const MaterialIconButton(this.iconData, {this.onPressed});
 
   @override
   Widget build(BuildContext context) => Material(
         child: IconButton(
-          onPressed: () {},
+          onPressed: onPressed,
           highlightColor: Colors.transparent,
           padding: EdgeInsets.zero,
           color: Theme.of(context).primaryColor,

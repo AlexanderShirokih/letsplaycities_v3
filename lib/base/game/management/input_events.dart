@@ -1,3 +1,4 @@
+import 'package:lets_play_cities/base/data.dart';
 import 'package:lets_play_cities/base/game/management/output_events.dart';
 import 'package:meta/meta.dart';
 
@@ -22,9 +23,10 @@ class InputMessageEvent extends InputGameEvent {
 
 /// An event emitted when new input word received
 class InputWordEvent extends InputGameEvent {
+  final WordResult wordResult;
   final String word;
 
-  InputWordEvent(this.word, int ownerId) : super(ownerId);
+  InputWordEvent({this.word, this.wordResult, int ownerId}) : super(ownerId);
 }
 
 /// Base class for all control events like switching users,
@@ -33,9 +35,10 @@ abstract class ControlEvent implements InputEvent, OutputEvent {}
 
 /// An event that emits every time when current user changed
 class OnUserSwitchedEvent extends ControlEvent {
-  final int userId;
+  /// Next user ID
+  final int nextUserId;
 
-  OnUserSwitchedEvent(this.userId);
+  OnUserSwitchedEvent(this.nextUserId);
 }
 
 /// An event that represents game timer ticks

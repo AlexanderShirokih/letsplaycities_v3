@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lets_play_cities/base/dictionary.dart';
@@ -8,6 +7,7 @@ import 'package:lets_play_cities/base/game/game_mode.dart';
 import 'package:lets_play_cities/base/preferences.dart';
 
 import 'package:lets_play_cities/base/repositories/game_session_repo.dart';
+import 'package:lets_play_cities/screens/game/input_fields.dart';
 import 'package:lets_play_cities/screens/game/top_bar.dart';
 
 import '../common/common_widgets.dart';
@@ -60,7 +60,7 @@ Widget _buildGameStateLayout(GameState gameState) => RepositoryProvider(
           CitiesList(),
           Container(
             alignment: Alignment.bottomCenter,
-            child: _CityInputField(),
+            child: InputFieldsGroup(),
           )
         ],
       ),
@@ -88,39 +88,6 @@ class _LoadingStateView extends StatelessWidget {
                 Text(_text, style: Theme.of(context).textTheme.headline6),
               ],
             ),
-          ),
-        ),
-      );
-}
-
-/// Input field for entering cities
-class _CityInputField extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) => Container(
-        margin: const EdgeInsets.all(8.0),
-        color: Colors.white,
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const MaterialIconButton(Icons.keyboard_voice),
-            _createKeyboardField(context),
-            const MaterialIconButton(Icons.add_circle_outline),
-          ],
-        ),
-      );
-
-  Widget _createKeyboardField(BuildContext context) => Expanded(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 4.0),
-          child: TextField(
-            cursorColor: Theme.of(context).primaryColor,
-            textCapitalization: TextCapitalization.words,
-            decoration: const InputDecoration(border: InputBorder.none),
-            inputFormatters: [
-              FilteringTextInputFormatter.allow(
-                RegExp("^[А-я-.' ]+\$"),
-              )
-            ],
           ),
         ),
       );

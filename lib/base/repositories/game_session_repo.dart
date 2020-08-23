@@ -9,20 +9,23 @@ import 'package:lets_play_cities/base/users.dart';
 class GameSessionRepository {
   GameSession _session;
 
-  GameSessionRepository(GameFacade gameFacade)
-      : _session = GameSession(
-          users: [
-            Player(
-              gameFacade,
-              PlayerData(
-                name: "Игрок",
-                picture: PlaceholderPictureSource(),
-              ),
-            ),
-            Android(gameFacade, "Андроид"),
-          ],
-          eventChannel: StubEventChannel(),
-        );
+  GameSessionRepository(GameFacade gameFacade) {
+    final usersList = UsersList([
+      Player(
+        gameFacade,
+        PlayerData(
+          name: "Игрок",
+          picture: PlaceholderPictureSource(),
+        ),
+      ),
+      Android(gameFacade, "Андроид"),
+    ]);
+
+    _session = GameSession(
+      usersList: usersList,
+      eventChannel: StubEventChannel(usersList),
+    );
+  }
 
   /// Creates new instance of [GameItemsRepository]
   GameItemsRepository createGameItemsRepository() =>
@@ -35,4 +38,12 @@ class GameSessionRepository {
   /// Returns a user attached to the [position].
   User getUserByPosition(Position position) =>
       _session.getUserByPosition(position);
+
+  /// Dispatches input word to the game session
+  sendInputWord(String input) {
+    print("Delivered input=$input");
+    _session.deliverUserInput(input).listen((event) {
+      print("Event=$event");
+    });
+  }
 }
