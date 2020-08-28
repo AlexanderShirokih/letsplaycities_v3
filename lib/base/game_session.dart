@@ -100,6 +100,7 @@ class GameSession {
   }
 
   Stream<GameEvent> _createTimer() async* {
+    if (timeLimit == 0) return;
     yield* Stream.periodic(
             const Duration(seconds: 1), (tick) => timeLimit - tick)
         .map((currentTime) => TimeEvent(formatTime(currentTime)))
