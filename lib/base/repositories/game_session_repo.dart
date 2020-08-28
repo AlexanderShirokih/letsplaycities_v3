@@ -35,6 +35,7 @@ class GameSessionRepository {
     _session = GameSession(
       usersList: usersList,
       eventChannel: ProcessingEventChannel(localGameProcessors),
+      timeLimit: 92
     );
   }
 

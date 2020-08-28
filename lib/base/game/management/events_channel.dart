@@ -9,6 +9,7 @@ abstract class AbstractEventChannel {
   /// Sends input event for processing and returns [Stream] with processing result.
   /// [RawWordEvent]s should be converted to any of [WordCheckingResult] type.
   Stream<GameEvent> sendEvent(GameEvent event);
+
 }
 
 /// Dispatches [GameEvents] through [EventHandler]s.

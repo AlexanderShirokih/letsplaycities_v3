@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:async/async.dart' show StreamGroup;
 
 import 'package:lets_play_cities/base/data.dart';
 import 'package:lets_play_cities/base/game/management.dart';
@@ -7,8 +8,15 @@ import 'package:lets_play_cities/utils/string_utils.dart';
 import 'package:meta/meta.dart';
 
 class GameSession {
+  /// Game participants
   final UsersList usersList;
+
+  /// An event channel for passing events to handlers
   final AbstractEventChannel eventChannel;
+
+  /// Time limit in seconds per users move
+  final int timeLimit;
+
   final _inputEvents = StreamController<GameEvent>.broadcast();
 
   bool _gameRunning = true;
@@ -21,9 +29,17 @@ class GameSession {
       .where((event) => event is WordCheckingResult)
       .cast<WordCheckingResult>();
 
-  GameSession({@required this.usersList, @required this.eventChannel})
+  GameSession(
+      {@required this.usersList,
+      @required this.eventChannel,
+      @required this.timeLimit})
       : assert(usersList != null),
-        assert(eventChannel != null);
+        assert(eventChannel != null),
+        assert(timeLimit != null) {
+    inputEvents.listen((event) {
+      print("EVENT=$event");
+    });
+  }
 
   /// Returns user attached to the [position]
   /// Throws [StateError] if there is no user attached to the [position].
@@ -44,13 +60,12 @@ class GameSession {
   }
 
   Stream<GameEvent> _runMoves() async* {
-    yield OnUserSwitchedEvent(usersList.first);
-
     while (_gameRunning) {
-      yield* _makeMoveForCurrentUser();
+      yield* StreamGroup.merge([
+        _makeMoveForCurrentUser(),
+        _createTimer(),
+      ]).takeWhile((element) => !(element is OnMoveFinished));
       usersList.switchToNext();
-
-      yield OnUserSwitchedEvent(usersList.current);
     }
   }
 
@@ -59,27 +74,42 @@ class GameSession {
     var lastSuitableChar = _lastAcceptedWord.isEmpty
         ? ""
         : _lastAcceptedWord[indexOfLastSuitableChar(_lastAcceptedWord)];
-
     final currentUser = usersList.current;
-    final city = await currentUser.onCreateWord(lastSuitableChar);
+
+    // Send current user switching event
+    yield* eventChannel.sendEvent(OnUserSwitchedEvent(currentUser));
 
     // Update the first char
-    yield await eventChannel
-        .sendEvent(OnFirstCharChanged(lastSuitableChar))
-        .drain();
+    yield* eventChannel.sendEvent(OnFirstCharChanged(lastSuitableChar));
 
+    final startTime = DateTime.now().millisecondsSinceEpoch;
+    final city = await currentUser.onCreateWord(lastSuitableChar);
     final results = eventChannel.sendEvent(RawWordEvent(city, currentUser));
 
     await for (final event in results) {
+      yield event;
       if (event is Accepted) {
         _lastAcceptedWord = event.word;
+
+        final now = DateTime.now().millisecondsSinceEpoch;
+        // Finish move by yielding a finish event
+        yield OnMoveFinished(
+            (now - startTime) ~/ 1000, MoveFinishType.Completed);
       }
-      yield event;
     }
+  }
+
+  Stream<GameEvent> _createTimer() async* {
+    yield* Stream.periodic(
+            const Duration(seconds: 1), (tick) => timeLimit - tick)
+        .map((currentTime) => TimeEvent(formatTime(currentTime)))
+        .take(timeLimit);
+    yield OnMoveFinished(timeLimit, MoveFinishType.Timeout);
   }
 
   Future cancel() async {
     _gameRunning = false;
+
     await _inputEvents.close();
   }
 }

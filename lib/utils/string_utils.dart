@@ -42,7 +42,7 @@ String formatCity(String city) {
 }
 
 /// Converts [time] in millis to string representation
-String timeFormat(int time) {
+String formatTime(int time) {
   var t = time;
   var ret = "";
   var min = t ~/ 60;
