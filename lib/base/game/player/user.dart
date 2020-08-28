@@ -4,13 +4,18 @@ import 'package:lets_play_cities/base/data.dart';
 /// Base class that keeps users data and defines user behaviour.
 /// [playerData] is a users data model class
 /// [pictureSource] represents users picture
+/// when user [isTrusted] that means we can omit checking for exclusions and database.
 abstract class User {
+  final bool isTrusted;
   final PlayerData playerData;
   final ClientAccountInfo accountInfo;
 
   int _score = 0;
 
-  User(this.playerData, this.accountInfo);
+  User({this.playerData, this.accountInfo, this.isTrusted})
+      : assert(playerData != null),
+        assert(accountInfo != null),
+        assert(isTrusted != null);
 
   /// Current user position
   Position position = Position.UNKNOWN;
@@ -37,10 +42,9 @@ abstract class User {
     _score += points; //points * comboSystem.multiplier
   }
 
-  /// TODO: refactor documentary comment
   /// Called by system when users turn begins
   /// [firstChar] is a first letter of that the city should begin.
-  /// Will be an empty string if it's should be the first word in game.
-  /// Returns future of the word response [City].
-  Future<City> onCreateWord(String firstChar);
+  /// [firstChar] will be an empty string if it's should be the first word in game.
+  /// Returns future with the user's created word
+  Future<String> onCreateWord(String firstChar);
 }

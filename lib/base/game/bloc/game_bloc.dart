@@ -1,7 +1,7 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lets_play_cities/base/dictionary.dart';
 import 'package:lets_play_cities/base/dictionary/dictionary_updater.dart';
-import 'package:lets_play_cities/base/game/game_facade.dart';
+import 'package:lets_play_cities/base/dictionary/dictionary_proxy.dart';
 import 'package:lets_play_cities/base/preferences.dart';
 import 'package:meta/meta.dart';
 
@@ -38,8 +38,7 @@ class GameBloc extends Bloc<GameStateEvent, GameLifecycleState> {
         break;
       case GameStateEvent.GameStart:
         yield GameState(
-          GameFacade(
-            ExclusionsService(),
+          DictionaryProxy(
             DictionaryService(),
             _prefs,
           ),

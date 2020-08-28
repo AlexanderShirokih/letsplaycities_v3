@@ -1,10 +1,12 @@
+import 'package:lets_play_cities/base/game/management.dart';
+import 'package:lets_play_cities/base/users.dart';
 import 'package:meta/meta.dart';
 
 /// [WordCheckingResult] describes states when [User] should
 /// return after receiving input from keyboard.
 @sealed
 @immutable
-class WordCheckingResult {
+class WordCheckingResult extends GameEvent {
   bool isDescriptiveError() => true;
 
   bool isSuccessful() => false;
@@ -51,6 +53,9 @@ class NotFound extends WordCheckingResult {
 /// Used when input [word] can applied without any corrections.
 /// Note that [word] can be formatted to proper format.
 class Accepted extends WordCheckingResult {
+  /// Event producer
+  final User owner;
+
   final String word;
 
   @override
@@ -58,5 +63,12 @@ class Accepted extends WordCheckingResult {
 
   bool isSuccessful() => true;
 
-  Accepted(this.word);
+  Accepted(this.word, this.owner);
+}
+
+/// Used when error happens during word processing
+class Error extends WordCheckingResult {
+  final Exception exception;
+
+  Error(this.exception);
 }

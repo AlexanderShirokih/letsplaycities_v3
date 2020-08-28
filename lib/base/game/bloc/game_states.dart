@@ -29,9 +29,9 @@ class DataLoadingState extends GameLifecycleState {
 
 /// The state used during the game.
 class GameState extends GameLifecycleState {
-  final GameFacade gameFacade;
+  final DictionaryProxy dictionaryProxy;
 
-  const GameState(this.gameFacade);
+  const GameState(this.dictionaryProxy);
 }
 
 /// Used when the game ends

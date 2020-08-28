@@ -55,7 +55,7 @@ class GameScreen extends StatelessWidget {
 
 Widget _buildGameStateLayout(GameState gameState) => RepositoryProvider(
       create: (BuildContext context) =>
-          GameSessionRepository(gameState.gameFacade),
+          GameSessionRepository(gameState.dictionaryProxy),
       child: _GameStarter(),
     );
 
@@ -93,7 +93,7 @@ class _GameStarterState extends State<_GameStarter> {
 
   _test() async {
     await Future.delayed(Duration(seconds: 2));
-    context.repository<GameSessionRepository>().start();
+    context.repository<GameSessionRepository>().run();
   }
 }
 

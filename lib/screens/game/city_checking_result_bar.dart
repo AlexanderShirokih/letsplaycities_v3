@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:lets_play_cities/base/game/word_checking_result.dart';
+import 'package:lets_play_cities/base/game/management/word_checking_result.dart';
 
 import 'package:lets_play_cities/base/repos.dart';
 
@@ -77,7 +77,7 @@ class _CityCheckingResultBarState extends State<CityCheckingResultBar>
     );
   }
 
-  String _translateWordCheckingResult(WordCheckingResult data) {
+  static String _translateWordCheckingResult(WordCheckingResult data) {
     if (data is AlreadyUsed) return "Город ${data.word} уже был загадан";
     if (data is WrongLetter)
       return "Город должен начинаться на букву ${data.validLetter}";

@@ -1,29 +1,25 @@
 import 'package:lets_play_cities/base/game/game_item.dart';
-import 'package:lets_play_cities/base/management.dart';
-import 'package:lets_play_cities/base/game_session.dart';
+import 'package:lets_play_cities/base/game/management.dart';
 
-/// Repository that holds game item data
+/// Repository that holds game item data such as words and messages
 class GameItemsRepository {
-  final GameSession _session;
+  final Stream<GameEvent> _eventsStream;
   final List<GameItem> _itemsList = [];
 
-  GameItemsRepository(this._session);
+  GameItemsRepository(this._eventsStream);
 
   /// Emits [GameItem] events such as [CityInfo] and [MessageInfo]
   /// from the session event channel.
-  Stream<GameItem> _getGameItems() => _session.eventChannel
-          .getInputEvents()
-          .where((event) => event is InputGameEvent)
+  Stream<GameItem> _getGameItems() => _eventsStream
+          .where(
+              (event) => event is Accepted || event is MessageEvent)
           .map((event) {
-        if (event is InputWordEvent) {
-          return CityInfo(
-              city: event.word, owner: _session.getUserById(event.ownerId));
-        } else if (event is InputMessageEvent) {
-          return MessageInfo(
-              message: event.message,
-              owner: _session.getUserById(event.ownerId));
+        if (event is Accepted) {
+          return CityInfo(city: event.word, owner: event.owner);
+        } else if (event is MessageEvent) {
+          return MessageInfo(message: event.message, owner: event.owner);
         } else
-          throw ("Unexpected InputGameEvent implementation");
+          throw ("Error filtering Word|Message events !");
       });
 
   int _findWithTheSameBase(GameItem item) =>
