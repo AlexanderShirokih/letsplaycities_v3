@@ -35,7 +35,7 @@ class Exclusion extends WordCheckingResult {
 
 /// Used after state [NotFound] and contains available corrections for current input
 class Corrections extends WordCheckingResult {
-  final List<String> corrections;
+  final Set<String> corrections;
 
   Corrections(this.corrections);
 

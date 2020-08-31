@@ -27,6 +27,7 @@ class GameSessionRepository {
     ]);
 
     final localGameProcessors = [
+      TrustedEventsInterceptor(),
       FirstLetterChecker(),
       ExclusionsChecker(ExclusionsService()),
       DatabaseChecker(dictionary),

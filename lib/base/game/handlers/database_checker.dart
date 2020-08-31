@@ -28,7 +28,7 @@ class DatabaseChecker extends TypedEventHandler<RawWordEvent> {
           yield NotFound(event.word);
           break;
         case 1:
-          yield Accepted(corrections[0], event.owner);
+          yield Accepted(corrections.first, event.owner);
           break;
         default:
           yield Corrections(corrections);

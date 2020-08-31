@@ -1,5 +1,6 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lets_play_cities/base/dictionary.dart';
+import 'package:lets_play_cities/base/dictionary/dictionary_impl.dart';
 import 'package:lets_play_cities/base/dictionary/dictionary_updater.dart';
 import 'package:lets_play_cities/base/dictionary/dictionary_proxy.dart';
 import 'package:lets_play_cities/base/preferences.dart';
@@ -39,7 +40,12 @@ class GameBloc extends Bloc<GameStateEvent, GameLifecycleState> {
       case GameStateEvent.GameStart:
         yield GameState(
           DictionaryProxy(
-            DictionaryService(),
+            DictionaryServiceImpl(
+              {
+                'керчь': CityProperties(countryCode: 0, difficulty: 0),
+                'челябинск': CityProperties(countryCode: 0, difficulty: 0),
+              },
+            ),
             _prefs,
           ),
         );
