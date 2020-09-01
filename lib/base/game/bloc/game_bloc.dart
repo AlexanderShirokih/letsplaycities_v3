@@ -1,6 +1,6 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lets_play_cities/base/dictionary.dart';
-import 'package:lets_play_cities/base/dictionary/dictionary_impl.dart';
+import 'package:lets_play_cities/base/dictionary/dictionary_factory.dart';
 import 'package:lets_play_cities/base/dictionary/dictionary_updater.dart';
 import 'package:lets_play_cities/base/dictionary/dictionary_proxy.dart';
 import 'package:lets_play_cities/base/preferences.dart';
@@ -38,17 +38,6 @@ class GameBloc extends Bloc<GameStateEvent, GameLifecycleState> {
         yield* _beginLoading();
         break;
       case GameStateEvent.GameStart:
-        yield GameState(
-          DictionaryProxy(
-            DictionaryServiceImpl(
-              {
-                'керчь': CityProperties(countryCode: 0, difficulty: 0),
-                'челябинск': CityProperties(countryCode: 0, difficulty: 0),
-              },
-            ),
-            _prefs,
-          ),
-        );
         break;
       default:
         // TODO: Handle this case.
@@ -62,9 +51,14 @@ class GameBloc extends Bloc<GameStateEvent, GameLifecycleState> {
       yield* _checkForUpdates();
     }
 
-    // Simulate dictionary loading
     yield DataLoadingState();
-//    await Future.delayed(Duration(seconds: 2));
+
+    yield GameState(
+      DictionaryProxy(
+        await DictionaryFactory().loadDictionary(),
+        _prefs,
+      ),
+    );
 
     add(GameStateEvent.GameStart);
   }

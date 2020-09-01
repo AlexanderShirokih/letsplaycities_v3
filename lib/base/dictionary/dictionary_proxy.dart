@@ -8,7 +8,9 @@ class DictionaryProxy {
   final DictionaryService _dictionaryService;
   final GamePreferences _prefs;
 
-  DictionaryProxy(this._dictionaryService, this._prefs);
+  DictionaryProxy(this._dictionaryService, this._prefs)
+      : assert(_dictionaryService != null),
+        assert(_prefs != null);
 
   /// Returns index of current difficulty level
   int get difficultyIndex => _prefs.wordsDifficulty;

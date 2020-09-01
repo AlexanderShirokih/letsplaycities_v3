@@ -19,8 +19,10 @@ class CityProperties {
   /// Creates new instance from difficulty level and country code
   CityProperties({@required int difficulty, @required int countryCode})
       : assert(difficulty != null && countryCode != null),
-        assert(difficulty >= 0 && difficulty < 3),
-        assert(countryCode >= 0 && countryCode <= 255),
+        assert(difficulty >= 0 && difficulty < 3,
+            'Invalid difficulty value=$difficulty'),
+        assert(countryCode >= 0 && countryCode <= 255,
+            'Invalid country code value=$countryCode'),
         _dataBits = countryCode & _COUNTY_CODE_MASK |
             (difficulty << _DIFFICULTY_BITS_OFFSET) & _DIFFICULTY_MASK;
 
