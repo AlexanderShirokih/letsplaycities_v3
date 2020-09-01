@@ -9,7 +9,6 @@ enum CityResult {
 
 /// Interface that provides functions for access to dictionary database.
 abstract class DictionaryService {
-
   /// Checks [city] in the dictionary database.
   /// Returns a [Future] with [CityResult.OK] if city not used before, [CityResult.ALREADY_USED] if
   /// city has already been used, [CityResult.CITY_NOT_FOUND] if city not found in dictionary.

@@ -59,8 +59,7 @@ class DictionaryServiceImpl extends DictionaryService {
       if (_canUse(s)) candidates.add(s);
     }
 
-    if (candidates.isNotEmpty)
-      return candidates.toSet();
+    if (candidates.isNotEmpty) return candidates.toSet();
 
     for (final s in list)
       for (final w in _edits(s))

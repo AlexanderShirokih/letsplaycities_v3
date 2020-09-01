@@ -16,6 +16,4 @@ class PlayerData {
     this.picture,
     this.canReceiveMessages = false,
   });
-
-
 }

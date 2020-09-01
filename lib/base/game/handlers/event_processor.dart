@@ -11,7 +11,6 @@ abstract class EventHandler {
 
 /// Filters event only of type [T] and processes it on [processEvent](T).
 abstract class TypedEventHandler<T extends GameEvent> extends EventHandler {
-  
   @override
   Stream<GameEvent> process(GameEvent event) {
     return event is T ? processTypedEvent(event) : Stream.value(event);

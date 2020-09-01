@@ -11,8 +11,7 @@ class GameItemsRepository {
   /// Emits [GameItem] events such as [CityInfo] and [MessageInfo]
   /// from the session event channel.
   Stream<GameItem> _getGameItems() => _eventsStream
-          .where(
-              (event) => event is Accepted || event is MessageEvent)
+          .where((event) => event is Accepted || event is MessageEvent)
           .map((event) {
         if (event is Accepted) {
           return CityInfo(city: event.word, owner: event.owner);
