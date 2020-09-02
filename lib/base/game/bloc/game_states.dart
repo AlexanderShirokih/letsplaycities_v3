@@ -31,7 +31,9 @@ class DataLoadingState extends GameLifecycleState {
 class GameState extends GameLifecycleState {
   final DictionaryProxy dictionaryProxy;
 
-  const GameState(this.dictionaryProxy);
+  final ExclusionsService exclusionsService;
+
+  const GameState(this.dictionaryProxy, this.exclusionsService);
 }
 
 /// Used when the game ends

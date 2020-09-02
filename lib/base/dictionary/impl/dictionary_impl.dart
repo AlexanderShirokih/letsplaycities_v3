@@ -2,7 +2,7 @@ import 'dart:math';
 
 import 'package:lets_play_cities/base/dictionary/city_properties.dart';
 
-import 'dictionary.dart';
+import '../dictionary.dart';
 
 /// Dictionary database implementation based on [Map].
 /// Where map key is a city name, value is [CityProperties] describing this city.

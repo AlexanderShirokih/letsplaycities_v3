@@ -4,12 +4,12 @@ import 'dart:typed_data';
 
 import 'package:flutter/services.dart';
 import 'package:lets_play_cities/base/dictionary.dart';
-import 'package:lets_play_cities/base/dictionary/dictionary.dart';
 import 'package:path_provider/path_provider.dart';
 
-import '../exceptions.dart';
+import '../../exceptions.dart';
+import 'dictionary_impl.dart';
 
-/// Factory interface for creating and loading [DictionaryService] instance
+/// Factory class for creating and loading [DictionaryService] instance
 class DictionaryFactory {
   static _Dictionary _cachedDictionary;
 
@@ -26,7 +26,7 @@ class DictionaryFactory {
   ///  1. Cached dictionary
   ///  2. Downloaded dictionary
   ///  3. Embedded dictionary
-  Future<DictionaryService> loadDictionary() async {
+  Future<DictionaryService> createDictionary() async {
     final cached = await _loadCachedDictionary();
     final internal = cached ?? await _loadInternalDictionary();
     return internal ?? await _loadEmbeddedDictionary();

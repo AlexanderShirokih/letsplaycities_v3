@@ -24,4 +24,9 @@ main() {
     expect(indexOfLastSuitableChar("Тесть"), equals("Тесть".lastIndexOf("т")));
     expect(indexOfLastSuitableChar("холмы"), equals("холмы".lastIndexOf("м")));
   });
+
+  test('String.format() formats string correctly', () {
+    expect("no args".format(["unused"]), equals("no args"));
+    expect(r"%1$ %2$".format(["Hello", "world"]), equals("Hello world"));
+  });
 }

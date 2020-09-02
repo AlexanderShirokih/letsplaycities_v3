@@ -1,5 +1,5 @@
 import 'package:lets_play_cities/base/dictionary.dart';
-import 'package:lets_play_cities/base/dictionary/dictionary.dart';
+import 'package:lets_play_cities/base/dictionary/impl/dictionary_impl.dart';
 import 'package:test/test.dart';
 
 void main() {

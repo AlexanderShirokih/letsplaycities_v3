@@ -1,5 +1,14 @@
 /// Utilities functions for formatting strings.
 
+extension FormatExtension on String {
+  String format(List<String> params) {
+    String result = this;
+    for (int i = 1; i < params.length + 1; i++)
+      result = result.replaceAll('%$i\$', params[i - 1]);
+    return result;
+  }
+}
+
 extension CapitalizeExtension on String {
   /// Converts the string to title case.
   /// For ex.: "lower-case string" will be converted to "Lower-Case String"
