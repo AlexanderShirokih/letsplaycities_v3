@@ -1,9 +1,12 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lets_play_cities/base/dictionary.dart';
-import 'package:lets_play_cities/base/dictionary/dictionary_factory.dart';
+import 'package:lets_play_cities/base/dictionary/impl/country_list_loader_factory.dart';
+import 'package:lets_play_cities/base/dictionary/impl/dictionary_factory.dart';
 import 'package:lets_play_cities/base/dictionary/dictionary_updater.dart';
 import 'package:lets_play_cities/base/dictionary/dictionary_proxy.dart';
+import 'package:lets_play_cities/base/dictionary/impl/exclusions_factory.dart';
 import 'package:lets_play_cities/base/preferences.dart';
+import 'package:lets_play_cities/l18n/localization_service.dart';
 import 'package:meta/meta.dart';
 
 import '../game_mode.dart';
@@ -14,17 +17,21 @@ part 'game_states.dart';
 
 class GameBloc extends Bloc<GameStateEvent, GameLifecycleState> {
   final GamePreferences _prefs;
+  final LocalizationService _localizations;
   final DictionaryUpdater _dictionaryUpdater;
   final GameMode _gameMode;
 
   GameBloc({
+    LocalizationService localizations,
     GamePreferences prefs,
     DictionaryUpdater dictionaryUpdater,
     GameMode gameMode,
   })  : assert(prefs != null),
         assert(dictionaryUpdater != null),
         assert(gameMode != null),
+        assert(localizations != null),
         _prefs = prefs,
+        _localizations = localizations,
         _dictionaryUpdater = dictionaryUpdater,
         _gameMode = gameMode,
         super(InitialState()) {
@@ -53,12 +60,18 @@ class GameBloc extends Bloc<GameStateEvent, GameLifecycleState> {
 
     yield DataLoadingState();
 
+    final dictionary = await DictionaryFactory().createDictionary();
+    final exclusions = await ExclusionsFactory(
+            CountryListLoaderServiceFactory().createCountryList(),
+            _localizations.exclusionDescriptions)
+        .createExclusions();
+
     yield GameState(
-      DictionaryProxy(
-        await DictionaryFactory().loadDictionary(),
-        _prefs,
-      ),
-    );
+        DictionaryProxy(
+          dictionary,
+          _prefs,
+        ),
+        exclusions);
 
     add(GameStateEvent.GameStart);
   }

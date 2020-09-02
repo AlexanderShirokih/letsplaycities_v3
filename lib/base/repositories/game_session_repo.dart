@@ -15,7 +15,7 @@ class GameSessionRepository {
 
   GameSession _session;
 
-  GameSessionRepository(DictionaryProxy dictionary) {
+  GameSessionRepository(DictionaryProxy dictionary, ExclusionsService exclusionsService) {
     final usersList = UsersList([
       Player(
         PlayerData(
@@ -29,7 +29,7 @@ class GameSessionRepository {
     final localGameProcessors = [
       TrustedEventsInterceptor(),
       FirstLetterChecker(),
-      ExclusionsChecker(ExclusionsService()),
+      ExclusionsChecker(exclusionsService),
       DatabaseChecker(dictionary),
     ];
 

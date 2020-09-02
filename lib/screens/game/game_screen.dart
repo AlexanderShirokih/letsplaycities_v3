@@ -7,6 +7,7 @@ import 'package:lets_play_cities/base/dictionary.dart';
 import 'package:lets_play_cities/base/preferences.dart';
 import 'package:lets_play_cities/base/game/game_mode.dart';
 import 'package:lets_play_cities/base/game/bloc/game_bloc.dart';
+import 'package:lets_play_cities/l18n/localization_service.dart';
 
 import '../common/common_widgets.dart';
 
@@ -25,10 +26,10 @@ class GameScreen extends StatelessWidget {
           SizedBox.expand(
             child: BlocBuilder<GameBloc, GameLifecycleState>(
               cubit: GameBloc(
-                prefs: context.repository<GamePreferences>(),
-                gameMode: GameMode.PlayerVsAndroid,
-                dictionaryUpdater: DictionaryUpdater(),
-              ),
+                  prefs: context.repository<GamePreferences>(),
+                  gameMode: GameMode.PlayerVsAndroid,
+                  dictionaryUpdater: DictionaryUpdater(),
+                  localizations: context.repository<LocalizationService>()),
               builder: (context, state) {
                 if (state is GameState) {
                   return _buildGameStateLayout(state);
@@ -54,8 +55,8 @@ class GameScreen extends StatelessWidget {
 }
 
 Widget _buildGameStateLayout(GameState gameState) => RepositoryProvider(
-      create: (BuildContext context) =>
-          GameSessionRepository(gameState.dictionaryProxy),
+      create: (BuildContext context) => GameSessionRepository(
+          gameState.dictionaryProxy, gameState.exclusionsService),
       child: _GameStarter(),
     );
 

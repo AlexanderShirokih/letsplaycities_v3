@@ -30,3 +30,4 @@ flutter:
     - assets/images/
     - assets/images/backgrounds/
     - assets/data/
+    - assets/i18n/
