@@ -5,6 +5,8 @@ import 'package:lets_play_cities/base/dictionary/impl/country_list_loader_factor
 
 void main() {
   group('CountryListLoaderFactory', () {
+    TestWidgetsFlutterBinding.ensureInitialized();
+
     test('country list exists', () async {
       expect(await File("assets/data/countries.txt").exists(), isTrue);
     });
