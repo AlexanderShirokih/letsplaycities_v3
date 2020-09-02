@@ -15,7 +15,8 @@ class GameSessionRepository {
 
   GameSession _session;
 
-  GameSessionRepository(DictionaryProxy dictionary, ExclusionsService exclusionsService) {
+  GameSessionRepository(
+      DictionaryProxy dictionary, ExclusionsService exclusionsService) {
     final usersList = UsersList([
       Player(
         PlayerData(

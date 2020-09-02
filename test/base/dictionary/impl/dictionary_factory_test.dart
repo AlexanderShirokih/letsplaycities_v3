@@ -8,5 +8,4 @@ void main() {
     expect(() async => await DictionaryFactory().createDictionary(),
         returnsNormally);
   }, timeout: Timeout(Duration(seconds: 1)));
-
 }

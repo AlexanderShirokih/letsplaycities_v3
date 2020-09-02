@@ -1,4 +1,3 @@
-
 /// Data class describing country.
 class CountryEntity {
   /// Country name
