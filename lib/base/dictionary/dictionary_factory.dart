@@ -11,19 +11,41 @@ import '../exceptions.dart';
 
 /// Factory interface for creating and loading [DictionaryService] instance
 class DictionaryFactory {
+  static _Dictionary _cachedDictionary;
+
   static const _EMBEDDED_DICTIONARY_PATH = "assets/data/data.bin";
   static const _INTERNAL_DICTIONARY_FILE = "/data-last.bin";
 
-  /// Loads downloaded dictionary(preferred), if exists or embedded
+  /// Resets saved dictionary instance and clears underlying data
+  static void invalidateCache() {
+    _cachedDictionary?.data?.clear();
+    _cachedDictionary = null;
+  }
+
+  /// Loads dictionary in order below:
+  ///  1. Cached dictionary
+  ///  2. Downloaded dictionary
+  ///  3. Embedded dictionary
   Future<DictionaryService> loadDictionary() async {
-    final internal = await _loadInternalDictionary();
+    final cached = await _loadCachedDictionary();
+    final internal = cached ?? await _loadInternalDictionary();
     return internal ?? await _loadEmbeddedDictionary();
   }
 
+  Future<DictionaryService> _loadCachedDictionary() {
+    if (_cachedDictionary != null) {
+      final data = DictionaryServiceImpl(_cachedDictionary.data);
+      data.reset();
+      return Future.value(data);
+    }
+    return Future.value(null);
+  }
+
   Future<DictionaryService> _loadEmbeddedDictionary() async {
-    final dictionary = await rootBundle.load(_EMBEDDED_DICTIONARY_PATH);
-    final data = _parseDictionary(dictionary);
-    return DictionaryServiceImpl(data);
+    final asset = await rootBundle.load(_EMBEDDED_DICTIONARY_PATH);
+    final dictionary = _parseDictionary(asset);
+    _updateCacheEntry(dictionary);
+    return DictionaryServiceImpl(dictionary.data);
   }
 
   Future<DictionaryService> _loadInternalDictionary() async {
@@ -32,23 +54,34 @@ class DictionaryFactory {
     if (!(await file.exists())) return null;
 
     try {
-      final data =
+      final dictionary =
           _parseDictionary((await file.readAsBytes()).buffer.asByteData());
-      return DictionaryServiceImpl(data);
+      _updateCacheEntry(dictionary);
+      return DictionaryServiceImpl(dictionary.data);
     } on Exception {
       await file.delete();
       return null;
     }
   }
 
-  Map<String, CityProperties> _parseDictionary(ByteData data) {
+  void _updateCacheEntry(_Dictionary dictionary) {
+    if (_cachedDictionary == null)
+      _cachedDictionary = dictionary;
+    else if (_cachedDictionary.version < dictionary.version) {
+      _cachedDictionary.data.clear();
+      _cachedDictionary = dictionary;
+    }
+  }
+
+  _Dictionary _parseDictionary(ByteData data) {
     final count = data.getUint32(0);
+    final version = data.getUint32(4);
     final countTest = data.getUint32(8);
 
     if (count != countTest >> 12)
       throw DictionaryException("Invalid file header", -1);
 
-    return _parseData(data, count, 12);
+    return _Dictionary(_parseData(data, count, 12), version);
   }
 
   Map<String, CityProperties> _parseData(ByteData data, int count, int offset) {
@@ -81,4 +114,13 @@ class DictionaryFactory {
 
     return mapData;
   }
+}
+
+class _Dictionary {
+  final Map<String, CityProperties> data;
+  final int version;
+
+  const _Dictionary(this.data, this.version)
+      : assert(data != null),
+        assert(version != null);
 }
