@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:io';
 
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -9,11 +8,7 @@ void main() {
   group('CountryListLoaderFactory', () {
     TestWidgetsFlutterBinding.ensureInitialized();
 
-    test('country list exists', () async {
-      expect(await File("assets/data/countries.txt").exists(), isTrue);
-    });
-
-    test('sample data valid', () async {
+    test('sample data is valid', () async {
       final lines = await rootBundle
           .loadString("assets/data/countries.txt")
           .asStream()
