@@ -74,14 +74,26 @@ class DictionaryFactory {
   }
 
   _Dictionary _parseDictionary(ByteData data) {
-    final count = data.getUint32(0);
+    final magic = data.getUint16(0);
+    final settings = data.getUint16(2);
     final version = data.getUint32(4);
-    final countTest = data.getUint32(8);
+    final count = data.getUint32(8);
 
-    if (count != countTest >> 12)
-      throw DictionaryException("Invalid file header", -1);
+    if (magic != 0xFED0) throw DictionaryException("Invalid file header", -1);
+    if (settings != 0x01)
+      throw DictionaryException("Unsupported settings value: $settings", -1);
 
     return _Dictionary(_parseData(data, count, 12), version);
+  }
+
+  // Code point of cyrillic 'a' char + decoding offset
+  static const base = 0x0430 - 127;
+
+  Iterable<int> _decodeChars(ByteData data, int offset, int length) sync* {
+    for (int i = 0; i < length; i++) {
+      final int char = data.getUint8(offset + i);
+      yield char < 127 ? char : char + base;
+    }
   }
 
   Map<String, CityProperties> _parseData(ByteData data, int count, int offset) {
@@ -89,24 +101,19 @@ class DictionaryFactory {
 
     for (int i = 0; i < count + 1; i++) {
       try {
-        final length = data.getUint8(offset++);
+        final length = data.getUint8(offset);
+        final meta = data.getUint32(offset);
+        offset += 4;
 
-        final List<int> list = List.generate(
-            length, (i) => data.getUint16(offset + i * 2) - 513,
-            growable: false);
+        final name = String.fromCharCodes(_decodeChars(data, offset, length));
 
-        offset += length * 2;
+        offset += length;
 
-        final name = String.fromCharCodes(list);
-        final diff = data.getInt8(offset++) - 1;
-        final countryCode = data.getInt16(offset);
-        offset += 2;
         if (i == count) {
           if (int.parse(name.substring(0, name.length - 6)) != count)
             throw DictionaryException("File checking failed!", i);
         } else
-          mapData[name] =
-              CityProperties(difficulty: diff, countryCode: countryCode);
+          mapData[name] = CityProperties.fromBitmask(meta);
       } catch (e) {
         throw DictionaryException("Unknown error: $e", i);
       }

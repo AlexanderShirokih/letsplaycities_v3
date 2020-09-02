@@ -5,15 +5,15 @@ import 'package:meta/meta.dart';
 /// Difficulty level - difficulty of the city name for average user (0-3)
 /// Usage flag - when raised - city wasn't used in the game
 class CityProperties {
-  static const _DIFFICULTY_BITS_OFFSET = 8;
+  static const _DIFFICULTY_BITS_OFFSET = 16;
 
-  static const _COUNTY_CODE_MASK = 0xFF;
-  static const _DIFFICULTY_MASK = 0x03 << _DIFFICULTY_BITS_OFFSET;
-  static const _USAGE_FLAG_MASK = 0x4000;
+  static const _COUNTY_CODE_MASK = 0xFFFF;
+  static const _DIFFICULTY_MASK = 0x030000;
+  static const _USAGE_FLAG_MASK = 0x1000000;
 
-  // 0-7 bits - country code bits.
-  // 8-9 bits - difficulty index bits
-  // 10 bit - usage flag
+  // 0-15 bits - country code bits.
+  // 16-23 bits - difficulty index bits
+  // 24 bit - usage flag
   int _dataBits;
 
   /// Creates new instance from difficulty level and country code
@@ -21,12 +21,14 @@ class CityProperties {
       : assert(difficulty != null && countryCode != null),
         assert(difficulty >= 0 && difficulty < 3,
             'Invalid difficulty value=$difficulty'),
-        assert(countryCode >= 0 && countryCode <= 255,
+        assert(countryCode >= 0 && countryCode.bitLength < 16,
             'Invalid country code value=$countryCode'),
         _dataBits = countryCode & _COUNTY_CODE_MASK |
             (difficulty << _DIFFICULTY_BITS_OFFSET) & _DIFFICULTY_MASK;
 
-  CityProperties.fromBitmask(int bitmask) : _dataBits = bitmask;
+  /// Bitmask layout: [difficulty(u8)][countryCode(u16)] <- 0
+  /// Other bits will be clears using logic AND mask
+  CityProperties.fromBitmask(int bitmask) : _dataBits = bitmask & 0xFFFFFF;
 
   /// Raises usage flag
   void markUsed() => _dataBits |= _USAGE_FLAG_MASK;

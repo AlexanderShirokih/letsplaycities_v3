@@ -30,7 +30,7 @@ main() {
     test('.difficulty bits sets correctly', () {
       expect(
           CityProperties(difficulty: 2, countryCode: 10).difficulty, equals(2));
-      expect(CityProperties.fromBitmask(0x0200).difficulty, equals(2));
+      expect(CityProperties.fromBitmask(0x020000).difficulty, equals(2));
     });
 
     test('.countryCode bits sets correctly', () {
