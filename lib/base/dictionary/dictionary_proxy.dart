@@ -16,8 +16,8 @@ class DictionaryProxy {
   int get difficultyIndex => _prefs.wordsDifficulty;
 
   /// Returns a random word from the database starting at [firstChar] or an empty string if there are no words left
-  /// starting at the [firstChar] and [difficulty].
-  Future<String> getRandomWord(String firstChar, int difficulty) =>
+  /// starting at the [firstChar].
+  Future<String> getRandomWord(String firstChar) =>
       _dictionaryService.getRandomWord(firstChar, difficultyIndex);
 
   /// Checks [city] in dictionary database.

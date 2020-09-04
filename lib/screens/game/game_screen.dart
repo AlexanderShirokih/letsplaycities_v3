@@ -1,20 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-
-import 'package:lets_play_cities/base/repos.dart';
 import 'package:lets_play_cities/base/dictionary.dart';
-import 'package:lets_play_cities/base/preferences.dart';
-import 'package:lets_play_cities/base/game/game_mode.dart';
 import 'package:lets_play_cities/base/game/bloc/game_bloc.dart';
+import 'package:lets_play_cities/base/game/game_mode.dart';
+import 'package:lets_play_cities/base/preferences.dart';
 import 'package:lets_play_cities/l18n/localization_service.dart';
 
 import '../common/common_widgets.dart';
-
-import 'top_bar.dart';
-import 'input_fields.dart';
 import 'cities_list.dart';
 import 'city_checking_result_bar.dart';
+import 'game_results_screen.dart';
+import 'input_fields.dart';
+import 'top_bar.dart';
 
 class GameScreen extends StatelessWidget {
   @override
@@ -24,7 +22,7 @@ class GameScreen extends StatelessWidget {
         children: [
           createBackground("bg_geo"),
           SizedBox.expand(
-            child: BlocBuilder<GameBloc, GameLifecycleState>(
+            child: BlocConsumer<GameBloc, GameLifecycleState>(
               cubit: GameBloc(
                   prefs: context.repository<GamePreferences>(),
                   gameMode: GameMode.PlayerVsAndroid,
@@ -41,10 +39,14 @@ class GameScreen extends StatelessWidget {
                   });
                 } else if (state is DataLoadingState) {
                   return _LoadingStateView(() => "Загрузка базы данных");
-                } else if (state is InitialState) {
-                  return Placeholder();
-                }
-                throw ("Unknown state: $state");
+                } else
+                  // [InitialState] || [GameResultsState]
+                  return Container(width: 0, height: 0);
+              },
+              listener: (context, state) {
+                if (state is GameResultsState)
+                  Navigator.of(context).pushReplacement(
+                      MaterialPageRoute(builder: (_) => GameResultsScreen()));
               },
             ),
           )
@@ -55,21 +57,8 @@ class GameScreen extends StatelessWidget {
 }
 
 Widget _buildGameStateLayout(GameState gameState) => RepositoryProvider(
-      create: (BuildContext context) => GameSessionRepository(
-          gameState.dictionaryProxy, gameState.exclusionsService),
-      child: _GameStarter(),
-    );
-
-typedef String FunctionStringCallback();
-
-class _GameStarter extends StatefulWidget {
-  @override
-  _GameStarterState createState() => _GameStarterState();
-}
-
-class _GameStarterState extends State<_GameStarter> {
-  @override
-  Widget build(BuildContext context) => Column(
+      create: (BuildContext context) => gameState.gameSessionRepository,
+      child: Column(
         children: [
           TopBar(),
           CitiesList(),
@@ -83,20 +72,10 @@ class _GameStarterState extends State<_GameStarter> {
             ),
           )
         ],
-      );
+      ),
+    );
 
-  @override
-  void initState() {
-    super.initState();
-
-    _test();
-  }
-
-  _test() async {
-    await Future.delayed(Duration(seconds: 2));
-    context.repository<GameSessionRepository>().run();
-  }
-}
+typedef String FunctionStringCallback();
 
 class _LoadingStateView extends StatelessWidget {
   final String _text;

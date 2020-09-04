@@ -2,8 +2,8 @@ import 'dart:async';
 import 'package:async/async.dart' show StreamGroup;
 
 import 'package:lets_play_cities/base/data.dart';
-import 'package:lets_play_cities/base/game/management.dart';
 import 'package:lets_play_cities/base/users.dart';
+import 'package:lets_play_cities/base/game/management.dart';
 import 'package:lets_play_cities/utils/string_utils.dart';
 import 'package:meta/meta.dart';
 
@@ -37,6 +37,7 @@ class GameSession {
         assert(eventChannel != null),
         assert(timeLimit != null) {
     inputEvents.listen((event) {
+      //TODO: Debug print
       print("EVENT=$event");
     });
   }
@@ -56,7 +57,9 @@ class GameSession {
 
   /// Runs game processing loop
   Future runMoves() async {
+    print("Await!");
     await _runMoves().pipe(_inputEvents);
+    print("Awaited!");
   }
 
   Stream<GameEvent> _runMoves() async* {
@@ -64,7 +67,13 @@ class GameSession {
       yield* StreamGroup.merge([
         _makeMoveForCurrentUser(),
         _createTimer(),
-      ]).takeWhile((element) => !(element is OnMoveFinished));
+      ]).takeWhile((element) {
+        final isMoveFinished = element is OnMoveFinished;
+        if (isMoveFinished &&
+            (element as OnMoveFinished).endType != MoveFinishType.Completed)
+          _gameRunning = false;
+        return !isMoveFinished;
+      });
       usersList.switchToNext();
     }
   }

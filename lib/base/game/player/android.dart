@@ -39,7 +39,7 @@ class Android extends User {
   Future<String> onCreateWord(String firstChar) async {
     await Future.delayed(Duration(milliseconds: 1500));
 
-    final word = await _dictionary.getRandomWord(firstChar, 0);
+    final word = await _dictionary.getRandomWord(firstChar);
 
     if (_estimatedMoves-- <= 0 || word.isEmpty)
       throw SurrenderException(this, false);

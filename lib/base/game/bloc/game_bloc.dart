@@ -6,6 +6,7 @@ import 'package:lets_play_cities/base/dictionary/dictionary_updater.dart';
 import 'package:lets_play_cities/base/dictionary/dictionary_proxy.dart';
 import 'package:lets_play_cities/base/dictionary/impl/exclusions_factory.dart';
 import 'package:lets_play_cities/base/preferences.dart';
+import 'package:lets_play_cities/base/repositories/game_session_repo.dart';
 import 'package:lets_play_cities/l18n/localization_service.dart';
 import 'package:meta/meta.dart';
 
@@ -45,10 +46,13 @@ class GameBloc extends Bloc<GameStateEvent, GameLifecycleState> {
         yield* _beginLoading();
         break;
       case GameStateEvent.GameStart:
+        yield* _runGame();
+        break;
+      case GameStateEvent.Finish:
+        yield GameResultsState();
         break;
       default:
-        // TODO: Handle this case.
-        break;
+        throw ("Unexpected event: $event");
     }
   }
 
@@ -58,7 +62,7 @@ class GameBloc extends Bloc<GameStateEvent, GameLifecycleState> {
       yield* _checkForUpdates();
     }
 
-    yield DataLoadingState();
+    yield DataLoadingState.empty();
 
     final dictionary = await DictionaryFactory().createDictionary();
     final exclusions = await ExclusionsFactory(
@@ -66,14 +70,31 @@ class GameBloc extends Bloc<GameStateEvent, GameLifecycleState> {
             _localizations.exclusionDescriptions)
         .createExclusions();
 
-    yield GameState(
-        DictionaryProxy(
-          dictionary,
-          _prefs,
-        ),
-        exclusions);
+    yield DataLoadingState.forData(
+      DictionaryProxy(
+        dictionary,
+        _prefs,
+      ),
+      exclusions,
+    );
 
     add(GameStateEvent.GameStart);
+  }
+
+  Stream<GameLifecycleState> _runGame() async* {
+    if (!(state is DataLoadingState)) throw ("Invalid state: $state!");
+    final DataLoadingState dataState = state as DataLoadingState;
+
+    final repository =
+        GameSessionRepository(dataState.dictionary, dataState.exclusions);
+
+    yield GameState(repository);
+
+    // await for game ends
+    await repository.run();
+
+    // show the results
+    add(GameStateEvent.Finish);
   }
 
   /// Calls [DictionaryUpdater.checkForUpdates] to fetch updates from the server.

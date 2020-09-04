@@ -22,18 +22,35 @@ class CheckingForUpdatesState extends GameLifecycleState {
   const CheckingForUpdatesState(this.stage, this.stagePercent);
 }
 
-/// The state used when game loads exclusions list and dictionary
+/// The state used when tge game loads exclusions list and dictionary
+/// to be able to start [GameState]
 class DataLoadingState extends GameLifecycleState {
-  const DataLoadingState();
+  /// Instance of loaded dictionary
+  final DictionaryProxy dictionary;
+
+  /// Instance of loaded exclusions
+  final ExclusionsService exclusions;
+
+  /// Creates [DataLoadingState] without any loaded data
+  const DataLoadingState.empty()
+      : dictionary = null,
+        exclusions = null;
+
+  /// Creates [DataLoadingState] containing loaded data
+  const DataLoadingState.forData(this.dictionary, this.exclusions)
+      : assert(dictionary != null),
+        assert(exclusions != null);
+
+  /// `true` when the state contains loaded data
+  bool get isLoaded => dictionary != null && exclusions != null;
 }
 
 /// The state used during the game.
+/// Starts after [DataLoadingState]
 class GameState extends GameLifecycleState {
-  final DictionaryProxy dictionaryProxy;
+  final GameSessionRepository gameSessionRepository;
 
-  final ExclusionsService exclusionsService;
-
-  const GameState(this.dictionaryProxy, this.exclusionsService);
+  const GameState(this.gameSessionRepository);
 }
 
 /// Used when the game ends
