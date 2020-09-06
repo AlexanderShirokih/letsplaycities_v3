@@ -7,13 +7,17 @@ main() {
       "Hello dart test",
       "Hello Dart Test",
       "hello-dart test",
-      "hellodarttest"
+      "hellodarttest",
+      "париж",
+      "нью-йорк"
     ];
     var expected = [
       "Hello Dart Test",
       "Hello Dart Test",
       "Hello-Dart Test",
-      "Hellodarttest"
+      "Hellodarttest",
+      "Париж",
+      "Нью-Йорк"
     ];
     expect(source.map((e) => e.toTitleCase()), equals(expected));
   });

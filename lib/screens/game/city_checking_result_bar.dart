@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lets_play_cities/base/game/management/word_checking_result.dart';
-
+import 'package:lets_play_cities/utils/string_utils.dart';
 import 'package:lets_play_cities/base/repos.dart';
 
 class CityCheckingResultBar extends StatefulWidget {
@@ -78,12 +78,13 @@ class _CityCheckingResultBarState extends State<CityCheckingResultBar>
   }
 
   static String _translateWordCheckingResult(WordCheckingResult data) {
-    if (data is AlreadyUsed) return "Город ${data.word} уже был загадан";
+    if (data is AlreadyUsed)
+      return "Город ${data.word.toTitleCase()} уже был загадан";
     if (data is WrongLetter)
       return "Город должен начинаться на букву ${data.validLetter}";
     if (data is Exclusion) return data.description;
     if (data is NotFound)
-      return "Очень жаль, но нам неизвестен город ${data.word}.\nПроверьте правильность написания";
+      return "Очень жаль, но нам неизвестен город ${data.word.toTitleCase()}.\nПроверьте правильность написания";
     return "#501 Unknown state!";
   }
 }
