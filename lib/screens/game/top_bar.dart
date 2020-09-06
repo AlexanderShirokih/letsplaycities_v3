@@ -3,6 +3,7 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:lets_play_cities/base/data.dart';
+import 'package:lets_play_cities/base/game/bloc/game_bloc.dart';
 import 'package:lets_play_cities/base/repos.dart';
 
 import 'user_avatar.dart';
@@ -50,7 +51,9 @@ class _ActionButtons extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
                 _createRoundBorderedButtons(context, FontAwesomeIcons.bars),
-                _createRoundBorderedButtons(context, FontAwesomeIcons.flag),
+                _createRoundBorderedButtons(context, FontAwesomeIcons.flag,
+                    onPressed: () =>
+                        context.bloc<GameBloc>().add(GameStateEvent.Surrender)),
                 _createRoundBorderedButtons(
                     context, FontAwesomeIcons.lightbulb),
               ],
@@ -70,15 +73,15 @@ class _ActionButtons extends StatelessWidget {
         ),
       );
 
-  Widget _createRoundBorderedButtons(
-          BuildContext context, IconData faIconData) =>
+  Widget _createRoundBorderedButtons(BuildContext context, IconData faIconData,
+          {Function onPressed}) =>
       Container(
         width: 56.0,
         height: 56.0,
         child: RaisedButton(
           color: Theme.of(context).accentColor,
           padding: const EdgeInsets.all(10.0),
-          onPressed: () {},
+          onPressed: onPressed ?? () {},
           child: FaIcon(faIconData, color: Colors.white),
           shape:
               StadiumBorder(side: BorderSide(color: Colors.white, width: 3.0)),

@@ -3,9 +3,9 @@ import 'package:lets_play_cities/base/dictionary.dart';
 import 'package:lets_play_cities/base/dictionary/impl/country_list_loader_factory.dart';
 import 'package:lets_play_cities/base/dictionary/impl/dictionary_factory.dart';
 import 'package:lets_play_cities/base/dictionary/impl/exclusions_factory.dart';
+import 'package:lets_play_cities/base/repositories/game_session_repo.dart';
 import 'package:lets_play_cities/base/game/handlers/local_endpoint.dart';
 import 'package:lets_play_cities/base/preferences.dart';
-import 'package:lets_play_cities/base/repositories/game_session_repo.dart';
 import 'package:lets_play_cities/l18n/localization_service.dart';
 import 'package:meta/meta.dart';
 
@@ -51,7 +51,10 @@ class GameBloc extends Bloc<GameStateEvent, GameLifecycleState> {
         yield* _runGame();
         break;
       case GameStateEvent.Finish:
-        yield GameResultsState();
+        yield* _finishGame();
+        break;
+      case GameStateEvent.Surrender:
+        _surrender();
         break;
       default:
         throw ("Unexpected event: $event");
@@ -99,10 +102,9 @@ class GameBloc extends Bloc<GameStateEvent, GameLifecycleState> {
     yield GameState(repository);
 
     // await for game ends
-    await repository.run();
-
-    // show the results
-    add(GameStateEvent.Finish);
+    repository.run().then((_) {
+      add(GameStateEvent.Finish);
+    });
   }
 
   /// Calls [DictionaryUpdater.checkForUpdates] to fetch updates from the server.
@@ -114,5 +116,20 @@ class GameBloc extends Bloc<GameStateEvent, GameLifecycleState> {
                 ? CheckingForUpdatesStage.FetchingUpdate
                 : CheckingForUpdatesStage.Updating,
             downloadPercent));
+  }
+
+  Stream<GameLifecycleState> _finishGame() async* {
+    if (!(state is GameState)) return;
+    final gameState = state as GameState;
+
+    await gameState.gameSessionRepository.finish();
+
+    yield GameResultsState();
+  }
+
+  void _surrender() {
+    if (state is GameState) {
+      (state as GameState).gameSessionRepository.surrender();
+    }
   }
 }

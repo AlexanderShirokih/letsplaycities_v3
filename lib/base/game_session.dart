@@ -19,6 +19,7 @@ class GameSession {
   final int timeLimit;
 
   final _inputEvents = StreamController<GameEvent>.broadcast();
+  final _disconnectionEvents = StreamController<OnMoveFinished>.broadcast();
 
   bool _gameRunning = true;
 
@@ -56,6 +57,18 @@ class GameSession {
     usersList.currentPlayer?.onUserInput(userInput);
   }
 
+  /// Finishes current game and surrenders the player if it current user now
+  void surrender() {
+    _gameRunning = false;
+    _disconnectionEvents.add(
+      OnMoveFinished(
+          0,
+          usersList.currentPlayer == null
+              ? MoveFinishType.Disconnected
+              : MoveFinishType.Surrender),
+    );
+  }
+
   /// Runs game processing loop
   Future runMoves() => _runMoves().pipe(_inputEvents);
 
@@ -68,6 +81,7 @@ class GameSession {
       yield* mergeByShortest([
         _createTimer(),
         _makeMoveForCurrentUser(),
+        _disconnectionEvents.stream
       ]).takeWhile((element) {
         final isMoveFinished = element is OnMoveFinished;
 
@@ -129,13 +143,15 @@ class GameSession {
     yield* Stream.periodic(
             const Duration(seconds: 1), (tick) => timeLimit - tick)
         .map((currentTime) => TimeEvent(formatTime(currentTime)))
-        .take(timeLimit + 1);
+        .take(timeLimit + 1)
+        .takeWhile((_) => _gameRunning);
+
     yield OnMoveFinished(timeLimit, MoveFinishType.Timeout);
   }
 
   Future cancel() async {
     _gameRunning = false;
-
+    await _disconnectionEvents.close();
     await _inputEvents.close();
   }
 }

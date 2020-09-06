@@ -30,11 +30,13 @@ class GameSessionRepository {
   User getUserByPosition(Position position) =>
       _session.getUserByPosition(position);
 
+  /// Finished the game and surrenders current player
+  void surrender() => _session.surrender();
+
   /// Called to dispose internal StreamControllers
-  void dispose() {
+  Future finish() async {
     _userInputDebounce.cancel();
-    //TODO: remove this
-    _session.cancel();
+    await _session.cancel();
   }
 
   /// Runs moves loop
