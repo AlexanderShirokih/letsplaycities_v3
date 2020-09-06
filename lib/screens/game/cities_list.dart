@@ -91,9 +91,7 @@ class _GameItemListTile extends StatelessWidget {
       // Highlight first letter
       TextSpan(text: city[0], style: spanTextStyle),
       // Show main test
-      TextSpan(
-          text: (_gameItem as CityInfo).city.substring(1, lastSuitable),
-          style: textStyle),
+      TextSpan(text: city.substring(1, lastSuitable), style: textStyle),
       // Highlight last suitable char
       TextSpan(text: city[lastSuitable], style: spanTextStyle),
       // Show trailing letters is exists
