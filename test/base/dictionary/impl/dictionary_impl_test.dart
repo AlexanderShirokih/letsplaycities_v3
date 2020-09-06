@@ -25,29 +25,36 @@ void main() {
 
     group('.getRandomWord()', () {
       test('returns word starting at specified char', () async {
-        expect(await DictionaryServiceImpl(map).getRandomWordByDifficulty('t', 0),
+        expect(
+            await DictionaryServiceImpl(map).getRandomWordByDifficulty('t', 0),
             anyOf(["test", "test2"]));
       });
 
       test('filters by difficulty', () async {
-        expect(await DictionaryServiceImpl(map).getRandomWordByDifficulty('w', 1),
+        expect(
+            await DictionaryServiceImpl(map).getRandomWordByDifficulty('w', 1),
             equals("world2"));
       });
 
       test('returns empty string if no words starting at char', () async {
-        expect(await DictionaryServiceImpl(map).getRandomWordByDifficulty('n', 1),
+        expect(
+            await DictionaryServiceImpl(map).getRandomWordByDifficulty('n', 1),
             anyOf([returnsNormally, isEmpty]));
       });
 
       test('can return the same word twice', () async {
         for (int i = 0; i < 10; i++)
-          expect(await DictionaryServiceImpl(map).getRandomWordByDifficulty('w', 1),
+          expect(
+              await DictionaryServiceImpl(map)
+                  .getRandomWordByDifficulty('w', 1),
               anyOf([returnsNormally, equals("world2")]));
       });
 
       test('not uses words city countryCode==0', () async {
         for (int i = 0; i < 10; i++)
-          expect(await DictionaryServiceImpl(map).getRandomWordByDifficulty('h', 0),
+          expect(
+              await DictionaryServiceImpl(map)
+                  .getRandomWordByDifficulty('h', 0),
               isNot(equals("hello2")));
       });
 
@@ -56,7 +63,8 @@ void main() {
         d.markUsed('test');
 
         for (int i = 0; i < 10; i++)
-          expect(await d.getRandomWordByDifficulty('t', 0), isNot(equals("test")));
+          expect(
+              await d.getRandomWordByDifficulty('t', 0), isNot(equals("test")));
       });
     });
 
