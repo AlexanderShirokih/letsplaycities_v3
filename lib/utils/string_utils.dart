@@ -1,6 +1,7 @@
 /// Utilities functions for formatting strings.
 
 extension FormatExtension on String {
+  /// Formats '%1$ %2$'.format("Hello", "world") to 'Hello world'
   String format(List<String> params) {
     String result = this;
     for (int i = 1; i < params.length + 1; i++)
