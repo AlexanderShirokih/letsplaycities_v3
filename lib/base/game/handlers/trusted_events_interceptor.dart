@@ -1,3 +1,4 @@
+import 'package:lets_play_cities/base/data.dart';
 import 'package:lets_play_cities/base/game/management.dart';
 import 'package:lets_play_cities/base/game/handlers.dart';
 
@@ -7,7 +8,9 @@ class TrustedEventsInterceptor extends TypedEventHandler<RawWordEvent> {
   @override
   Stream<GameEvent> processTypedEvent(RawWordEvent event) {
     return Stream.value(
-      event.owner.isTrusted ? Accepted(event.word, event.owner) : event,
+      event.owner.isTrusted
+          ? Accepted(event.word, event.owner, status: CityStatus.OK)
+          : event,
     );
   }
 }

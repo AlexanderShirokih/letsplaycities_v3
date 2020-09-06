@@ -19,12 +19,12 @@ class CityInfo extends GameItem {
   final CityStatus status;
   final int countryCode;
 
-  CityInfo(
-      {this.city,
-      User owner,
-      this.status = CityStatus.WAITING,
-      this.countryCode = 0})
-      : super(owner);
+  CityInfo({
+    User owner,
+    this.city,
+    this.status = CityStatus.WAITING,
+    this.countryCode = 0,
+  }) : super(owner);
 
   @override
   int get hashCode => city.hashCode;

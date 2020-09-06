@@ -1,3 +1,4 @@
+import 'package:lets_play_cities/base/data.dart';
 import 'package:lets_play_cities/base/game/game_item.dart';
 import 'package:lets_play_cities/base/game/management.dart';
 
@@ -14,7 +15,12 @@ class GameItemsRepository {
           .where((event) => event is Accepted || event is MessageEvent)
           .map((event) {
         if (event is Accepted) {
-          return CityInfo(city: event.word, owner: event.owner);
+          return CityInfo(
+            city: event.word,
+            owner: event.owner,
+            status: event.status ?? CityStatus.ERROR,
+            countryCode: event.countryCode ?? 0,
+          );
         } else if (event is MessageEvent) {
           return MessageInfo(message: event.message, owner: event.owner);
         } else

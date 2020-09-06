@@ -41,14 +41,36 @@ class _GameItemListTile extends StatelessWidget {
               : MainAxisAlignment.end,
           children: [
             Container(
-              padding: EdgeInsets.symmetric(vertical: 8.0, horizontal: 14.0),
+              padding: EdgeInsets.fromLTRB(8.0, 8.0, 14.0, 8.0),
               margin: EdgeInsets.zero,
               decoration: _buildDecoration(),
-              child: _buildText(context),
+              child: Row(
+                children: [
+                  if (_gameItem is CityInfo) _buildIcon(_gameItem),
+                  const SizedBox(width: 8.0),
+                  _buildText(context),
+                ],
+              ),
             ),
           ],
         ),
       );
+
+  Widget _buildIcon(CityInfo cityInfo) {
+    switch (cityInfo.status) {
+      case CityStatus.OK:
+        return Image.asset(
+          "assets/images/flags/flag_${cityInfo.countryCode}.png",
+          height: 20.0,
+        );
+      case CityStatus.WAITING:
+        return Icon(Icons.pending_outlined);
+      case CityStatus.ERROR:
+        return Icon(Icons.error_outline, color: Colors.red);
+      default:
+        throw ("Unknown CityInfo.status");
+    }
+  }
 
   BoxDecoration _buildDecoration() {
     const kFillColor = const Color(0xFFFFD2AE);

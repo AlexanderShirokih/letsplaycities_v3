@@ -29,5 +29,6 @@ flutter:
   assets:
     - assets/images/
     - assets/images/backgrounds/
+    - assets/images/flags/
     - assets/data/
     - assets/i18n/

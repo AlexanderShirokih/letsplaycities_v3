@@ -1,3 +1,4 @@
+import 'package:lets_play_cities/base/data.dart';
 import 'package:lets_play_cities/base/game/management.dart';
 import 'package:lets_play_cities/base/users.dart';
 import 'package:meta/meta.dart';
@@ -58,12 +59,25 @@ class Accepted extends WordCheckingResult {
 
   final String word;
 
+  final CityStatus status;
+
+  final int countryCode;
+
   @override
   bool isDescriptiveError() => false;
 
-  bool isSuccessful() => true;
+  /// Returns `true` if it approved and accepted word result
+  bool isSuccessful() => status == CityStatus.OK;
 
-  Accepted(this.word, this.owner);
+  Accepted(this.word, this.owner, {this.status, this.countryCode});
+
+  /// Creates deep copy of object and allows to set some fields
+  Accepted clone({CityStatus status, int countryCode}) => Accepted(
+        this.word,
+        this.owner,
+        status: status ?? this.status,
+        countryCode: countryCode ?? this.countryCode,
+      );
 }
 
 /// Used when error happens during word processing
