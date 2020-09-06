@@ -2,15 +2,15 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lets_play_cities/base/dictionary.dart';
 import 'package:lets_play_cities/base/dictionary/impl/country_list_loader_factory.dart';
 import 'package:lets_play_cities/base/dictionary/impl/dictionary_factory.dart';
-import 'package:lets_play_cities/base/dictionary/dictionary_updater.dart';
-import 'package:lets_play_cities/base/dictionary/dictionary_decorator.dart';
 import 'package:lets_play_cities/base/dictionary/impl/exclusions_factory.dart';
+import 'package:lets_play_cities/base/game/handlers/local_endpoint.dart';
 import 'package:lets_play_cities/base/preferences.dart';
 import 'package:lets_play_cities/base/repositories/game_session_repo.dart';
 import 'package:lets_play_cities/l18n/localization_service.dart';
 import 'package:meta/meta.dart';
 
 import '../game_mode.dart';
+import '../game_session_factory.dart';
 
 part 'game_events.dart';
 
@@ -21,6 +21,8 @@ class GameBloc extends Bloc<GameStateEvent, GameLifecycleState> {
   final LocalizationService _localizations;
   final DictionaryUpdater _dictionaryUpdater;
   final GameMode _gameMode;
+
+  OnUserInputAccepted onUserInputAccepted;
 
   GameBloc({
     LocalizationService localizations,
@@ -58,7 +60,6 @@ class GameBloc extends Bloc<GameStateEvent, GameLifecycleState> {
 
   /// Begins game loading sequence
   Stream<GameLifecycleState> _beginLoading() async* {
-
     if (_gameMode.isLocal()) {
       yield* _checkForUpdates();
     }
@@ -86,8 +87,14 @@ class GameBloc extends Bloc<GameStateEvent, GameLifecycleState> {
     if (!(state is DataLoadingState)) throw ("Invalid state: $state!");
     final DataLoadingState dataState = state as DataLoadingState;
 
-    final repository =
-        GameSessionRepository(dataState.dictionary, dataState.exclusions);
+    final repository = GameSessionRepository(
+      GameSessionFactory.createForGameMode(
+          mode: _gameMode,
+          exclusions: dataState.exclusions,
+          dictionary: dataState.dictionary,
+          onUserInputAccepted: () => onUserInputAccepted(),
+          timeLimit: _prefs.timeLimit),
+    );
 
     yield GameState(repository);
 

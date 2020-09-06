@@ -9,5 +9,5 @@ class GamePreferences {
 
   /// Time limit per users move in local game modes.
   /// `0` means timer is disabled.
-  int get timeLimit => 0;
+  int get timeLimit => 92;
 }

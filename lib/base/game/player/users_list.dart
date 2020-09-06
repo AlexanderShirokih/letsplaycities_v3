@@ -1,4 +1,6 @@
 import 'package:lets_play_cities/base/data.dart';
+import 'package:lets_play_cities/base/dictionary.dart';
+import 'package:lets_play_cities/base/game/game_mode.dart';
 import 'package:lets_play_cities/base/users.dart';
 
 /// Manages user queue. Defines users list,
@@ -53,4 +55,41 @@ class UsersList {
   void switchToNext() {
     current = next;
   }
+
+  factory UsersList.forGameMode(
+      GameMode gameMode, DictionaryService dictionaryService) {
+    switch (gameMode) {
+      case GameMode.PlayerVsAndroid:
+        return _buildPvAList(dictionaryService);
+      case GameMode.PlayerVsPlayer:
+        return _buildPvPList();
+      default:
+        throw ("Unsupported game mode!");
+    }
+  }
+
+  static UsersList _buildPvAList(DictionaryService dictionary) => UsersList([
+        Player(
+          PlayerData(
+            name: "Игрок",
+            picture: PlaceholderPictureSource(),
+          ),
+        ),
+        Android(dictionary, "Андроид"),
+      ]);
+
+  static UsersList _buildPvPList() => UsersList([
+        Player(
+          PlayerData(
+            name: "Игрок 1",
+            picture: PlaceholderPictureSource(),
+          ),
+        ),
+        Player(
+          PlayerData(
+            name: "Игрок 2",
+            picture: PlaceholderPictureSource(),
+          ),
+        ),
+      ]);
 }

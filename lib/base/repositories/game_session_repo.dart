@@ -3,9 +3,7 @@ import 'dart:async';
 import 'package:lets_play_cities/base/data.dart';
 import 'package:lets_play_cities/base/repos.dart';
 import 'package:lets_play_cities/base/users.dart';
-import 'package:lets_play_cities/base/dictionary.dart';
 import 'package:lets_play_cities/base/game_session.dart';
-import 'package:lets_play_cities/base/game/handlers.dart';
 import 'package:lets_play_cities/base/game/management.dart';
 import 'package:lets_play_cities/utils/debouncer.dart';
 
@@ -14,33 +12,8 @@ class GameSessionRepository {
       Debouncer(const Duration(milliseconds: 1000));
 
   GameSession _session;
-  OnUserInputAccepted onUserInputAccepted = () {};
 
-  GameSessionRepository(
-      DictionaryService dictionary, ExclusionsService exclusionsService) {
-    final usersList = UsersList([
-      Player(
-        PlayerData(
-          name: "Игрок",
-          picture: PlaceholderPictureSource(),
-        ),
-      ),
-      Android(dictionary, "Андроид"),
-    ]);
-
-    final localGameProcessors = [
-      TrustedEventsInterceptor(),
-      FirstLetterChecker(),
-      ExclusionsChecker(exclusionsService),
-      DatabaseChecker(dictionary),
-      LocalEndpoint(dictionary, () => onUserInputAccepted()),
-    ];
-
-    _session = GameSession(
-        usersList: usersList,
-        eventChannel: ProcessingEventChannel(localGameProcessors),
-        timeLimit: 92);
-  }
+  GameSessionRepository(this._session);
 
   Stream<WordCheckingResult> get wordCheckingResults =>
       _session.wordCheckingResults;
@@ -60,6 +33,7 @@ class GameSessionRepository {
   /// Called to dispose internal StreamControllers
   void dispose() {
     _userInputDebounce.cancel();
+    //TODO: remove this
     _session.cancel();
   }
 

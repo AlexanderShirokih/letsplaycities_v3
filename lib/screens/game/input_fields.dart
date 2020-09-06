@@ -1,13 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:lets_play_cities/base/game/bloc/game_bloc.dart';
 import 'package:lets_play_cities/base/repos.dart';
 import 'package:lets_play_cities/screens/common/common_widgets.dart';
 
 class InputFieldsGroup extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return _CityInputField(context.repository<GameSessionRepository>());
+    return _CityInputField(
+        context.repository<GameSessionRepository>(), context.bloc<GameBloc>());
   }
 }
 
@@ -16,20 +18,23 @@ typedef InputMatcherCallback = void Function(String);
 /// Input field for entering cities
 class _CityInputField extends StatefulWidget {
   final GameSessionRepository _repository;
+  final GameBloc _gameBloc;
 
-  _CityInputField(this._repository);
+  _CityInputField(this._repository, this._gameBloc);
 
   @override
-  _CityInputFieldState createState() => _CityInputFieldState(_repository);
+  _CityInputFieldState createState() =>
+      _CityInputFieldState(_repository, _gameBloc);
 }
 
 class _CityInputFieldState extends State<_CityInputField> {
   final InputMatcherCallback _onPressed;
   final inputController = TextEditingController();
 
-  _CityInputFieldState(GameSessionRepository repository)
+  _CityInputFieldState(GameSessionRepository repository, GameBloc bloc)
       : _onPressed = repository.sendInputWord {
-    repository.onUserInputAccepted = _onClear;
+    // Register callback hook to be able to clear input when the word is accepted.
+    bloc.onUserInputAccepted = _onClear;
   }
 
   void _onSubmit(String value) {

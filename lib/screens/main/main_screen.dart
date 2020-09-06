@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:lets_play_cities/base/game/game_mode.dart';
 import 'package:lets_play_cities/screens/common/common_widgets.dart';
 import 'package:lets_play_cities/screens/game/game_screen.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -153,14 +154,15 @@ class _AnimatedMainButtonsState extends State<AnimatedMainButtons>
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           CustomMaterialButton("Игрок против андроида", Icon(Icons.android),
-              () {
-            Navigator.of(context)
-                .push(MaterialPageRoute(builder: (_) => GameScreen()));
-          }),
-          CustomMaterialButton(
-              "Игрок против игрока", Icon(Icons.person), () {}),
+              () => _runGameScreen(context, GameMode.PlayerVsAndroid)),
+          CustomMaterialButton("Игрок против игрока", Icon(Icons.person),
+              () => _runGameScreen(context, GameMode.PlayerVsPlayer)),
           CustomMaterialButton("Онлайн", Icon(Icons.language), () {}),
           CustomMaterialButton("Мультиплеер", Icon(Icons.wifi), () {}),
         ],
       );
+
+  _runGameScreen(BuildContext context, GameMode gameMode) =>
+      Navigator.of(context)
+          .push(MaterialPageRoute(builder: (_) => GameScreen(gameMode)));
 }

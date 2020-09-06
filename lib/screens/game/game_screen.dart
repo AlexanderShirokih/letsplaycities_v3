@@ -15,6 +15,10 @@ import 'input_fields.dart';
 import 'top_bar.dart';
 
 class GameScreen extends StatelessWidget {
+  final GameMode gameMode;
+
+  GameScreen(this.gameMode);
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -25,7 +29,7 @@ class GameScreen extends StatelessWidget {
             child: BlocProvider(
               create: (_) => GameBloc(
                   prefs: context.repository<GamePreferences>(),
-                  gameMode: GameMode.PlayerVsAndroid,
+                  gameMode: gameMode,
                   dictionaryUpdater: DictionaryUpdater(),
                   localizations: context.repository<LocalizationService>()),
               child: Builder(
