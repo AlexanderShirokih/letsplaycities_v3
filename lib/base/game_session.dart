@@ -1,10 +1,11 @@
 import 'dart:async';
-import 'package:async/async.dart' show StreamGroup;
 
 import 'package:lets_play_cities/base/data.dart';
+import 'package:lets_play_cities/base/game/player/surrender_exception.dart';
 import 'package:lets_play_cities/base/users.dart';
 import 'package:lets_play_cities/base/game/management.dart';
 import 'package:lets_play_cities/utils/string_utils.dart';
+import 'package:lets_play_cities/utils/stream_utils.dart';
 import 'package:meta/meta.dart';
 
 class GameSession {
@@ -64,16 +65,19 @@ class GameSession {
 
   Stream<GameEvent> _runMoves() async* {
     while (_gameRunning) {
-      yield* StreamGroup.merge([
-        _makeMoveForCurrentUser(),
+      yield* mergeByShortest([
         _createTimer(),
+        _makeMoveForCurrentUser(),
       ]).takeWhile((element) {
         final isMoveFinished = element is OnMoveFinished;
+
         if (isMoveFinished &&
-            (element as OnMoveFinished).endType != MoveFinishType.Completed)
+            (element as OnMoveFinished).endType != MoveFinishType.Completed) {
           _gameRunning = false;
+        }
         return !isMoveFinished;
       });
+
       usersList.switchToNext();
     }
   }
@@ -92,18 +96,29 @@ class GameSession {
     yield* eventChannel.sendEvent(OnFirstCharChanged(lastSuitableChar));
 
     final startTime = DateTime.now().millisecondsSinceEpoch;
-    final city = await currentUser.onCreateWord(lastSuitableChar);
-    final results = eventChannel.sendEvent(RawWordEvent(city, currentUser));
 
-    await for (final event in results) {
-      yield event;
-      if (event is Accepted) {
-        _lastAcceptedWord = event.word;
+    while (_gameRunning) {
+      String city;
+      try {
+        city = await currentUser.onCreateWord(lastSuitableChar);
+      } on SurrenderException {
+        yield OnMoveFinished(0, MoveFinishType.Surrender);
+        return;
+      }
 
-        final now = DateTime.now().millisecondsSinceEpoch;
-        // Finish move by yielding a finish event
-        yield OnMoveFinished(
-            (now - startTime) ~/ 1000, MoveFinishType.Completed);
+      final results = eventChannel.sendEvent(RawWordEvent(city, currentUser));
+
+      await for (final event in results) {
+        yield event;
+        if (event is Accepted) {
+          _lastAcceptedWord = event.word;
+
+          final now = DateTime.now().millisecondsSinceEpoch;
+          // Finish move by yielding a finish event
+          yield OnMoveFinished(
+              (now - startTime) ~/ 1000, MoveFinishType.Completed);
+          return;
+        }
       }
     }
   }
@@ -113,7 +128,7 @@ class GameSession {
     yield* Stream.periodic(
             const Duration(seconds: 1), (tick) => timeLimit - tick)
         .map((currentTime) => TimeEvent(formatTime(currentTime)))
-        .take(timeLimit);
+        .take(timeLimit + 1);
     yield OnMoveFinished(timeLimit, MoveFinishType.Timeout);
   }
 

@@ -22,32 +22,38 @@ class GameScreen extends StatelessWidget {
         children: [
           createBackground("bg_geo"),
           SizedBox.expand(
-            child: BlocConsumer<GameBloc, GameLifecycleState>(
-              cubit: GameBloc(
+            child: BlocProvider(
+              create: (_) => GameBloc(
                   prefs: context.repository<GamePreferences>(),
                   gameMode: GameMode.PlayerVsAndroid,
                   dictionaryUpdater: DictionaryUpdater(),
                   localizations: context.repository<LocalizationService>()),
-              builder: (context, state) {
-                if (state is GameState) {
-                  return _buildGameStateLayout(state);
-                } else if (state is CheckingForUpdatesState) {
-                  return _LoadingStateView(() {
-                    return state.stage == CheckingForUpdatesStage.Updating
-                        ? "Загрузка обновлений ${state.stagePercent}%"
-                        : "Проверка обновлений словаря";
-                  });
-                } else if (state is DataLoadingState) {
-                  return _LoadingStateView(() => "Загрузка базы данных");
-                } else
-                  // [InitialState] || [GameResultsState]
-                  return Container(width: 0, height: 0);
-              },
-              listener: (context, state) {
-                if (state is GameResultsState)
-                  Navigator.of(context).pushReplacement(
-                      MaterialPageRoute(builder: (_) => GameResultsScreen()));
-              },
+              child: Builder(
+                builder: (context) =>
+                    BlocConsumer<GameBloc, GameLifecycleState>(
+                  cubit: context.bloc<GameBloc>(),
+                  builder: (context, state) {
+                    if (state is GameState) {
+                      return _buildGameStateLayout(state);
+                    } else if (state is CheckingForUpdatesState) {
+                      return _LoadingStateView(() {
+                        return state.stage == CheckingForUpdatesStage.Updating
+                            ? "Загрузка обновлений ${state.stagePercent}%"
+                            : "Проверка обновлений словаря";
+                      });
+                    } else if (state is DataLoadingState) {
+                      return _LoadingStateView(() => "Загрузка базы данных");
+                    } else
+                      // [InitialState] || [GameResultsState]
+                      return Container(width: 0, height: 0);
+                  },
+                  listener: (context, state) {
+                    if (state is GameResultsState)
+                      Navigator.of(context).pushReplacement(MaterialPageRoute(
+                          builder: (_) => GameResultsScreen()));
+                  },
+                ),
+              ),
             ),
           )
         ],

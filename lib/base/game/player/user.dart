@@ -1,5 +1,6 @@
 import 'package:lets_play_cities/base/auth.dart';
 import 'package:lets_play_cities/base/data.dart';
+import 'package:lets_play_cities/base/game/player/surrender_exception.dart';
 
 /// Base class that keeps users data and defines user behaviour.
 /// [playerData] is a users data model class
@@ -46,5 +47,6 @@ abstract class User {
   /// [firstChar] is a first letter of that the city should begin.
   /// [firstChar] will be an empty string if it's should be the first word in game.
   /// Returns future with the user's created word
+  /// Throws [SurrenderException] is user cannot give answer
   Future<String> onCreateWord(String firstChar);
 }

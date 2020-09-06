@@ -34,7 +34,6 @@ class Android extends User {
           isTrusted: true,
         );
 
-  //TODO: Catch SurrenderException
   @override
   Future<String> onCreateWord(String firstChar) async {
     await Future.delayed(Duration(milliseconds: 1500));
