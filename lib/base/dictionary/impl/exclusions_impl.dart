@@ -55,7 +55,7 @@ class ExclusionsServiceImpl extends ExclusionsService {
 
   @override
   String checkForExclusion(String city) {
-    if (countries.any((c) => !c.hasSiblingCity && c.name == city))
+    if (countries.any((c) => !c.hasSiblingCity && c.name.toLowerCase() == city))
       return errMessages[ErrorCode.THIS_IS_A_COUNTRY]
           .format([city.toTitleCase()]);
 
