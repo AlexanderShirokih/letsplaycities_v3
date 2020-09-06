@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:lets_play_cities/base/data.dart';
-import 'package:lets_play_cities/base/game/handlers/local_endpoint.dart';
 import 'package:lets_play_cities/base/repos.dart';
 import 'package:lets_play_cities/base/users.dart';
 import 'package:lets_play_cities/base/dictionary.dart';
@@ -15,6 +14,7 @@ class GameSessionRepository {
       Debouncer(const Duration(milliseconds: 1000));
 
   GameSession _session;
+  OnUserInputAccepted onUserInputAccepted = () {};
 
   GameSessionRepository(
       DictionaryService dictionary, ExclusionsService exclusionsService) {
@@ -33,7 +33,7 @@ class GameSessionRepository {
       FirstLetterChecker(),
       ExclusionsChecker(exclusionsService),
       DatabaseChecker(dictionary),
-      LocalEndpoint(dictionary)
+      LocalEndpoint(dictionary, () => onUserInputAccepted()),
     ];
 
     _session = GameSession(

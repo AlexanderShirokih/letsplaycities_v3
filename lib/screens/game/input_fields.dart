@@ -7,8 +7,7 @@ import 'package:lets_play_cities/screens/common/common_widgets.dart';
 class InputFieldsGroup extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    final repo = context.repository<GameSessionRepository>();
-    return _CityInputField(repo.sendInputWord);
+    return _CityInputField(context.repository<GameSessionRepository>());
   }
 }
 
@@ -16,24 +15,31 @@ typedef InputMatcherCallback = void Function(String);
 
 /// Input field for entering cities
 class _CityInputField extends StatefulWidget {
-  final InputMatcherCallback _onPressed;
+  final GameSessionRepository _repository;
 
-  _CityInputField(this._onPressed);
+  _CityInputField(this._repository);
 
   @override
-  _CityInputFieldState createState() => _CityInputFieldState(_onPressed);
+  _CityInputFieldState createState() => _CityInputFieldState(_repository);
 }
 
 class _CityInputFieldState extends State<_CityInputField> {
   final InputMatcherCallback _onPressed;
   final inputController = TextEditingController();
 
-  _CityInputFieldState(this._onPressed);
+  _CityInputFieldState(GameSessionRepository repository)
+      : _onPressed = repository.sendInputWord {
+    repository.onUserInputAccepted = _onClear;
+  }
 
   void _onSubmit(String value) {
     if (value.isNotEmpty) {
       _onPressed(value);
     }
+  }
+
+  void _onClear() {
+    inputController.clear();
   }
 
   @override

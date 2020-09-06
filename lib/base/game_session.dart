@@ -57,13 +57,13 @@ class GameSession {
   }
 
   /// Runs game processing loop
-  Future runMoves() async {
-    print("Await!");
-    await _runMoves().pipe(_inputEvents);
-    print("Awaited!");
-  }
+  Future runMoves() => _runMoves().pipe(_inputEvents);
 
   Stream<GameEvent> _runMoves() async* {
+    // Await for UI to built
+    // otherwise we can lose first [OnUserSwitchedEvent] in UI layer
+    await Future.delayed(Duration(milliseconds: 150));
+
     while (_gameRunning) {
       yield* mergeByShortest([
         _createTimer(),
