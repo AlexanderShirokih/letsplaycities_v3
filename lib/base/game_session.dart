@@ -114,6 +114,7 @@ class GameSession {
           _lastAcceptedWord = event.word;
 
           final now = DateTime.now().millisecondsSinceEpoch;
+
           // Finish move by yielding a finish event
           yield OnMoveFinished(
               (now - startTime) ~/ 1000, MoveFinishType.Completed);

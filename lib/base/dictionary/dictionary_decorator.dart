@@ -4,11 +4,11 @@ import '../preferences.dart';
 
 /// Proxy object for [DictionaryService] that controls access depending of game
 /// preferences.
-class DictionaryProxy {
+class DictionaryDecorator extends DictionaryService {
   final DictionaryService _dictionaryService;
   final GamePreferences _prefs;
 
-  DictionaryProxy(this._dictionaryService, this._prefs)
+  DictionaryDecorator(this._dictionaryService, this._prefs)
       : assert(_dictionaryService != null),
         assert(_prefs != null);
 
@@ -18,13 +18,7 @@ class DictionaryProxy {
   /// Returns a random word from the database starting at [firstChar] or an empty string if there are no words left
   /// starting at the [firstChar].
   Future<String> getRandomWord(String firstChar) =>
-      _dictionaryService.getRandomWord(firstChar, difficultyIndex);
-
-  /// Checks [city] in dictionary database.
-  /// Returns [CityResult.OK] if city not used before, [CityResult.ALREADY_USED] if
-  /// [city] has already been used, [CityResult.CITY_NOT_FOUND] if [city] not found in dictionary.
-  Future<CityResult> checkCity(String city) =>
-      _dictionaryService.checkCity(city);
+      _dictionaryService.getRandomWordByDifficulty(firstChar, difficultyIndex);
 
   /// Returns correction variants for [city] or empty list if there are no corrections available
   /// or corrections is disabled in preferences.
@@ -33,6 +27,26 @@ class DictionaryProxy {
           ? _dictionaryService.getCorrectionVariants(city)
           : Future.value({});
 
-  /// Returns the country code for the [city] or `0` code for the [city] wasn't found.
+  @override
+  Future<CityResult> checkCity(String city) =>
+      _dictionaryService.checkCity(city);
+
+  @override
+  void clear() => _dictionaryService.clear();
+
+  @override
+  Map<String, CityProperties> getAll() => _dictionaryService.getAll();
+
+  @override
   int getCountryCode(String city) => _dictionaryService.getCountryCode(city);
+
+  @override
+  Future<String> getRandomWordByDifficulty(String firstChar, int difficulty) =>
+      _dictionaryService.getRandomWordByDifficulty(firstChar, difficulty);
+
+  @override
+  void markUsed(String city) => _dictionaryService.markUsed(city);
+
+  @override
+  void reset() => _dictionaryService.reset();
 }

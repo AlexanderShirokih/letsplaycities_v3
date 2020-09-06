@@ -14,7 +14,7 @@ class Android extends User {
   static const _kAndroidAvatarPath = "assets/images/android_big.png";
   static const _kDefaultAndroidUserId = -2;
 
-  final DictionaryProxy _dictionary;
+  final DictionaryDecorator _dictionary;
 
   /// Count of moves before Android surrenders
   int _estimatedMoves;

@@ -26,7 +26,7 @@ class CheckingForUpdatesState extends GameLifecycleState {
 /// to be able to start [GameState]
 class DataLoadingState extends GameLifecycleState {
   /// Instance of loaded dictionary
-  final DictionaryProxy dictionary;
+  final DictionaryService dictionary;
 
   /// Instance of loaded exclusions
   final ExclusionsService exclusions;

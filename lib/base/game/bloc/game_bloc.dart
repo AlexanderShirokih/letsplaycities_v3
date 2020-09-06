@@ -3,7 +3,7 @@ import 'package:lets_play_cities/base/dictionary.dart';
 import 'package:lets_play_cities/base/dictionary/impl/country_list_loader_factory.dart';
 import 'package:lets_play_cities/base/dictionary/impl/dictionary_factory.dart';
 import 'package:lets_play_cities/base/dictionary/dictionary_updater.dart';
-import 'package:lets_play_cities/base/dictionary/dictionary_proxy.dart';
+import 'package:lets_play_cities/base/dictionary/dictionary_decorator.dart';
 import 'package:lets_play_cities/base/dictionary/impl/exclusions_factory.dart';
 import 'package:lets_play_cities/base/preferences.dart';
 import 'package:lets_play_cities/base/repositories/game_session_repo.dart';
@@ -72,7 +72,7 @@ class GameBloc extends Bloc<GameStateEvent, GameLifecycleState> {
         .createExclusions();
 
     yield DataLoadingState.forData(
-      DictionaryProxy(
+      DictionaryDecorator(
         dictionary,
         _prefs,
       ),

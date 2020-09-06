@@ -17,7 +17,7 @@ class DictionaryServiceImpl extends DictionaryService {
   Map<String, CityProperties> getAll() => Map.unmodifiable(_data);
 
   @override
-  Future<String> getRandomWord(String firstChar, int difficulty) async {
+  Future<String> getRandomWordByDifficulty(String firstChar, int difficulty) async {
     final filtered = _data.entries
         .where((e) => e.key.startsWith(firstChar))
         .where((e) =>

@@ -12,7 +12,7 @@ import 'package:lets_play_cities/base/game/handlers.dart';
 ///   [AlreadyUsed] - if word was already used during this game
 ///   [Accepted] - if word wasn't used before and exists in the database.
 class DatabaseChecker extends TypedEventHandler<RawWordEvent> {
-  final DictionaryProxy _dictionary;
+  final DictionaryService _dictionary;
 
   DatabaseChecker(this._dictionary);
 
