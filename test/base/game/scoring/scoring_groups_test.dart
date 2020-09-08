@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:lets_play_cities/base/game/scoring/scoring_fields.dart';
 import 'package:lets_play_cities/base/game/scoring/scoring_groups.dart';
 import 'package:test/test.dart';
@@ -39,5 +41,82 @@ void main() {
           PairedScoringField<String, int>("noVal", "key1", null),
           PairedScoringField<String, int>("pval1", "key", 1),
         ]));
+  });
+
+  test('parsing scoring from JSON is correct', () {
+    final testString = """
+    {
+    "scoringGroups": [
+        {
+            "main": {
+                "type": "empty",
+                "name": "name"
+            },
+            "child": [
+                {
+                    "type": "int",
+                    "name": "name",
+                    "value": 12
+                }
+            ]
+        },
+        {
+            "main": {
+                "type": "time",
+                "name": "name",
+                "value": 12
+            },
+            "child": [
+                {
+                    "type": "paired",
+                    "name": "name",
+                    "key": "key",
+                    "value": 123
+                },
+                 {
+                    "type": "paired",
+                    "name": "name",
+                    "key": "key"
+                }
+            ]
+        }
+    ]
+}
+    """;
+
+    ScoringSet set;
+
+    expect(() {
+      set = ScoringSet.fromJson(json.decode(testString));
+    }, returnsNormally);
+
+    expect(set, isNotNull);
+    expect(set.groups.length, equals(2));
+
+    expect(set.groups[0].main, equals(ScoringField.empty(name: "name")));
+    expect(set.groups[0].child,
+        equals([ScoringField.int(name: "name", value: 12)]));
+
+    expect(set.groups[1].main, equals(TimeScoringField("name", 12)));
+    expect(
+        set.groups[1].child,
+        equals(
+          [
+            PairedScoringField("name", "key", 123),
+            ScoringField.paired(name: "name", value: "key"),
+          ],
+        ));
+  });
+
+  test('test toJson() works correctly', () {
+    final initial = ScoringSet.initial();
+
+    expect(initial, isNotNull);
+
+    final jsonData = initial.toJson();
+    final recovered = ScoringSet.fromJson(jsonData);
+
+    expect(recovered, isNotNull);
+    expect(recovered, equals(initial));
   });
 }

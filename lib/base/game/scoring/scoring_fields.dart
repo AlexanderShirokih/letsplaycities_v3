@@ -21,11 +21,40 @@ abstract class ScoringField {
   factory ScoringField.paired({@required String name, String value}) =>
       PairedScoringField<String, int>(name, value, null);
 
+  factory ScoringField.fromJson(Map<String, dynamic> data) {
+    String type = data['type'] != null
+        ? data['type']
+        : throw ("Missing required field 'type' in field: $data");
+
+    String name = data['name'] != null
+        ? data['name']
+        : throw ("Missing required field 'name' in field: $data");
+
+    dynamic value = data['value'];
+    dynamic key = data['key'];
+
+    switch (type) {
+      case "empty":
+        return EmptyScoringField(name);
+      case "int":
+        return IntScoringField(name, value as int);
+      case "time":
+        return TimeScoringField(name, value as int);
+      case "paired":
+        return PairedScoringField<String, int>(name, key, value as int);
+      default:
+        throw ("Unknown field type: $type");
+    }
+  }
+
   /// Returns string representation of field value
   String asString();
 
   /// Returns `true` if field has non-null value
   bool hasValue();
+
+  /// Converts field value to JSON
+  Map<String, dynamic> toJson();
 }
 
 class EmptyScoringField extends ScoringField with EquatableMixin {
@@ -39,6 +68,9 @@ class EmptyScoringField extends ScoringField with EquatableMixin {
 
   @override
   List<Object> get props => [name];
+
+  @override
+  Map<String, dynamic> toJson() => {"type": "empty", "name": name};
 }
 
 /// [ScoringField] holding [int] value
@@ -74,13 +106,17 @@ class IntScoringField extends ScoringField with EquatableMixin {
 
   @override
   bool get stringify => true;
+
+  @override
+  Map<String, dynamic> toJson() =>
+      {"type": "int", "name": name, "value": value};
 }
 
 /// [ScoringField] holding time value
 class TimeScoringField extends ScoringField with EquatableMixin {
   int timeValue;
 
-  TimeScoringField(String name, int timeValue) : super(name);
+  TimeScoringField(String name, this.timeValue) : super(name);
 
   @override
   bool hasValue() => timeValue != null;
@@ -108,6 +144,10 @@ class TimeScoringField extends ScoringField with EquatableMixin {
 
   @override
   bool get stringify => true;
+
+  @override
+  Map<String, dynamic> toJson() =>
+      {"type": "time", "name": name, "value": timeValue};
 }
 
 /// [ScoringField] that holds a pair of values
@@ -128,4 +168,8 @@ class PairedScoringField<K, V> extends ScoringField with EquatableMixin {
 
   @override
   bool get stringify => true;
+
+  @override
+  Map<String, dynamic> toJson() =>
+      {"type": "paired", "name": name, "key": key, "value": value};
 }

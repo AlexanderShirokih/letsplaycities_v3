@@ -1,3 +1,4 @@
+import 'package:equatable/equatable.dart';
 import 'package:lets_play_cities/base/game/scoring/scoring_fields.dart';
 import 'package:meta/meta.dart';
 
@@ -38,7 +39,7 @@ const F_DIFF_COUNTRY = "dc";
 const V_EMPTY_S = "--";
 
 /// Describes group of [ScoringField]s that have main field and secondary fields.
-class ScoringGroup {
+class ScoringGroup extends Equatable {
   final ScoringField main;
   final List<ScoringField> child;
 
@@ -48,13 +49,47 @@ class ScoringGroup {
   /// If there is no field with name [key] throws [StateError].
   ScoringField findField(String key) =>
       child.firstWhere((element) => element.name == key);
+
+  Map<String, dynamic> toJson() => {
+        "main": main.toJson(),
+        "child": child.map((e) => e.toJson()).toList(growable: false)
+      };
+
+  @override
+  List<Object> get props => [main, child];
+
+  @override
+  bool get stringify => true;
+
+  factory ScoringGroup.fromJson(Map<String, dynamic> group) {
+    ScoringField main = group['main'] != null
+        ? ScoringField.fromJson(group['main'])
+        : throw ("No main field provided in group: $group");
+
+    List<ScoringField> child = group['child'] != null
+        ? (group['child'] as List<dynamic>)
+            .map((element) => ScoringField.fromJson(element))
+            .toList(growable: false)
+        : List.empty(growable: false);
+
+    return ScoringGroup(main: main, child: child);
+  }
 }
 
 /// A set of [ScoringGroup]s.
-class ScoringSet {
+class ScoringSet extends Equatable {
   final List<ScoringGroup> groups;
 
   ScoringSet({@required this.groups}) : assert(groups != null);
+
+  Map<String, dynamic> toJson() =>
+      {"scoringGroups": groups.map((e) => e.toJson()).toList(growable: false)};
+
+  @override
+  List<Object> get props => [groups];
+
+  @override
+  bool get stringify => true;
 
   factory ScoringSet.fromLegacyString(String value) => ScoringSet(
         groups: value.split(",").map(_parseLegacyLine).toList(growable: false),
@@ -106,6 +141,14 @@ class ScoringSet {
     return F_TIME == name
         ? TimeScoringField(name, intKey)
         : IntScoringField(name, intKey);
+  }
+
+  factory ScoringSet.fromJson(Map<String, dynamic> data) {
+    return ScoringSet(
+      groups: (data["scoringGroups"] as List<dynamic>)
+          .map((e) => ScoringGroup.fromJson(e))
+          .toList(growable: false),
+    );
   }
 
   factory ScoringSet.initial() => ScoringSet(
