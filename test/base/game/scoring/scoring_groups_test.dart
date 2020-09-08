@@ -119,4 +119,60 @@ void main() {
     expect(recovered, isNotNull);
     expect(recovered, equals(initial));
   });
+
+  test('right join works correctly', () {
+    final left = ScoringSet(
+      groups: [
+        ScoringGroup(
+          main: ScoringField.empty(name: "groupA"),
+          child: [
+            ScoringField.int(name: "ch1", value: 100),
+            ScoringField.int(name: "ch2", value: 200),
+          ],
+        )
+      ],
+    );
+
+    final right = ScoringSet(
+      groups: [
+        ScoringGroup(
+          main: ScoringField.empty(name: "groupA"),
+          child: [
+            ScoringField.int(name: "ch1", value: 10),
+            ScoringField.int(name: "ch2", value: 20),
+            ScoringField.int(name: "ch3", value: 30),
+          ],
+        ),
+        ScoringGroup(
+          main: ScoringField.empty(name: "groupB"),
+          child: [
+            ScoringField.int(name: "val1", value: 30),
+            ScoringField.int(name: "val2", value: 40),
+          ],
+        )
+      ],
+    );
+
+    final expected = ScoringSet(
+      groups: [
+        ScoringGroup(
+          main: ScoringField.empty(name: "groupA"),
+          child: [
+            ScoringField.int(name: "ch1", value: 100),
+            ScoringField.int(name: "ch2", value: 200),
+            ScoringField.int(name: "ch3", value: 30),
+          ],
+        ),
+        ScoringGroup(
+          main: ScoringField.empty(name: "groupB"),
+          child: [
+            ScoringField.int(name: "val1", value: 30),
+            ScoringField.int(name: "val2", value: 40),
+          ],
+        )
+      ],
+    );
+
+    expect(left.rightJoin(right), equals(expected));
+  });
 }
