@@ -26,6 +26,9 @@ class UsersList {
   /// Returns next user in the queue.
   User get next => _users[(_currentUserIndex + 1) % _users.length];
 
+  /// Returns list of all users
+  List<User> get all => _users.toList(growable: false);
+
   /// Sets the current user to [user]
   set current(User user) => _currentUserIndex = _users.indexOf(user);
 

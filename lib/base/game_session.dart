@@ -98,7 +98,8 @@ class GameSession {
     final currentUser = usersList.current;
 
     // Send current user switching event
-    yield* eventChannel.sendEvent(OnUserSwitchedEvent(currentUser));
+    yield* eventChannel
+        .sendEvent(OnUserSwitchedEvent(currentUser, usersList.all));
 
     // Update the first char
     yield* eventChannel.sendEvent(OnFirstCharChanged(lastSuitableChar));

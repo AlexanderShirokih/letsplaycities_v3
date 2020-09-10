@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 
 import 'package:lets_play_cities/base/data.dart';
+import 'package:lets_play_cities/base/repos.dart';
 import 'package:lets_play_cities/base/repositories/game_service_events.dart';
 import 'package:lets_play_cities/base/users.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -11,7 +12,6 @@ class UserAvatar extends StatelessWidget {
   static const _kImagePlaceholder = "assets/images/player_big.png";
 
   final int _userId;
-  final String userName;
   final CrossAxisAlignment alignment;
   final ImageProvider imageProvider;
   final Function onPressed;
@@ -20,47 +20,53 @@ class UserAvatar extends StatelessWidget {
     @required User user,
     @required this.onPressed,
     Key key,
-  })  : userName = user.name,
-        imageProvider = _getProviderByPictureSource(user.playerData.picture),
+  })  : imageProvider = _getProviderByPictureSource(user.playerData.picture),
         alignment = _getAlignmentByPosition(user.position),
         _userId = user.id,
         super(key: key);
 
   @override
-  Widget build(BuildContext context) => Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: alignment,
-        children: [
-          Container(
-            width: 70.0,
-            height: 70.0,
-            child: StreamBuilder<User>(
-                stream: context
-                    .repository<GameServiceEventsRepository>()
-                    .getUserSwitches(),
-                builder: (context, snapshot) {
-                  return FlatButton(
-                    onPressed: onPressed,
-                    color: Colors.white,
-                    padding: EdgeInsets.zero,
-                    child: _buildImage(
-                      imageProvider,
-                      const AssetImage(_kImagePlaceholder),
-                    ),
-                    shape: StadiumBorder(
-                      side: BorderSide(
-                        color: snapshot.hasData && snapshot.data.id == _userId
-                            ? Theme.of(context).primaryColorDark
-                            : Colors.white,
-                        width: 5.0,
-                      ),
-                    ),
-                  );
-                }),
-          ),
-          SizedBox(height: 4.0),
-          Text(userName)
-        ],
+  Widget build(BuildContext rootContext) => StreamBuilder<Map<User, bool>>(
+        stream: rootContext
+            .repository<GameServiceEventsRepository>()
+            .getUserSwitches(),
+        builder: (context, snapshot) => Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: alignment,
+          children: [
+            Container(
+              width: 70.0,
+              height: 70.0,
+              child: FlatButton(
+                onPressed: onPressed,
+                color: Colors.white,
+                padding: EdgeInsets.zero,
+                child: _buildImage(
+                  imageProvider,
+                  const AssetImage(_kImagePlaceholder),
+                ),
+                shape: StadiumBorder(
+                  side: BorderSide(
+                    color: snapshot.hasData &&
+                            snapshot.data.entries
+                                .any((u) => u.value && u.key.id == _userId)
+                        ? Theme.of(context).primaryColorDark
+                        : Colors.white,
+                    width: 5.0,
+                  ),
+                ),
+              ),
+            ),
+            SizedBox(height: 4.0),
+            Text(
+              snapshot.hasData
+                  ? snapshot.data.keys
+                      .singleWhere((user) => user.id == _userId)
+                      .info
+                  : "--",
+            ),
+          ],
+        ),
       );
 
   static ImageProvider _getProviderByPictureSource(PictureSource source) {

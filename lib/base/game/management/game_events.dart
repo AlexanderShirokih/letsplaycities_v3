@@ -25,9 +25,10 @@ class MessageEvent extends GameEvent {
 
 /// An event that emits every time when current user changed
 class OnUserSwitchedEvent extends GameEvent {
+  final List<User> allUsers;
   final User nextUser;
 
-  OnUserSwitchedEvent(this.nextUser);
+  OnUserSwitchedEvent(this.nextUser, this.allUsers);
 }
 
 /// An event that used to signal FirstLetterChecker a new first char
