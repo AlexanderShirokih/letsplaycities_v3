@@ -1,3 +1,5 @@
+import 'package:lets_play_cities/base/game/scoring/scoring_type.dart';
+
 /// Represents application preferences
 class GamePreferences {
   /// Words difficulty level.
@@ -10,4 +12,13 @@ class GamePreferences {
   /// Time limit per users move in local game modes.
   /// `0` means timer is disabled.
   int get timeLimit => 92;
+
+  /// Defines game score calculation and winner checking strategy
+  ScoringType get scoringType => ScoringType.BY_SCORE;
+
+  /// Returns string containing JSON-encoded representation of score data
+  String get scoringData => "";
+
+  /// Returns string containing legacy representation of score data
+  String get legacyScoringData => "";
 }

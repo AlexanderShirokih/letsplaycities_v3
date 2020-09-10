@@ -31,15 +31,23 @@ class DataLoadingState extends GameLifecycleState {
   /// Instance of loaded exclusions
   final ExclusionsService exclusions;
 
+  /// Instance to class that handles scores and defines winner
+  final ScoreController scoreController;
+
   /// Creates [DataLoadingState] without any loaded data
   const DataLoadingState.empty()
       : dictionary = null,
-        exclusions = null;
+        exclusions = null,
+        scoreController = null;
 
   /// Creates [DataLoadingState] containing loaded data
-  const DataLoadingState.forData(this.dictionary, this.exclusions)
-      : assert(dictionary != null),
-        assert(exclusions != null);
+  const DataLoadingState.forData(
+    this.dictionary,
+    this.exclusions,
+    this.scoreController,
+  )   : assert(dictionary != null),
+        assert(exclusions != null),
+        assert(scoreController != null);
 
   /// `true` when the state contains loaded data
   bool get isLoaded => dictionary != null && exclusions != null;

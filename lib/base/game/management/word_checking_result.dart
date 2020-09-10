@@ -52,7 +52,6 @@ class NotFound extends WordCheckingResult {
 }
 
 /// Used when input [word] can applied without any corrections.
-/// Note that [word] can be formatted to proper format.
 class Accepted extends WordCheckingResult {
   /// Event producer
   final User owner;
@@ -72,12 +71,10 @@ class Accepted extends WordCheckingResult {
   Accepted(this.word, this.owner, {this.status, this.countryCode});
 
   /// Creates deep copy of object and allows to set some fields
-  Accepted clone({CityStatus status, int countryCode}) => Accepted(
-        this.word,
-        this.owner,
-        status: status ?? this.status,
-        countryCode: countryCode ?? this.countryCode,
-      );
+  Accepted clone({CityStatus status, int countryCode}) =>
+      Accepted(this.word, this.owner,
+          status: status ?? this.status,
+          countryCode: countryCode ?? this.countryCode);
 }
 
 /// Used when error happens during word processing

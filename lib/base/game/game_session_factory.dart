@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:lets_play_cities/base/dictionary.dart';
+import 'package:lets_play_cities/base/game/scoring/score_controller.dart';
 import 'package:lets_play_cities/base/users.dart';
 
 import '../game_session.dart';
@@ -9,6 +10,7 @@ import 'management.dart';
 
 class GameSessionFactory {
   static GameSession createForGameMode({
+    @required ScoreController scoreController,
     @required GameMode mode,
     @required ExclusionsService exclusions,
     @required DictionaryService dictionary,
@@ -22,7 +24,7 @@ class GameSessionFactory {
       FirstLetterChecker(),
       ExclusionsChecker(exclusions),
       DatabaseChecker(dictionary),
-      LocalEndpoint(dictionary, () => onUserInputAccepted()),
+      LocalEndpoint(dictionary, () => onUserInputAccepted(), scoreController),
     ];
 
     return GameSession(

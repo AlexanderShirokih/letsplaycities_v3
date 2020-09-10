@@ -55,6 +55,8 @@ abstract class ScoringField {
 
   /// Converts field value to JSON
   Map<String, dynamic> toJson();
+
+  IntScoringField asIntField() => this as IntScoringField;
 }
 
 class EmptyScoringField extends ScoringField with EquatableMixin {
@@ -112,18 +114,13 @@ class IntScoringField extends ScoringField with EquatableMixin {
       {"type": "int", "name": name, "value": value};
 }
 
-/// [ScoringField] holding time value
-class TimeScoringField extends ScoringField with EquatableMixin {
-  int timeValue;
-
-  TimeScoringField(String name, this.timeValue) : super(name);
-
-  @override
-  bool hasValue() => timeValue != null;
+/// [ScoringField] holding time value that can be formatted as string
+class TimeScoringField extends IntScoringField {
+  TimeScoringField(String name, int value) : super(name, value);
 
   @override
   String asString() {
-    var s = timeValue;
+    var s = value;
     var h = 0;
     var m = 0;
     if (s > 3600) {
@@ -140,14 +137,8 @@ class TimeScoringField extends ScoringField with EquatableMixin {
   }
 
   @override
-  List<Object> get props => [name, timeValue];
-
-  @override
-  bool get stringify => true;
-
-  @override
   Map<String, dynamic> toJson() =>
-      {"type": "time", "name": name, "value": timeValue};
+      {"type": "time", "name": name, "value": value};
 }
 
 /// [ScoringField] that holds a pair of values

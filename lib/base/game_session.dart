@@ -61,11 +61,9 @@ class GameSession {
   void surrender() {
     _gameRunning = false;
     _disconnectionEvents.add(
-      OnMoveFinished(
-          0,
-          usersList.currentPlayer == null
-              ? MoveFinishType.Disconnected
-              : MoveFinishType.Surrender),
+      OnMoveFinished(usersList.currentPlayer == null
+          ? MoveFinishType.Disconnected
+          : MoveFinishType.Surrender),
     );
   }
 
@@ -84,15 +82,11 @@ class GameSession {
         _disconnectionEvents.stream
       ]).takeWhile((element) {
         final isMoveFinished = element is OnMoveFinished;
-
         if (isMoveFinished &&
-            (element as OnMoveFinished).endType != MoveFinishType.Completed) {
+            (element as OnMoveFinished).endType != MoveFinishType.Completed)
           _gameRunning = false;
-        }
         return !isMoveFinished;
       });
-
-      usersList.switchToNext();
     }
   }
 
@@ -109,29 +103,21 @@ class GameSession {
     // Update the first char
     yield* eventChannel.sendEvent(OnFirstCharChanged(lastSuitableChar));
 
-    final startTime = DateTime.now().millisecondsSinceEpoch;
-
     while (_gameRunning) {
       String city;
       try {
         city = await currentUser.onCreateWord(lastSuitableChar);
       } on SurrenderException {
-        yield OnMoveFinished(0, MoveFinishType.Surrender);
+        yield OnMoveFinished(MoveFinishType.Surrender);
         return;
       }
 
       final results = eventChannel.sendEvent(RawWordEvent(city, currentUser));
-
       await for (final event in results) {
         yield event;
         if (event is Accepted) {
           _lastAcceptedWord = event.word;
-
-          final now = DateTime.now().millisecondsSinceEpoch;
-
-          // Finish move by yielding a finish event
-          yield OnMoveFinished(
-              (now - startTime) ~/ 1000, MoveFinishType.Completed);
+          usersList.switchToNext();
           return;
         }
       }
@@ -146,7 +132,7 @@ class GameSession {
         .take(timeLimit + 1)
         .takeWhile((_) => _gameRunning);
 
-    yield OnMoveFinished(timeLimit, MoveFinishType.Timeout);
+    yield OnMoveFinished(MoveFinishType.Timeout);
   }
 
   Future cancel() async {

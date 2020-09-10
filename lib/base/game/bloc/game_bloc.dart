@@ -3,6 +3,7 @@ import 'package:lets_play_cities/base/dictionary.dart';
 import 'package:lets_play_cities/base/dictionary/impl/country_list_loader_factory.dart';
 import 'package:lets_play_cities/base/dictionary/impl/dictionary_factory.dart';
 import 'package:lets_play_cities/base/dictionary/impl/exclusions_factory.dart';
+import 'package:lets_play_cities/base/game/scoring/score_controller.dart';
 import 'package:lets_play_cities/base/repositories/game_session_repo.dart';
 import 'package:lets_play_cities/base/game/handlers/local_endpoint.dart';
 import 'package:lets_play_cities/base/preferences.dart';
@@ -69,6 +70,7 @@ class GameBloc extends Bloc<GameStateEvent, GameLifecycleState> {
 
     yield DataLoadingState.empty();
 
+    final scoreController = ScoreController.fromPrefs(_prefs);
     final dictionary = await DictionaryFactory().createDictionary();
     final exclusions = await ExclusionsFactory(
             CountryListLoaderServiceFactory().createCountryList(),
@@ -81,6 +83,7 @@ class GameBloc extends Bloc<GameStateEvent, GameLifecycleState> {
         _prefs,
       ),
       exclusions,
+      scoreController,
     );
 
     add(GameStateEvent.GameStart);
@@ -92,11 +95,13 @@ class GameBloc extends Bloc<GameStateEvent, GameLifecycleState> {
 
     final repository = GameSessionRepository(
       GameSessionFactory.createForGameMode(
-          mode: _gameMode,
-          exclusions: dataState.exclusions,
-          dictionary: dataState.dictionary,
-          onUserInputAccepted: () => onUserInputAccepted(),
-          timeLimit: _prefs.timeLimit),
+        mode: _gameMode,
+        exclusions: dataState.exclusions,
+        dictionary: dataState.dictionary,
+        onUserInputAccepted: () => onUserInputAccepted(),
+        timeLimit: _prefs.timeLimit,
+        scoreController: dataState.scoreController,
+      ),
     );
 
     yield GameState(repository);

@@ -39,11 +39,14 @@ const F_DIFF_COUNTRY = "dc";
 const V_EMPTY_S = "--";
 
 /// Describes group of [ScoringField]s that have main field and secondary fields.
-class ScoringGroup extends Equatable {
+class ScoringGroup with EquatableMixin {
   final ScoringField main;
-  final List<ScoringField> child;
+  List<ScoringField> child;
 
   ScoringGroup({@required this.main, this.child});
+
+  ScoringField operator [](String fieldName) =>
+      child.singleWhere((element) => element.name == fieldName);
 
   /// Finds field with [key] in [child] list.
   /// If there is no field with name [key] throws [StateError].
@@ -90,6 +93,9 @@ class ScoringSet extends Equatable {
 
   @override
   bool get stringify => true;
+
+  ScoringGroup operator [](String groupName) =>
+      groups.singleWhere((element) => element.main.name == groupName);
 
   factory ScoringSet.fromLegacyString(String value) => ScoringSet(
         groups: value.split(",").map(_parseLegacyLine).toList(growable: false),

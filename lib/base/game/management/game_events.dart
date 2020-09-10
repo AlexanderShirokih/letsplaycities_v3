@@ -1,3 +1,4 @@
+import 'package:lets_play_cities/base/game/management/word_checking_result.dart';
 import 'package:lets_play_cities/base/game/player/user.dart';
 import 'package:meta/meta.dart';
 
@@ -41,10 +42,9 @@ enum MoveFinishType { Completed, Timeout, Disconnected, Surrender }
 
 /// Emits when users move ended (completed or failed)
 class OnMoveFinished extends GameEvent {
-  final int moveTime;
   final MoveFinishType endType;
 
-  OnMoveFinished(this.moveTime, this.endType);
+  OnMoveFinished(this.endType);
 }
 
 /// An event that represents game timer ticks
