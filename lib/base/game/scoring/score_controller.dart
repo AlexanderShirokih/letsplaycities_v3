@@ -12,7 +12,7 @@ class ScoreController {
   final ScoringSet _allGroups;
   final ScoringType _scoringType;
 
-  int _playerMovesInGame = 0;
+//TODO: will be used later in achiements service:  int _playerMovesInGame = 0;
 
   ScoreController(this._allGroups, this._scoringType);
 
@@ -32,7 +32,7 @@ class ScoreController {
   Future<void> onMoveFinished(User user, String word, int moveTimeInMs) async {
     _allGroups[G_ONLINE][F_TIME].asIntField().add(moveTimeInMs ~/ 1000);
 
-    if (user is Player) _playerMovesInGame++;
+//    if (user is Player) _playerMovesInGame++;
 
     user.increaseScore(_getPoints(word, moveTimeInMs));
 
