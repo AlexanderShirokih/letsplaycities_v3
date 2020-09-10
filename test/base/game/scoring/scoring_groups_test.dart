@@ -29,7 +29,7 @@ void main() {
     expect(
         set.groups[1].child,
         equals([
-          TimeScoringField("tim", 2),
+          TimeScoringField("tim", 60),
           IntScoringField("zero", 0),
         ]));
 
