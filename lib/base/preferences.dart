@@ -7,18 +7,24 @@ class GamePreferences {
   int get wordsDifficulty => 0;
 
   /// `true` when words spelling correction is enabled.
-  bool isCorrectionEnabled() => false;
+  bool get correctionEnabled => false;
 
   /// Time limit per users move in local game modes.
   /// `0` means timer is disabled.
   int get timeLimit => 92;
 
-  /// Defines game score calculation and winner checking strategy
+  /// Defines game score calculation and winner checking strategy.
   ScoringType get scoringType => ScoringType.BY_SCORE;
 
-  /// Returns string containing JSON-encoded representation of score data
+  /// Returns string containing JSON-encoded representation of score data.
   String get scoringData => "";
 
-  /// Returns string containing legacy representation of score data
+  /// Returns string containing legacy representation of score data.
   String get legacyScoringData => "";
+
+  /// Returns last dictionary updates checking date.
+  DateTime get lastDictionaryCheckDate => DateTime.now();
+
+  /// Gets dictionary update checking interval in hours.
+  int get dictionaryUpdatePeriod => 1;
 }

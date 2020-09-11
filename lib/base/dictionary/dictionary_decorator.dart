@@ -23,7 +23,7 @@ class DictionaryDecorator extends DictionaryService {
   /// Returns correction variants for [city] or empty list if there are no corrections available
   /// or corrections is disabled in preferences.
   Future<Set<String>> getCorrectionVariants(String city) =>
-      (_prefs.isCorrectionEnabled())
+      (_prefs.correctionEnabled)
           ? _dictionaryService.getCorrectionVariants(city)
           : Future.value({});
 
