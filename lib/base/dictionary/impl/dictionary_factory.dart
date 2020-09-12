@@ -13,31 +13,35 @@ import 'dictionary_impl.dart';
 
 /// Factory class for creating and loading [DictionaryService] instance
 class DictionaryFactory {
-  static const _EMBEDDED_DICTIONARY_PATH = "assets/data/data.bin";
-  static const _INTERNAL_DICTIONARY_FILE = "/data-last.bin";
+  static const _EMBEDDED_DICTIONARY_PATH = "assets/data/data.db2";
+  static const _INTERNAL_DICTIONARY_FILE = "/data-last.db2";
 
   static _Dictionary _cachedDictionary;
-  static List<_DictionaryDescriptor> _dictionaryDescriptors;
+
+  /// Returns path for internal database file
+  static Future<File> get internalDatabaseFile =>
+      getApplicationSupportDirectory()
+          .then((filesDir) => File(filesDir.path + _INTERNAL_DICTIONARY_FILE));
 
   static Future<List<_DictionaryDescriptor>> _getDescriptors() async {
-    if (_dictionaryDescriptors == null) {
-      _dictionaryDescriptors = await _parseDescriptors();
-      if (_dictionaryDescriptors.isEmpty)
-        throw ("There is no available database descriptors");
-    }
-
-    return _dictionaryDescriptors;
+    final dictionaryDescriptors = await _parseDescriptors();
+    if (dictionaryDescriptors.isEmpty)
+      throw ("There is no available database descriptors");
+    return dictionaryDescriptors;
   }
 
   static Future<_DictionaryDescriptor> _getNewestDescriptor() =>
-      _getDescriptors().then((list) =>
-          (list..sort((a, b) => a.version.compareTo(b.version))).first);
+      _getDescriptors().then((list) => (list
+            ..sort((a, b) {
+              final vSort = b.version.compareTo(a.version);
+              return vSort == 0 ? a.order.compareTo(b.order) : vSort;
+            }))
+          .first);
 
   /// Resets saved dictionary instance and clears underlying data
   static void invalidateCache() {
     _cachedDictionary?.data?.clear();
     _cachedDictionary = null;
-    _dictionaryDescriptors = null;
   }
 
   /// Returns version code of currently installed dictionary
@@ -47,7 +51,7 @@ class DictionaryFactory {
   static Future<List<_DictionaryDescriptor>> _parseDescriptors() =>
       Stream.fromFutures([
         _getCachedDescriptor(),
-        _parseDescriptor(_INTERNAL_DICTIONARY_FILE, true),
+        internalDatabaseFile.then((file) => _parseDescriptor(file.path, true)),
         _parseDescriptor(_EMBEDDED_DICTIONARY_PATH, false),
       ]).where((desc) => desc != null).toList();
 
@@ -58,9 +62,7 @@ class DictionaryFactory {
           dynamic data, String dbPath, bool isInternal) =>
       Future.value(data).then(
         (data) => isInternal
-            ? getApplicationSupportDirectory()
-                .then((filesDir) => File(filesDir.path + dbPath))
-                .then((file) => _InternalDescriptor(file, data['version']))
+            ? _InternalDescriptor(File(dbPath), data['version'])
             : _EmbeddedDescriptor(dbPath, data['version']),
       ); // File
 
@@ -83,10 +85,12 @@ class DictionaryFactory {
   ///  1. Cached dictionary
   ///  2. Downloaded dictionary
   ///  3. Embedded dictionary
-  Future<DictionaryService> createDictionary() => _getNewestDescriptor()
-      .then((desc) => desc.getDictionary())
-      .then((dict) => _updateCacheEntry(dict))
-      .then((dict) => DictionaryServiceImpl(dict.data));
+  Future<DictionaryService> createDictionary() {
+    return _getNewestDescriptor()
+        .then((desc) => desc.getDictionary())
+        .then((dict) => _updateCacheEntry(dict))
+        .then((dict) => DictionaryServiceImpl(dict.data));
+  }
 
   _Dictionary _updateCacheEntry(_Dictionary dictionary) {
     if (_cachedDictionary == null)
