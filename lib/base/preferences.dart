@@ -25,6 +25,10 @@ class GamePreferences {
   /// Returns last dictionary updates checking date.
   DateTime get lastDictionaryCheckDate => DateTime.now();
 
-  /// Gets dictionary update checking interval in hours.
-  int get dictionaryUpdatePeriod => 1;
+  /// Updates last dictionary update date
+  set lastDictionaryCheckDate(DateTime dateTime) {}
+
+  /// Gets dictionary update checking interval in ms.
+  /// [Duration.zero] means don't fetch updates.
+  Duration get dictionaryUpdatePeriod => Duration(hours: 1);
 }

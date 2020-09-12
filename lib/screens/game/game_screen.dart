@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:lets_play_cities/base/dictionary.dart';
 import 'package:lets_play_cities/base/game/bloc/game_bloc.dart';
 import 'package:lets_play_cities/base/game/game_mode.dart';
 import 'package:lets_play_cities/base/preferences.dart';
@@ -21,6 +20,7 @@ class GameScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final prefs = context.repository<GamePreferences>();
     return Scaffold(
       body: Stack(
         children: [
@@ -28,9 +28,8 @@ class GameScreen extends StatelessWidget {
           SizedBox.expand(
             child: BlocProvider(
               create: (_) => GameBloc(
-                  prefs: context.repository<GamePreferences>(),
+                  prefs: prefs,
                   gameMode: gameMode,
-                  dictionaryUpdater: DictionaryUpdater(),
                   localizations: context.repository<LocalizationService>()),
               child: Builder(
                 builder: (context) =>

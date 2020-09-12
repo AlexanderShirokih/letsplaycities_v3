@@ -12,34 +12,34 @@ import 'package:meta/meta.dart';
 
 import '../game_mode.dart';
 import '../game_session_factory.dart';
+import 'package:http/http.dart' as http;
 
 part 'game_events.dart';
 
 part 'game_states.dart';
 
 class GameBloc extends Bloc<GameStateEvent, GameLifecycleState> {
+  final http.Client _http = http.Client();
   final GamePreferences _prefs;
   final LocalizationService _localizations;
-  final DictionaryUpdater _dictionaryUpdater;
   final GameMode _gameMode;
 
   OnUserInputAccepted onUserInputAccepted;
+  DictionaryUpdater _dictionaryUpdater;
 
   GameBloc({
     LocalizationService localizations,
     GamePreferences prefs,
-    DictionaryUpdater dictionaryUpdater,
     GameMode gameMode,
   })  : assert(prefs != null),
-        assert(dictionaryUpdater != null),
         assert(gameMode != null),
         assert(localizations != null),
         _prefs = prefs,
         _localizations = localizations,
-        _dictionaryUpdater = dictionaryUpdater,
         _gameMode = gameMode,
         super(InitialState()) {
     add(GameStateEvent.BeginDataLoading);
+    _dictionaryUpdater = DictionaryUpdater(_prefs, _http);
   }
 
   @override
