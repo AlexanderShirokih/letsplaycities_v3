@@ -28,6 +28,16 @@ class GameBloc extends Bloc<GameStateEvent, GameLifecycleState> {
   OnUserInputAccepted onUserInputAccepted;
   DictionaryUpdater _dictionaryUpdater;
 
+  @override
+  Future<void> close() async {
+    if (state is GameState) {
+      final gameState = state as GameState;
+      await gameState.gameSessionRepository.finish();
+    }
+    _http.close();
+    return super.close();
+  }
+
   GameBloc({
     LocalizationService localizations,
     GamePreferences prefs,

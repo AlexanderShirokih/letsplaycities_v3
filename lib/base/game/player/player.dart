@@ -3,6 +3,7 @@ import 'dart:math';
 
 import 'package:lets_play_cities/base/auth.dart';
 import 'package:lets_play_cities/base/data.dart';
+import 'package:lets_play_cities/base/game/player/surrender_exception.dart';
 import 'package:lets_play_cities/base/users.dart';
 import 'package:lets_play_cities/utils/string_utils.dart';
 
@@ -12,9 +13,11 @@ class Player extends User {
 
   static Random _rnd = Random();
 
-  // TODO: Close stream
   final StreamController<String> _userInput =
       StreamController<String>.broadcast();
+
+  /// Closes user input channel
+  Future<void> close() => _userInput.close();
 
   Player(PlayerData playerData, [ClientAccountInfo accountInfo])
       : super(
@@ -27,7 +30,8 @@ class Player extends User {
 
   @override
   Future<String> onCreateWord(String firstChar) {
-    return _userInput.stream.first;
+    return _userInput.stream.first
+        .catchError((_) => throw SurrenderException(this, true));
   }
 
   /// Used to pass players input to [onCreateWord]
