@@ -5,7 +5,7 @@ import 'package:lets_play_cities/base/game/bloc/game_bloc.dart';
 import 'package:lets_play_cities/base/game/game_mode.dart';
 import 'package:lets_play_cities/base/preferences.dart';
 import 'package:lets_play_cities/l18n/localization_service.dart';
-import 'package:lets_play_cities/screens/common/confirmation_dialog.dart';
+import 'package:lets_play_cities/screens/common/dialogs.dart';
 
 import '../common/common_widgets.dart';
 import 'cities_list.dart';
@@ -22,12 +22,12 @@ class GameScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final prefs = context.repository<GamePreferences>();
-    final l18n = context.repository<LocalizationService>();
+    final l10n = context.repository<LocalizationService>();
     return Scaffold(
       body: WillPopScope(
         onWillPop: () async =>
             (await showConfirmationDialog(context,
-                message: l18n.game['go_to_menu'])) ??
+                message: l10n.game['go_to_menu'])) ??
             false,
         child: Stack(
           children: [
@@ -35,7 +35,7 @@ class GameScreen extends StatelessWidget {
             SizedBox.expand(
               child: BlocProvider(
                 create: (_) => GameBloc(
-                    prefs: prefs, gameMode: gameMode, localizations: l18n),
+                    prefs: prefs, gameMode: gameMode, localizations: l10n),
                 child: Builder(
                   builder: (context) =>
                       BlocConsumer<GameBloc, GameLifecycleState>(

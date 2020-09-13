@@ -6,7 +6,7 @@ import 'package:lets_play_cities/base/data.dart';
 import 'package:lets_play_cities/base/game/bloc/game_bloc.dart';
 import 'package:lets_play_cities/base/repos.dart';
 import 'package:lets_play_cities/l18n/localization_service.dart';
-import 'package:lets_play_cities/screens/common/confirmation_dialog.dart';
+import 'package:lets_play_cities/screens/common/dialogs.dart';
 
 import 'user_avatar.dart';
 

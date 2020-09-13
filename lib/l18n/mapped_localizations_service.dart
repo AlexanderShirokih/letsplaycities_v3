@@ -27,5 +27,11 @@ class MappedLocalizationsService extends LocalizationService {
   String get no => _data['no'];
 
   @override
+  String get cancel => _data['cancel'];
+
+  @override
   Map<String, dynamic> get game => _data['game'];
+
+  @override
+  Map<String, dynamic> get settings => _data['settings'];
 }

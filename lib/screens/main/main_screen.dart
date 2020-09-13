@@ -3,6 +3,7 @@ import 'package:lets_play_cities/base/game/game_mode.dart';
 import 'package:lets_play_cities/screens/common/common_widgets.dart';
 import 'package:lets_play_cities/screens/game/game_screen.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:lets_play_cities/screens/settings/settings_screen.dart';
 
 /// Describes the main screen
 class MainScreen extends StatelessWidget {
@@ -25,7 +26,8 @@ class MainScreen extends StatelessWidget {
               width: 54.0,
               height: 54.0,
               child: RaisedButton(
-                onPressed: () {},
+                onPressed: () => Navigator.of(context)
+                    .push(MaterialPageRoute(builder: (_) => SettingsScreen())),
                 color: Theme.of(context).accentColor,
                 child: Icon(Icons.settings),
               ),

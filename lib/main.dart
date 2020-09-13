@@ -16,7 +16,7 @@ class LetsPlayCitiesApp extends StatelessWidget {
               ? MultiRepositoryProvider(
                   providers: [
                     RepositoryProvider<GamePreferences>(
-                      create: (_) => GamePreferences(),
+                      create: (_) => InMemoryPreferences(),
                     ),
                     RepositoryProvider<LocalizationService>(
                       create: (_) => snap.data,
