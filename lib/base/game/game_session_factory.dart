@@ -28,6 +28,7 @@ class GameSessionFactory {
     ];
 
     return GameSession(
+        mode: mode,
         usersList: usersList,
         eventChannel: ProcessingEventChannel(localGameProcessorsStack),
         timeLimit: timeLimit);

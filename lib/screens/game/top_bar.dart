@@ -17,30 +17,36 @@ class TopBar extends StatelessWidget {
           create: (context) => context
               .repository<GameSessionRepository>()
               .createGameServiceEventsRepository(),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              UserAvatar(
-                onPressed: () {},
-                user: context
-                    .repository<GameSessionRepository>()
-                    .getUserByPosition(Position.LEFT),
-              ),
-              _ActionButtons(),
-              UserAvatar(
-                onPressed: () {},
-                user: context
-                    .repository<GameSessionRepository>()
-                    .getUserByPosition(Position.RIGHT),
-              ),
-            ],
+          child: Builder(
+            builder: (context) {
+              final GameSessionRepository gameRepository =
+                  context.repository<GameSessionRepository>();
+              return Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  UserAvatar(
+                    onPressed: () {},
+                    user: gameRepository.getUserByPosition(Position.LEFT),
+                  ),
+                  _ActionButtons(gameRepository),
+                  UserAvatar(
+                    onPressed: () {},
+                    user: gameRepository.getUserByPosition(Position.RIGHT),
+                  ),
+                ],
+              );
+            },
           ),
         ),
       );
 }
 
 class _ActionButtons extends StatelessWidget {
+  final GameSessionRepository _gameSessionRepository;
+
+  _ActionButtons(this._gameSessionRepository);
+
   @override
   Widget build(BuildContext context) => Expanded(
         child: Column(
@@ -54,8 +60,12 @@ class _ActionButtons extends StatelessWidget {
                 _createRoundBorderedButtons(context, FontAwesomeIcons.flag,
                     onPressed: () =>
                         context.bloc<GameBloc>().add(GameStateEvent.Surrender)),
-                _createRoundBorderedButtons(
-                    context, FontAwesomeIcons.lightbulb),
+                if (_gameSessionRepository.helpAvailable)
+                  _createRoundBorderedButtons(
+                      context, FontAwesomeIcons.lightbulb),
+                if (_gameSessionRepository.messagingAvailable)
+                  _createRoundBorderedButtons(
+                      context, FontAwesomeIcons.envelope),
               ],
             ),
             SizedBox(width: 0.0, height: 16.0),

@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:lets_play_cities/base/data.dart';
+import 'package:lets_play_cities/base/game/game_mode.dart';
 import 'package:lets_play_cities/base/repos.dart';
 import 'package:lets_play_cities/base/users.dart';
 import 'package:lets_play_cities/base/game_session.dart';
@@ -17,6 +18,12 @@ class GameSessionRepository {
 
   Stream<WordCheckingResult> get wordCheckingResults =>
       _session.wordCheckingResults;
+
+  /// `true` if this game mode supports players help
+  bool get helpAvailable => _session.mode == GameMode.PlayerVsAndroid;
+
+  /// `true` if this game mode supports messaging
+  bool get messagingAvailable => _session.mode == GameMode.Network;
 
   /// Creates new instance of [GameItemsRepository]
   GameItemsRepository createGameItemsRepository() =>
