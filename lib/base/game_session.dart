@@ -54,8 +54,10 @@ class GameSession {
   User getUserByPosition(Position position) =>
       usersList.getUserByPosition(position);
 
-  /// Last accepted word
   String _lastAcceptedWord = "";
+
+  /// Last accepted word
+  String get lastAcceptedWord => _lastAcceptedWord;
 
   /// Dispatches user input to the current [Player] in users list
   void deliverUserInput(String userInput) {
@@ -97,9 +99,7 @@ class GameSession {
 
   /// Starts game turn for current user.
   Stream<GameEvent> _makeMoveForCurrentUser() async* {
-    var lastSuitableChar = _lastAcceptedWord.isEmpty
-        ? ""
-        : _lastAcceptedWord[indexOfLastSuitableChar(_lastAcceptedWord)];
+    final lastSuitableChar = findLastSuitableChar(_lastAcceptedWord);
     final currentUser = usersList.current;
 
     // Send current user switching event

@@ -13,12 +13,12 @@ class DictionaryDecorator extends DictionaryService {
         assert(_prefs != null);
 
   /// Returns index of current difficulty level
-  int get difficultyIndex => _prefs.wordsDifficulty;
+  Difficulty get difficulty => _prefs.wordsDifficulty;
 
   /// Returns a random word from the database starting at [firstChar] or an empty string if there are no words left
   /// starting at the [firstChar].
   Future<String> getRandomWord(String firstChar) =>
-      _dictionaryService.getRandomWordByDifficulty(firstChar, difficultyIndex);
+      _dictionaryService.getRandomWordByDifficulty(firstChar, difficulty);
 
   /// Returns correction variants for [city] or empty list if there are no corrections available
   /// or corrections is disabled in preferences.
@@ -41,7 +41,8 @@ class DictionaryDecorator extends DictionaryService {
   int getCountryCode(String city) => _dictionaryService.getCountryCode(city);
 
   @override
-  Future<String> getRandomWordByDifficulty(String firstChar, int difficulty) =>
+  Future<String> getRandomWordByDifficulty(
+          String firstChar, Difficulty difficulty) =>
       _dictionaryService.getRandomWordByDifficulty(firstChar, difficulty);
 
   @override

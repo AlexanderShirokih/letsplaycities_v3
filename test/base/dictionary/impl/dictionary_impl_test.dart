@@ -26,19 +26,22 @@ void main() {
     group('.getRandomWord()', () {
       test('returns word starting at specified char', () async {
         expect(
-            await DictionaryServiceImpl(map).getRandomWordByDifficulty('t', 0),
+            await DictionaryServiceImpl(map)
+                .getRandomWordByDifficulty('t', Difficulty.EASY),
             anyOf(["test", "test2"]));
       });
 
       test('filters by difficulty', () async {
         expect(
-            await DictionaryServiceImpl(map).getRandomWordByDifficulty('w', 1),
+            await DictionaryServiceImpl(map)
+                .getRandomWordByDifficulty('w', Difficulty.MEDIUM),
             equals("world2"));
       });
 
       test('returns empty string if no words starting at char', () async {
         expect(
-            await DictionaryServiceImpl(map).getRandomWordByDifficulty('n', 1),
+            await DictionaryServiceImpl(map)
+                .getRandomWordByDifficulty('n', Difficulty.MEDIUM),
             anyOf([returnsNormally, isEmpty]));
       });
 
@@ -46,7 +49,7 @@ void main() {
         for (int i = 0; i < 10; i++)
           expect(
               await DictionaryServiceImpl(map)
-                  .getRandomWordByDifficulty('w', 1),
+                  .getRandomWordByDifficulty('w', Difficulty.MEDIUM),
               anyOf([returnsNormally, equals("world2")]));
       });
 
@@ -54,7 +57,7 @@ void main() {
         for (int i = 0; i < 10; i++)
           expect(
               await DictionaryServiceImpl(map)
-                  .getRandomWordByDifficulty('h', 0),
+                  .getRandomWordByDifficulty('h', Difficulty.EASY),
               isNot(equals("hello2")));
       });
 
@@ -63,8 +66,8 @@ void main() {
         d.markUsed('test');
 
         for (int i = 0; i < 10; i++)
-          expect(
-              await d.getRandomWordByDifficulty('t', 0), isNot(equals("test")));
+          expect(await d.getRandomWordByDifficulty('t', Difficulty.EASY),
+              isNot(equals("test")));
       });
     });
 

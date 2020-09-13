@@ -22,7 +22,8 @@ class Android extends User {
   Android(
     this._dictionary,
     String androidName,
-  )   : _estimatedMoves = _calculateEstimatedMoves(_dictionary.difficultyIndex),
+  )   : _estimatedMoves =
+            _calculateEstimatedMoves(_dictionary.difficulty.index),
         super(
           playerData: PlayerData(
             name: androidName,

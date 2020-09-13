@@ -7,6 +7,8 @@ enum CityResult {
   ALREADY_USED,
 }
 
+enum Difficulty { EASY, MEDIUM, HARD }
+
 /// Interface that provides functions for access to dictionary database.
 abstract class DictionaryService {
   /// Checks [city] in the dictionary database.
@@ -17,7 +19,7 @@ abstract class DictionaryService {
   /// Returns random word from database starting at [firstChar].
   /// Returns a [Future] with a random city or an empty string if there are no words left
   /// starting at the [firstChar] and [difficulty].
-  Future<String> getRandomWordByDifficulty(String firstChar, int difficulty);
+  Future<String> getRandomWordByDifficulty(String firstChar, Difficulty difficulty);
 
   /// Returns country code for [city] or `0` if country code for the [city] is not found.
   int getCountryCode(String city);

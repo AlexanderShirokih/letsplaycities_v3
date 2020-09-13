@@ -25,6 +25,9 @@ class GameSessionRepository {
   /// `true` if this game mode supports messaging
   bool get messagingAvailable => _session.mode == GameMode.Network;
 
+  /// Returns latest accepted word
+  String get lastAcceptedWord => _session.lastAcceptedWord;
+
   /// Creates new instance of [GameItemsRepository]
   GameItemsRepository createGameItemsRepository() =>
       GameItemsRepository(_session.inputEvents);

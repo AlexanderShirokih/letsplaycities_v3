@@ -1,10 +1,11 @@
+import 'package:lets_play_cities/base/dictionary.dart';
 import 'package:lets_play_cities/base/game/scoring/scoring_type.dart';
 
 /// Represents application preferences
 class GamePreferences {
   /// Words difficulty level.
   /// Where: 0- easy, 1-medium, 2-hard.
-  int get wordsDifficulty => 0;
+  Difficulty get wordsDifficulty => Difficulty.EASY;
 
   /// `true` when words spelling correction is enabled.
   bool get correctionEnabled => false;

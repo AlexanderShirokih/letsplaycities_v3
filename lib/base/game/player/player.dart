@@ -6,7 +6,7 @@ import 'package:lets_play_cities/base/data.dart';
 import 'package:lets_play_cities/base/users.dart';
 import 'package:lets_play_cities/utils/string_utils.dart';
 
-/// User that controller by players keyboard
+/// User that controls by players keyboard
 class Player extends User {
   static final idLimit = pow(2, 32);
 

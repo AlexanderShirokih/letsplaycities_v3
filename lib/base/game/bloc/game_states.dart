@@ -56,9 +56,10 @@ class DataLoadingState extends GameLifecycleState {
 /// The state used during the game.
 /// Starts after [DataLoadingState]
 class GameState extends GameLifecycleState {
+  final DictionaryDecorator dictionary;
   final GameSessionRepository gameSessionRepository;
 
-  const GameState(this.gameSessionRepository);
+  const GameState(this.gameSessionRepository, this.dictionary);
 }
 
 /// Used when the game ends

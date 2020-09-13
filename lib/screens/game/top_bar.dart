@@ -62,7 +62,10 @@ class _ActionButtons extends StatelessWidget {
                         context.bloc<GameBloc>().add(GameStateEvent.Surrender)),
                 if (_gameSessionRepository.helpAvailable)
                   _createRoundBorderedButtons(
-                      context, FontAwesomeIcons.lightbulb),
+                      context, FontAwesomeIcons.lightbulb,
+                      onPressed: () => context
+                          .bloc<GameBloc>()
+                          .add(GameStateEvent.ShowHelp)),
                 if (_gameSessionRepository.messagingAvailable)
                   _createRoundBorderedButtons(
                       context, FontAwesomeIcons.envelope),

@@ -8,6 +8,7 @@ import 'package:lets_play_cities/base/repositories/game_session_repo.dart';
 import 'package:lets_play_cities/base/game/handlers/local_endpoint.dart';
 import 'package:lets_play_cities/base/preferences.dart';
 import 'package:lets_play_cities/l18n/localization_service.dart';
+import 'package:lets_play_cities/utils/string_utils.dart';
 import 'package:meta/meta.dart';
 
 import '../game_mode.dart';
@@ -57,6 +58,9 @@ class GameBloc extends Bloc<GameStateEvent, GameLifecycleState> {
       case GameStateEvent.Surrender:
         _surrender();
         break;
+      case GameStateEvent.ShowHelp:
+        await _showHelp();
+        break;
       default:
         throw ("Unexpected event: $event");
     }
@@ -104,7 +108,7 @@ class GameBloc extends Bloc<GameStateEvent, GameLifecycleState> {
       ),
     );
 
-    yield GameState(repository);
+    yield GameState(repository, dataState.dictionary);
 
     // await for game ends
     repository.run().then((_) {
@@ -135,6 +139,17 @@ class GameBloc extends Bloc<GameStateEvent, GameLifecycleState> {
   void _surrender() {
     if (state is GameState) {
       (state as GameState).gameSessionRepository.surrender();
+    }
+  }
+
+  Future<void> _showHelp() async {
+    if (state is GameState) {
+      final gameState = state as GameState;
+      final firstChar = findLastSuitableChar(
+          gameState.gameSessionRepository.lastAcceptedWord);
+      final word = await gameState.dictionary
+          .getRandomWord(firstChar.isEmpty ? "а" : firstChar);
+      if (word.isNotEmpty) gameState.gameSessionRepository.sendInputWord(word);
     }
   }
 }

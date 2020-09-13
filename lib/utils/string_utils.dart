@@ -27,6 +27,9 @@ extension CapitalizeExtension on String {
   }
 }
 
+String findLastSuitableChar(String word) =>
+    word.isEmpty ? "" : word[indexOfLastSuitableChar(word)];
+
 /// Finds the last index in [city] of char which is not ends at bad letters or returns empty string
 int indexOfLastSuitableChar(String city) {
   final c = city.lastIndexOf(RegExp(r"[^ь^ъ^ы^ё]"));

@@ -12,5 +12,8 @@ enum GameStateEvent {
   Finish,
 
   /// Finishes the game and surrenders current player
-  Surrender
+  Surrender,
+
+  /// Shows tip for player
+  ShowHelp
 }

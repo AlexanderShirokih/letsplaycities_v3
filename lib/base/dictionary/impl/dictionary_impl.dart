@@ -18,13 +18,13 @@ class DictionaryServiceImpl extends DictionaryService {
 
   @override
   Future<String> getRandomWordByDifficulty(
-      String firstChar, int difficulty) async {
+      String firstChar, Difficulty difficulty) async {
     final filtered = _data.entries
         .where((e) => e.key.startsWith(firstChar))
         .where((e) =>
             !e.value.used &&
             e.value.countryCode != 0 &&
-            e.value.difficulty <= difficulty)
+            e.value.difficulty <= difficulty.index)
         .toList(growable: false);
 
     if (filtered.length == 0) return "";
