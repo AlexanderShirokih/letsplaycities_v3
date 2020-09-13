@@ -19,7 +19,8 @@ abstract class DictionaryService {
   /// Returns random word from database starting at [firstChar].
   /// Returns a [Future] with a random city or an empty string if there are no words left
   /// starting at the [firstChar] and [difficulty].
-  Future<String> getRandomWordByDifficulty(String firstChar, Difficulty difficulty);
+  Future<String> getRandomWordByDifficulty(
+      String firstChar, Difficulty difficulty);
 
   /// Returns country code for [city] or `0` if country code for the [city] is not found.
   int getCountryCode(String city);
