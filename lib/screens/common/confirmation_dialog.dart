@@ -6,11 +6,13 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 typedef ConfirmationCallback(bool isOk);
 typedef OnOkCallback();
 
-/// Creates confirmaion dialog which can show title(optional), message(requires)
+/// Creates confirmation dialog which can show title(optional), message(requires)
 /// and has two buttons(yes, no).
 /// To handle only yes event you should pass [onOk] callback.
 /// To handle both yes and no events pass [callback].
-void showConfirmationDialog(
+/// Returns future also containing selected result.
+/// May contain null if user pressed outside the dialog.
+Future<bool> showConfirmationDialog(
   BuildContext context, {
   String title,
   @required String message,
@@ -27,18 +29,18 @@ void showConfirmationDialog(
           actions: [
             FlatButton(
               onPressed: () {
-                Navigator.of(context).pop();
+                Navigator.of(context).pop(false);
                 callback?.call(false);
               },
               child: Text(l18n.no.toUpperCase()),
             ),
             FlatButton(
               onPressed: () {
-                Navigator.of(context).pop();
+                Navigator.of(context).pop(true);
                 if (onOk != null)
                   onOk();
                 else
-                  callback(true);
+                  callback?.call(true);
               },
               child: Text(l18n.yes.toUpperCase()),
             ),
