@@ -1,4 +1,11 @@
 {
+  "yes": "Да",
+  "no": "Нет",
+  "game": {
+    "go_to_menu": "Выйти в меню?",
+    "surrender": "Завершить игру?",
+    "show_help": "Использовать подсказку?"
+  },
   "exclusionList": {
     "this_is_a_country": "%1$ это страна",
     "this_is_a_state": "%1$ это название штата",

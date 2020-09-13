@@ -5,6 +5,8 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:lets_play_cities/base/data.dart';
 import 'package:lets_play_cities/base/game/bloc/game_bloc.dart';
 import 'package:lets_play_cities/base/repos.dart';
+import 'package:lets_play_cities/l18n/localization_service.dart';
+import 'package:lets_play_cities/screens/common/confirmation_dialog.dart';
 
 import 'user_avatar.dart';
 
@@ -56,19 +58,22 @@ class _ActionButtons extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
-                _createRoundBorderedButtons(context, FontAwesomeIcons.bars),
-                _createRoundBorderedButtons(context, FontAwesomeIcons.flag,
-                    onPressed: () =>
+                _createActionButton(context, FontAwesomeIcons.bars,
+                    confirmationMessageKey: 'go_to_menu',
+                    onConfirmed: () => Navigator.of(context).pop()),
+                _createActionButton(context, FontAwesomeIcons.flag,
+                    confirmationMessageKey: 'surrender',
+                    onConfirmed: () =>
                         context.bloc<GameBloc>().add(GameStateEvent.Surrender)),
                 if (_gameSessionRepository.helpAvailable)
-                  _createRoundBorderedButtons(
-                      context, FontAwesomeIcons.lightbulb,
-                      onPressed: () => context
+                  _createActionButton(context, FontAwesomeIcons.lightbulb,
+                      confirmationMessageKey: 'show_help',
+                      onConfirmed: () => context
                           .bloc<GameBloc>()
                           .add(GameStateEvent.ShowHelp)),
                 if (_gameSessionRepository.messagingAvailable)
-                  _createRoundBorderedButtons(
-                      context, FontAwesomeIcons.envelope),
+                  _createActionButton(context, FontAwesomeIcons.envelope,
+                      onConfirmed: () {}),
               ],
             ),
             SizedBox(width: 0.0, height: 16.0),
@@ -86,15 +91,23 @@ class _ActionButtons extends StatelessWidget {
         ),
       );
 
-  Widget _createRoundBorderedButtons(BuildContext context, IconData faIconData,
-          {Function onPressed}) =>
+  Widget _createActionButton(BuildContext context, IconData faIconData,
+          {String confirmationMessageKey, @required Function onConfirmed}) =>
       Container(
         width: 56.0,
         height: 56.0,
         child: RaisedButton(
           color: Theme.of(context).accentColor,
           padding: const EdgeInsets.all(10.0),
-          onPressed: onPressed ?? () {},
+          onPressed: () => confirmationMessageKey == null
+              ? onConfirmed()
+              : showConfirmationDialog(
+                  context,
+                  message: context
+                      .repository<LocalizationService>()
+                      .game[confirmationMessageKey],
+                  onOk: onConfirmed,
+                ),
           child: FaIcon(faIconData, color: Colors.white),
           shape:
               StadiumBorder(side: BorderSide(color: Colors.white, width: 3.0)),

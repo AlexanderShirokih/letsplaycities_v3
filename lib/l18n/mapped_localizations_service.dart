@@ -19,4 +19,13 @@ class MappedLocalizationsService extends LocalizationService {
       ErrorCode.NOT_A_CITY: exclusionsList["not_city"],
     };
   }
+
+  @override
+  String get yes => _data['yes'];
+
+  @override
+  String get no => _data['no'];
+
+  @override
+  Map<String, dynamic> get game => _data['game'];
 }
