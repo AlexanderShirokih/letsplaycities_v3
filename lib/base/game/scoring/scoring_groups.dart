@@ -97,10 +97,6 @@ class ScoringSet extends Equatable {
   ScoringGroup operator [](String groupName) =>
       groups.singleWhere((element) => element.main.name == groupName);
 
-  factory ScoringSet.fromLegacyString(String value) => ScoringSet(
-        groups: value.split(",").map(_parseLegacyLine).toList(growable: false),
-      );
-
   /// Returns new [ScoringSet] containing fields both from [right] and this set,
   /// and unique from [right] set.
   /// Replaces [right] field values with this field values if they don't equal.
@@ -128,54 +124,6 @@ class ScoringSet extends Equatable {
   static ScoringField _findFieldByName(ScoringGroup group, String name) =>
       group.child
           .singleWhere((field) => field.name == name, orElse: () => null);
-
-  static ScoringGroup _parseLegacyLine(String line) {
-    final beginChild = line.indexOf('<');
-    final endChild = line.indexOf('>');
-    final hasChild = beginChild != -1 && endChild != -1;
-
-    return ScoringGroup(
-      main: hasChild
-          ? _parseLegacyField(line.substring(0, beginChild))
-          : _parseLegacyField(line),
-      child: hasChild
-          ? line
-              .substring(beginChild + 1, endChild)
-              .split('|')
-              .map(_parseLegacyField)
-              .toList(growable: false)
-          : List<ScoringField>.empty(growable: false),
-    );
-  }
-
-  static ScoringField _parseLegacyField(String line) {
-    final nameValueDiv = line.indexOf('=');
-    final valueKeyDiv = line.lastIndexOf('=');
-    final isPaired = nameValueDiv != valueKeyDiv;
-
-    // name => (name)
-    if (nameValueDiv == -1) return EmptyScoringField(line);
-
-    final name = line.substring(0, nameValueDiv);
-    final key = line.substring(nameValueDiv + 1, isPaired ? valueKeyDiv : null);
-    final intKey = int.tryParse(key);
-    final value = isPaired ? int.parse(line.substring(valueKeyDiv + 1)) : null;
-
-    // name=key=intValue => (name, key, intValue)
-    if (isPaired) return PairedScoringField<String, int>(name, key, value);
-
-    // pvalN=value => (name, value, N) | (name, value, null)
-    if (intKey == null)
-      return name.startsWith(F_P)
-          ? PairedScoringField<String, int>(
-              name, key, int.parse(name.substring(name.length - 1)))
-          : PairedScoringField<String, int>(name, key, null);
-
-    // name=intValue => (name, intValue)
-    return F_TIME == name
-        ? TimeScoringField(name, intKey)
-        : IntScoringField(name, intKey);
-  }
 
   factory ScoringSet.fromJson(Map<String, dynamic> data) {
     return ScoringSet(

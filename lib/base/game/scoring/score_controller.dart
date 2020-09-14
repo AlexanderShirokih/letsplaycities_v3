@@ -16,13 +16,8 @@ class ScoreController {
 
   ScoreController(this._allGroups, this._scoringType);
 
-  factory ScoreController.fromPrefs(GamePreferences prefs) {
-    final legacyScoring = prefs.legacyScoringData;
-    final scoreSet = legacyScoring.isNotEmpty
-        ? ScoringSet.fromLegacyString(legacyScoring)
-        : _getScoreData(prefs.scoringData);
-    return ScoreController(scoreSet, prefs.scoringType);
-  }
+  factory ScoreController.fromPrefs(GamePreferences prefs) =>
+      ScoreController(_getScoreData(prefs.scoringData), prefs.scoringType);
 
   static ScoringSet _getScoreData(dynamic scoringData) => scoringData.isEmpty
       ? ScoringSet.initial()
