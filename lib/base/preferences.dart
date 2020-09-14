@@ -98,7 +98,7 @@ class SharedPreferencesGamePrefs extends GamePreferences {
   @override
   set scoringType(ScoringType s) => _prefs.setInt("scoringType", s.index);
 
-  String get scoringData => _prefs.getString("scoringData").isEmpty
+  String get scoringData => _prefs.getString("scoringData") == null
       ? ""
       : utf8.decode(base64.decode(_prefs.getString("scoringData")));
 
