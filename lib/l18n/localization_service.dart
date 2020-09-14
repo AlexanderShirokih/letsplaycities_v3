@@ -15,5 +15,4 @@ abstract class LocalizationService {
 
   /// SettingsScreen localizations
   Map<String, dynamic> get settings;
-
 }
