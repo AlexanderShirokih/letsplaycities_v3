@@ -23,6 +23,7 @@ public class MainActivity extends FlutterActivity {
         new MethodChannel(flutterEngine.getDartExecutor().getBinaryMessenger(), MIGRATION_CHANNEL).setMethodCallHandler((call, result) -> {
             if ("migrateLegacyPreferencesFile".equals(call.method)) {
                 runMigrations();
+                result.success(null);
             } else {
                 result.notImplemented();
             }

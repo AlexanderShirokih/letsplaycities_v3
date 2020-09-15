@@ -14,19 +14,19 @@ import java.util.ArrayList;
 public class MigrationHelper {
 
     public static void runMigrationIfNeeded(SharedPreferences old, SharedPreferences current) {
-        if (!isShouldRunMigration(old, current)) {
+        if (!isShouldRunMigration(old)) {
             final GamePreferences prefs = loadOldPrefs(old);
             saveNewPrefs(prefs, current);
-            markMigrationCompleted(current);
+            removeOldPrefs(old);
         }
     }
 
-    private static boolean isShouldRunMigration(@NonNull SharedPreferences old, @NonNull SharedPreferences current) {
-        return old.getBoolean("first_launch", true) && current.getBoolean("migrated", false);
+    private static boolean isShouldRunMigration(@NonNull SharedPreferences old) {
+        return old.getBoolean("first_launch", true);
     }
 
-    private static void markMigrationCompleted(@NonNull SharedPreferences prefs) {
-        prefs.edit().putBoolean("migrated", true).apply();
+    private static void removeOldPrefs(@NonNull SharedPreferences prefs) {
+        prefs.edit().clear().apply();
     }
 
     private static GamePreferences loadOldPrefs(@NonNull SharedPreferences old) {
@@ -39,7 +39,8 @@ public class MigrationHelper {
                 old.getInt("scoring_sys", 0),
                 getScoring(old.getString("scrbkey", null)),
                 old.getLong("last_upd_date", 0),
-                getDictionaryUpdatePeriod(old.getInt("dic_upd", 0))
+                getDictionaryUpdatePeriod(old.getInt("dic_upd", 0)),
+                old.getBoolean("first_launch", true)
         );
     }
 
@@ -146,16 +147,17 @@ public class MigrationHelper {
     @SuppressLint("ApplySharedPref")
     private static void saveNewPrefs(@NonNull GamePreferences gamePrefs, @NonNull SharedPreferences sp) {
         sp.edit()
-                .putBoolean("migrated", true)
-                .putBoolean("correctionEnabled", gamePrefs.correctionEnabled)
-                .putBoolean("onlineChatEnabled", gamePrefs.onlineChatEnabled)
-                .putBoolean("soundEnabled", gamePrefs.soundEnabled)
-                .putLong("wordsDifficulty", gamePrefs.wordsDifficulty)
-                .putLong("timeLimit", gamePrefs.timeLimit)
-                .putLong("scoringType", gamePrefs.scoringType)
-                .putLong("dictionaryUpdatePeriod", gamePrefs.dictionaryUpdatePeriod)
-                .putLong("lastDictionaryCheckDate", gamePrefs.lastDictionaryCheckDate)
-                .putString("scoringData", gamePrefs.scoringData)
+                .putBoolean("flutter.migrated", true)
+                .putBoolean("flutter.correctionEnabled", gamePrefs.correctionEnabled)
+                .putBoolean("flutter.onlineChatEnabled", gamePrefs.onlineChatEnabled)
+                .putBoolean("flutter.soundEnabled", gamePrefs.soundEnabled)
+                .putBoolean("flutter.firstLaunch", gamePrefs.isFirstLaunch)
+                .putLong("flutter.wordsDifficulty", gamePrefs.wordsDifficulty)
+                .putLong("flutter.timeLimit", gamePrefs.timeLimit)
+                .putLong("flutter.scoringType", gamePrefs.scoringType)
+                .putLong("flutter.dictionaryUpdatePeriod", gamePrefs.dictionaryUpdatePeriod)
+                .putLong("flutter.lastDictionaryCheckDate", gamePrefs.lastDictionaryCheckDate)
+                .putString("flutter.scoringData", gamePrefs.scoringData)
                 .commit(); // Flush to storage immediately
     }
 
@@ -225,6 +227,9 @@ public class MigrationHelper {
         /// 0 - never, 1 - every three hours, 2 - daily
         final int dictionaryUpdatePeriod;
 
+        /// Is there a first launch
+        final boolean isFirstLaunch;
+
         private GamePreferences(
                 int wordsDifficulty,
                 boolean correctionEnabled,
@@ -234,7 +239,8 @@ public class MigrationHelper {
                 int scoringType,
                 String scoringData,
                 long lastDictionaryCheckDate,
-                int dictionaryUpdatePeriod
+                int dictionaryUpdatePeriod,
+                boolean isFirstLaunch
         ) {
             this.wordsDifficulty = wordsDifficulty;
             this.correctionEnabled = correctionEnabled;
@@ -245,6 +251,7 @@ public class MigrationHelper {
             this.scoringData = scoringData;
             this.lastDictionaryCheckDate = lastDictionaryCheckDate;
             this.dictionaryUpdatePeriod = dictionaryUpdatePeriod;
+            this.isFirstLaunch = isFirstLaunch;
         }
     }
 }
