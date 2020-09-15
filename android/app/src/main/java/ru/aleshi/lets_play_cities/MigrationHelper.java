@@ -69,7 +69,7 @@ public class MigrationHelper {
     }
 
     private static String encodeBase64(@NonNull String decoded) {
-        return Base64.encodeToString(decoded.getBytes(), Base64.DEFAULT);
+        return Base64.encodeToString(decoded.getBytes(), Base64.NO_WRAP);
     }
 
     private static String convertFromLegacyToJson(@NonNull String scoring) {
