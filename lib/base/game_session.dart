@@ -85,11 +85,11 @@ class GameSession {
     await Future.delayed(Duration(milliseconds: 150));
 
     while (_gameRunning) {
-      yield* mergeByShortest([
+      yield* mergeStreamsWhile([
         _createTimer(),
         _makeMoveForCurrentUser(),
         _disconnectionEvents.stream
-      ]).takeWhile((element) {
+      ], (element) {
         final isMoveFinished = element is OnMoveFinished;
         if (isMoveFinished &&
             (element as OnMoveFinished).endType != MoveFinishType.Completed)
@@ -126,6 +126,7 @@ class GameSession {
         if (event is Accepted) {
           _lastAcceptedWord = event.word;
           usersList.switchToNext();
+          yield OnMoveFinished(MoveFinishType.Completed);
           return;
         }
       }
