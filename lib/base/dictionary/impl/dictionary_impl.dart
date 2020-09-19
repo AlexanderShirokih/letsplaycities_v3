@@ -52,13 +52,9 @@ class DictionaryServiceImpl extends DictionaryService {
   @override
   Future<Set<String>> getCorrectionVariants(String city) async {
     final list = _edits(city);
-    final List<String> candidates = [];
 
-    for (final s in list) {
-      // Max 3 words
-      if (candidates.length == 3) break;
-      if (_canUse(s)) candidates.add(s);
-    }
+    final candidates =
+        list.where((s) => _canUse(s)).take(3).toList(growable: true);
 
     if (candidates.isNotEmpty) return candidates.toSet();
 
@@ -79,7 +75,7 @@ class DictionaryServiceImpl extends DictionaryService {
     return CityResult.OK;
   }
 
-  bool _canUse(String s) => s.length > 1 && !(_data[s]?.used ?? true);
+  bool _canUse(String s) => s.length > 3 && !(_data[s]?.used ?? true);
 
   List<String> _edits(String word) {
     List<String> result = [];

@@ -128,18 +128,19 @@ class _CityCheckingResultBarState extends State<CityCheckingResultBar>
 
   Widget _createNotificationBox(BuildContext context, String message) =>
       Container(
-        margin: EdgeInsets.all(8.0),
-        padding: EdgeInsets.symmetric(horizontal: 12.0),
-        height: 42.0,
+        margin: const EdgeInsets.all(8.0),
         color: Theme.of(context).secondaryHeaderColor,
-        child: Row(
-          children: [
-            Icon(Icons.warning),
-            SizedBox(width: 12.0),
-            Expanded(
-              child: Text(message),
-            )
-          ],
+        child: Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Row(
+            children: [
+              Icon(Icons.warning),
+              SizedBox(width: 12.0),
+              Expanded(
+                child: Text(message),
+              )
+            ],
+          ),
         ),
       );
 
