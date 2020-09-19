@@ -14,6 +14,7 @@ import 'package:meta/meta.dart';
 import '../game_mode.dart';
 import '../game_session_factory.dart';
 import 'package:http/http.dart' as http;
+import 'dart:async';
 
 part 'game_events.dart';
 
@@ -54,7 +55,13 @@ class GameBloc extends Bloc<GameStateEvent, GameLifecycleState> {
   }
 
   @override
-  Stream<GameLifecycleState> mapEventToState(GameStateEvent event) async* {
+  Stream<GameLifecycleState> mapEventToState(GameStateEvent event) =>
+      _mapEventToState(event).transform(StreamTransformer.fromHandlers(
+          handleError: (Object e, StackTrace stackTrace,
+                  EventSink<GameLifecycleState> sink) =>
+              sink.add(ErrorState(e, stackTrace))));
+
+  Stream<GameLifecycleState> _mapEventToState(GameStateEvent event) async* {
     switch (event) {
       case GameStateEvent.BeginDataLoading:
         yield* _beginLoading();

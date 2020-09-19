@@ -64,3 +64,11 @@ class GameState extends GameLifecycleState {
 
 /// Used when the game ends
 class GameResultsState extends GameLifecycleState {}
+
+/// Used when some fatal error happens
+class ErrorState extends GameLifecycleState {
+  final Object exception;
+  final StackTrace stackTrace;
+
+  const ErrorState(this.exception, this.stackTrace);
+}

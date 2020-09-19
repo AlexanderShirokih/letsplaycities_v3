@@ -10,6 +10,8 @@ abstract class LocalizationService {
 
   String get cancel;
 
+  String get back;
+
   /// GameScreen localizations
   Map<String, dynamic> get game;
 
