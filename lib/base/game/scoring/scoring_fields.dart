@@ -163,4 +163,9 @@ class PairedScoringField<K, V> extends ScoringField with EquatableMixin {
   @override
   Map<String, dynamic> toJson() =>
       {"type": "paired", "name": name, "key": key, "value": value};
+
+  /// Creates deep copy of this field
+  PairedScoringField<K, V> clone({String name, K key, V value}) =>
+      PairedScoringField(
+          name ?? this.name, key ?? this.key, value ?? this.value);
 }

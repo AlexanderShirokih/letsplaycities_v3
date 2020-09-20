@@ -5,6 +5,7 @@ import 'package:lets_play_cities/base/game/scoring/scoring_type.dart';
 import 'package:lets_play_cities/base/preferences.dart';
 import 'package:lets_play_cities/base/users.dart';
 import 'scoring_groups.dart';
+import 'package:lets_play_cities/utils/collections_utils.dart';
 
 typedef OnUpdateScoringData = void Function(ScoringSet scoringData);
 
@@ -50,31 +51,44 @@ class ScoreController {
     _saveScoring();
   }
 
-  void _updateLongestCities(User user, String word) {
-    final newList = (_allGroups[G_BIG_CITIES]
+  void _updateLongestCities(User user, String word) =>
+      _updateTop10By(G_BIG_CITIES, word, (w) => w.length, null);
+
+  void _updateMostFrequentCities(String word) => _updateTop10By(
+      G_FRQ_CITIES,
+      word,
+      (_) => 1,
+      (old, current) => old.clone(value: old.value + current.value));
+
+  void _updateTop10By(
+    String group,
+    String word,
+    int Function(String) defaultValue,
+    PairedScoringField<String, int> Function(
+      PairedScoringField<String, int> prev,
+      PairedScoringField<String, int> curr,
+    )
+        onMerge,
+  ) {
+    // Recalculate list
+    final newList = (_allGroups[group]
                 .child
                 .cast<PairedScoringField<String, int>>()
                 .where((field) => field.hasValue() && field.key != V_EMPTY_S)
-                .map((e) => e.key)
                 .toList() +
-            [word])
-        .toSet()
-        .toList(growable: false);
-
-    newList.sort((a, b) => b.length.compareTo(a.length));
+            [PairedScoringField<String, int>("", word, defaultValue(word))])
+        .distinctBy((field) => field.key, onDuplicate: onMerge)
+        .take(10)
+        .toList(growable: false)
+          ..sort((a, b) => b.value.compareTo(a.value));
 
     // Update references
-    _allGroups[G_BIG_CITIES].child = newList
+    _allGroups[group].child = newList
         .asMap()
-        .map((i, word) =>
-            MapEntry(i, PairedScoringField("$F_P$i", word, word.length)))
+        .map((i, word) => MapEntry(i, word.clone(name: "$F_P$i")))
         .values
         .take(10)
         .toList(growable: false);
-  }
-
-  void _updateMostFrequentCities(String lastWord) {
-    //TODO: implement
   }
 
   int _getPoints(String word, int moveTime) {
