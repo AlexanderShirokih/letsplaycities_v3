@@ -1,6 +1,7 @@
 import 'package:equatable/equatable.dart';
-import 'package:lets_play_cities/base/game/scoring/scoring_fields.dart';
 import 'package:meta/meta.dart';
+
+import 'package:lets_play_cities/base/scoring.dart';
 
 /*
  * Group names

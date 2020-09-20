@@ -1,10 +1,10 @@
 import 'package:lets_play_cities/base/data.dart';
+import 'package:lets_play_cities/base/scoring.dart';
 import 'package:lets_play_cities/base/dictionary.dart';
 import 'package:lets_play_cities/base/game/combo.dart';
 import 'package:lets_play_cities/base/game/handlers.dart';
 import 'package:lets_play_cities/base/game/management.dart';
 import 'package:lets_play_cities/base/game/player/player.dart';
-import 'package:lets_play_cities/base/game/scoring/score_controller.dart';
 
 /// User as callback hook to notify UI that word is accepted and input fields
 /// can be cleared.

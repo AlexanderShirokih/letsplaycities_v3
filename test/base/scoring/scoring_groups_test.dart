@@ -1,7 +1,6 @@
 import 'dart:convert';
 
-import 'package:lets_play_cities/base/game/scoring/scoring_fields.dart';
-import 'package:lets_play_cities/base/game/scoring/scoring_groups.dart';
+import 'package:lets_play_cities/base/scoring.dart';
 import 'package:test/test.dart';
 
 void main() {

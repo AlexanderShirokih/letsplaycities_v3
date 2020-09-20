@@ -1,9 +1,7 @@
 import 'dart:convert';
 
-import 'package:lets_play_cities/base/game/scoring/scoring_groups.dart';
-import 'package:lets_play_cities/base/game/scoring/scoring_fields.dart';
-import 'package:lets_play_cities/base/game/scoring/scoring_type.dart';
 import 'package:lets_play_cities/base/preferences.dart';
+import 'package:lets_play_cities/base/scoring.dart';
 import 'package:lets_play_cities/base/users.dart';
 import 'package:lets_play_cities/utils/collections_utils.dart';
 

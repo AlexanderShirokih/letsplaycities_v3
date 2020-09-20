@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:lets_play_cities/base/dictionary.dart';
-import 'package:lets_play_cities/base/game/scoring/scoring_type.dart';
-import 'package:lets_play_cities/base/preferences.dart';
-import 'package:lets_play_cities/l18n/localization_service.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+
+import 'package:lets_play_cities/l18n/localization_service.dart';
+import 'package:lets_play_cities/base/dictionary.dart';
+import 'package:lets_play_cities/base/preferences.dart';
+import 'package:lets_play_cities/base/scoring.dart';
 import 'package:lets_play_cities/screens/common/dialogs.dart';
 
 class SettingsScreen extends StatelessWidget {

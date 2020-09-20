@@ -1,7 +1,7 @@
 import 'dart:convert';
 
 import 'package:lets_play_cities/base/dictionary.dart';
-import 'package:lets_play_cities/base/game/scoring/scoring_type.dart';
+import 'package:lets_play_cities/base/scoring.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// Represents application preferences
