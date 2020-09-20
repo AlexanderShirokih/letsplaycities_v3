@@ -2,12 +2,20 @@ import 'package:equatable/equatable.dart';
 import 'package:intl/intl.dart';
 import 'package:meta/meta.dart';
 
+/// Container class for printing both field name(or key) and it's value
+class ScoringFieldData {
+  final String name;
+  final String value;
+
+  const ScoringFieldData(this.name, this.value);
+}
+
 /// A class that is used to describe single field of any type scoring data
 abstract class ScoringField {
   /// Field name
   final String name;
 
-  ScoringField(this.name) : assert(name != null);
+  const ScoringField(this.name) : assert(name != null);
 
   factory ScoringField.empty({@required String name}) =>
       EmptyScoringField(name);
@@ -49,6 +57,9 @@ abstract class ScoringField {
 
   /// Returns string representation of field value
   String asString();
+
+  /// Returns pair of name(key) and value separately
+  ScoringFieldData asPairedString() => ScoringFieldData(name, asString());
 
   /// Returns `true` if field has non-null value
   bool hasValue();
@@ -146,13 +157,17 @@ class PairedScoringField<K, V> extends ScoringField with EquatableMixin {
   final K key;
   final V value;
 
-  PairedScoringField(String name, this.key, this.value) : super(name);
+  const PairedScoringField(String name, this.key, this.value) : super(name);
 
   @override
-  bool hasValue() => key != null;
+  bool hasValue() => value != null;
 
   @override
-  String asString() => "$key=$value";
+  String asString() => key.toString();
+
+  @override
+  ScoringFieldData asPairedString() =>
+      ScoringFieldData(key.toString(), value.toString());
 
   @override
   List<Object> get props => [name, key, value];

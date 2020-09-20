@@ -6,6 +6,7 @@ import 'package:lets_play_cities/base/dictionary.dart';
 import 'package:lets_play_cities/base/preferences.dart';
 import 'package:lets_play_cities/base/scoring.dart';
 import 'package:lets_play_cities/screens/common/dialogs.dart';
+import 'package:lets_play_cities/screens/settings/stats/stats_screen.dart';
 
 class SettingsScreen extends StatelessWidget {
   @override
@@ -32,10 +33,11 @@ class _SettingsItemsList extends StatefulWidget {
             (_settings['settings_item_titles'] as List<dynamic>).cast<String>(),
         _onOff = (_settings['on_off'] as List<dynamic>).cast<String>();
 
+  // TODO: Implement another screens: ThemeSelectorScreen, BlacklistScreen
   @override
   _SettingsItemsListState createState() => _SettingsItemsListState(
         [
-          _NavigationItem(_titles[0], "Unimplemented"),
+          _NavigationItem(_titles[0], "Unimplemented", null),
           _SingleChoiceItem(
             _titles[1],
             (_settings['difficulty'] as List<dynamic>).cast<String>(),
@@ -61,8 +63,9 @@ class _SettingsItemsList extends StatefulWidget {
               onSet: (f) => _prefs.soundEnabled = f),
           _ToggleItem(_titles[6], _onOff, _prefs.onlineChatEnabled,
               onSet: (f) => _prefs.onlineChatEnabled = f),
-          _NavigationItem(_titles[7], _settings['statistic_sub']),
-          _NavigationItem(_titles[8], _settings['blacklist_sub']),
+          _NavigationItem(
+              _titles[7], _settings['statistic_sub'], () => StatisticsScreen()),
+          _NavigationItem(_titles[8], _settings['blacklist_sub'], null),
           _SingleChoiceItem(
             _titles[9],
             (_settings['dict_upd_period'] as List<dynamic>).cast<String>(),
@@ -125,15 +128,20 @@ abstract class _SettingsItem {
   Future<void> onClicked(BuildContext context);
 }
 
+typedef ScreenSelector = Widget Function();
+
 // When clicked navigates to specifies destination
 class _NavigationItem extends _SettingsItem {
   final String _subtitle;
+  final ScreenSelector _selector;
 
-  _NavigationItem(String title, this._subtitle) : super(title);
+  _NavigationItem(String title, this._subtitle, this._selector) : super(title);
 
   @override
   Future<void> onClicked(BuildContext context) {
-    //TODO: Implement navigation logic
+    if (_selector != null)
+      Navigator.of(context)
+          .push(MaterialPageRoute(builder: (_) => _selector()));
     return Future.value();
   }
 
