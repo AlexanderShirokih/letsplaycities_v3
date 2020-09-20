@@ -3,9 +3,9 @@ import 'dart:async';
 /// Used to debounce function call.
 /// That means [runnable] function will be called at most once per [delay].
 class Debouncer {
+  final Duration delay;
   int _lastTime;
   Timer _timer;
-  Duration delay;
 
   Debouncer(this.delay, {Duration offset})
       : _lastTime = DateTime.now().millisecondsSinceEpoch +

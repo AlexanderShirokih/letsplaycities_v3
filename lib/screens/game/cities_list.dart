@@ -3,6 +3,7 @@ import 'package:flutter/widgets.dart';
 import 'package:lets_play_cities/base/data.dart';
 import 'package:lets_play_cities/base/game/game_item.dart';
 import 'package:lets_play_cities/base/repositories/game_session_repo.dart';
+import 'package:lets_play_cities/screens/common/common_widgets.dart';
 import 'package:lets_play_cities/utils/string_utils.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -59,10 +60,7 @@ class _GameItemListTile extends StatelessWidget {
   Widget _buildIcon(CityInfo cityInfo) {
     switch (cityInfo.status) {
       case CityStatus.OK:
-        return Image.asset(
-          "assets/images/flags/flag_${cityInfo.countryCode}.png",
-          height: 20.0,
-        );
+        return createFlagImage(cityInfo.countryCode);
       case CityStatus.WAITING:
         return Icon(Icons.pending_outlined);
       case CityStatus.ERROR:

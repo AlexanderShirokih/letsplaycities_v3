@@ -3,6 +3,7 @@ import 'package:lets_play_cities/base/game/game_mode.dart';
 import 'package:lets_play_cities/screens/common/common_widgets.dart';
 import 'package:lets_play_cities/screens/game/game_screen.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:lets_play_cities/screens/main/citieslist/cities_list_screen.dart';
 import 'package:lets_play_cities/screens/settings/settings_screen.dart';
 
 /// Describes the main screen
@@ -148,7 +149,11 @@ class _AnimatedMainButtonsState extends State<AnimatedMainButtons>
           CustomMaterialButton(
               "Достижения", FaIcon(FontAwesomeIcons.medal), () {}),
           CustomMaterialButton("Рейтинги", Icon(Icons.trending_up), () {}),
-          CustomMaterialButton("Города", Icon(Icons.apartment), () {}),
+          CustomMaterialButton(
+              "Города",
+              Icon(Icons.apartment),
+              () => Navigator.of(context)
+                  .push(MaterialPageRoute(builder: (_) => CitiesListScreen()))),
         ],
       );
 

@@ -57,3 +57,34 @@ Widget createBackground(String name) => Positioned.fill(
         fit: BoxFit.cover,
       ),
     );
+
+/// Shows card with progress bar and message
+class LoadingView extends StatelessWidget {
+  final String _text;
+
+  LoadingView(this._text) : assert(_text != null);
+
+  @override
+  Widget build(BuildContext context) => Center(
+        child: Card(
+          elevation: 5.0,
+          child: Container(
+            padding: EdgeInsets.all(10.0),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                CircularProgressIndicator(),
+                SizedBox(height: 10.0),
+                Text(_text, style: Theme.of(context).textTheme.headline6),
+              ],
+            ),
+          ),
+        ),
+      );
+}
+
+/// Loads flag image from assets for [countryCode]
+Image createFlagImage(int countryCode) => Image.asset(
+      "assets/images/flags/flag_$countryCode.png",
+      height: 20.0,
+    );

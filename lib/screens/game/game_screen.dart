@@ -45,13 +45,12 @@ class GameScreen extends StatelessWidget {
                       if (state is GameState) {
                         return _buildGameStateLayout(state);
                       } else if (state is CheckingForUpdatesState) {
-                        return _LoadingStateView(() {
-                          return state.stage == CheckingForUpdatesStage.Updating
-                              ? "Загрузка обновлений ${state.stagePercent}%"
-                              : "Проверка обновлений словаря";
-                        });
+                        return LoadingView(
+                            state.stage == CheckingForUpdatesStage.Updating
+                                ? "Загрузка обновлений ${state.stagePercent}%"
+                                : "Проверка обновлений словаря");
                       } else if (state is DataLoadingState) {
-                        return _LoadingStateView(() => "Загрузка базы данных");
+                        return LoadingView("Загрузка базы данных");
                       } else if (state is ErrorState) {
                         return ErrorHandlerView(
                           state.exception.toString(),
@@ -95,31 +94,3 @@ Widget _buildGameStateLayout(GameState gameState) => RepositoryProvider(
         ],
       ),
     );
-
-typedef String FunctionStringCallback();
-
-class _LoadingStateView extends StatelessWidget {
-  final String _text;
-
-  _LoadingStateView(FunctionStringCallback textBuilder)
-      : assert(textBuilder != null),
-        _text = textBuilder();
-
-  @override
-  Widget build(BuildContext context) => Center(
-        child: Card(
-          elevation: 5.0,
-          child: Container(
-            padding: EdgeInsets.all(10.0),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                CircularProgressIndicator(),
-                SizedBox(height: 10.0),
-                Text(_text, style: Theme.of(context).textTheme.headline6),
-              ],
-            ),
-          ),
-        ),
-      );
-}
