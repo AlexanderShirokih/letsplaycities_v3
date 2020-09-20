@@ -143,10 +143,10 @@ class TimeScoringField extends IntScoringField {
 
 /// [ScoringField] that holds a pair of values
 class PairedScoringField<K, V> extends ScoringField with EquatableMixin {
-  K key;
-  V value;
+  final K key;
+  final V value;
 
-  PairedScoringField(String name, K key, V value) : super(name);
+  PairedScoringField(String name, this.key, this.value) : super(name);
 
   @override
   bool hasValue() => key != null;

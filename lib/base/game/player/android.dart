@@ -2,10 +2,9 @@ import 'dart:math';
 
 import 'package:lets_play_cities/base/auth.dart';
 import 'package:lets_play_cities/base/data.dart';
-
-import 'user.dart';
-import 'surrender_exception.dart';
 import 'package:lets_play_cities/base/dictionary.dart';
+import 'package:lets_play_cities/base/game/player/user.dart';
+import 'package:lets_play_cities/base/game/player/surrender_exception.dart';
 
 /// Represents logic of Android player.
 /// [PlayerData] model class that contains info about user.

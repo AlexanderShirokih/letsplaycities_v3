@@ -6,22 +6,31 @@ import 'package:lets_play_cities/base/preferences.dart';
 import 'package:lets_play_cities/base/users.dart';
 import 'scoring_groups.dart';
 
+typedef OnUpdateScoringData = void Function(ScoringSet scoringData);
+
 /// Responsible for managing users score,
 /// controlling achievements and player stats
 class ScoreController {
   final ScoringSet _allGroups;
   final ScoringType _scoringType;
+  final OnUpdateScoringData _onUpdate;
 
-//TODO: will be used later in achiements service:  int _playerMovesInGame = 0;
+//TODO: will be used later in achievements service:
+// int _playerMovesInGame = 0;
 
-  ScoreController(this._allGroups, this._scoringType);
+  ScoreController(this._allGroups, this._scoringType, this._onUpdate);
 
-  factory ScoreController.fromPrefs(GamePreferences prefs) =>
-      ScoreController(_getScoreData(prefs.scoringData), prefs.scoringType);
+  factory ScoreController.fromPrefs(GamePreferences prefs) => ScoreController(
+        _getScoreData(prefs.scoringData),
+        prefs.scoringType,
+        (newData) => prefs.scoringData = jsonEncode(newData.toJson()),
+      );
 
   static ScoringSet _getScoreData(dynamic scoringData) => scoringData.isEmpty
       ? ScoringSet.initial()
       : ScoringSet.fromJson(jsonDecode(scoringData));
+
+  void _saveScoring() => _onUpdate(_allGroups);
 
   /// Used when [user]s move ended by accepting [word] during [moveTimeInMs] from move start
   Future<void> onMoveFinished(User user, String word, int moveTimeInMs) async {
@@ -37,10 +46,11 @@ class ScoreController {
     }
 
     // TODO: _checkCombos(user, moveTimeInMs, word);
+
+    _saveScoring();
   }
 
   void _updateLongestCities(User user, String word) {
-    // Find the most longest cities
     final newList = (_allGroups[G_BIG_CITIES]
                 .child
                 .cast<PairedScoringField<String, int>>()
@@ -51,7 +61,7 @@ class ScoreController {
         .toSet()
         .toList(growable: false);
 
-    newList.sort((a, b) => a.compareTo(b));
+    newList.sort((a, b) => b.length.compareTo(a.length));
 
     // Update references
     _allGroups[G_BIG_CITIES].child = newList
