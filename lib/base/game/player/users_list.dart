@@ -59,8 +59,8 @@ class UsersList {
     current = next;
   }
 
-  factory UsersList.forGameMode(GameMode gameMode,
-      DictionaryService dictionaryService) {
+  factory UsersList.forGameMode(
+      GameMode gameMode, DictionaryService dictionaryService) {
     switch (gameMode) {
       case GameMode.PlayerVsAndroid:
         return _buildPvAList(dictionaryService);
@@ -71,8 +71,7 @@ class UsersList {
     }
   }
 
-  static UsersList _buildPvAList(DictionaryService dictionary) =>
-      UsersList([
+  static UsersList _buildPvAList(DictionaryService dictionary) => UsersList([
         Player(
           PlayerData(
             name: "Игрок",
@@ -82,8 +81,7 @@ class UsersList {
         Android(dictionary, "Андроид"),
       ]);
 
-  static UsersList _buildPvPList() =>
-      UsersList([
+  static UsersList _buildPvPList() => UsersList([
         Player(
           PlayerData(
             name: "Игрок 1",
