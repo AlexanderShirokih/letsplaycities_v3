@@ -8,6 +8,7 @@ import 'package:lets_play_cities/base/repos.dart';
 import 'package:lets_play_cities/l18n/localization_service.dart';
 import 'package:lets_play_cities/screens/common/dialogs.dart';
 
+import 'combo_badge.dart';
 import 'user_avatar.dart';
 
 class TopBar extends StatelessWidget {
@@ -21,20 +22,37 @@ class TopBar extends StatelessWidget {
               .createGameServiceEventsRepository(),
           child: Builder(
             builder: (context) {
-              final GameSessionRepository gameRepository =
+              final GameSessionRepository repo =
                   context.repository<GameSessionRepository>();
-              return Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              final leftUser = repo.getUserByPosition(Position.LEFT);
+              final rightUser = repo.getUserByPosition(Position.RIGHT);
+              return Column(
                 children: [
-                  UserAvatar(
-                    onPressed: () {},
-                    user: gameRepository.getUserByPosition(Position.LEFT),
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      UserAvatar(
+                        onPressed: () {},
+                        user: leftUser,
+                      ),
+                      _ActionButtons(repo),
+                      UserAvatar(
+                        onPressed: () {},
+                        user: rightUser,
+                      ),
+                    ],
                   ),
-                  _ActionButtons(gameRepository),
-                  UserAvatar(
-                    onPressed: () {},
-                    user: gameRepository.getUserByPosition(Position.RIGHT),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      ComboBadgeWidget(
+                        leftUser.comboSystem.eventStream,
+                      ),
+                      ComboBadgeWidget(
+                        rightUser.comboSystem.eventStream,
+                      )
+                    ],
                   ),
                 ],
               );

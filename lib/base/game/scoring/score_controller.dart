@@ -1,10 +1,10 @@
 import 'dart:convert';
 
+import 'package:lets_play_cities/base/game/scoring/scoring_groups.dart';
 import 'package:lets_play_cities/base/game/scoring/scoring_fields.dart';
 import 'package:lets_play_cities/base/game/scoring/scoring_type.dart';
 import 'package:lets_play_cities/base/preferences.dart';
 import 'package:lets_play_cities/base/users.dart';
-import 'scoring_groups.dart';
 import 'package:lets_play_cities/utils/collections_utils.dart';
 
 typedef OnUpdateScoringData = void Function(ScoringSet scoringData);
@@ -34,7 +34,9 @@ class ScoreController {
   void _saveScoring() => _onUpdate(_allGroups);
 
   /// Used when [user]s move ended by accepting [word] during [moveTimeInMs] from move start
-  Future<void> onMoveFinished(User user, String word, int moveTimeInMs) async {
+  /// Also updates combos for current user is player from Map<ComboTypeIndex, ComboValue>
+  Future<void> onMoveFinished(User user, String word, int moveTimeInMs,
+      Map<int, int> activeCombos) async {
     _allGroups[G_ONLINE][F_TIME].asIntField().add(moveTimeInMs ~/ 1000);
 
 //    if (user is Player) _playerMovesInGame++;
@@ -44,9 +46,8 @@ class ScoreController {
     if (user is Player) {
       _updateLongestCities(user, word);
       _updateMostFrequentCities(word);
+      _updateCombos(activeCombos);
     }
-
-    // TODO: _checkCombos(user, moveTimeInMs, word);
 
     _saveScoring();
   }
@@ -59,6 +60,10 @@ class ScoreController {
       word,
       (_) => 1,
       (old, current) => old.clone(value: old.value + current.value));
+
+  void _updateCombos(Map<int, int> activeCombos) =>
+      activeCombos.entries.forEach((MapEntry<int, int> combo) =>
+          _allGroups[G_COMBO].child[combo.key].asIntField().max(combo.value));
 
   void _updateTop10By(
     String group,

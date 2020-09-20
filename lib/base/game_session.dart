@@ -146,8 +146,8 @@ class GameSession {
 
   Future cancel() async {
     _gameRunning = false;
-    await usersList.currentPlayer?.close();
-    await _disconnectionEvents.close();
+
+    await usersList.close();
 
     // Make sure that the stream was closed
     await _inputEvents.done;

@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:lets_play_cities/base/auth.dart';
 import 'package:lets_play_cities/base/data.dart';
 import 'package:lets_play_cities/base/dictionary.dart';
+import 'package:lets_play_cities/base/game/combo.dart';
 import 'package:lets_play_cities/base/game/player/user.dart';
 import 'package:lets_play_cities/base/game/player/surrender_exception.dart';
 
@@ -24,15 +25,15 @@ class Android extends User {
   )   : _estimatedMoves =
             _calculateEstimatedMoves(_dictionary.difficulty.index),
         super(
-          playerData: PlayerData(
-            name: androidName,
-            canReceiveMessages: false,
-            picture: const AssetPictureSource(_kAndroidAvatarPath),
-          ),
-          accountInfo:
-              ClientAccountInfo.basic(androidName, _kDefaultAndroidUserId),
-          isTrusted: true,
-        );
+            playerData: PlayerData(
+              name: androidName,
+              canReceiveMessages: false,
+              picture: const AssetPictureSource(_kAndroidAvatarPath),
+            ),
+            accountInfo:
+                ClientAccountInfo.basic(androidName, _kDefaultAndroidUserId),
+            isTrusted: true,
+            comboSystem: ComboSystem(canUseQuickTime: false));
 
   @override
   Future<String> onCreateWord(String firstChar) async {

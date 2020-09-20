@@ -31,7 +31,7 @@ class DataLoadingState extends GameLifecycleState {
   /// Instance of loaded exclusions
   final ExclusionsService exclusions;
 
-  /// Instance to class that handles scores and defines winner
+  /// Instance of class that handles scores and defines winner
   final ScoreController scoreController;
 
   /// Creates [DataLoadingState] without any loaded data

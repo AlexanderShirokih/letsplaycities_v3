@@ -1,22 +1,28 @@
+import 'dart:async';
+
 import 'package:lets_play_cities/base/auth.dart';
 import 'package:lets_play_cities/base/data.dart';
+import 'package:lets_play_cities/base/game/combo.dart';
 import 'package:lets_play_cities/base/game/player/surrender_exception.dart';
 
 /// Base class that keeps users data and defines user behaviour.
 /// [playerData] is a users data model class
 /// [pictureSource] represents users picture
+/// [comboSystem] is a system that can calculate score multiplier
 /// when user [isTrusted] that means we can omit checking for exclusions and database.
 abstract class User {
   final bool isTrusted;
   final PlayerData playerData;
   final ClientAccountInfo accountInfo;
+  final ComboSystem comboSystem;
 
   int _score = 0;
 
-  User({this.playerData, this.accountInfo, this.isTrusted})
+  User({this.playerData, this.accountInfo, this.comboSystem, this.isTrusted})
       : assert(playerData != null),
         assert(accountInfo != null),
-        assert(isTrusted != null);
+        assert(isTrusted != null),
+        assert(comboSystem != null);
 
   /// Current user position
   Position position = Position.UNKNOWN;
@@ -38,9 +44,8 @@ abstract class User {
 
   /// Called by system to increase score points.
   /// [points] is amount of points to be increased.
-  /// TODO: [points] will be multiplied by current combo multiplier.
-  increaseScore(int points) {
-    _score += points; //points * comboSystem.multiplier
+  void increaseScore(int points) {
+    _score = (_score + points * comboSystem.multiplier).floor();
   }
 
   /// Called by system when users turn begins
@@ -49,4 +54,7 @@ abstract class User {
   /// Returns future with the user's created word
   /// Throws [SurrenderException] is user cannot give answer
   Future<String> onCreateWord(String firstChar);
+
+  /// Closes internal resources
+  Future<void> close() => comboSystem.close();
 }
