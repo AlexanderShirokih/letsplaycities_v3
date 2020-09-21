@@ -1,25 +1,25 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import 'package:lets_play_cities/l18n/localization_service.dart';
 import 'package:lets_play_cities/base/dictionary.dart';
 import 'package:lets_play_cities/base/preferences.dart';
 import 'package:lets_play_cities/base/scoring.dart';
 import 'package:lets_play_cities/screens/common/dialogs.dart';
+import 'package:lets_play_cities/screens/common/utils.dart';
 import 'package:lets_play_cities/screens/settings/stats/stats_screen.dart';
 
 class SettingsScreen extends StatelessWidget {
   @override
-  Widget build(BuildContext context) {
-    final l10n = context.repository<LocalizationService>();
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(l10n.settings['settings']),
-      ),
-      body: _SettingsItemsList(
-          l10n.settings, context.repository<GamePreferences>()),
-    );
-  }
+  Widget build(BuildContext context) => withLocalization(
+        context,
+        (l10n) => Scaffold(
+          appBar: AppBar(
+            title: Text(l10n.settings['settings']),
+          ),
+          body: _SettingsItemsList(
+              l10n.settings, context.repository<GamePreferences>()),
+        ),
+      );
 }
 
 class _SettingsItemsList extends StatefulWidget {

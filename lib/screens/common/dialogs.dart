@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
-import 'package:lets_play_cities/l18n/localization_service.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
+
+import 'package:lets_play_cities/screens/common/utils.dart';
 
 typedef ConfirmationCallback(bool isOk);
 typedef OnOkCallback();
@@ -21,9 +21,9 @@ Future<bool> showConfirmationDialog(
 }) =>
     showDialog(
       context: context,
-      builder: (BuildContext context) {
-        final l18n = context.repository<LocalizationService>();
-        return AlertDialog(
+      builder: (BuildContext context) => withLocalization(
+        context,
+        (l10n) => AlertDialog(
           title: title == null ? null : Text(title),
           content: Text(message),
           actions: [
@@ -32,7 +32,7 @@ Future<bool> showConfirmationDialog(
                 Navigator.of(context).pop(false);
                 callback?.call(false);
               },
-              child: Text(l18n.no.toUpperCase()),
+              child: Text(l10n.no.toUpperCase()),
             ),
             FlatButton(
               onPressed: () {
@@ -42,12 +42,12 @@ Future<bool> showConfirmationDialog(
                 else
                   callback?.call(true);
               },
-              child: Text(l18n.yes.toUpperCase()),
+              child: Text(l10n.yes.toUpperCase()),
             ),
           ],
           elevation: 20.0,
-        );
-      },
+        ),
+      ),
     );
 
 /// Shows single choice dialog that can show list of items and cancel button.
@@ -81,37 +81,35 @@ class _SingleChoiceDialogState extends State<SingleChoiceDialog> {
       : _selectedItemId = currentChoice;
 
   @override
-  Widget build(BuildContext context) {
-    return AlertDialog(
-      contentPadding: EdgeInsets.fromLTRB(20.0, 18.0, 20.0, 0.0),
-      title: Text(_title),
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: Iterable.generate(_choicesList.length, (i) => i)
-            .map(
-              (int index) => RadioListTile(
-                title: Text(_choicesList[index]),
-                value: index,
-                groupValue: _selectedItemId,
-                onChanged: (newValue) {
-                  setState(() {
-                    _selectedItemId = newValue;
-                  });
-                  Future.microtask(
-                          () => Future.delayed(Duration(milliseconds: 300)))
-                      .then((_) => Navigator.of(context).pop(newValue));
-                },
-              ),
-            )
-            .toList(),
-      ),
-      actions: [
-        FlatButton(
-          onPressed: () => Navigator.of(context).pop(),
-          child: Text(
-              context.repository<LocalizationService>().cancel.toUpperCase()),
-        )
-      ],
-    );
-  }
+  Widget build(BuildContext context) => AlertDialog(
+        contentPadding: EdgeInsets.fromLTRB(20.0, 18.0, 20.0, 0.0),
+        title: Text(_title),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: Iterable.generate(_choicesList.length, (i) => i)
+              .map(
+                (int index) => RadioListTile(
+                  title: Text(_choicesList[index]),
+                  value: index,
+                  groupValue: _selectedItemId,
+                  onChanged: (newValue) {
+                    setState(() {
+                      _selectedItemId = newValue;
+                    });
+                    Future.microtask(
+                            () => Future.delayed(Duration(milliseconds: 300)))
+                        .then((_) => Navigator.of(context).pop(newValue));
+                  },
+                ),
+              )
+              .toList(),
+        ),
+        actions: [
+          FlatButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: withLocalization(
+                context, (l10n) => Text(l10n.cancel.toUpperCase())),
+          )
+        ],
+      );
 }

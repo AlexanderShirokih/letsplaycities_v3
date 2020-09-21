@@ -7,52 +7,38 @@ import 'package:lets_play_cities/base/cities_list/cities_list_filter.dart';
 import 'package:lets_play_cities/screens/common/common_widgets.dart';
 import 'package:lets_play_cities/screens/common/search_app_bar.dart';
 import 'package:lets_play_cities/l18n/localization_service.dart';
+import 'package:lets_play_cities/screens/common/utils.dart';
 import 'package:lets_play_cities/utils/string_utils.dart';
-import 'package:lets_play_cities/utils/debouncer.dart';
 
 /// Screen that shows a list of all database cities
-class CitiesListScreen extends StatefulWidget {
-  @override
-  _CitiesListScreenState createState() => _CitiesListScreenState();
-}
-
-class _CitiesListScreenState extends State<CitiesListScreen> {
-  final Debouncer _cityFilterDebouncer = Debouncer(Duration(seconds: 1));
+class CitiesListScreen extends StatelessWidget {
   final _citiesListBloc = CitiesListBloc();
 
   @override
-  void dispose() {
-    _cityFilterDebouncer.cancel();
-    _citiesListBloc.close();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = context.repository<LocalizationService>();
-    return Scaffold(
-      appBar: SearchAppBar(
-        title: l10n.citiesList['title'],
-        searchHint: l10n.citiesList['enter_city'],
-        actions: [_createFilterButton()],
-        onSearchTextChanged: (text) => setState(() {
-          _cityFilterDebouncer.run(() => _citiesListBloc.add(
-              CitiesListFilteringEvent(CitiesListFilter(text.toLowerCase()))));
-        }),
-      ),
-      body: BlocBuilder(
-        cubit: _citiesListBloc,
-        builder: (context, state) {
-          if (state is CitiesListInitial) {
-            return LoadingView(l10n.citiesList['loading'].toString());
-          } else if (state is CitiesListDataState) {
-            return _displayData(l10n, state);
-          } else
-            throw ("Unexpected state $state");
-        },
-      ),
-    );
-  }
+  Widget build(BuildContext context) => withLocalization(
+        context,
+        (l10n) => Scaffold(
+          appBar: SearchAppBar(
+            title: l10n.citiesList['title'],
+            searchHint: l10n.citiesList['enter_city'],
+            actions: [_createFilterButton()],
+            onSearchTextChanged: (text) => _citiesListBloc.add(
+                CitiesListFilteringEvent(
+                    CitiesListFilter(nameFilter: text.toLowerCase()))),
+          ),
+          body: BlocBuilder(
+            cubit: _citiesListBloc,
+            builder: (context, state) {
+              if (state is CitiesListInitial) {
+                return LoadingView(l10n.citiesList['loading'].toString());
+              } else if (state is CitiesListDataState) {
+                return _displayData(l10n, state);
+              } else
+                throw ("Unexpected state $state");
+            },
+          ),
+        ),
+      );
 
   Widget _displayData(LocalizationService l10n, CitiesListDataState data) =>
       ListView.builder(

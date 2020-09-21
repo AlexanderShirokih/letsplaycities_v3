@@ -47,26 +47,29 @@ class CitiesListBloc extends Bloc<CitiesListEvent, CitiesListState> {
       CitiesListFilteringEvent event) async* {
     if (!(state is CitiesListDataState)) return;
 
+    final CitiesListFilter filter = state is CitiesListFilteredDataState
+        ? (state as CitiesListFilteredDataState).filter.mergeWith(event.filter)
+        : event.filter;
+
     final original = state is CitiesListFilteredDataState
         ? (state as CitiesListFilteredDataState).originalState
         : state as CitiesListAllDataState;
 
     // Short-circuit for empty filters
-    if (event.filter.isEmpty) {
+    if (filter.isEmpty) {
       yield original;
       return;
     }
 
     // If current filter is more concrete then previous - filter from previous
-    final List<CitiesListEntry> candidate =
-        state is CitiesListFilteredDataState &&
-                event.filter
-                    .isDetailing((state as CitiesListFilteredDataState).filter)
-            ? (state as CitiesListFilteredDataState).citiesList
-            : original.citiesList;
+    final List<CitiesListEntry> candidate = state
+                is CitiesListFilteredDataState &&
+            filter.isDetailing((state as CitiesListFilteredDataState).filter)
+        ? (state as CitiesListFilteredDataState).citiesList
+        : original.citiesList;
 
-    final List<CitiesListEntry> filtered = event.filter.filter(candidate);
+    final List<CitiesListEntry> filtered = filter.filter(candidate);
 
-    yield CitiesListFilteredDataState(original, filtered, event.filter);
+    yield CitiesListFilteredDataState(original, filtered, filter);
   }
 }

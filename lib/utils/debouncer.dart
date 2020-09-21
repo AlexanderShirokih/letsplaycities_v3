@@ -11,7 +11,8 @@ class Debouncer {
       : _lastTime = DateTime.now().millisecondsSinceEpoch +
             (offset?.inMilliseconds ?? 0);
 
-  run(Function runnable) {
+  /// Runs [runnable] at most once per [delay]
+  void run(Function runnable) {
     _timer?.cancel();
 
     final current = DateTime.now().millisecondsSinceEpoch;

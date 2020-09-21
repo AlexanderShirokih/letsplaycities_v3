@@ -6,23 +6,23 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:lets_play_cities/base/scoring.dart';
 import 'package:lets_play_cities/base/preferences.dart';
-import 'package:lets_play_cities/l18n/localization_service.dart';
+import 'package:lets_play_cities/screens/common/utils.dart';
 import 'package:lets_play_cities/utils/string_utils.dart';
 
 class StatisticsScreen extends StatelessWidget {
   @override
-  Widget build(BuildContext context) {
-    final l10n = context.repository<LocalizationService>();
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(l10n.stats['title']),
-      ),
-      body: _StatisticsList(
-        l10n.stats,
-        _getOrCreate(context.repository<GamePreferences>()),
-      ),
-    );
-  }
+  Widget build(BuildContext context) => withLocalization(
+        context,
+        (l10n) => Scaffold(
+          appBar: AppBar(
+            title: Text(l10n.stats['title']),
+          ),
+          body: _StatisticsList(
+            l10n.stats,
+            _getOrCreate(context.repository<GamePreferences>()),
+          ),
+        ),
+      );
 
   ScoringSet _getOrCreate(GamePreferences prefs) {
     final data = prefs.scoringData;
