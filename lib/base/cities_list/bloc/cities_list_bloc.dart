@@ -48,8 +48,10 @@ class CitiesListBloc extends Bloc<CitiesListEvent, CitiesListState> {
     if (!(state is CitiesListDataState)) return;
 
     final CitiesListFilter filter = state is CitiesListFilteredDataState
-        ? (state as CitiesListFilteredDataState).filter.mergeWith(event.filter)
-        : event.filter;
+        ? (state as CitiesListFilteredDataState).filter.copy(
+            nameFilter: event.nameFilter, countryFilter: event.countryFilter)
+        : CitiesListFilter(
+            nameFilter: event.nameFilter, countryFilter: event.countryFilter);
 
     final original = state is CitiesListFilteredDataState
         ? (state as CitiesListFilteredDataState).originalState

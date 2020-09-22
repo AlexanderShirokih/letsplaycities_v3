@@ -2,11 +2,12 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter/material.dart';
 
 import 'package:lets_play_cities/base/cities_list/bloc/cities_list_bloc.dart';
-import 'package:lets_play_cities/base/cities_list/cities_list_entry.dart';
 import 'package:lets_play_cities/base/cities_list/cities_list_filter.dart';
+import 'package:lets_play_cities/base/cities_list/cities_list_entry.dart';
+import 'package:lets_play_cities/l18n/localization_service.dart';
+import 'package:lets_play_cities/screens/main/citieslist/country_filter_dialog.dart';
 import 'package:lets_play_cities/screens/common/common_widgets.dart';
 import 'package:lets_play_cities/screens/common/search_app_bar.dart';
-import 'package:lets_play_cities/l18n/localization_service.dart';
 import 'package:lets_play_cities/screens/common/utils.dart';
 import 'package:lets_play_cities/utils/string_utils.dart';
 
@@ -17,28 +18,30 @@ class CitiesListScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) => withLocalization(
         context,
-        (l10n) => Scaffold(
-          appBar: SearchAppBar(
-            title: l10n.citiesList['title'],
-            searchHint: l10n.citiesList['enter_city'],
-            actions: [_createFilterButton()],
-            onSearchTextChanged: (text) => _citiesListBloc.add(
-                CitiesListFilteringEvent(
-                    CitiesListFilter(nameFilter: text.toLowerCase()))),
-          ),
-          body: BlocBuilder(
-            cubit: _citiesListBloc,
-            builder: (context, state) {
-              if (state is CitiesListInitial) {
-                return LoadingView(l10n.citiesList['loading'].toString());
-              } else if (state is CitiesListDataState) {
-                return _displayData(l10n, state);
-              } else
-                throw ("Unexpected state $state");
-            },
+        (l10n) => BlocBuilder<CitiesListBloc, CitiesListState>(
+          cubit: _citiesListBloc,
+          builder: (ctx, state) => Scaffold(
+            appBar: SearchAppBar(
+              title: l10n.citiesList['title'],
+              searchHint: l10n.citiesList['enter_city'],
+              actions: [_createFilterButton(ctx)],
+              onSearchTextChanged: (text) => _citiesListBloc.add(
+                CitiesListFilteringEvent(nameFilter: text.toLowerCase()),
+              ),
+            ),
+            body: _buildBody(l10n, state),
           ),
         ),
       );
+
+  Widget _buildBody(LocalizationService l10n, CitiesListState state) {
+    if (state is CitiesListInitial) {
+      return LoadingView(l10n.citiesList['loading'].toString());
+    } else if (state is CitiesListDataState) {
+      return _displayData(l10n, state);
+    } else
+      throw ("Unexpected state $state");
+  }
 
   Widget _displayData(LocalizationService l10n, CitiesListDataState data) =>
       ListView.builder(
@@ -69,8 +72,29 @@ class CitiesListScreen extends StatelessWidget {
             "${entry.cityName.toTitleCase()} (${data.countryList.firstWhere((county) => county.countryCode == entry.countryCode, orElse: () => null)?.name ?? missingCountryText})",
           ));
 
-  Widget _createFilterButton() => IconButton(
+  Widget _createFilterButton(BuildContext context) => IconButton(
         icon: Icon(Icons.filter_list),
-        onPressed: () {},
+        onPressed: () {
+          if (!(_citiesListBloc.state is CitiesListDataState)) return;
+          final dataState = _citiesListBloc.state as CitiesListDataState;
+
+          showDialog<CountryListFilter>(
+            context: context,
+            builder: (_) => CountryFilterDialog(
+              dataState.countryList,
+              (dataState is CitiesListFilteredDataState)
+                  ? (dataState.filter.countryFilter.isAllPresent
+                      ? null
+                      : dataState.filter.countryFilter.allowedCountryCodes)
+                  : null,
+            ),
+          ).then((countryFilter) {
+            if (countryFilter != null) {
+              _citiesListBloc.add(
+                CitiesListFilteringEvent(countryFilter: countryFilter),
+              );
+            }
+          });
+        },
       );
 }
