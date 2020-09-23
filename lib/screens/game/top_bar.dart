@@ -81,8 +81,9 @@ class _ActionButtons extends StatelessWidget {
                     onConfirmed: () => Navigator.of(context).pop()),
                 _createActionButton(context, FontAwesomeIcons.flag,
                     confirmationMessageKey: 'surrender',
-                    onConfirmed: () =>
-                        context.bloc<GameBloc>().add(const GameEventSurrender())),
+                    onConfirmed: () => context
+                        .bloc<GameBloc>()
+                        .add(const GameEventSurrender())),
                 if (_gameSessionRepository.helpAvailable)
                   _createActionButton(context, FontAwesomeIcons.lightbulb,
                       confirmationMessageKey: 'show_help',
