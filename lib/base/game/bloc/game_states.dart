@@ -57,13 +57,22 @@ class DataLoadingState extends GameLifecycleState {
 /// Starts after [DataLoadingState]
 class GameState extends GameLifecycleState {
   final DictionaryDecorator dictionary;
+  final ScoreController scoreController;
   final GameSessionRepository gameSessionRepository;
 
-  const GameState(this.gameSessionRepository, this.dictionary);
+  const GameState(
+    this.gameSessionRepository,
+    this.dictionary,
+    this.scoreController,
+  );
 }
 
 /// Used when the game ends
-class GameResultsState extends GameLifecycleState {}
+class GameResultsState extends GameLifecycleState {
+  final GameResult gameResult;
+
+  const GameResultsState(this.gameResult);
+}
 
 /// Used when some fatal error happens
 class ErrorState extends GameLifecycleState {

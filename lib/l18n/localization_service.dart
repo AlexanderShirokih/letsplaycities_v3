@@ -1,3 +1,5 @@
+import 'package:lets_play_cities/screens/game_results/game_results_screen.dart';
+
 import 'localizations_keys.dart';
 
 /// Represents interface for loading localized strings
@@ -25,4 +27,7 @@ abstract class LocalizationService {
 
   /// [CitiesListScreen] localizations
   Map<String, dynamic> get citiesList;
+
+  /// [GameResultsScreen] localizations
+  Map<String, dynamic> get gameResults;
 }

@@ -1,10 +1,12 @@
 import 'dart:async';
 
 import 'package:lets_play_cities/base/data.dart';
-import 'package:lets_play_cities/base/game/game_mode.dart';
-import 'package:lets_play_cities/base/game/player/surrender_exception.dart';
+import 'package:lets_play_cities/base/game/game_result.dart';
+import 'package:lets_play_cities/base/scoring.dart';
 import 'package:lets_play_cities/base/users.dart';
+import 'package:lets_play_cities/base/game/game_mode.dart';
 import 'package:lets_play_cities/base/game/management.dart';
+import 'package:lets_play_cities/base/game/player/surrender_exception.dart';
 import 'package:lets_play_cities/utils/string_utils.dart';
 import 'package:lets_play_cities/utils/stream_utils.dart';
 import 'package:meta/meta.dart';
@@ -15,6 +17,9 @@ class GameSession {
 
   /// Current game mode
   final GameMode mode;
+
+  /// Current scoring type mode
+  final ScoringType scoringType;
 
   /// An event channel for passing events to handlers
   final AbstractEventChannel eventChannel;
@@ -41,8 +46,10 @@ class GameSession {
       {@required this.mode,
       @required this.usersList,
       @required this.eventChannel,
+      @required this.scoringType,
       @required this.timeLimit})
       : assert(usersList != null),
+        assert(scoringType != null),
         assert(eventChannel != null),
         assert(timeLimit != null) {
     inputEvents.listen((event) {
@@ -77,7 +84,25 @@ class GameSession {
   }
 
   /// Runs game processing loop
-  Future runMoves() => _runMoves().pipe(_inputEvents);
+  /// When the game finishes returns [GameResult]
+  Future<GameResult> runMoves() async {
+    GameEvent event;
+    await for (event in _runMoves()) _inputEvents.sink.add(event);
+    _inputEvents.close();
+
+    if (event is OnMoveFinished) {
+      if (event.endType == MoveFinishType.Completed)
+        throw ("This move type should not finish the game!");
+      return GameResultChecker(
+        users: usersList,
+        owner: usersList.all.whereType<Player>().first,
+        scoringType: scoringType,
+        finishType: event.endType,
+      ).getGameResults();
+    }
+
+    throw ("Game has finished without ending with [OnMoveFinished] event");
+  }
 
   Stream<GameEvent> _runMoves() async* {
     // Await for UI to built
@@ -148,8 +173,5 @@ class GameSession {
     _gameRunning = false;
 
     await usersList.close();
-
-    // Make sure that the stream was closed
-    await _inputEvents.done;
   }
 }

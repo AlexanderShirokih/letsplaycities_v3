@@ -1,10 +1,11 @@
 import 'dart:async';
 
 import 'package:lets_play_cities/base/data.dart';
-import 'package:lets_play_cities/base/game/game_mode.dart';
 import 'package:lets_play_cities/base/repos.dart';
 import 'package:lets_play_cities/base/users.dart';
 import 'package:lets_play_cities/base/game_session.dart';
+import 'package:lets_play_cities/base/game/game_mode.dart';
+import 'package:lets_play_cities/base/game/game_result.dart';
 import 'package:lets_play_cities/base/game/management.dart';
 import 'package:lets_play_cities/utils/debouncer.dart';
 
@@ -12,7 +13,7 @@ class GameSessionRepository {
   final Debouncer _userInputDebounce =
       Debouncer(const Duration(milliseconds: 1000));
 
-  GameSession _session;
+  final GameSession _session;
 
   GameSessionRepository(this._session);
 
@@ -50,7 +51,8 @@ class GameSessionRepository {
   }
 
   /// Runs moves loop
-  Future run() => _session.runMoves();
+  /// When the game finishes returns [GameResult]
+  Future<GameResult> run() => _session.runMoves();
 
   /// Dispatches input word to the game session
   void sendInputWord(String input) {

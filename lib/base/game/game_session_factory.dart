@@ -12,6 +12,7 @@ import 'management.dart';
 class GameSessionFactory {
   static GameSession createForGameMode({
     @required ScoreController scoreController,
+    @required ScoringType scoringTypeMode,
     @required GameMode mode,
     @required ExclusionsService exclusions,
     @required DictionaryService dictionary,
@@ -31,6 +32,7 @@ class GameSessionFactory {
     return GameSession(
         mode: mode,
         usersList: usersList,
+        scoringType: scoringTypeMode,
         eventChannel: ProcessingEventChannel(localGameProcessorsStack),
         timeLimit: timeLimit);
   }

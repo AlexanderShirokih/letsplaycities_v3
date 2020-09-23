@@ -35,6 +35,8 @@ class _MergeStreamController<T> {
     subscriptions.forEach((subsData) {
       subsData.subscription.onData((data) {
         if (!predicate(data)) {
+          // Little trick: emit latest rejected event
+          _controller.add(data);
           workingStreamsCount = 0;
           _controller.close();
           cancelAll();

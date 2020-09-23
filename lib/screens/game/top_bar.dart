@@ -15,7 +15,7 @@ class TopBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Container(
         padding: EdgeInsets.fromLTRB(10.0, 40.0, 10.0, 24.0),
-        color: Theme.of(context).accentColor,
+        color: Theme.of(context).primaryColor,
         child: RepositoryProvider<GameServiceEventsRepository>(
           create: (context) => context
               .repository<GameSessionRepository>()
@@ -82,13 +82,13 @@ class _ActionButtons extends StatelessWidget {
                 _createActionButton(context, FontAwesomeIcons.flag,
                     confirmationMessageKey: 'surrender',
                     onConfirmed: () =>
-                        context.bloc<GameBloc>().add(GameStateEvent.Surrender)),
+                        context.bloc<GameBloc>().add(const GameEventSurrender())),
                 if (_gameSessionRepository.helpAvailable)
                   _createActionButton(context, FontAwesomeIcons.lightbulb,
                       confirmationMessageKey: 'show_help',
                       onConfirmed: () => context
                           .bloc<GameBloc>()
-                          .add(GameStateEvent.ShowHelp)),
+                          .add(const GameEventShowHelp())),
                 if (_gameSessionRepository.messagingAvailable)
                   _createActionButton(context, FontAwesomeIcons.envelope,
                       onConfirmed: () {}),
@@ -115,7 +115,7 @@ class _ActionButtons extends StatelessWidget {
         width: 56.0,
         height: 56.0,
         child: RaisedButton(
-          color: Theme.of(context).accentColor,
+          color: Theme.of(context).primaryColor,
           padding: const EdgeInsets.all(10.0),
           onPressed: () => confirmationMessageKey == null
               ? onConfirmed()

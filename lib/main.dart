@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+
+import 'package:lets_play_cities/themes/theme.dart' as theme;
 import 'package:lets_play_cities/base/preferences.dart';
 import 'package:lets_play_cities/l18n/localization_service.dart';
 import 'package:lets_play_cities/l18n/localizations_factory.dart';
@@ -33,28 +35,45 @@ class LetsPlayCitiesApp extends StatelessWidget {
                       create: (_) => snap.data.localizations,
                     ),
                   ],
-                  child: MaterialApp(
-                    theme: ThemeData(
-                      primarySwatch: Colors.orange,
-                      visualDensity: VisualDensity.adaptivePlatformDensity,
+                  child: StreamBuilder<theme.Theme>(
+                    stream: Stream.value(
+                      theme.Theme(
+                        backgroundImage: "assets/images/backgrounds/bg_geo.png",
+                      ),
                     ),
-                    home: Scaffold(body: MainScreen()),
+                    builder: (_, snap) => snap.hasData
+                        ? RepositoryProvider.value(
+                            value: snap.requireData,
+                            child: MaterialApp(
+                              theme: ThemeData(
+                                primarySwatch: Colors.orange,
+                                accentColor: Colors.blue[900],
+                                visualDensity:
+                                    VisualDensity.adaptivePlatformDensity,
+                              ),
+                              home: Scaffold(body: MainScreen()),
+                            ),
+                          )
+                        : _showWaitForDataWidget(
+                            snap, "Fatal error: cannot load theme!"),
                   ),
                 )
-              : Center(
-                  child: (snap.hasError
-                      ? Text("Fatal error: cannot load localizations!",
-                          textDirection: TextDirection.ltr)
-                      : CircularProgressIndicator()));
+              : _showWaitForDataWidget(
+                  snap, "Fatal error: cannot load localizations!");
         },
-        future: initWithMigrations(),
+        future: _initWithMigrations(),
       );
 
-  Future<_InitialData> initWithMigrations() => SharedPreferencesMigration()
-      .migrateSharedPreferencesIfNeeded()
-      .then((_) => getRootDependencies());
+  Widget _showWaitForDataWidget(AsyncSnapshot snap, String errText) => Center(
+      child: (snap.hasError
+          ? Text(errText, textDirection: TextDirection.ltr)
+          : CircularProgressIndicator()));
 
-  Future<_InitialData> getRootDependencies() async {
+  Future<_InitialData> _initWithMigrations() => SharedPreferencesMigration()
+      .migrateSharedPreferencesIfNeeded()
+      .then((_) => _getRootDependencies());
+
+  Future<_InitialData> _getRootDependencies() async {
     return _InitialData(
       localizations: await LocalizationsFactory().createDefaultLocalizations(),
       preferences:

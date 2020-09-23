@@ -1,20 +1,22 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:http/http.dart' as http;
+import 'dart:async';
+
+import 'package:lets_play_cities/base/scoring.dart';
+import 'package:lets_play_cities/base/preferences.dart';
 import 'package:lets_play_cities/base/dictionary.dart';
 import 'package:lets_play_cities/base/dictionary/impl/country_list_loader_factory.dart';
 import 'package:lets_play_cities/base/dictionary/impl/dictionary_factory.dart';
 import 'package:lets_play_cities/base/dictionary/impl/exclusions_factory.dart';
-import 'package:lets_play_cities/base/scoring.dart';
 import 'package:lets_play_cities/base/repositories/game_session_repo.dart';
 import 'package:lets_play_cities/base/game/handlers/local_endpoint.dart';
-import 'package:lets_play_cities/base/preferences.dart';
+import 'package:lets_play_cities/base/game/game_result.dart';
 import 'package:lets_play_cities/l18n/localization_service.dart';
 import 'package:lets_play_cities/utils/string_utils.dart';
 import 'package:meta/meta.dart';
 
 import '../game_mode.dart';
 import '../game_session_factory.dart';
-import 'package:http/http.dart' as http;
-import 'dart:async';
 
 part 'game_events.dart';
 
@@ -31,10 +33,8 @@ class GameBloc extends Bloc<GameStateEvent, GameLifecycleState> {
 
   @override
   Future<void> close() async {
-    if (state is GameState) {
-      final gameState = state as GameState;
-      await gameState.gameSessionRepository.finish();
-    }
+    if (state is GameState)
+      await (state as GameState).gameSessionRepository.finish();
     _http.close();
     return super.close();
   }
@@ -50,7 +50,7 @@ class GameBloc extends Bloc<GameStateEvent, GameLifecycleState> {
         _localizations = localizations,
         _gameMode = gameMode,
         super(InitialState()) {
-    add(GameStateEvent.BeginDataLoading);
+    add(const GameEventBeginDataLoading());
     _dictionaryUpdater = DictionaryUpdater(_prefs, _http);
   }
 
@@ -62,25 +62,18 @@ class GameBloc extends Bloc<GameStateEvent, GameLifecycleState> {
               sink.add(ErrorState(e, stackTrace))));
 
   Stream<GameLifecycleState> _mapEventToState(GameStateEvent event) async* {
-    switch (event) {
-      case GameStateEvent.BeginDataLoading:
-        yield* _beginLoading();
-        break;
-      case GameStateEvent.GameStart:
-        yield* _runGame();
-        break;
-      case GameStateEvent.Finish:
-        yield* _finishGame();
-        break;
-      case GameStateEvent.Surrender:
-        _surrender();
-        break;
-      case GameStateEvent.ShowHelp:
-        await _showHelp();
-        break;
-      default:
-        throw ("Unexpected event: $event");
-    }
+    if (event is GameEventBeginDataLoading)
+      yield* _beginLoading();
+    else if (event is GameEventGameStart)
+      yield* _runGame();
+    else if (event is GameEventFinish)
+      yield* _finishGame(event);
+    else if (event is GameEventSurrender)
+      _surrender();
+    else if (event is GameEventShowHelp)
+      await _showHelp();
+    else
+      throw ("Unexpected event: $event");
   }
 
   /// Begins game loading sequence
@@ -107,7 +100,7 @@ class GameBloc extends Bloc<GameStateEvent, GameLifecycleState> {
       scoreController,
     );
 
-    add(GameStateEvent.GameStart);
+    add(const GameEventGameStart());
   }
 
   Stream<GameLifecycleState> _runGame() async* {
@@ -117,6 +110,7 @@ class GameBloc extends Bloc<GameStateEvent, GameLifecycleState> {
     final repository = GameSessionRepository(
       GameSessionFactory.createForGameMode(
         mode: _gameMode,
+        scoringTypeMode: _prefs.scoringType,
         exclusions: dataState.exclusions,
         dictionary: dataState.dictionary,
         onUserInputAccepted: () => onUserInputAccepted(),
@@ -125,12 +119,11 @@ class GameBloc extends Bloc<GameStateEvent, GameLifecycleState> {
       ),
     );
 
-    yield GameState(repository, dataState.dictionary);
+    yield GameState(
+        repository, dataState.dictionary, dataState.scoreController);
 
-    // await for game ends
-    repository.run().then((_) {
-      add(GameStateEvent.Finish);
-    });
+    // Await for the game ends
+    repository.run().then((GameResult result) => add(GameEventFinish(result)));
   }
 
   /// Calls [DictionaryUpdater.checkForUpdates] to fetch updates from the server.
@@ -144,13 +137,13 @@ class GameBloc extends Bloc<GameStateEvent, GameLifecycleState> {
             downloadPercent));
   }
 
-  Stream<GameLifecycleState> _finishGame() async* {
+  Stream<GameLifecycleState> _finishGame(GameEventFinish event) async* {
     if (!(state is GameState)) return;
-    final gameState = state as GameState;
 
+    final gameState = state as GameState;
     await gameState.gameSessionRepository.finish();
 
-    yield GameResultsState();
+    yield GameResultsState(event.gameResult);
   }
 
   void _surrender() {

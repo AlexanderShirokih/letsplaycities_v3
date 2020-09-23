@@ -1,19 +1,35 @@
 part of 'game_bloc.dart';
 
 /// Events for managing [GameBloc]
-enum GameStateEvent {
-  /// Used internally to begin data loading sequence
-  BeginDataLoading,
+@immutable
+@sealed
+class GameStateEvent {
+  const GameStateEvent();
+}
 
-  /// Used internally to run game loop
-  GameStart,
+/// Used internally to begin data loading sequence
+class GameEventBeginDataLoading extends GameStateEvent {
+  const GameEventBeginDataLoading();
+}
 
-  /// Used internally to normally finish the game and prepare to show game results
-  Finish,
+/// Used internally to run game loop
+class GameEventGameStart extends GameStateEvent {
+  const GameEventGameStart();
+}
 
-  /// Finishes the game and surrenders current player
-  Surrender,
+/// Used internally to normally finish the game and prepare to show game results
+class GameEventFinish extends GameStateEvent {
+  final GameResult gameResult;
 
-  /// Shows tip for player
-  ShowHelp
+  const GameEventFinish(this.gameResult);
+}
+
+/// Finishes the game and surrenders current player
+class GameEventSurrender extends GameStateEvent {
+  const GameEventSurrender();
+}
+
+/// Shows tip for player
+class GameEventShowHelp extends GameStateEvent {
+  const GameEventShowHelp();
 }

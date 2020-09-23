@@ -46,4 +46,7 @@ class MappedLocalizationsService extends LocalizationService {
 
   @override
   Map<String, dynamic> get citiesList => _data['cities_list'];
+
+  @override
+  Map<String, dynamic> get gameResults => _data['game_results'];
 }

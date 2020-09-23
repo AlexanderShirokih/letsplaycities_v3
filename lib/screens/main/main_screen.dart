@@ -9,35 +9,33 @@ import 'package:lets_play_cities/screens/settings/settings_screen.dart';
 /// Describes the main screen
 class MainScreen extends StatelessWidget {
   @override
-  Widget build(BuildContext context) {
-    return Stack(
-      children: [
-        createBackground("bg_geo"),
-        Column(
-          children: [
-            _createAppLogo(),
-            _createNavigationButtonsGroup(context),
-          ],
-        ),
-        Positioned.fill(
-          child: Container(
-            alignment: Alignment.topRight,
-            padding: EdgeInsets.only(top: 26.0, right: 16.0),
-            child: SizedBox(
-              width: 54.0,
-              height: 54.0,
-              child: RaisedButton(
-                onPressed: () => Navigator.of(context)
-                    .push(MaterialPageRoute(builder: (_) => SettingsScreen())),
-                color: Theme.of(context).accentColor,
-                child: Icon(Icons.settings),
+  Widget build(BuildContext context) => Stack(
+        children: [
+          createBackground(context),
+          Column(
+            children: [
+              _createAppLogo(),
+              _createNavigationButtonsGroup(context),
+            ],
+          ),
+          Positioned.fill(
+            child: Container(
+              alignment: Alignment.topRight,
+              padding: EdgeInsets.only(top: 26.0, right: 16.0),
+              child: SizedBox(
+                width: 54.0,
+                height: 54.0,
+                child: RaisedButton(
+                  onPressed: () => Navigator.of(context).push(
+                      MaterialPageRoute(builder: (_) => SettingsScreen())),
+                  color: Theme.of(context).primaryColor,
+                  child: Icon(Icons.settings),
+                ),
               ),
             ),
-          ),
-        )
-      ],
-    );
-  }
+          )
+        ],
+      );
 }
 
 _createAppLogo() => Padding(

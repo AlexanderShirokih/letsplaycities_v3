@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+
+import 'package:lets_play_cities/themes/theme.dart' as theme;
 
 /// Creates material button with [_text] on center and leading [_icon], if present.
 /// Hits [_onTap] when the button is tapped.
@@ -11,7 +14,7 @@ class CustomMaterialButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => RaisedButton(
-        color: Theme.of(context).accentColor,
+        color: Theme.of(context).primaryColor,
         child: Padding(
           padding: const EdgeInsets.symmetric(vertical: 12.0),
           child: Row(
@@ -49,11 +52,10 @@ class MaterialIconButton extends StatelessWidget {
       );
 }
 
-/// Creates expanded background image with [name] from assets/images/backgrounds directory
-Widget createBackground(String name) => Positioned.fill(
+/// Creates expanded background image with from theme data
+Widget createBackground(BuildContext context) => Positioned.fill(
       child: Image.asset(
-        "assets/images/backgrounds/$name.png",
-        key: GlobalKey(),
+        context.repository<theme.Theme>().backgroundImage,
         fit: BoxFit.cover,
       ),
     );
