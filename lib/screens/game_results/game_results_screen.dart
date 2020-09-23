@@ -11,7 +11,7 @@ import 'package:lets_play_cities/base/game/game_result.dart';
 
 /// Shows when the game ends
 class GameResultsScreen extends StatelessWidget {
-  static final _kContainerOffset = 280.0;
+  static final _kContainerHeight = 480.0;
   static final _kAvatarRadius = 52.0;
 
   final GameResult _gameResult;
@@ -39,14 +39,14 @@ class GameResultsScreen extends StatelessWidget {
                 ),
               ),
             ),
-            Positioned.fromRelativeRect(
-              rect: RelativeRect.fromLTRB(0.0, _kContainerOffset, 0.0, 0.0),
+            Align(
+              alignment: Alignment.bottomCenter,
               child: withLocalization(
                 context,
                 (l10n) => Container(
                   padding: EdgeInsets.only(top: _kAvatarRadius + 18.0),
                   width: double.maxFinite,
-                  height: 340.0,
+                  height: _kContainerHeight,
                   color: Theme.of(context).primaryColor,
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
@@ -85,30 +85,36 @@ class GameResultsScreen extends StatelessWidget {
                 ),
               ),
             ),
-            Positioned.fromRelativeRect(
-              rect: RelativeRect.fromLTRB(
-                  0.0, _kContainerOffset - _kAvatarRadius, 0.0, 0.0),
-              child: Column(
-                children: [
-                  Container(
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      shape: BoxShape.circle,
-                      boxShadow: [
-                        BoxShadow(
-                            offset: const Offset(0.0, 4.0),
-                            blurRadius: 8,
-                            color: Colors.black.withOpacity(0.5),
-                            spreadRadius: 2)
-                      ],
-                    ),
-                    child: CircleAvatar(
-                      child:
-                          buildUserAvatar(_gameResult.owner.playerData.picture),
-                      radius: _kAvatarRadius,
-                    ),
-                  )
-                ],
+            Positioned(
+              left: 0.0,
+              right: 0.0,
+              bottom: _kContainerHeight - _kAvatarRadius,
+              child: Align(
+                alignment: Alignment.bottomCenter,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  mainAxisSize: MainAxisSize.max,
+                  children: [
+                    Container(
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        shape: BoxShape.circle,
+                        boxShadow: [
+                          BoxShadow(
+                              offset: const Offset(0.0, 4.0),
+                              blurRadius: 8,
+                              color: Colors.black.withOpacity(0.5),
+                              spreadRadius: 2)
+                        ],
+                      ),
+                      child: CircleAvatar(
+                        child: buildUserAvatar(
+                            _gameResult.owner.playerData.picture),
+                        radius: _kAvatarRadius,
+                      ),
+                    )
+                  ],
+                ),
               ),
             ),
             Align(
