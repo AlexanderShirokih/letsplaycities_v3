@@ -11,7 +11,7 @@ import 'package:lets_play_cities/base/game/player/surrender_exception.dart';
 /// [PlayerData] model class that contains info about user.
 /// [PictureSource] represents android's picture.
 class Android extends User {
-  static const _kAndroidAvatarPath = "assets/images/android_big.png";
+  static const _kAndroidAvatarPath = 'assets/images/android_big.png';
   static const _kDefaultAndroidUserId = -1;
 
   final DictionaryDecorator _dictionary;
@@ -41,8 +41,9 @@ class Android extends User {
 
     final word = await _dictionary.getRandomWord(firstChar);
 
-    if (_estimatedMoves-- <= 0 || word.isEmpty)
+    if (_estimatedMoves-- <= 0 || word.isEmpty) {
       throw SurrenderException(this, false);
+    }
 
     return word;
   }

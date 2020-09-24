@@ -1,3 +1,5 @@
+import 'package:meta/meta.dart';
+
 import '../country_entity.dart';
 import '../exclusions.dart';
 
@@ -46,29 +48,35 @@ class ExclusionsServiceImpl extends ExclusionsService {
   /// List of USA state names
   final List<String> states;
 
-  ExclusionsServiceImpl(
-      {this.exclusionsList, this.errMessages, this.countries, this.states})
-      : assert(exclusionsList != null),
+  ExclusionsServiceImpl({
+    @required this.exclusionsList,
+    @required this.errMessages,
+    @required this.countries,
+    @required this.states,
+  })  : assert(exclusionsList != null),
         assert(errMessages != null),
         assert(countries != null),
         assert(states != null);
 
   @override
   String checkForExclusion(String city) {
-    if (countries.any((c) => !c.hasSiblingCity && c.name.toLowerCase() == city))
+    if (countries
+        .any((c) => !c.hasSiblingCity && c.name.toLowerCase() == city)) {
       return errMessages[ErrorCode.THIS_IS_A_COUNTRY]
           .format([city.toTitleCase()]);
+    }
 
-    if (states.contains(city))
+    if (states.contains(city)) {
       return errMessages[ErrorCode.THIS_IS_A_STATE]
           .format([city.toTitleCase()]);
+    }
 
     return _checkCity(city);
   }
 
   String _checkCity(String city) {
     final ex = exclusionsList[city];
-    if (ex == null) return "";
+    if (ex == null) return '';
 
     switch (ex.type) {
       case ExclusionType.CITY_WAS_RENAMED: // City was renamed
@@ -84,7 +92,7 @@ class ExclusionsServiceImpl extends ExclusionsService {
         return errMessages[ErrorCode.THIS_IS_NOT_A_CITY]
             .format([city.toTitleCase()]);
       default:
-        return "";
+        return '';
     }
   }
 

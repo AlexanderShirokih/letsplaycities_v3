@@ -22,8 +22,7 @@ class TopBar extends StatelessWidget {
               .createGameServiceEventsRepository(),
           child: Builder(
             builder: (context) {
-              final GameSessionRepository repo =
-                  context.repository<GameSessionRepository>();
+              final repo = context.repository<GameSessionRepository>();
               final leftUser = repo.getUserByPosition(Position.LEFT);
               final rightUser = repo.getUserByPosition(Position.RIGHT);
               return Column(
@@ -102,7 +101,7 @@ class _ActionButtons extends StatelessWidget {
                     .getTimerTicks(),
                 builder: (context, snapshot) {
                   return Text(
-                    snapshot.hasData ? snapshot.data : "",
+                    snapshot.hasData ? snapshot.data : '',
                     style: Theme.of(context).textTheme.headline6,
                   );
                 }),

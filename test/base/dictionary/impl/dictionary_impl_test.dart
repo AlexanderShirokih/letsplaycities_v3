@@ -5,12 +5,12 @@ import 'package:test/test.dart';
 void main() {
   group('DictionaryServiceImpl', () {
     final map = {
-      "hello": CityProperties(difficulty: 0, countryCode: 1),
-      "hello2": CityProperties(difficulty: 0, countryCode: 0),
-      "test": CityProperties(difficulty: 0, countryCode: 2),
-      "test2": CityProperties(difficulty: 0, countryCode: 3),
-      "world": CityProperties(difficulty: 2, countryCode: 4),
-      "world2": CityProperties(difficulty: 1, countryCode: 4),
+      'hello': CityProperties(difficulty: 0, countryCode: 1),
+      'hello2': CityProperties(difficulty: 0, countryCode: 0),
+      'test': CityProperties(difficulty: 0, countryCode: 2),
+      'test2': CityProperties(difficulty: 0, countryCode: 3),
+      'world': CityProperties(difficulty: 2, countryCode: 4),
+      'world2': CityProperties(difficulty: 1, countryCode: 4),
     };
 
     setUp(() {
@@ -28,14 +28,14 @@ void main() {
         expect(
             await DictionaryServiceImpl(map)
                 .getRandomWordByDifficulty('t', Difficulty.EASY),
-            anyOf(["test", "test2"]));
+            anyOf(['test', 'test2']));
       });
 
       test('filters by difficulty', () async {
         expect(
             await DictionaryServiceImpl(map)
                 .getRandomWordByDifficulty('w', Difficulty.MEDIUM),
-            equals("world2"));
+            equals('world2'));
       });
 
       test('returns empty string if no words starting at char', () async {
@@ -46,28 +46,31 @@ void main() {
       });
 
       test('can return the same word twice', () async {
-        for (int i = 0; i < 10; i++)
+        for (var i = 0; i < 10; i++) {
           expect(
               await DictionaryServiceImpl(map)
                   .getRandomWordByDifficulty('w', Difficulty.MEDIUM),
-              anyOf([returnsNormally, equals("world2")]));
+              anyOf([returnsNormally, equals('world2')]));
+        }
       });
 
       test('not uses words city countryCode==0', () async {
-        for (int i = 0; i < 10; i++)
+        for (var i = 0; i < 10; i++) {
           expect(
               await DictionaryServiceImpl(map)
                   .getRandomWordByDifficulty('h', Difficulty.EASY),
-              isNot(equals("hello2")));
+              isNot(equals('hello2')));
+        }
       });
 
       test('not uses already used words', () async {
         final d = DictionaryServiceImpl(map);
         d.markUsed('test');
 
-        for (int i = 0; i < 10; i++)
+        for (var i = 0; i < 10; i++) {
           expect(await d.getRandomWordByDifficulty('t', Difficulty.EASY),
-              isNot(equals("test")));
+              isNot(equals('test')));
+        }
       });
     });
 

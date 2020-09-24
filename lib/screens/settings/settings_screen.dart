@@ -37,7 +37,7 @@ class _SettingsItemsList extends StatefulWidget {
   @override
   _SettingsItemsListState createState() => _SettingsItemsListState(
         [
-          _NavigationItem(_titles[0], "Unimplemented", null),
+          _NavigationItem(_titles[0], 'Unimplemented', null),
           _SingleChoiceItem(
             _titles[1],
             (_settings['difficulty'] as List<dynamic>).cast<String>(),
@@ -139,9 +139,10 @@ class _NavigationItem extends _SettingsItem {
 
   @override
   Future<void> onClicked(BuildContext context) {
-    if (_selector != null)
+    if (_selector != null) {
       Navigator.of(context)
           .push(MaterialPageRoute(builder: (_) => _selector()));
+    }
     return Future.value();
   }
 
@@ -158,7 +159,8 @@ class _ToggleItem extends _SettingsItem {
 
   bool _isChecked;
 
-  _ToggleItem(String title, this._stateNames, bool initialState, {this.onSet})
+  _ToggleItem(String title, this._stateNames, bool initialState,
+      {@required this.onSet})
       : _isChecked = initialState,
         assert(onSet != null),
         super(title);
@@ -166,6 +168,7 @@ class _ToggleItem extends _SettingsItem {
   @override
   bool get isChecked => _isChecked;
 
+  @override
   Future<void> onClicked(BuildContext context) async {
     _isChecked = !_isChecked;
     onSet(_isChecked);
@@ -178,12 +181,12 @@ class _ToggleItem extends _SettingsItem {
 class _SingleChoiceItem extends _SettingsItem {
   final List<String> _choiceItems;
 
-  bool _useRadio;
+  final bool _useRadio;
   int _currentChoice;
   Function(int) onSet;
 
   _SingleChoiceItem(String title, this._choiceItems, this._currentChoice,
-      {bool useRadio, this.onSet})
+      {bool useRadio, @required this.onSet})
       : _useRadio = useRadio ?? false,
         assert(onSet != null),
         super(title);

@@ -1,4 +1,4 @@
 class AppConfig {
-  static const String remoteHost = "letsplaycities.online";
-  static const String remotePublicApiURL = "http://$remoteHost:8080";
+  static const String remoteHost = 'letsplaycities.online';
+  static const String remotePublicApiURL = 'http://$remoteHost:8080';
 }

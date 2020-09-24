@@ -21,7 +21,7 @@ class ErrorHandlerView extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 SizedBox(height: 24.0),
-                Text("Ой, кажется произошла ошибка😢",
+                Text('Ой, кажется произошла ошибка😢',
                     style: Theme.of(context).textTheme.headline6),
                 Expanded(
                   child: ListView(

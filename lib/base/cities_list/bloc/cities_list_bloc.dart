@@ -47,7 +47,7 @@ class CitiesListBloc extends Bloc<CitiesListEvent, CitiesListState> {
       CitiesListFilteringEvent event) async* {
     if (!(state is CitiesListDataState)) return;
 
-    final CitiesListFilter filter = state is CitiesListFilteredDataState
+    final filter = state is CitiesListFilteredDataState
         ? (state as CitiesListFilteredDataState).filter.copy(
             nameFilter: event.nameFilter, countryFilter: event.countryFilter)
         : CitiesListFilter(
@@ -64,13 +64,12 @@ class CitiesListBloc extends Bloc<CitiesListEvent, CitiesListState> {
     }
 
     // If current filter is more concrete then previous - filter from previous
-    final List<CitiesListEntry> candidate = state
-                is CitiesListFilteredDataState &&
+    final candidate = state is CitiesListFilteredDataState &&
             filter.isDetailing((state as CitiesListFilteredDataState).filter)
         ? (state as CitiesListFilteredDataState).citiesList
         : original.citiesList;
 
-    final List<CitiesListEntry> filtered = filter.filter(candidate);
+    final filtered = filter.filter(candidate);
 
     yield CitiesListFilteredDataState(original, filtered, filter);
   }

@@ -92,7 +92,7 @@ class _StatisticsList extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(_l10n['fields'][pair.name] ?? pair.name.toTitleCase()),
-          Text(pair.value ?? "NULL!!"),
+          Text(pair.value ?? '--'),
         ],
       ),
     );

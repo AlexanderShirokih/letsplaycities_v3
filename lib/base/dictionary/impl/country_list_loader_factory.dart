@@ -8,7 +8,7 @@ import '../country_list_loader.dart';
 /// Implementation of [CountryListLoaderService] that loads country list from
 /// file as '|'-separated values.
 class CountryListLoaderServiceFactory {
-  static const _COUNTRIES_LIST_NAME = "assets/data/countries.txt";
+  static const _COUNTRIES_LIST_NAME = 'assets/data/countries.txt';
 
   CountryListLoaderService createCountryList() =>
       _CountryListLoaderServiceImpl(_COUNTRIES_LIST_NAME);

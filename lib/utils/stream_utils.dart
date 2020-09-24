@@ -22,7 +22,7 @@ class _MergeStreamController<T> {
   _MergeStreamController(List<Stream<T>> sources, bool Function(T) predicate) {
     workingStreamsCount = sources.length;
     // Assign listeners to all source streams
-    final List<_SubscriptionData<T>> subscriptions = sources
+    final subscriptions = sources
         .map((source) => _SubscriptionData(source, source.listen(null)))
         .toList(growable: false);
 

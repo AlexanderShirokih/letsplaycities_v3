@@ -87,6 +87,6 @@ class LoadingView extends StatelessWidget {
 
 /// Loads flag image from assets for [countryCode]
 Image createFlagImage(int countryCode) => Image.asset(
-      "assets/images/flags/flag_$countryCode.png",
+      'assets/images/flags/flag_$countryCode.png',
       height: 20.0,
     );

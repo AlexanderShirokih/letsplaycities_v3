@@ -5,6 +5,7 @@ class DictionaryException implements Exception {
 
   const DictionaryException(this.message, this.line);
 
+  @override
   String toString() =>
-      "Error during dictionary parsing: $message; at dictionary line index=$line";
+      'Error during dictionary parsing: $message; at dictionary line index=$line';
 }

@@ -1,25 +1,27 @@
 /// Utilities functions for formatting strings.
 
 extension FormatExtension on String {
-  /// Formats '%1$ %2$'.format("Hello", "world") to 'Hello world'
+  /// Formats '%1$ %2$'.format('Hello', 'world') to 'Hello world'
   String format(List<String> params) {
-    String result = this;
-    for (int i = 1; i < params.length + 1; i++)
+    var result = this;
+    for (var i = 1; i < params.length + 1; i++) {
       result = result.replaceAll('%$i\$', params[i - 1]);
+    }
     return result;
   }
 }
 
 extension CapitalizeExtension on String {
   /// Converts the string to title case.
-  /// For ex.: "lower-case string" will be converted to "Lower-Case String"
+  /// For ex.: 'lower-case string' will be converted to 'Lower-Case String'
   String toTitleCase() {
     final buffer = StringBuffer();
 
-    for (int i = 0; i < length; i++) {
+    for (var i = 0; i < length; i++) {
       var c = this[i];
-      if (i == 0 || this[i - 1] == '-' || this[i - 1] == ' ')
+      if (i == 0 || this[i - 1] == '-' || this[i - 1] == ' ') {
         c = c.toUpperCase();
+      }
       buffer.write(c);
     }
 
@@ -28,18 +30,18 @@ extension CapitalizeExtension on String {
 }
 
 String findLastSuitableChar(String word) =>
-    word.isEmpty ? "" : word[indexOfLastSuitableChar(word)];
+    word.isEmpty ? '' : word[indexOfLastSuitableChar(word)];
 
 /// Finds the last index in [city] of char which is not ends at bad letters or returns empty string
 int indexOfLastSuitableChar(String city) {
-  final c = city.lastIndexOf(RegExp(r"[^ь^ъ^ы^ё]"));
+  final c = city.lastIndexOf(RegExp(r'[^ь^ъ^ы^ё]'));
   return (c == -1) ? 0 : c;
 }
 
 /// Replaces some invalid chars in the [city]
 String formatCity(String city) {
   final s = city.trim().toLowerCase();
-  final replaced = s.replaceAll("ё", "е");
+  final replaced = s.replaceAll('ё', 'е');
   final sb = StringBuffer();
   var prev = 0;
 
@@ -57,12 +59,12 @@ String formatCity(String city) {
 /// Converts [time] in millis to string representation
 String formatTime(int time) {
   var t = time;
-  var ret = "";
+  var ret = '';
   var min = t ~/ 60;
   t -= min * 60;
   if (min > 0) {
-    ret = min.toString() + "мин ";
+    ret = min.toString() + 'мин ';
   }
-  ret += t.toString() + "сек";
+  ret += t.toString() + 'сек';
   return ret;
 }

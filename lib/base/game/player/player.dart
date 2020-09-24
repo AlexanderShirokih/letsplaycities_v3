@@ -12,7 +12,7 @@ import 'package:lets_play_cities/utils/string_utils.dart';
 class Player extends User {
   static final idLimit = pow(2, 32);
 
-  static Random _rnd = Random();
+  static final Random _rnd = Random();
 
   final StreamController<String> _userInput =
       StreamController<String>.broadcast();

@@ -58,7 +58,7 @@ class UserAvatar extends StatelessWidget {
                   ? snapshot.data.keys
                       .singleWhere((user) => user.id == _userId)
                       .info
-                  : "--",
+                  : '--',
             ),
           ],
         ),
@@ -75,7 +75,7 @@ Widget buildUserAvatar(PictureSource pictureSource) => _buildImage(
     _getImageProviderByPictureSource(pictureSource),
     const AssetImage(_kImagePlaceholder));
 
-const _kImagePlaceholder = "assets/images/player_big.png";
+const _kImagePlaceholder = 'assets/images/player_big.png';
 
 Widget _buildImage(ImageProvider target, ImageProvider placeholder) =>
     (target is AssetImage)

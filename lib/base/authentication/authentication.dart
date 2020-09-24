@@ -17,7 +17,7 @@ class Credential {
   const Credential({this.userId, this.accessToken});
 
   const Credential.withUserId(int userId)
-      : this(userId: userId, accessToken: "");
+      : this(userId: userId, accessToken: '');
 }
 
 /// Response from authentication request
@@ -49,5 +49,5 @@ class AuthorizationException implements Exception {
 
   factory AuthorizationException.fromStatus(
           String reasonPhrase, int responseCode) =>
-      AuthorizationException("Status: $responseCode ($reasonPhrase)");
+      AuthorizationException('Status: $responseCode ($reasonPhrase)');
 }

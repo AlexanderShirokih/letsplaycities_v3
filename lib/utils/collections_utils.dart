@@ -23,6 +23,7 @@ class _DistinctIterable<T> extends Iterable<T> {
     T Function(T, T) onDuplicate,
   ) : _onDuplicate = onDuplicate ?? ((old, curr) => null);
 
+  @override
   Iterator<T> get iterator {
     _iterable.forEach((element) {
       final key = _keySelector(element);
@@ -31,8 +32,9 @@ class _DistinctIterable<T> extends Iterable<T> {
       if (old != null) {
         final value = _onDuplicate(old, element);
         if (value != null) uniqueElements[_keySelector(value)] = value;
-      } else
+      } else {
         uniqueElements[key] = element;
+      }
     });
 
     return uniqueElements.values.iterator;

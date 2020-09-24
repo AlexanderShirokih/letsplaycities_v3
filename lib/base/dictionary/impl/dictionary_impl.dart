@@ -27,10 +27,10 @@ class DictionaryServiceImpl extends DictionaryService {
             e.value.difficulty <= difficulty.index)
         .toList(growable: false);
 
-    if (filtered.length == 0) return "";
+    if (filtered.isEmpty) return '';
 
     final index = _random.nextInt(filtered.length);
-    return index >= filtered.length ? "" : filtered[index].key;
+    return index >= filtered.length ? '' : filtered[index].key;
   }
 
   @override
@@ -46,7 +46,9 @@ class DictionaryServiceImpl extends DictionaryService {
 
   @override
   void reset() {
-    for (final prop in _data.values) prop.reset();
+    for (final prop in _data.values) {
+      prop.reset();
+    }
   }
 
   @override
@@ -58,11 +60,13 @@ class DictionaryServiceImpl extends DictionaryService {
 
     if (candidates.isNotEmpty) return candidates.toSet();
 
-    for (final s in list)
-      for (final w in _edits(s))
-        if (candidates.length < 4 && _canUse(w) && !candidates.contains(w))
+    for (final s in list) {
+      for (final w in _edits(s)) {
+        if (candidates.length < 4 && _canUse(w) && !candidates.contains(w)) {
           candidates.add(w);
-
+        }
+      }
+    }
     return candidates.toSet();
   }
 
@@ -78,32 +82,34 @@ class DictionaryServiceImpl extends DictionaryService {
   bool _canUse(String s) => s.length > 3 && !(_data[s]?.used ?? true);
 
   List<String> _edits(String word) {
-    List<String> result = [];
-    String f = word[0];
+    var result = <String>[];
+    var f = word[0];
     String s;
-    for (int i = 0; i < word.length; ++i) {
+    for (var i = 0; i < word.length; ++i) {
       s = word.substring(0, i) + word.substring(i + 1);
       if (s.isNotEmpty && s[0] == f) result.add(s);
     }
-    for (int i = 0; i < word.length - 1; ++i) {
+    for (var i = 0; i < word.length - 1; ++i) {
       s = word.substring(0, i) +
           word.substring(i + 1, i + 2) +
           word.substring(i, i + 1) +
           word.substring(i + 2);
       if (s.isNotEmpty && s[0] == f) result.add(s);
     }
-    for (int i = 0; i < word.length; ++i)
+    for (var i = 0; i < word.length; ++i) {
       for (var c = 'а'.runes.first; c <= 'я'.runes.first; ++c) {
         s = word.substring(0, i) +
             String.fromCharCode(c) +
             word.substring(i + 1);
         if (s.isNotEmpty && s[0] == f) result.add(s);
       }
-    for (int i = 0; i <= word.length; ++i)
+    }
+    for (var i = 0; i <= word.length; ++i) {
       for (var c = 'а'.runes.first; c <= 'я'.runes.first; ++c) {
         s = word.substring(0, i) + String.fromCharCode(c) + word.substring(i);
         if (s.isNotEmpty && s[0] == f) result.add(s);
       }
+    }
     return result;
   }
 }

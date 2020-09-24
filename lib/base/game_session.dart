@@ -54,7 +54,7 @@ class GameSession {
         assert(timeLimit != null) {
     inputEvents.listen((event) {
       //TODO: Debug print
-      print("EVENT=$event");
+      print('EVENT=$event');
     });
   }
 
@@ -63,7 +63,7 @@ class GameSession {
   User getUserByPosition(Position position) =>
       usersList.getUserByPosition(position);
 
-  String _lastAcceptedWord = "";
+  String _lastAcceptedWord = '';
 
   /// Last accepted word
   String get lastAcceptedWord => _lastAcceptedWord;
@@ -87,12 +87,15 @@ class GameSession {
   /// When the game finishes returns [GameResult]
   Future<GameResult> runMoves() async {
     GameEvent event;
-    await for (event in _runMoves()) _inputEvents.sink.add(event);
-    _inputEvents.close();
+    await for (event in _runMoves()) {
+      _inputEvents.sink.add(event);
+    }
+    await _inputEvents.close();
 
     if (event is OnMoveFinished) {
-      if (event.endType == MoveFinishType.Completed)
-        throw ("This move type should not finish the game!");
+      if (event.endType == MoveFinishType.Completed) {
+        throw ('This move type should not finish the game!');
+      }
       return GameResultChecker(
         users: usersList,
         owner: usersList.all.whereType<Player>().first,
@@ -101,7 +104,7 @@ class GameSession {
       ).getGameResults();
     }
 
-    throw ("Game has finished without ending with [OnMoveFinished] event");
+    throw ('Game has finished without ending with [OnMoveFinished] event');
   }
 
   Stream<GameEvent> _runMoves() async* {
@@ -117,8 +120,9 @@ class GameSession {
       ], (element) {
         final isMoveFinished = element is OnMoveFinished;
         if (isMoveFinished &&
-            (element as OnMoveFinished).endType != MoveFinishType.Completed)
+            (element as OnMoveFinished).endType != MoveFinishType.Completed) {
           _gameRunning = false;
+        }
         return !isMoveFinished;
       });
     }

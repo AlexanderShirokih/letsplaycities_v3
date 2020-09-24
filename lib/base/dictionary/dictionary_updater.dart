@@ -20,7 +20,7 @@ extension DictionaryUpdatePeriodExt on DictionaryUpdatePeriod {
       case DictionaryUpdatePeriod.DAILY:
         return const Duration(days: 1);
       default:
-        throw ("Bad state!");
+        throw ('Bad state!');
     }
   }
 }
@@ -41,8 +41,9 @@ class DictionaryUpdater {
     final nextUpdateDate = _prefs.lastDictionaryCheckDate.add(updatePeriod);
     final now = DateTime.now();
 
-    if (updatePeriod == Duration.zero || now.isBefore(nextUpdateDate))
+    if (updatePeriod == Duration.zero || now.isBefore(nextUpdateDate)) {
       return Stream.empty();
+    }
 
     _prefs.lastDictionaryCheckDate = now;
 
@@ -55,8 +56,8 @@ class DictionaryUpdater {
   Stream<int> _fetchUpdates() async* {
     yield -1; // Begin fetching updates
 
-    int latestVersion = await _fetchLatestDictionaryVersion();
-    int currentVersion = await DictionaryFactory.latestVersion();
+    final latestVersion = await _fetchLatestDictionaryVersion();
+    final currentVersion = await DictionaryFactory.latestVersion();
 
     if (currentVersion >= latestVersion) return;
 
@@ -65,7 +66,7 @@ class DictionaryUpdater {
     yield* _loadDictionaryData(databaseFile, latestVersion).distinct();
 
     // Build the meta file
-    await _buildMeta(File("${databaseFile.path}.meta"), latestVersion);
+    await _buildMeta(File('${databaseFile.path}.meta'), latestVersion);
 
     // Clear currently loaded cache
     DictionaryFactory.invalidateCache();
@@ -73,11 +74,11 @@ class DictionaryUpdater {
 
   Stream<int> _loadDictionaryData(File output, int latestVersion) async* {
     final uri =
-        Uri.parse("${AppConfig.remotePublicApiURL}/data-$latestVersion.db2");
+        Uri.parse('${AppConfig.remotePublicApiURL}/data-$latestVersion.db2');
     final response = await _http.send(http.Request('GET', uri));
 
     final total = response.contentLength;
-    int done = 0;
+    var done = 0;
 
     final sink = output.openWrite();
 
@@ -88,7 +89,7 @@ class DictionaryUpdater {
         yield (done / total * 100).round();
       }
     } finally {
-      sink.close();
+      await sink.close();
     }
   }
 
@@ -97,13 +98,13 @@ class DictionaryUpdater {
   }
 
   Future<int> _fetchLatestDictionaryVersion() async {
-    final response = await _http.get("${AppConfig.remotePublicApiURL}/update");
+    final response = await _http.get('${AppConfig.remotePublicApiURL}/update');
 
     if (response.statusCode == 200) {
       final resp = jsonDecode(response.body);
-      return resp["dictionary"]["version"] as int;
+      return resp['dictionary']['version'] as int;
     }
 
-    throw ("Update fetching failed. Status code: ${response.statusCode}");
+    throw ('Update fetching failed. Status code: ${response.statusCode}');
   }
 }

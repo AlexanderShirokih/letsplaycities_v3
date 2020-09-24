@@ -4,7 +4,7 @@ import 'package:lets_play_cities/base/cities_list/cities_list_entry.dart';
 
 /// A class that can filter elements of cities list
 class CitiesListFilter extends Equatable {
-  static final RegExp _nameSplitPattern = RegExp("[ -]");
+  static final RegExp _nameSplitPattern = RegExp('[ -]');
 
   final String nameFilter;
   final CountryListFilter countryFilter;
@@ -12,8 +12,8 @@ class CitiesListFilter extends Equatable {
   CitiesListFilter({
     String nameFilter,
     CountryListFilter countryFilter,
-  })  : this.nameFilter = nameFilter ?? "",
-        this.countryFilter = countryFilter ?? const CountryListFilter.empty();
+  })  : nameFilter = nameFilter ?? '',
+        countryFilter = countryFilter ?? const CountryListFilter.empty();
 
   /// Creates copy of this filter with customizable params
   /// `null` value for input argument means value is not changed
@@ -74,8 +74,9 @@ class CountryListFilter extends Equatable {
   /// Returns `true` if this filter is a sub filter of [prev] (is more concrete than previous)
   bool isDetailing(CountryListFilter prev) {
     if (this == prev || prev.isAllPresent) return true;
-    if (prev.allowedCountryCodes.length < allowedCountryCodes.length)
+    if (prev.allowedCountryCodes.length < allowedCountryCodes.length) {
       return false;
+    }
 
     return allowedCountryCodes
         .every((element) => prev.allowedCountryCodes.contains(element));

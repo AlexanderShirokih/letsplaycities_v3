@@ -66,15 +66,15 @@ class _GameItemListTile extends StatelessWidget {
       case CityStatus.ERROR:
         return Icon(Icons.error_outline, color: Colors.red);
       default:
-        throw ("Unknown CityInfo.status");
+        throw ('Unknown CityInfo.status');
     }
   }
 
   BoxDecoration _buildDecoration() {
-    const kFillColor = const Color(0xFFFFD2AE);
-    const kBorderColor = const Color(0xFFE9B77B);
-    const kMessageMe = const Color(0xFFAEF1B0);
-    const kMessageOther = const Color(0xFFAFB7F4);
+    const kFillColor = Color(0xFFFFD2AE);
+    const kBorderColor = Color(0xFFE9B77B);
+    const kMessageMe = Color(0xFFAEF1B0);
+    const kMessageOther = Color(0xFFAFB7F4);
 
     return BoxDecoration(
       color: (_gameItem is CityInfo)
@@ -92,7 +92,7 @@ class _GameItemListTile extends StatelessWidget {
   }
 
   Widget _buildText(BuildContext context) {
-    const kForegroundSpanColor = const Color(0xFF0000FF);
+    const kForegroundSpanColor = Color(0xFF0000FF);
 
     if (_gameItem is CityInfo) {
       final textStyle =

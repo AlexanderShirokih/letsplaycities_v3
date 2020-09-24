@@ -30,28 +30,30 @@ abstract class ScoringField {
       PairedScoringField<String, int>(name, value, null);
 
   factory ScoringField.fromJson(Map<String, dynamic> data) {
-    String type = data['type'] != null
-        ? data['type']
-        : throw ("Missing required field 'type' in field: $data");
+    if (data['type'] == null) {
+      throw ("Missing required field 'type' in field: $data");
+    }
+    if (data['name'] == null) {
+      throw ("Missing required field 'name' in field: $data");
+    }
 
-    String name = data['name'] != null
-        ? data['name']
-        : throw ("Missing required field 'name' in field: $data");
+    String type = data['type'];
+    String name = data['name'];
 
     dynamic value = data['value'];
     dynamic key = data['key'];
 
     switch (type) {
-      case "empty":
+      case 'empty':
         return EmptyScoringField(name);
-      case "int":
+      case 'int':
         return IntScoringField(name, value as int);
-      case "time":
+      case 'time':
         return TimeScoringField(name, value as int);
-      case "paired":
+      case 'paired':
         return PairedScoringField<String, int>(name, key, value as int);
       default:
-        throw ("Unknown field type: $type");
+        throw ('Unknown field type: $type');
     }
   }
 
@@ -83,7 +85,7 @@ class EmptyScoringField extends ScoringField with EquatableMixin {
   List<Object> get props => [name];
 
   @override
-  Map<String, dynamic> toJson() => {"type": "empty", "name": name};
+  Map<String, dynamic> toJson() => {'type': 'empty', 'name': name};
 }
 
 /// [ScoringField] holding [int] value
@@ -122,7 +124,7 @@ class IntScoringField extends ScoringField with EquatableMixin {
 
   @override
   Map<String, dynamic> toJson() =>
-      {"type": "int", "name": name, "value": value};
+      {'type': 'int', 'name': name, 'value': value};
 }
 
 /// [ScoringField] holding time value that can be formatted as string
@@ -143,13 +145,13 @@ class TimeScoringField extends IntScoringField {
       s -= 60 * m;
     }
 
-    final format = NumberFormat("00", "en_US");
-    return "${format.format(h)}:${format.format(m)}:${format.format(s)}";
+    final format = NumberFormat('00', 'en_US');
+    return '${format.format(h)}:${format.format(m)}:${format.format(s)}';
   }
 
   @override
   Map<String, dynamic> toJson() =>
-      {"type": "time", "name": name, "value": value};
+      {'type': 'time', 'name': name, 'value': value};
 }
 
 /// [ScoringField] that holds a pair of values
@@ -177,7 +179,7 @@ class PairedScoringField<K, V> extends ScoringField with EquatableMixin {
 
   @override
   Map<String, dynamic> toJson() =>
-      {"type": "paired", "name": name, "key": key, "value": value};
+      {'type': 'paired', 'name': name, 'key': key, 'value': value};
 
   /// Creates deep copy of this field
   PairedScoringField<K, V> clone({String name, K key, V value}) =>

@@ -61,64 +61,65 @@ class SharedPreferencesGamePrefs extends GamePreferences {
 
   @override
   Difficulty get wordsDifficulty =>
-      Difficulty.values[(_prefs.getInt("wordsDifficulty") ?? 0)];
+      Difficulty.values[(_prefs.getInt('wordsDifficulty') ?? 0)];
 
   @override
   set wordsDifficulty(Difficulty d) =>
-      _prefs.setInt("wordsDifficulty", d.index);
+      _prefs.setInt('wordsDifficulty', d.index);
 
   @override
-  bool get correctionEnabled => _prefs.getBool("correctionEnabled") ?? true;
+  bool get correctionEnabled => _prefs.getBool('correctionEnabled') ?? true;
 
   @override
-  set correctionEnabled(bool b) => _prefs.setBool("correctionEnabled", b);
+  set correctionEnabled(bool b) => _prefs.setBool('correctionEnabled', b);
 
   @override
-  bool get soundEnabled => _prefs.getBool("soundEnabled") ?? true;
+  bool get soundEnabled => _prefs.getBool('soundEnabled') ?? true;
 
   @override
-  set soundEnabled(bool b) => _prefs.setBool("soundEnabled", b);
+  set soundEnabled(bool b) => _prefs.setBool('soundEnabled', b);
 
   @override
-  bool get onlineChatEnabled => _prefs.getBool("onlineChatEnabled") ?? true;
+  bool get onlineChatEnabled => _prefs.getBool('onlineChatEnabled') ?? true;
 
   @override
-  set onlineChatEnabled(bool b) => _prefs.setBool("onlineChatEnabled", b);
+  set onlineChatEnabled(bool b) => _prefs.setBool('onlineChatEnabled', b);
 
   @override
-  int get timeLimit => _prefs.getInt("timeLimit") ?? 60;
+  int get timeLimit => _prefs.getInt('timeLimit') ?? 60;
 
   @override
-  set timeLimit(int i) => _prefs.setInt("timeLimit", i);
+  set timeLimit(int i) => _prefs.setInt('timeLimit', i);
 
   @override
   ScoringType get scoringType =>
-      ScoringType.values[_prefs.getInt("scoringType") ?? 0];
+      ScoringType.values[_prefs.getInt('scoringType') ?? 0];
 
   @override
-  set scoringType(ScoringType s) => _prefs.setInt("scoringType", s.index);
+  set scoringType(ScoringType s) => _prefs.setInt('scoringType', s.index);
 
-  String get scoringData => _prefs.getString("scoringData") == null
-      ? ""
-      : utf8.decode(base64.decode(_prefs.getString("scoringData")));
+  @override
+  String get scoringData => _prefs.getString('scoringData') == null
+      ? ''
+      : utf8.decode(base64.decode(_prefs.getString('scoringData')));
 
   @override
   set scoringData(String s) =>
-      _prefs.setString("scoringData", base64.encode(utf8.encode(s)));
+      _prefs.setString('scoringData', base64.encode(utf8.encode(s)));
 
   @override
   DateTime get lastDictionaryCheckDate => DateTime.fromMillisecondsSinceEpoch(
-      _prefs.getInt("lastDictionaryCheckDate") ?? 0);
+      _prefs.getInt('lastDictionaryCheckDate') ?? 0);
 
   @override
   set lastDictionaryCheckDate(DateTime d) =>
-      _prefs.setInt("lastDictionaryCheckDate", d.millisecondsSinceEpoch);
+      _prefs.setInt('lastDictionaryCheckDate', d.millisecondsSinceEpoch);
 
   @override
   DictionaryUpdatePeriod get dictionaryUpdatePeriod => DictionaryUpdatePeriod
-      .values[_prefs.getInt("dictionaryUpdatePeriod") ?? 1];
+      .values[_prefs.getInt('dictionaryUpdatePeriod') ?? 1];
 
   @override
   set dictionaryUpdatePeriod(DictionaryUpdatePeriod dup) =>
-      _prefs.setInt("dictionaryUpdatePeriod", dup.index);
+      _prefs.setInt('dictionaryUpdatePeriod', dup.index);
 }

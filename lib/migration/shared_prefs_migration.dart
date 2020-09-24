@@ -10,7 +10,8 @@ class SharedPreferencesMigration {
   /// Runs old shared preferences migration in native code.
   /// Works only for Android.
   Future<void> migrateSharedPreferencesIfNeeded() async {
-    if (Platform.isAndroid)
-      _prefsMigrationChannel.invokeMethod('migrateLegacyPreferencesFile');
+    if (Platform.isAndroid) {
+      await _prefsMigrationChannel.invokeMethod('migrateLegacyPreferencesFile');
+    }
   }
 }

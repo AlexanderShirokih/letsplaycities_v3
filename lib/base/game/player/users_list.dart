@@ -10,8 +10,9 @@ class UsersList {
 
   UsersList(this._users) {
     // Setup users positions
-    for (int i = 0; i < _users.length; i++)
+    for (var i = 0; i < _users.length; i++) {
       _users[i].position = Position.values[i];
+    }
   }
 
   /// Keeps index of current user
@@ -67,30 +68,30 @@ class UsersList {
       case GameMode.PlayerVsPlayer:
         return _buildPvPList();
       default:
-        throw ("Unsupported game mode!");
+        throw ('Unsupported game mode!');
     }
   }
 
   static UsersList _buildPvAList(DictionaryService dictionary) => UsersList([
         Player(
           PlayerData(
-            name: "Игрок",
+            name: 'Игрок',
             picture: PlaceholderPictureSource(),
           ),
         ),
-        Android(dictionary, "Андроид"),
+        Android(dictionary, 'Андроид'),
       ]);
 
   static UsersList _buildPvPList() => UsersList([
         Player(
           PlayerData(
-            name: "Игрок 1",
+            name: 'Игрок 1',
             picture: PlaceholderPictureSource(),
           ),
         ),
         Player(
           PlayerData(
-            name: "Игрок 2",
+            name: 'Игрок 2',
             picture: PlaceholderPictureSource(),
           ),
         ),

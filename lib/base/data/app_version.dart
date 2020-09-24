@@ -4,5 +4,5 @@ class VersionInfo {
 
   const VersionInfo(this.version, this.buildNumber);
 
-  const VersionInfo.stub() : this("", 0);
+  const VersionInfo.stub() : this('', 0);
 }

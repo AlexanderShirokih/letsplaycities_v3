@@ -5,6 +5,8 @@ import 'package:lets_play_cities/base/data.dart';
 import 'package:lets_play_cities/base/game/combo.dart';
 import 'package:lets_play_cities/base/game/player/surrender_exception.dart';
 
+import 'package:meta/meta.dart';
+
 /// Base class that keeps users data and defines user behaviour.
 /// [playerData] is a users data model class
 /// [pictureSource] represents users picture
@@ -18,8 +20,12 @@ abstract class User {
 
   int _score = 0;
 
-  User({this.playerData, this.accountInfo, this.comboSystem, this.isTrusted})
-      : assert(playerData != null),
+  User({
+    @required this.playerData,
+    @required this.accountInfo,
+    @required this.comboSystem,
+    @required this.isTrusted,
+  })  : assert(playerData != null),
         assert(accountInfo != null),
         assert(isTrusted != null),
         assert(comboSystem != null);
@@ -37,7 +43,7 @@ abstract class User {
   String get name => playerData.name;
 
   /// Formatted string representation of score and user name
-  String get info => (score == 0) ? name : "$name:$score";
+  String get info => (score == 0) ? name : '$name:$score';
 
   /// Returns user ID or -1 if this user don't have account info
   int get id => accountInfo?.credential?.userId ?? -1;

@@ -15,10 +15,10 @@ class RemoteLpsApiClient extends LpsApiClient {
     // Send the authorization request
     var responseBody = json.encode(_data.toMap());
     var response =
-        await _httpClient.post("$_serverUrl/user/", body: responseBody);
+        await _httpClient.post('$_serverUrl/user/', body: responseBody);
 
     if (response.statusCode != 200) {
-      throw new AuthorizationException.fromStatus(
+      throw AuthorizationException.fromStatus(
           response.reasonPhrase, response.statusCode);
     }
 
@@ -27,7 +27,7 @@ class RemoteLpsApiClient extends LpsApiClient {
       final responseData = RemoteSignInResponse.fromMap(decoded);
       return responseData.toClientInfo(_serverUrl);
     } catch (e) {
-      throw AuthorizationException("Response error. \n" + e.toString());
+      throw AuthorizationException('Response error. \n' + e.toString());
     }
   }
 }
@@ -70,7 +70,7 @@ class RemoteSignInResponse {
         credential: Credential(userId: userId, accessToken: accessToken),
         name: login,
         pictureUri: Uri.parse(
-            "$avatarLookupServer/user/$userId/picture?hash=$pictureHash"),
+            '$avatarLookupServer/user/$userId/picture?hash=$pictureHash'),
       );
 }
 
@@ -82,7 +82,7 @@ extension UserRoleExtension on UserRole {
     for (var state in UserRole.values) {
       if (state.toString() == s) return state;
     }
-    throw ("Unknown UserRole: $s");
+    throw ('Unknown UserRole: $s');
   }
 }
 
@@ -107,12 +107,12 @@ class RemoteSignInData {
   static const version = 5;
 
   dynamic toMap() => {
-        "version": version,
-        "login": login,
-        "authType": authType.name,
-        "firebaseToken": firebaseToken,
-        "accToken": accessToken,
-        "snUID": snUID
+        'version': version,
+        'login': login,
+        'authType': authType.name,
+        'firebaseToken': firebaseToken,
+        'accToken': accessToken,
+        'snUID': snUID
       };
 }
 
@@ -122,17 +122,17 @@ extension AuthTypeExtension on AuthType {
   String get name {
     switch (this) {
       case AuthType.Native:
-        return "nv";
+        return 'nv';
       case AuthType.Google:
-        return "gl";
+        return 'gl';
       case AuthType.Vkontakte:
-        return "vk";
+        return 'vk';
       case AuthType.Odnoklassniki:
-        return "ok";
+        return 'ok';
       case AuthType.Facebook:
-        return "fb";
+        return 'fb';
       default:
-        throw Exception("Unknown AuthType value: $this");
+        throw Exception('Unknown AuthType value: $this');
     }
   }
 }

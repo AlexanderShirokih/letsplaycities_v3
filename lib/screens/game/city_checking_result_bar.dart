@@ -53,8 +53,7 @@ class _CityCheckingResultBarState extends State<CityCheckingResultBar>
 
   @override
   Widget build(BuildContext context) {
-    final GameSessionRepository repo =
-        context.repository<GameSessionRepository>();
+    final repo = context.repository<GameSessionRepository>();
     return StreamBuilder<WordCheckingResult>(
       stream: repo.wordCheckingResults,
       builder: (context, snapshot) {
@@ -101,7 +100,7 @@ class _CityCheckingResultBarState extends State<CityCheckingResultBar>
             Padding(
               padding: const EdgeInsets.all(6.0),
               child: Text(
-                "Варианты исправления",
+                'Варианты исправления',
                 style: Theme.of(context).textTheme.bodyText2,
               ),
             ),
@@ -145,13 +144,16 @@ class _CityCheckingResultBarState extends State<CityCheckingResultBar>
       );
 
   static String _translateWordCheckingResult(WordCheckingResult data) {
-    if (data is AlreadyUsed)
-      return "Город ${data.word.toTitleCase()} уже был загадан";
-    if (data is WrongLetter)
-      return "Город должен начинаться на букву ${data.validLetter}";
+    if (data is AlreadyUsed) {
+      return 'Город ${data.word.toTitleCase()} уже был загадан';
+    }
+    if (data is WrongLetter) {
+      return 'Город должен начинаться на букву ${data.validLetter}';
+    }
     if (data is Exclusion) return data.description;
-    if (data is NotFound)
-      return "Очень жаль, но нам неизвестен город ${data.word.toTitleCase()}.\nПроверьте правильность написания";
-    return "#501 Unknown state!";
+    if (data is NotFound) {
+      return 'Очень жаль, но нам неизвестен город ${data.word.toTitleCase()}.\nПроверьте правильность написания';
+    }
+    return '#501 Unknown state!';
   }
 }

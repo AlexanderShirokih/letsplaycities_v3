@@ -79,7 +79,7 @@ class ScoreController {
                 .cast<PairedScoringField<String, int>>()
                 .where((field) => field.hasValue() && field.key != V_EMPTY_S)
                 .toList() +
-            [PairedScoringField<String, int>("", word, defaultValue(word))])
+            [PairedScoringField<String, int>('', word, defaultValue(word))])
         .distinctBy((field) => field.key, onDuplicate: onMerge)
         .take(10)
         .toList(growable: false)
@@ -88,7 +88,7 @@ class ScoreController {
     // Update references
     _allGroups[group].child = newList
         .asMap()
-        .map((i, word) => MapEntry(i, word.clone(name: "$F_P$i")))
+        .map((i, word) => MapEntry(i, word.clone(name: '$F_P$i')))
         .values
         .take(10)
         .toList(growable: false);
@@ -104,6 +104,6 @@ class ScoreController {
         final dt = ((40000 - moveTime) / 2000);
         return 2 + dt > 0 ? dt : 0;
     }
-    throw ("Bad state");
+    throw ('Bad state');
   }
 }

@@ -43,7 +43,7 @@ class ComboBadgeWidget extends StatelessWidget {
               child: _getIcon(comboType, Theme.of(context).accentColor),
             ),
             label: Text(
-              "× $multiplier",
+              '× $multiplier',
               style: Theme.of(context).textTheme.caption,
             ),
           ),
@@ -63,6 +63,6 @@ class ComboBadgeWidget extends StatelessWidget {
       case ComboType.DIFFERENT_COUNTRIES:
         return FaIcon(FontAwesomeIcons.atlas, color: color);
     }
-    throw ("Bad state!");
+    throw ('Bad state!');
   }
 }

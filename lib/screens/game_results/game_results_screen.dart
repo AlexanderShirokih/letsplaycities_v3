@@ -69,7 +69,7 @@ class GameResultsScreen extends StatelessWidget {
                       ),
                       const SizedBox(height: 4.0),
                       Text(
-                        "${_gameResult.finishType}",
+                        '${_gameResult.finishType}',
                         style: Theme.of(context).textTheme.subtitle1,
                       ),
                       _gameResult.hasScore

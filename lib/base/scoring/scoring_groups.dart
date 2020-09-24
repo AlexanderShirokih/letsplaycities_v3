@@ -6,38 +6,38 @@ import 'package:lets_play_cities/base/scoring.dart';
 /*
  * Group names
  */
-const G_COMBO = "combo";
-const G_PARTS = "tt_n_pts";
-const G_ONLINE = "tt_onl";
-const G_HISCORE = "hscr";
-const G_FRQ_CITIES = "mst_frq_cts";
-const G_BIG_CITIES = "msg_big_cts";
+const G_COMBO = 'combo';
+const G_PARTS = 'tt_n_pts';
+const G_ONLINE = 'tt_onl';
+const G_HISCORE = 'hscr';
+const G_FRQ_CITIES = 'mst_frq_cts';
+const G_BIG_CITIES = 'msg_big_cts';
 
 /*
  * Field names
  */
-const F_ANDROID = "pva";
-const F_PLAYER = "pvp";
-const F_NETWORK = "pvn";
-const F_ONLINE = "pvo";
-const F_TIME = "tim";
-const F_WINS = "win";
-const F_LOSE = "los";
-const F_P = "pval";
+const F_ANDROID = 'pva';
+const F_PLAYER = 'pvp';
+const F_NETWORK = 'pvn';
+const F_ONLINE = 'pvo';
+const F_TIME = 'tim';
+const F_WINS = 'win';
+const F_LOSE = 'los';
+const F_P = 'pval';
 
 /*
  * Combo fields names
  */
-const F_QUICK_TIME = "qt";
-const F_SHORT_WORD = "sw";
-const F_LONG_WORD = "lw";
-const F_SAME_COUNTRY = "sc";
-const F_DIFF_COUNTRY = "dc";
+const F_QUICK_TIME = 'qt';
+const F_SHORT_WORD = 'sw';
+const F_LONG_WORD = 'lw';
+const F_SAME_COUNTRY = 'sc';
+const F_DIFF_COUNTRY = 'dc';
 
 /*
  * Empty field value
  */
-const V_EMPTY_S = "--";
+const V_EMPTY_S = '--';
 
 /// Describes group of [ScoringField]s that have main field and secondary fields.
 class ScoringGroup with EquatableMixin {
@@ -55,8 +55,8 @@ class ScoringGroup with EquatableMixin {
       child.firstWhere((element) => element.name == key);
 
   Map<String, dynamic> toJson() => {
-        "main": main.toJson(),
-        "child": child.map((e) => e.toJson()).toList(growable: false)
+        'main': main.toJson(),
+        'child': child.map((e) => e.toJson()).toList(growable: false)
       };
 
   @override
@@ -66,11 +66,11 @@ class ScoringGroup with EquatableMixin {
   bool get stringify => true;
 
   factory ScoringGroup.fromJson(Map<String, dynamic> group) {
-    ScoringField main = group['main'] != null
+    final main = group['main'] != null
         ? ScoringField.fromJson(group['main'])
-        : throw ("No main field provided in group: $group");
+        : throw ('No main field provided in group: $group');
 
-    List<ScoringField> child = group['child'] != null
+    final child = group['child'] != null
         ? (group['child'] as List<dynamic>)
             .map((element) => ScoringField.fromJson(element))
             .toList(growable: false)
@@ -87,7 +87,7 @@ class ScoringSet extends Equatable {
   ScoringSet({@required this.groups}) : assert(groups != null);
 
   Map<String, dynamic> toJson() =>
-      {"scoringGroups": groups.map((e) => e.toJson()).toList(growable: false)};
+      {'scoringGroups': groups.map((e) => e.toJson()).toList(growable: false)};
 
   @override
   List<Object> get props => [groups];
@@ -102,10 +102,10 @@ class ScoringSet extends Equatable {
   /// and unique from [right] set.
   /// Replaces [right] field values with this field values if they don't equal.
   /// For example (pseudo code):
-  /// a = ScoringSet("group1": "val1", "group2": "val2", "group3": "val3")
-  /// b = ScoringSet("group2" : "val3")
+  /// a = ScoringSet('group1': 'val1', 'group2': 'val2', 'group3': 'val3')
+  /// b = ScoringSet('group2' : 'val3')
   /// c = b.rightJoin(a)
-  /// c == ScoringSet("group1": "val1", "group2": "val3", "group3": "val3")
+  /// c == ScoringSet('group1': 'val1', 'group2': 'val3', 'group3': 'val3')
   ScoringSet rightJoin(ScoringSet right) => ScoringSet(
         groups: right.groups.map((group) {
           final g = _findGroupByName(group.main.name);
@@ -128,7 +128,7 @@ class ScoringSet extends Equatable {
 
   factory ScoringSet.fromJson(Map<String, dynamic> data) {
     return ScoringSet(
-      groups: (data["scoringGroups"] as List<dynamic>)
+      groups: (data['scoringGroups'] as List<dynamic>)
           .map((e) => ScoringGroup.fromJson(e))
           .toList(growable: false),
     );
@@ -166,13 +166,13 @@ class ScoringSet extends Equatable {
           ScoringGroup(
             main: ScoringField.empty(name: G_FRQ_CITIES),
             child: List.generate(10,
-                (i) => ScoringField.paired(name: "$F_P$i", value: V_EMPTY_S),
+                (i) => ScoringField.paired(name: '$F_P$i', value: V_EMPTY_S),
                 growable: false),
           ),
           ScoringGroup(
             main: ScoringField.empty(name: G_BIG_CITIES),
             child: List.generate(10,
-                (i) => ScoringField.paired(name: "$F_P$i", value: V_EMPTY_S),
+                (i) => ScoringField.paired(name: '$F_P$i', value: V_EMPTY_S),
                 growable: false),
           ),
         ],

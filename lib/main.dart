@@ -15,7 +15,7 @@ class _InitialData {
   final LocalizationService localizations;
   final GamePreferences preferences;
 
-  const _InitialData({this.localizations, this.preferences})
+  const _InitialData({@required this.localizations, @required this.preferences})
       : assert(localizations != null),
         assert(preferences != null);
 }
@@ -38,7 +38,7 @@ class LetsPlayCitiesApp extends StatelessWidget {
                   child: StreamBuilder<theme.Theme>(
                     stream: Stream.value(
                       theme.Theme(
-                        backgroundImage: "assets/images/backgrounds/bg_geo.png",
+                        backgroundImage: 'assets/images/backgrounds/bg_geo.png',
                       ),
                     ),
                     builder: (_, snap) => snap.hasData
@@ -55,11 +55,11 @@ class LetsPlayCitiesApp extends StatelessWidget {
                             ),
                           )
                         : _showWaitForDataWidget(
-                            snap, "Fatal error: cannot load theme!"),
+                            snap, 'Fatal error: cannot load theme!'),
                   ),
                 )
               : _showWaitForDataWidget(
-                  snap, "Fatal error: cannot load localizations!");
+                  snap, 'Fatal error: cannot load localizations!');
         },
         future: _initWithMigrations(),
       );

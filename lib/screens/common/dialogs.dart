@@ -3,8 +3,8 @@ import 'package:flutter/widgets.dart';
 
 import 'package:lets_play_cities/screens/common/utils.dart';
 
-typedef ConfirmationCallback(bool isOk);
-typedef OnOkCallback();
+typedef ConfirmationCallback = void Function(bool isOk);
+typedef OnOkCallback = void Function();
 
 /// Creates confirmation dialog which can show title(optional), message(requires)
 /// and has two buttons(yes, no).
@@ -37,10 +37,11 @@ Future<bool> showConfirmationDialog(
             FlatButton(
               onPressed: () {
                 Navigator.of(context).pop(true);
-                if (onOk != null)
+                if (onOk != null) {
                   onOk();
-                else
+                } else {
                   callback?.call(true);
+                }
               },
               child: Text(l10n.yes.toUpperCase()),
             ),

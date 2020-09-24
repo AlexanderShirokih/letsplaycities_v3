@@ -38,12 +38,12 @@ class MainScreen extends StatelessWidget {
       );
 }
 
-_createAppLogo() => Padding(
+Widget _createAppLogo() => Padding(
       padding: const EdgeInsets.fromLTRB(20.0, 64.0, 20.0, 20.0),
-      child: Image.asset("assets/images/logo.png"),
+      child: Image.asset('assets/images/logo.png'),
     );
 
-_createNavigationButtonsGroup(BuildContext context) => Expanded(
+Widget _createNavigationButtonsGroup(BuildContext context) => Expanded(
       child: Padding(
         padding: const EdgeInsets.only(bottom: 30.0),
         child: Center(
@@ -72,12 +72,13 @@ class _AnimatedMainButtonsState extends State<AnimatedMainButtons>
   Animation<Offset> _secondaryButtonsOffset;
   AnimationStatus _lastDirection = AnimationStatus.forward;
 
-  setPrimaryButtonsVisibility(bool isVisible) {
+  void _setPrimaryButtonsVisibility(bool isVisible) {
     setState(() {
-      if (!isVisible)
+      if (!isVisible) {
         _controller.forward();
-      else
+      } else {
         _controller.reverse();
+      }
     });
   }
 
@@ -121,7 +122,7 @@ class _AnimatedMainButtonsState extends State<AnimatedMainButtons>
       onWillPop: () async {
         var shouldCloseApp = !_controller.isAnimating &&
             _lastDirection != AnimationStatus.forward;
-        if (!shouldCloseApp) setPrimaryButtonsVisibility(true);
+        if (!shouldCloseApp) _setPrimaryButtonsVisibility(true);
         return shouldCloseApp;
       },
       child: Stack(
@@ -138,36 +139,35 @@ class _AnimatedMainButtonsState extends State<AnimatedMainButtons>
     );
   }
 
-  _createPrimaryButtons(BuildContext context) => Column(
+  Widget _createPrimaryButtons(BuildContext context) => Column(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          CustomMaterialButton("Играть", Icon(Icons.play_arrow), () {
-            setPrimaryButtonsVisibility(false);
-          }),
+          CustomMaterialButton('Играть', Icon(Icons.play_arrow),
+              () => _setPrimaryButtonsVisibility(false)),
           CustomMaterialButton(
-              "Достижения", FaIcon(FontAwesomeIcons.medal), () {}),
-          CustomMaterialButton("Рейтинги", Icon(Icons.trending_up), () {}),
+              'Достижения', FaIcon(FontAwesomeIcons.medal), () {}),
+          CustomMaterialButton('Рейтинги', Icon(Icons.trending_up), () {}),
           CustomMaterialButton(
-              "Города",
+              'Города',
               Icon(Icons.apartment),
               () => Navigator.of(context)
                   .push(MaterialPageRoute(builder: (_) => CitiesListScreen()))),
         ],
       );
 
-  _createSecondaryButtons(BuildContext context) => Column(
+  Widget _createSecondaryButtons(BuildContext context) => Column(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          CustomMaterialButton("Игрок против андроида", Icon(Icons.android),
+          CustomMaterialButton('Игрок против андроида', Icon(Icons.android),
               () => _runGameScreen(context, GameMode.PlayerVsAndroid)),
-          CustomMaterialButton("Игрок против игрока", Icon(Icons.person),
+          CustomMaterialButton('Игрок против игрока', Icon(Icons.person),
               () => _runGameScreen(context, GameMode.PlayerVsPlayer)),
-          CustomMaterialButton("Онлайн", Icon(Icons.language), () {}),
-          CustomMaterialButton("Мультиплеер", Icon(Icons.wifi), () {}),
+          CustomMaterialButton('Онлайн', Icon(Icons.language), () {}),
+          CustomMaterialButton('Мультиплеер', Icon(Icons.wifi), () {}),
         ],
       );
 
-  _runGameScreen(BuildContext context, GameMode gameMode) =>
+  Future _runGameScreen(BuildContext context, GameMode gameMode) =>
       Navigator.of(context)
           .push(MaterialPageRoute(builder: (_) => GameScreen(gameMode)));
 }

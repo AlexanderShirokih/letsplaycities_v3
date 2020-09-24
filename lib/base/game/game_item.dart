@@ -38,7 +38,7 @@ class CityInfo extends GameItem {
 
   @override
   bool hasTheSameBaseData(GameItem o) =>
-      o is CityInfo && this.owner == o.owner && this.city == o.city;
+      o is CityInfo && owner == o.owner && city == o.city;
 }
 
 /// Info containing data about [message].
@@ -55,5 +55,5 @@ class MessageInfo extends GameItem {
 
   @override
   bool hasTheSameBaseData(GameItem o) =>
-      o is MessageInfo && this.owner == o.owner && this.message == o.message;
+      o is MessageInfo && owner == o.owner && message == o.message;
 }

@@ -39,8 +39,9 @@ class CitiesListScreen extends StatelessWidget {
       return LoadingView(l10n.citiesList['loading'].toString());
     } else if (state is CitiesListDataState) {
       return _displayData(l10n, state);
-    } else
-      throw ("Unexpected state $state");
+    } else {
+      throw ('Unexpected state $state');
+    }
   }
 
   Widget _displayData(LocalizationService l10n, CitiesListDataState data) =>
@@ -69,7 +70,7 @@ class CitiesListScreen extends StatelessWidget {
       ListTile(
           leading: createFlagImage(entry.countryCode),
           title: Text(
-            "${entry.cityName.toTitleCase()} (${data.countryList.firstWhere((county) => county.countryCode == entry.countryCode, orElse: () => null)?.name ?? missingCountryText})",
+            '${entry.cityName.toTitleCase()} (${data.countryList.firstWhere((county) => county.countryCode == entry.countryCode, orElse: () => null)?.name ?? missingCountryText})',
           ));
 
   Widget _createFilterButton(BuildContext context) => IconButton(

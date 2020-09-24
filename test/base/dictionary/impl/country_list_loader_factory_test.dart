@@ -10,14 +10,14 @@ void main() {
 
     test('sample data is valid', () async {
       final lines = await rootBundle
-          .loadString("assets/data/countries.txt")
+          .loadString('assets/data/countries.txt')
           .asStream()
           .expand((element) => LineSplitter().convert(element))
           .where((line) => line.isNotEmpty)
           .toList();
 
       expect(
-          lines.every((l) => l.indexOf('|') < 0
+          lines.every((l) => !l.contains('|')
               ? false
               : _validateSampleLine(l.split(RegExp(r'\||\+')))),
           isTrue);
@@ -36,4 +36,4 @@ void main() {
 }
 
 bool _validateSampleLine(List<String> split) =>
-    split[0].isNotEmpty && RegExp("[0-9]+").allMatches(split[1]).isNotEmpty;
+    split[0].isNotEmpty && RegExp('[0-9]+').allMatches(split[1]).isNotEmpty;

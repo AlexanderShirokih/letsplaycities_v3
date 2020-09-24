@@ -48,25 +48,26 @@ class GameScreen extends StatelessWidget {
                         } else if (state is CheckingForUpdatesState) {
                           return LoadingView(
                               state.stage == CheckingForUpdatesStage.Updating
-                                  ? "Загрузка обновлений ${state.stagePercent}%"
-                                  : "Проверка обновлений словаря");
+                                  ? 'Загрузка обновлений ${state.stagePercent}%'
+                                  : 'Проверка обновлений словаря');
                         } else if (state is DataLoadingState) {
-                          return LoadingView("Загрузка базы данных");
+                          return LoadingView('Загрузка базы данных');
                         } else if (state is ErrorState) {
                           return ErrorHandlerView(
                             state.exception.toString(),
                             state.stackTrace.toString(),
                           );
-                        } else
-                          // [InitialState] || [GameResultsState]
+                        } else {
                           return Container(width: 0, height: 0);
+                        }
                       },
                       listener: (context, state) {
-                        if (state is GameResultsState)
+                        if (state is GameResultsState) {
                           Navigator.of(context).pushReplacement(
                               MaterialPageRoute(
                                   builder: (_) =>
                                       GameResultsScreen(state.gameResult)));
+                        }
                       },
                     ),
                   ),

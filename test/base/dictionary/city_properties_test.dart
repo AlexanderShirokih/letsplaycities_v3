@@ -2,7 +2,7 @@ import 'package:flutter_test/flutter_test.dart' show throwsAssertionError;
 import 'package:lets_play_cities/base/dictionary/city_properties.dart';
 import 'package:test/test.dart';
 
-main() {
+void main() {
   group('CityProperties', () {
     test('.used false by default', () {
       expect(

@@ -23,8 +23,9 @@ class GameItemsRepository {
           );
         } else if (event is MessageEvent) {
           return MessageInfo(message: event.message, owner: event.owner);
-        } else
-          throw ("Error filtering Word|Message events !");
+        } else {
+          throw ('Error filtering Word|Message events !');
+        }
       });
 
   int _findWithTheSameBase(GameItem item) =>
@@ -33,10 +34,11 @@ class GameItemsRepository {
   /// Returns stream containing list of actual [GameItem] items.
   Stream<List<GameItem>> getItemsList() => _getGameItems().asyncMap((event) {
         final curr = _findWithTheSameBase(event);
-        if (curr != -1)
+        if (curr != -1) {
           _itemsList[curr] = event;
-        else
+        } else {
           _itemsList.add(event);
+        }
 
         return _itemsList;
       });

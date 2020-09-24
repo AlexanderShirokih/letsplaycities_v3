@@ -13,8 +13,8 @@ import 'dictionary_impl.dart';
 
 /// Factory class for creating and loading [DictionaryService] instance
 class DictionaryFactory {
-  static const _EMBEDDED_DICTIONARY_PATH = "assets/data/data.db2";
-  static const _INTERNAL_DICTIONARY_FILE = "/data-last.db2";
+  static const _EMBEDDED_DICTIONARY_PATH = 'assets/data/data.db2';
+  static const _INTERNAL_DICTIONARY_FILE = '/data-last.db2';
 
   static _Dictionary _cachedDictionary;
 
@@ -25,8 +25,9 @@ class DictionaryFactory {
 
   static Future<List<_DictionaryDescriptor>> _getDescriptors() async {
     final dictionaryDescriptors = await _parseDescriptors();
-    if (dictionaryDescriptors.isEmpty)
-      throw ("There is no available database descriptors");
+    if (dictionaryDescriptors.isEmpty) {
+      throw ('There is no available database descriptors');
+    }
     return dictionaryDescriptors;
   }
 
@@ -68,7 +69,7 @@ class DictionaryFactory {
 
   static Future<_DictionaryDescriptor> _parseDescriptor(
           String dbPath, bool isInternal) =>
-      _loadDescriptor(isInternal, "$dbPath.meta")
+      _loadDescriptor(isInternal, '$dbPath.meta')
           .then(jsonDecode)
           .then((data) => _fromJson(data, dbPath, isInternal))
           .catchError((e) => null,
@@ -93,9 +94,9 @@ class DictionaryFactory {
   }
 
   _Dictionary _updateCacheEntry(_Dictionary dictionary) {
-    if (_cachedDictionary == null)
+    if (_cachedDictionary == null) {
       _cachedDictionary = dictionary;
-    else if (_cachedDictionary.version < dictionary.version) {
+    } else if (_cachedDictionary.version < dictionary.version) {
       invalidateCache();
       _cachedDictionary = dictionary;
     }
@@ -172,13 +173,15 @@ mixin _DictionaryParserMixin {
     final version = data.getUint32(4);
     final count = data.getUint32(8);
 
-    if (version != expectedVersion)
+    if (version != expectedVersion) {
       throw DictionaryException(
           "Actual dictionary version $version doesn't match with excepted version $expectedVersion",
           -1);
-    if (magic != 0xFED0) throw DictionaryException("Invalid file header", -1);
-    if (settings != 0x01)
-      throw DictionaryException("Unsupported settings value: $settings", -1);
+    }
+    if (magic != 0xFED0) throw DictionaryException('Invalid file header', -1);
+    if (settings != 0x01) {
+      throw DictionaryException('Unsupported settings value: $settings', -1);
+    }
     return _Dictionary(_parseData(data, count, 12), version);
   }
 
@@ -186,8 +189,8 @@ mixin _DictionaryParserMixin {
   static const base = 0x0430 - 127;
 
   Iterable<int> _decodeChars(ByteData data, int offset, int length) sync* {
-    for (int i = 0; i < length; i++) {
-      final int char = data.getUint8(offset + i);
+    for (var i = 0; i < length; i++) {
+      final char = data.getUint8(offset + i);
       yield char < 127 ? char : char + base;
     }
   }
@@ -195,7 +198,7 @@ mixin _DictionaryParserMixin {
   Map<String, CityProperties> _parseData(ByteData data, int count, int offset) {
     final mapData = HashMap<String, CityProperties>();
 
-    for (int i = 0; i < count + 1; i++) {
+    for (var i = 0; i < count + 1; i++) {
       try {
         final length = data.getUint8(offset);
         final meta = data.getUint32(offset);
@@ -206,12 +209,14 @@ mixin _DictionaryParserMixin {
         offset += length;
 
         if (i == count) {
-          if (int.parse(name.substring(0, name.length - 6)) != count)
-            throw DictionaryException("File checking failed!", i);
-        } else
+          if (int.parse(name.substring(0, name.length - 6)) != count) {
+            throw DictionaryException('File checking failed!', i);
+          }
+        } else {
           mapData[name] = CityProperties.fromBitmask(meta);
+        }
       } catch (e) {
-        throw DictionaryException("Unknown error: $e", i);
+        throw DictionaryException('Unknown error: $e', i);
       }
     }
 
@@ -228,7 +233,9 @@ class _Dictionary {
         assert(version != null);
 
   _Dictionary reset() {
-    for (final prop in data.values) prop.reset();
+    for (final prop in data.values) {
+      prop.reset();
+    }
     return this;
   }
 }

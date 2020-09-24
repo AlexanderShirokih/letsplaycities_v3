@@ -5,45 +5,45 @@ import 'package:test/test.dart';
 
 void main() {
   test('parsing scoring from JSON is correct', () {
-    final testString = """
+    final testString = '''
     {
-    "scoringGroups": [
+    'scoringGroups': [
         {
-            "main": {
-                "type": "empty",
-                "name": "name"
+            'main': {
+                'type': 'empty',
+                'name': 'name'
             },
-            "child": [
+            'child': [
                 {
-                    "type": "int",
-                    "name": "name",
-                    "value": 12
+                    'type': 'int',
+                    'name': 'name',
+                    'value': 12
                 }
             ]
         },
         {
-            "main": {
-                "type": "time",
-                "name": "name",
-                "value": 12
+            'main': {
+                'type': 'time',
+                'name': 'name',
+                'value': 12
             },
-            "child": [
+            'child': [
                 {
-                    "type": "paired",
-                    "name": "name",
-                    "key": "key",
-                    "value": 123
+                    'type': 'paired',
+                    'name': 'name',
+                    'key': 'key',
+                    'value': 123
                 },
                  {
-                    "type": "paired",
-                    "name": "name",
-                    "key": "key"
+                    'type': 'paired',
+                    'name': 'name',
+                    'key': 'key'
                 }
             ]
         }
     ]
 }
-    """;
+    ''';
 
     ScoringSet set;
 
@@ -54,17 +54,17 @@ void main() {
     expect(set, isNotNull);
     expect(set.groups.length, equals(2));
 
-    expect(set.groups[0].main, equals(ScoringField.empty(name: "name")));
+    expect(set.groups[0].main, equals(ScoringField.empty(name: 'name')));
     expect(set.groups[0].child,
-        equals([ScoringField.int(name: "name", value: 12)]));
+        equals([ScoringField.int(name: 'name', value: 12)]));
 
-    expect(set.groups[1].main, equals(TimeScoringField("name", 12)));
+    expect(set.groups[1].main, equals(TimeScoringField('name', 12)));
     expect(
         set.groups[1].child,
         equals(
           [
-            PairedScoringField("name", "key", 123),
-            ScoringField.paired(name: "name", value: "key"),
+            PairedScoringField('name', 'key', 123),
+            ScoringField.paired(name: 'name', value: 'key'),
           ],
         ));
   });
@@ -85,10 +85,10 @@ void main() {
     final left = ScoringSet(
       groups: [
         ScoringGroup(
-          main: ScoringField.empty(name: "groupA"),
+          main: ScoringField.empty(name: 'groupA'),
           child: [
-            ScoringField.int(name: "ch1", value: 100),
-            ScoringField.int(name: "ch2", value: 200),
+            ScoringField.int(name: 'ch1', value: 100),
+            ScoringField.int(name: 'ch2', value: 200),
           ],
         )
       ],
@@ -97,18 +97,18 @@ void main() {
     final right = ScoringSet(
       groups: [
         ScoringGroup(
-          main: ScoringField.empty(name: "groupA"),
+          main: ScoringField.empty(name: 'groupA'),
           child: [
-            ScoringField.int(name: "ch1", value: 10),
-            ScoringField.int(name: "ch2", value: 20),
-            ScoringField.int(name: "ch3", value: 30),
+            ScoringField.int(name: 'ch1', value: 10),
+            ScoringField.int(name: 'ch2', value: 20),
+            ScoringField.int(name: 'ch3', value: 30),
           ],
         ),
         ScoringGroup(
-          main: ScoringField.empty(name: "groupB"),
+          main: ScoringField.empty(name: 'groupB'),
           child: [
-            ScoringField.int(name: "val1", value: 30),
-            ScoringField.int(name: "val2", value: 40),
+            ScoringField.int(name: 'val1', value: 30),
+            ScoringField.int(name: 'val2', value: 40),
           ],
         )
       ],
@@ -117,18 +117,18 @@ void main() {
     final expected = ScoringSet(
       groups: [
         ScoringGroup(
-          main: ScoringField.empty(name: "groupA"),
+          main: ScoringField.empty(name: 'groupA'),
           child: [
-            ScoringField.int(name: "ch1", value: 100),
-            ScoringField.int(name: "ch2", value: 200),
-            ScoringField.int(name: "ch3", value: 30),
+            ScoringField.int(name: 'ch1', value: 100),
+            ScoringField.int(name: 'ch2', value: 200),
+            ScoringField.int(name: 'ch3', value: 30),
           ],
         ),
         ScoringGroup(
-          main: ScoringField.empty(name: "groupB"),
+          main: ScoringField.empty(name: 'groupB'),
           child: [
-            ScoringField.int(name: "val1", value: 30),
-            ScoringField.int(name: "val2", value: 40),
+            ScoringField.int(name: 'val1', value: 30),
+            ScoringField.int(name: 'val2', value: 40),
           ],
         )
       ],

@@ -61,12 +61,13 @@ class _SearchAppBarState extends State<SearchAppBar> {
   @override
   Widget build(BuildContext context) => AppBar(
         leading: BackButton(onPressed: () {
-          if (isSearching)
+          if (isSearching) {
             setState(() {
               isSearching = false;
             });
-          else
+          } else {
             Navigator.maybePop(context);
+          }
         }),
         title: isSearching
             ? TextField(

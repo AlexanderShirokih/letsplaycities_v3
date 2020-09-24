@@ -35,7 +35,7 @@ class LocalEndpoint extends EventHandler {
       _dictionaryService.markUsed(event.word);
 
       final countryCode = _dictionaryService.getCountryCode(event.word);
-      final ComboSystem comboSystem = event.owner.comboSystem;
+      final comboSystem = event.owner.comboSystem;
       final deltaTime =
           DateTime.now().difference(_currentUserStartTime).inMilliseconds;
 
@@ -53,7 +53,8 @@ class LocalEndpoint extends EventHandler {
         comboSystem.activeCombos
             .map((key, value) => MapEntry<int, int>(key.index, value)),
       );
-    } else
+    } else {
       yield event;
+    }
   }
 }
