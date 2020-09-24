@@ -5,7 +5,7 @@ import 'package:lets_play_cities/themes/theme.dart' as theme;
 import 'package:lets_play_cities/base/preferences.dart';
 import 'package:lets_play_cities/l18n/localization_service.dart';
 import 'package:lets_play_cities/l18n/localizations_factory.dart';
-import 'package:lets_play_cities/migration/shared_prefs_migration.dart';
+import 'package:lets_play_cities/platform/shared_prefs_migration.dart';
 import 'package:lets_play_cities/screens/main/main_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 

@@ -4,7 +4,9 @@ import 'package:meta/meta.dart';
 
 /// Base sealed class for all events
 @immutable
-abstract class GameEvent {}
+abstract class GameEvent {
+  const GameEvent();
+}
 
 /// An event emitted when user enters a new word
 /// Should be converted by event processors to [WordCheckingResult] kind.
@@ -12,7 +14,7 @@ class RawWordEvent extends GameEvent {
   final User owner;
   final String word;
 
-  RawWordEvent(this.word, this.owner);
+  const RawWordEvent(this.word, this.owner);
 }
 
 /// An event emitted when new input message entered
@@ -20,7 +22,7 @@ class MessageEvent extends GameEvent {
   final String message;
   final User owner;
 
-  MessageEvent(this.message, this.owner);
+  const MessageEvent(this.message, this.owner);
 }
 
 /// An event that emits every time when current user changed
@@ -28,14 +30,14 @@ class OnUserSwitchedEvent extends GameEvent {
   final List<User> allUsers;
   final User nextUser;
 
-  OnUserSwitchedEvent(this.nextUser, this.allUsers);
+  const OnUserSwitchedEvent(this.nextUser, this.allUsers);
 }
 
 /// An event that used to signal FirstLetterChecker a new first char
 class OnFirstCharChanged extends GameEvent {
   final String firstChar;
 
-  OnFirstCharChanged(this.firstChar);
+  const OnFirstCharChanged(this.firstChar);
 }
 
 /// Describes reason why users move was ended.
@@ -43,14 +45,18 @@ enum MoveFinishType { Completed, Timeout, Disconnected, Surrender }
 
 /// Emits when users move ended (completed or failed)
 class OnMoveFinished extends GameEvent {
+  /// Move finish result
   final MoveFinishType endType;
 
-  OnMoveFinished(this.endType);
+  /// Who's finishes the move
+  final User finishRequester;
+
+  const OnMoveFinished(this.endType, this.finishRequester);
 }
 
 /// An event that represents game timer ticks
 class TimeEvent extends GameEvent {
   final String currentTime;
 
-  TimeEvent(this.currentTime);
+  const TimeEvent(this.currentTime);
 }

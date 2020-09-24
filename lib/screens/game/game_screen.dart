@@ -15,10 +15,15 @@ import '../game_results/game_results_screen.dart';
 import 'input_fields.dart';
 import 'top_bar.dart';
 
+/// Screen that shows all game-related interface
 class GameScreen extends StatelessWidget {
   final GameMode gameMode;
 
   GameScreen(this.gameMode);
+
+  /// Creates new instance of [GameScreen] wraps it with [MaterialPageRoute]
+  static MaterialPageRoute createGameScreenRoute(GameMode gameMode) =>
+      MaterialPageRoute(builder: (_) => GameScreen(gameMode));
 
   @override
   Widget build(BuildContext context) {
@@ -64,9 +69,13 @@ class GameScreen extends StatelessWidget {
                       listener: (context, state) {
                         if (state is GameResultsState) {
                           Navigator.of(context).pushReplacement(
-                              MaterialPageRoute(
-                                  builder: (_) =>
-                                      GameResultsScreen(state.gameResult)));
+                            MaterialPageRoute(
+                              builder: (_) => GameResultsScreen(
+                                state.gameResult,
+                                state.gameMode,
+                              ),
+                            ),
+                          );
                         }
                       },
                     ),

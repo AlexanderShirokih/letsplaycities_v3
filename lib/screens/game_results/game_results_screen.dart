@@ -2,12 +2,17 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:lets_play_cities/base/game/game_mode.dart';
 
-import 'package:lets_play_cities/l18n/localization_service.dart';
-import 'package:lets_play_cities/screens/common/utils.dart';
-import 'package:lets_play_cities/screens/game/user_avatar.dart';
-import 'package:lets_play_cities/themes/theme.dart' as theme;
 import 'package:lets_play_cities/base/game/game_result.dart';
+import 'package:lets_play_cities/base/game/management.dart';
+import 'package:lets_play_cities/l18n/localization_service.dart';
+import 'package:lets_play_cities/platform/share.dart';
+import 'package:lets_play_cities/screens/game/game_screen.dart';
+import 'package:lets_play_cities/screens/game/user_avatar.dart';
+import 'package:lets_play_cities/screens/common/utils.dart';
+import 'package:lets_play_cities/themes/theme.dart' as theme;
+import 'package:lets_play_cities/utils/string_utils.dart';
 
 /// Shows when the game ends
 class GameResultsScreen extends StatelessWidget {
@@ -16,45 +21,48 @@ class GameResultsScreen extends StatelessWidget {
 
   final GameResult _gameResult;
 
-  const GameResultsScreen(this._gameResult);
+  final GameMode _gameMode;
+
+  const GameResultsScreen(this._gameResult, this._gameMode);
 
   @override
   Widget build(BuildContext context) => Scaffold(
-        body: Stack(
-          children: [
-            Positioned.fill(
-              child: Image.asset(
-                context.repository<theme.Theme>().backgroundImage,
-                fit: BoxFit.cover,
-              ),
-            ),
-            Positioned.fill(
-              child: BackdropFilter(
-                filter: ImageFilter.blur(
-                  sigmaX: 5.0,
-                  sigmaY: 5.0,
+        body: withLocalization(
+          context,
+          (l10n) => Stack(
+            children: [
+              Positioned.fill(
+                child: Image.asset(
+                  context.repository<theme.Theme>().backgroundImage,
+                  fit: BoxFit.cover,
                 ),
+              ),
+              Positioned.fill(
+                child: BackdropFilter(
+                  filter: ImageFilter.blur(
+                    sigmaX: 5.0,
+                    sigmaY: 5.0,
+                  ),
+                  child: Container(
+                    color: Colors.black.withOpacity(0.0),
+                  ),
+                ),
+              ),
+              Align(
+                alignment: Alignment.bottomCenter,
                 child: Container(
-                  color: Colors.black.withOpacity(0.0),
-                ),
-              ),
-            ),
-            Align(
-              alignment: Alignment.bottomCenter,
-              child: withLocalization(
-                context,
-                (l10n) => Container(
                   padding: EdgeInsets.only(top: _kAvatarRadius + 18.0),
                   width: double.maxFinite,
                   height: _kContainerHeight,
                   decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                          colors: [
-                        Theme.of(context).primaryColorLight,
-                        Theme.of(context).primaryColor
-                      ])),
+                    gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [
+                          Theme.of(context).primaryColorLight,
+                          Theme.of(context).primaryColor
+                        ]),
+                  ),
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
@@ -69,95 +77,77 @@ class GameResultsScreen extends StatelessWidget {
                       ),
                       const SizedBox(height: 4.0),
                       Text(
-                        '${_gameResult.finishType}',
+                        _getDescriptionText(l10n),
                         style: Theme.of(context).textTheme.subtitle1,
                       ),
                       _gameResult.hasScore
                           ? _buildScoreContainer(context, l10n)
                           : const SizedBox(height: 48.0),
-                      IconTheme(
-                        data: Theme.of(context).accentIconTheme,
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceAround,
-                          children: [
-                            _createSupportButton(context, Icons.share,
-                                l10n.gameResults['share'], 0, () {}),
-                            _createSupportButton(context, Icons.menu,
-                                l10n.gameResults['menu'], 20, () {}),
+                    ],
+                  ),
+                ),
+              ),
+              Positioned(
+                left: 0.0,
+                right: 0.0,
+                bottom: _kContainerHeight - _kAvatarRadius,
+                child: Align(
+                  alignment: Alignment.bottomCenter,
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    mainAxisSize: MainAxisSize.max,
+                    children: [
+                      Container(
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          shape: BoxShape.circle,
+                          boxShadow: [
+                            BoxShadow(
+                                offset: const Offset(0.0, 4.0),
+                                blurRadius: 8,
+                                color: Colors.black.withOpacity(0.5),
+                                spreadRadius: 2)
                           ],
                         ),
+                        child: CircleAvatar(
+                          child: buildUserAvatar(
+                              _gameResult.owner.playerData.picture),
+                          radius: _kAvatarRadius,
+                        ),
+                      )
+                    ],
+                  ),
+                ),
+              ),
+              Align(
+                alignment: Alignment.bottomRight,
+                child: Padding(
+                  padding: const EdgeInsets.only(right: 16.0, bottom: 24.0),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      if (_gameResult.hasScore && _gameResult.owner.score > 0)
+                        FloatingActionButton(
+                          heroTag: 'share',
+                          onPressed: () => Share.text(l10n
+                              .gameResults['share_score']
+                              .toString()
+                              .format([_gameResult.owner.score.toString()])),
+                          child: Icon(Icons.share),
+                        ),
+                      const SizedBox(height: 24.0),
+                      FloatingActionButton(
+                        heroTag: 'replay',
+                        onPressed: () => _gameMode.isLocal()
+                            ? Navigator.pushReplacement(context,
+                                GameScreen.createGameScreenRoute(_gameMode))
+                            : Navigator.pop(context),
+                        child: Icon(Icons.replay),
                       ),
                     ],
                   ),
                 ),
               ),
-            ),
-            Positioned(
-              left: 0.0,
-              right: 0.0,
-              bottom: _kContainerHeight - _kAvatarRadius,
-              child: Align(
-                alignment: Alignment.bottomCenter,
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  mainAxisSize: MainAxisSize.max,
-                  children: [
-                    Container(
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        shape: BoxShape.circle,
-                        boxShadow: [
-                          BoxShadow(
-                              offset: const Offset(0.0, 4.0),
-                              blurRadius: 8,
-                              color: Colors.black.withOpacity(0.5),
-                              spreadRadius: 2)
-                        ],
-                      ),
-                      child: CircleAvatar(
-                        child: buildUserAvatar(
-                            _gameResult.owner.playerData.picture),
-                        radius: _kAvatarRadius,
-                      ),
-                    )
-                  ],
-                ),
-              ),
-            ),
-            Align(
-              alignment: Alignment.bottomRight,
-              child: Padding(
-                padding: const EdgeInsets.only(right: 16.0, bottom: 20.0),
-                child: FloatingActionButton(
-                  onPressed: () {},
-                  child: Icon(Icons.replay),
-                ),
-              ),
-            ),
-          ],
-        ),
-      );
-
-  Widget _createSupportButton(BuildContext context, IconData icon, String name,
-          double additionalWidth, Function onPressed) =>
-      RaisedButton(
-        elevation: 5.0,
-        padding: EdgeInsets.symmetric(
-            vertical: 8.0, horizontal: 8.0 + additionalWidth),
-        color: Theme.of(context).accentColor,
-        shape:
-            RoundedRectangleBorder(borderRadius: BorderRadius.circular(18.0)),
-        onPressed: onPressed,
-        child: IconTheme(
-          data: Theme.of(context).accentIconTheme,
-          child: Row(
-            children: [
-              Icon(icon),
-              const SizedBox(width: 4.0),
-              Text(
-                name.toUpperCase(),
-                style: Theme.of(context).accentTextTheme.subtitle1,
-              )
             ],
           ),
         ),
@@ -199,4 +189,22 @@ class GameResultsScreen extends StatelessWidget {
           ),
         ),
       );
+
+  String _getDescriptionText(LocalizationService l10n) =>
+      l10n.gameResults[_getLocalizationKey()]
+          .toString()
+          .format([_gameResult.finishRequester.name]);
+
+  String _getLocalizationKey() {
+    switch (_gameResult.finishType) {
+      case MoveFinishType.Timeout:
+        return 'desc_timeout';
+      case MoveFinishType.Disconnected:
+        return 'desc_disconnected';
+      case MoveFinishType.Surrender:
+        return 'desc_surrender';
+      default:
+    }
+    throw ('Unknown move finish type!');
+  }
 }

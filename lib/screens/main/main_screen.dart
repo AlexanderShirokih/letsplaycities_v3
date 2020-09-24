@@ -168,6 +168,5 @@ class _AnimatedMainButtonsState extends State<AnimatedMainButtons>
       );
 
   Future _runGameScreen(BuildContext context, GameMode gameMode) =>
-      Navigator.of(context)
-          .push(MaterialPageRoute(builder: (_) => GameScreen(gameMode)));
+      Navigator.of(context).push(GameScreen.createGameScreenRoute(gameMode));
 }

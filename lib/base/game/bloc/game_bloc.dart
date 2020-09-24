@@ -148,7 +148,7 @@ class GameBloc extends Bloc<GameStateEvent, GameLifecycleState> {
     final gameState = state as GameState;
     await gameState.gameSessionRepository.finish();
 
-    yield GameResultsState(event.gameResult);
+    yield GameResultsState(event.gameResult, _gameMode);
   }
 
   void _surrender() {

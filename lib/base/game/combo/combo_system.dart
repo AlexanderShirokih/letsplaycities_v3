@@ -27,11 +27,14 @@ class ComboSystem {
   Map<ComboType, int> get activeCombos => Map.unmodifiable(_activeCombos);
 
   /// Returns current score multiplier
-  double get multiplier => max(
-      _activeCombos.values
-          .map((combo) => _getScore(combo))
-          .reduce((value, element) => value + element),
-      1.0);
+  double get multiplier => _activeCombos.isEmpty
+      ? 1.0
+      : max(
+          _activeCombos.values
+              .map((combo) => _getScore(combo))
+              .reduce((value, element) => value + element),
+          1.0,
+        );
 
   double _getScore(int s) => min((s + 1) * 0.5 + 0.5, _kMaxSingleScore);
 

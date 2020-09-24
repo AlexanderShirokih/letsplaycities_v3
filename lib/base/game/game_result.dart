@@ -5,9 +5,19 @@ import 'package:meta/meta.dart';
 
 /// Contains data about game finish reason and checks the winner.
 class GameResultChecker {
+  /// Game finish reason
   final MoveFinishType finishType;
+
+  /// The game scoring mode
   final ScoringType scoringType;
+
+  /// The game users list
   final UsersList users;
+
+  /// User who's responsible for finishing the game
+  final User finishRequester;
+
+  /// Main game actor (relative to user's perspective)
   final User owner;
 
   const GameResultChecker({
@@ -15,19 +25,21 @@ class GameResultChecker {
     @required this.owner,
     @required this.finishType,
     @required this.scoringType,
+    @required this.finishRequester,
   });
 
-  /// Determines game results relative to [owner]
+  /// Determines game results relative to [owner].
+  /// Returns new [GameResult] instance with game results
   GameResult getGameResults() => GameResult(
-        owner: owner,
-        finishType: finishType,
-        hasScore: scoringType != ScoringType.LAST_MOVE,
-        matchResult: _getMatchResult(
-          finishType == MoveFinishType.Timeout
-              ? ScoringType.LAST_MOVE
-              : scoringType,
-        ),
-      );
+      owner: owner,
+      finishType: finishType,
+      hasScore: scoringType != ScoringType.LAST_MOVE,
+      matchResult: _getMatchResult(
+        finishType == MoveFinishType.Timeout
+            ? ScoringType.LAST_MOVE
+            : scoringType,
+      ),
+      finishRequester: finishRequester);
 
   MatchResult _getMatchResult(ScoringType scoringType) =>
       scoringType == ScoringType.LAST_MOVE
@@ -62,18 +74,30 @@ enum MatchResult {
 
 /// Contains game result relative to owner
 class GameResult {
+  /// Game main actor (relative to user's perspective)
   final User owner;
+
+  /// Game result (relative to [owner])
   final MatchResult matchResult;
+
+  /// Game finish reason
   final MoveFinishType finishType;
+
+  /// Does [owner] has score
   final bool hasScore;
+
+  /// User who's responsible for finishing the game
+  final User finishRequester;
 
   const GameResult({
     @required this.owner,
     @required this.matchResult,
     @required this.finishType,
     @required this.hasScore,
+    @required this.finishRequester,
   })  : assert(owner != null),
         assert(matchResult != null),
         assert(finishType != null),
-        assert(hasScore != null);
+        assert(hasScore != null),
+        assert(finishRequester != null);
 }

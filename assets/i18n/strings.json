@@ -103,13 +103,16 @@
     "not_city": "%1$ не является городом. Это %2$"
   },
   "game_results": {
-    "score": "Счёт: ",
+    "score": "Ваш счёт: ",
     "share": "Поделиться",
-    "menu": "Меню",
+    "share_score": "Мой счёт %1$ очков в игре Сыграем в Города!\nhttps://play.google.com/store/apps/details?id=ru.aleshi.letsplaycities\n Сможешь набрать больше?",
     "match_result": [
       "Вы победили!",
       "Вы проиграли",
       "Ничья!"
-    ]
+    ],
+    "desc_timeout": "У %1$ вышло время",
+    "desc_disconnected": "%1$  отключился",
+    "desc_surrender": "%1$  сдался"
   }
 }

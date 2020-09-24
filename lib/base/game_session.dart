@@ -73,13 +73,18 @@ class GameSession {
     usersList.currentPlayer?.onUserInput(userInput);
   }
 
-  /// Finishes current game and surrenders the player if it current user now
+  /// Finishes the current game and surrenders the player
+  /// if it is a current user now.
   void surrender() {
     _gameRunning = false;
     _disconnectionEvents.add(
-      OnMoveFinished(usersList.currentPlayer == null
-          ? MoveFinishType.Disconnected
-          : MoveFinishType.Surrender),
+      OnMoveFinished(
+        usersList.currentPlayer == null
+            ? MoveFinishType.Disconnected
+            : MoveFinishType.Surrender,
+        usersList.currentPlayer ??
+            usersList.all.firstWhere((user) => user is Player),
+      ),
     );
   }
 
@@ -101,6 +106,7 @@ class GameSession {
         owner: usersList.all.whereType<Player>().first,
         scoringType: scoringType,
         finishType: event.endType,
+        finishRequester: event.finishRequester,
       ).getGameResults();
     }
 
@@ -145,7 +151,7 @@ class GameSession {
       try {
         city = await currentUser.onCreateWord(lastSuitableChar);
       } on SurrenderException {
-        yield OnMoveFinished(MoveFinishType.Surrender);
+        yield OnMoveFinished(MoveFinishType.Surrender, currentUser);
         return;
       }
 
@@ -155,7 +161,7 @@ class GameSession {
         if (event is Accepted) {
           _lastAcceptedWord = event.word;
           usersList.switchToNext();
-          yield OnMoveFinished(MoveFinishType.Completed);
+          yield OnMoveFinished(MoveFinishType.Completed, currentUser);
           return;
         }
       }
@@ -170,7 +176,7 @@ class GameSession {
         .take(timeLimit + 1)
         .takeWhile((_) => _gameRunning);
 
-    yield OnMoveFinished(MoveFinishType.Timeout);
+    yield OnMoveFinished(MoveFinishType.Timeout, usersList.current);
   }
 
   Future cancel() async {
