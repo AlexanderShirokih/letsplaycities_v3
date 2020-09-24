@@ -7,37 +7,37 @@ void main() {
   test('parsing scoring from JSON is correct', () {
     final testString = '''
     {
-    'scoringGroups': [
+    "scoringGroups": [
         {
-            'main': {
-                'type': 'empty',
-                'name': 'name'
+            "main": {
+                "type": "empty",
+                "name": "name"
             },
-            'child': [
+            "child": [
                 {
-                    'type': 'int',
-                    'name': 'name',
-                    'value': 12
+                    "type": "int",
+                    "name": "name",
+                    "value": 12
                 }
             ]
         },
         {
-            'main': {
-                'type': 'time',
-                'name': 'name',
-                'value': 12
+            "main": {
+                "type": "time",
+                "name": "name",
+                "value": 12
             },
-            'child': [
+            "child": [
                 {
-                    'type': 'paired',
-                    'name': 'name',
-                    'key': 'key',
-                    'value': 123
+                    "type": "paired",
+                    "name": "name",
+                    "key": "key",
+                    "value": 123
                 },
                  {
-                    'type': 'paired',
-                    'name': 'name',
-                    'key': 'key'
+                    "type": "paired",
+                    "name": "name",
+                    "key": "key"
                 }
             ]
         }
