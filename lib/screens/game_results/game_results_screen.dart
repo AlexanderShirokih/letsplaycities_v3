@@ -47,7 +47,14 @@ class GameResultsScreen extends StatelessWidget {
                   padding: EdgeInsets.only(top: _kAvatarRadius + 18.0),
                   width: double.maxFinite,
                   height: _kContainerHeight,
-                  color: Theme.of(context).primaryColor,
+                  decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                          colors: [
+                        Theme.of(context).primaryColorLight,
+                        Theme.of(context).primaryColor
+                      ])),
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
@@ -134,6 +141,7 @@ class GameResultsScreen extends StatelessWidget {
   Widget _createSupportButton(BuildContext context, IconData icon, String name,
           double additionalWidth, Function onPressed) =>
       RaisedButton(
+        elevation: 5.0,
         padding: EdgeInsets.symmetric(
             vertical: 8.0, horizontal: 8.0 + additionalWidth),
         color: Theme.of(context).accentColor,
@@ -163,9 +171,10 @@ class GameResultsScreen extends StatelessWidget {
             color: Theme.of(context).primaryColorDark,
             boxShadow: [
               BoxShadow(
-                  blurRadius: 12,
-                  color: Colors.black.withOpacity(0.8),
-                  spreadRadius: -24)
+                blurRadius: 6,
+                color: Colors.black.withOpacity(0.4),
+                spreadRadius: 0.5,
+              )
             ]),
         child: Center(
           child: Row(
