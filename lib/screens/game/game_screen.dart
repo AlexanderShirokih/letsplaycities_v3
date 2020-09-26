@@ -7,6 +7,7 @@ import 'package:lets_play_cities/base/preferences.dart';
 import 'package:lets_play_cities/screens/common/dialogs.dart';
 import 'package:lets_play_cities/screens/common/error_handler_widget.dart';
 import 'package:lets_play_cities/screens/common/utils.dart';
+import 'package:lets_play_cities/screens/game/first_time_onboarding_screen.dart';
 
 import '../common/common_widgets.dart';
 import 'cities_list.dart';
@@ -23,7 +24,21 @@ class GameScreen extends StatelessWidget {
 
   /// Creates new instance of [GameScreen] wraps it with [MaterialPageRoute]
   static MaterialPageRoute createGameScreenRoute(GameMode gameMode) =>
-      MaterialPageRoute(builder: (_) => GameScreen(gameMode));
+      MaterialPageRoute(builder: (context) {
+        final isFirstTime = context.repository<GamePreferences>().isFirstLaunch;
+        if (isFirstTime && gameMode.isLocal()) {
+          return withLocalization(
+            context,
+            (l10n) => FirstTimeOnBoardingScreen(
+              gameMode: gameMode,
+              duration: const Duration(seconds: 4),
+              strings: (l10n.firstTimeOnBoarding['messages'] as List<dynamic>)
+                  .cast<String>(),
+            ),
+          );
+        }
+        return GameScreen(gameMode);
+      });
 
   @override
   Widget build(BuildContext context) {

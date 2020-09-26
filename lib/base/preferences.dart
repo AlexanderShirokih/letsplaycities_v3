@@ -52,6 +52,10 @@ abstract class GamePreferences {
   DictionaryUpdatePeriod get dictionaryUpdatePeriod;
 
   set dictionaryUpdatePeriod(DictionaryUpdatePeriod dup);
+
+  /// Is there a first application launch?
+  /// After first calls sets to false
+  bool get isFirstLaunch;
 }
 
 class SharedPreferencesGamePrefs extends GamePreferences {
@@ -122,4 +126,11 @@ class SharedPreferencesGamePrefs extends GamePreferences {
   @override
   set dictionaryUpdatePeriod(DictionaryUpdatePeriod dup) =>
       _prefs.setInt('dictionaryUpdatePeriod', dup.index);
+
+  @override
+  bool get isFirstLaunch {
+    final ifFirst = _prefs.getBool('firstLaunch') ?? true;
+    if (ifFirst) _prefs.setBool('firstLaunch', false);
+    return ifFirst;
+  }
 }

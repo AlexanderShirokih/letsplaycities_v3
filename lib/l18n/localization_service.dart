@@ -1,3 +1,4 @@
+import 'package:lets_play_cities/screens/game/first_time_onboarding_screen.dart';
 import 'package:lets_play_cities/screens/game_results/game_results_screen.dart';
 import 'package:lets_play_cities/screens/main/citieslist/cities_list_about_screen.dart';
 
@@ -34,4 +35,7 @@ abstract class LocalizationService {
 
   /// [GameResultsScreen] localizations
   Map<String, dynamic> get gameResults;
+
+  /// [FirstTimeOnBoardingScreen] localizations
+  Map<String, dynamic> get firstTimeOnBoarding;
 }

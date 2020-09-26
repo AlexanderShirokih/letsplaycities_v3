@@ -52,4 +52,7 @@ class MappedLocalizationsService extends LocalizationService {
 
   @override
   Map<String, dynamic> get gameResults => _data['game_results'];
+
+  @override
+  Map<String, dynamic> get firstTimeOnBoarding => _data['first_time_screen'];
 }
