@@ -1,4 +1,5 @@
 import 'package:lets_play_cities/screens/game_results/game_results_screen.dart';
+import 'package:lets_play_cities/screens/main/citieslist/cities_list_about_screen.dart';
 
 import 'localizations_keys.dart';
 
@@ -27,6 +28,9 @@ abstract class LocalizationService {
 
   /// [CitiesListScreen] localizations
   Map<String, dynamic> get citiesList;
+
+  /// [CitiesListAboutScreen] localizations
+  Map<String, dynamic> get citiesListAbout;
 
   /// [GameResultsScreen] localizations
   Map<String, dynamic> get gameResults;

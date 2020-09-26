@@ -11,6 +11,8 @@ import 'package:lets_play_cities/screens/common/search_app_bar.dart';
 import 'package:lets_play_cities/screens/common/utils.dart';
 import 'package:lets_play_cities/utils/string_utils.dart';
 
+import 'cities_list_about_screen.dart';
+
 /// Screen that shows a list of all database cities
 class CitiesListScreen extends StatelessWidget {
   final _citiesListBloc = CitiesListBloc();
@@ -55,7 +57,12 @@ class CitiesListScreen extends StatelessWidget {
                       Container(
                         width: double.infinity,
                         child: RaisedButton(
-                            onPressed: () {},
+                            onPressed: () => Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) => CitiesListAboutScreen(),
+                                  ),
+                                ),
                             child: Text(l10n.citiesList['about'])),
                       ),
                       Divider(thickness: 2.0),
