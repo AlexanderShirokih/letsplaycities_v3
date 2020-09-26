@@ -66,11 +66,12 @@ class RemoteSignInResponse {
       );
 
   ClientAccountInfo toClientInfo(String avatarLookupServer) =>
-      ClientAccountInfo(
+      RemoteAccountInfo(
         credential: Credential(userId: userId, accessToken: accessToken),
         name: login,
-        pictureUri: Uri.parse(
-            '$avatarLookupServer/user/$userId/picture?hash=$pictureHash'),
+        pictureUri:
+            '$avatarLookupServer/user/$userId/picture?hash=$pictureHash',
+        canReceiveMessages: false,
       );
 }
 

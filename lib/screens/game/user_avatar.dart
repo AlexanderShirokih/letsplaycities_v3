@@ -1,15 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:lets_play_cities/base/data.dart';
 import 'package:lets_play_cities/base/repos.dart';
-import 'package:lets_play_cities/base/repositories/game_service_events.dart';
 import 'package:lets_play_cities/base/users.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 
 /// Creates circular user avatar with border around it.
 class UserAvatar extends StatelessWidget {
-  final int _userId;
+  final User _user;
   final CrossAxisAlignment alignment;
   final PictureSource source;
   final Function onPressed;
@@ -18,9 +17,9 @@ class UserAvatar extends StatelessWidget {
     @required User user,
     @required this.onPressed,
     Key key,
-  })  : source = user.playerData.picture,
+  })  : source = user.accountInfo.picture,
         alignment = _getAlignmentByPosition(user.position),
-        _userId = user.id,
+        _user = user,
         super(key: key);
 
   @override
@@ -44,7 +43,7 @@ class UserAvatar extends StatelessWidget {
                   side: BorderSide(
                     color: snapshot.hasData &&
                             snapshot.data.entries
-                                .any((u) => u.value && u.key.id == _userId)
+                                .any((u) => u.value && u.key == _user)
                         ? Theme.of(context).primaryColorDark
                         : Colors.white,
                     width: 5.0,
@@ -55,9 +54,7 @@ class UserAvatar extends StatelessWidget {
             SizedBox(height: 4.0),
             Text(
               snapshot.hasData
-                  ? snapshot.data.keys
-                      .singleWhere((user) => user.id == _userId)
-                      .info
+                  ? snapshot.data.keys.singleWhere((user) => user == _user).info
                   : '--',
             ),
           ],
@@ -89,6 +86,7 @@ ImageProvider _getImageProviderByPictureSource(PictureSource source) {
   if (source is NetworkPictureSource) {
     return NetworkImage(source.pictureURL);
   }
-// PlaceholderImageSource
+
+  // PlaceholderImageSource
   return AssetImage(_kImagePlaceholder);
 }

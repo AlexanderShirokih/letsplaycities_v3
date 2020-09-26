@@ -1,11 +1,11 @@
 import 'dart:async';
 
-import 'package:lets_play_cities/base/auth.dart';
+import 'package:meta/meta.dart';
+
+import 'package:lets_play_cities/remote/auth.dart';
 import 'package:lets_play_cities/base/data.dart';
 import 'package:lets_play_cities/base/game/combo.dart';
 import 'package:lets_play_cities/base/game/player/surrender_exception.dart';
-
-import 'package:meta/meta.dart';
 
 /// Base class that keeps users data and defines user behaviour.
 /// [playerData] is a users data model class
@@ -14,19 +14,16 @@ import 'package:meta/meta.dart';
 /// when user [isTrusted] that means we can omit checking for exclusions and database.
 abstract class User {
   final bool isTrusted;
-  final PlayerData playerData;
   final ClientAccountInfo accountInfo;
   final ComboSystem comboSystem;
 
   int _score = 0;
 
   User({
-    @required this.playerData,
     @required this.accountInfo,
     @required this.comboSystem,
     @required this.isTrusted,
-  })  : assert(playerData != null),
-        assert(accountInfo != null),
+  })  : assert(accountInfo != null),
         assert(isTrusted != null),
         assert(comboSystem != null);
 
@@ -34,19 +31,16 @@ abstract class User {
   Position position = Position.UNKNOWN;
 
   /// Returns true is the user can receive messages
-  bool get isMessagesAllowed => playerData.canReceiveMessages;
+  bool get isMessagesAllowed => accountInfo.canReceiveMessages;
 
   /// User score points
   int get score => _score;
 
   /// User name
-  String get name => playerData.name;
+  String get name => accountInfo.name;
 
   /// Formatted string representation of score and user name
   String get info => (score == 0) ? name : '$name:$score';
-
-  /// Returns user ID or -1 if this user don't have account info
-  int get id => accountInfo?.credential?.userId ?? -1;
 
   /// Called by system to increase score points.
   /// [points] is amount of points to be increased.
@@ -63,4 +57,21 @@ abstract class User {
 
   /// Closes internal resources
   Future<void> close() => comboSystem.close();
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is User &&
+          runtimeType == other.runtimeType &&
+          isTrusted == other.isTrusted &&
+          accountInfo == other.accountInfo &&
+          _score == other._score &&
+          position == other.position;
+
+  @override
+  int get hashCode =>
+      isTrusted.hashCode ^
+      accountInfo.hashCode ^
+      _score.hashCode ^
+      position.hashCode;
 }

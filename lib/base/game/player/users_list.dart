@@ -2,6 +2,7 @@ import 'package:lets_play_cities/base/data.dart';
 import 'package:lets_play_cities/base/dictionary.dart';
 import 'package:lets_play_cities/base/game/game_mode.dart';
 import 'package:lets_play_cities/base/users.dart';
+import 'package:lets_play_cities/remote/auth.dart';
 
 /// Manages user queue. Defines users list,
 /// who would make next move and its order.
@@ -38,10 +39,6 @@ class UsersList {
   User getUserByPosition(Position position) =>
       _users.firstWhere((element) => element.position == position);
 
-  /// Returns user by this ID in account data
-  User getUserById(int userId) =>
-      _users.firstWhere((element) => userId == element.id);
-
   /// Returns current user in users list as [Player] instance
   /// or null if current user is not [Player].
   Player get currentPlayer {
@@ -74,7 +71,7 @@ class UsersList {
 
   static UsersList _buildPvAList(DictionaryService dictionary) => UsersList([
         Player(
-          PlayerData(
+          LocalAccountInfo(
             name: 'Игрок',
             picture: PlaceholderPictureSource(),
           ),
@@ -84,13 +81,13 @@ class UsersList {
 
   static UsersList _buildPvPList() => UsersList([
         Player(
-          PlayerData(
+          LocalAccountInfo(
             name: 'Игрок 1',
             picture: PlaceholderPictureSource(),
           ),
         ),
         Player(
-          PlayerData(
+          LocalAccountInfo(
             name: 'Игрок 2',
             picture: PlaceholderPictureSource(),
           ),
