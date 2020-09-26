@@ -4,8 +4,10 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lets_play_cities/base/game/bloc/game_bloc.dart';
 import 'package:lets_play_cities/base/game/game_mode.dart';
 import 'package:lets_play_cities/base/preferences.dart';
+import 'package:lets_play_cities/base/repos.dart';
 import 'package:lets_play_cities/screens/common/dialogs.dart';
 import 'package:lets_play_cities/screens/common/error_handler_widget.dart';
+import 'package:lets_play_cities/screens/common/sound_player.dart';
 import 'package:lets_play_cities/screens/common/utils.dart';
 import 'package:lets_play_cities/screens/game/first_time_onboarding_screen.dart';
 
@@ -119,7 +121,18 @@ Widget _buildGameStateLayout(GameState gameState) => RepositoryProvider(
                 InputFieldsGroup(),
               ],
             ),
-          )
+          ),
+          Builder(
+            builder: (context) =>
+                context.repository<GamePreferences>().soundEnabled
+                    ? SoundPlayer(
+                        assetSoundPath: 'sound/click.mp3',
+                        windowStream: context
+                            .repository<GameSessionRepository>()
+                            .createGameItemsRepository()
+                            .getGameItems())
+                    : SizedBox.shrink(),
+          ),
         ],
       ),
     );

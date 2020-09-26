@@ -11,7 +11,7 @@ class GameItemsRepository {
 
   /// Emits [GameItem] events such as [CityInfo] and [MessageInfo]
   /// from the session event channel.
-  Stream<GameItem> _getGameItems() => _eventsStream
+  Stream<GameItem> getGameItems() => _eventsStream
           .where((event) => event is Accepted || event is MessageEvent)
           .map((event) {
         if (event is Accepted) {
@@ -32,7 +32,7 @@ class GameItemsRepository {
       _itemsList.lastIndexWhere((element) => element.hasTheSameBaseData(item));
 
   /// Returns stream containing list of actual [GameItem] items.
-  Stream<List<GameItem>> getItemsList() => _getGameItems().asyncMap((event) {
+  Stream<List<GameItem>> getItemsList() => getGameItems().asyncMap((event) {
         final curr = _findWithTheSameBase(event);
         if (curr != -1) {
           _itemsList[curr] = event;
