@@ -56,8 +56,9 @@ class DictionaryUpdater {
   Stream<int> _fetchUpdates() async* {
     yield -1; // Begin fetching updates
 
-    final latestVersion = await _fetchLatestDictionaryVersion();
     final currentVersion = await DictionaryFactory.latestVersion();
+    final latestVersion = await _fetchLatestDictionaryVersion()
+        .timeout(Duration(seconds: 5), onTimeout: () => 0);
 
     if (currentVersion >= latestVersion) return;
 
