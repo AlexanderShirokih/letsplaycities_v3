@@ -9,5 +9,3 @@ enum FriendRequestType {
   /// Denies input friend request
   DENY,
 }
-
-
