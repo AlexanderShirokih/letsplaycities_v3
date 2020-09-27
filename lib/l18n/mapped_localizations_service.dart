@@ -55,4 +55,7 @@ class MappedLocalizationsService extends LocalizationService {
 
   @override
   Map<String, dynamic> get firstTimeOnBoarding => _data['first_time_screen'];
+
+  @override
+  Map<String, dynamic> get online => _data['online'];
 }

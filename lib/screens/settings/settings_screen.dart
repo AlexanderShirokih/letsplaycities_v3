@@ -33,7 +33,7 @@ class _SettingsItemsList extends StatefulWidget {
             (_settings['settings_item_titles'] as List<dynamic>).cast<String>(),
         _onOff = (_settings['on_off'] as List<dynamic>).cast<String>();
 
-  // TODO: Implement another screens: ThemeSelectorScreen, BlacklistScreen
+  // TODO: Implement another screens: ThemeSelectorScreen
   @override
   _SettingsItemsListState createState() => _SettingsItemsListState(
         [
@@ -65,9 +65,8 @@ class _SettingsItemsList extends StatefulWidget {
               onSet: (f) => _prefs.onlineChatEnabled = f),
           _NavigationItem(
               _titles[7], _settings['statistic_sub'], () => StatisticsScreen()),
-          _NavigationItem(_titles[8], _settings['blacklist_sub'], null),
           _SingleChoiceItem(
-            _titles[9],
+            _titles[8],
             (_settings['dict_upd_period'] as List<dynamic>).cast<String>(),
             _prefs.dictionaryUpdatePeriod.index,
             useRadio: true,

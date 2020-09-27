@@ -4,6 +4,7 @@ import 'package:lets_play_cities/screens/common/common_widgets.dart';
 import 'package:lets_play_cities/screens/game/game_screen.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:lets_play_cities/screens/main/citieslist/cities_list_screen.dart';
+import 'package:lets_play_cities/screens/online/online_game_master_screen.dart';
 import 'package:lets_play_cities/screens/settings/settings_screen.dart';
 
 /// Describes the main screen
@@ -162,11 +163,15 @@ class _AnimatedMainButtonsState extends State<AnimatedMainButtons>
               () => _runGameScreen(context, GameMode.PlayerVsAndroid)),
           CustomMaterialButton('Игрок против игрока', Icon(Icons.person),
               () => _runGameScreen(context, GameMode.PlayerVsPlayer)),
-          CustomMaterialButton('Онлайн', Icon(Icons.language), () {}),
+          CustomMaterialButton(
+              'Онлайн', Icon(Icons.language), () => _runOnlineScreen(context)),
           CustomMaterialButton('Мультиплеер', Icon(Icons.wifi), () {}),
         ],
       );
 
   Future _runGameScreen(BuildContext context, GameMode gameMode) =>
-      Navigator.of(context).push(GameScreen.createGameScreenRoute(gameMode));
+      Navigator.push(context, GameScreen.createGameScreenRoute(gameMode));
+
+  Future _runOnlineScreen(BuildContext context) =>
+      Navigator.push(context, OnlineGameMasterScreen.createNavigationRoute());
 }

@@ -1,10 +1,35 @@
+import 'dart:convert';
+
 import 'package:equatable/equatable.dart';
-import 'package:lets_play_cities/base/data.dart';
+import 'package:lets_play_cities/remote/model/friend_request_type.dart';
 import 'package:meta/meta.dart';
 
-/// Authentication service
+import 'package:lets_play_cities/remote/auth.dart';
+import 'package:lets_play_cities/remote/model/blacklist_item_info.dart';
+import 'package:lets_play_cities/remote/model/friend_info.dart';
+import 'package:lets_play_cities/remote/model/history_info.dart';
+import 'package:lets_play_cities/base/data.dart';
+
+/// LPS remote service client
 abstract class LpsApiClient {
-  Future<ClientAccountInfo> signUp();
+  /// Sends sign up request and returns [ClientAccountInfo] containing user data
+  /// or throws [AuthorizationException] if cannot sign up on server by any reason.
+  Future<ClientAccountInfo> signUp(RemoteSignInData data);
+
+  /// Queries friends list from server. Throws an exception if cannot fetch data.
+  Future<List<FriendInfo>> getFriendsList();
+
+  /// Queries ban list from server. Throws an exception if cannot fetch data.
+  Future<List<BlackListItemInfo>> getBanList();
+
+  /// Queries battle history list from server. Throws an exception if cannot fetch data.
+  Future<List<HistoryInfo>> getHistoryList();
+
+  /// Deletes user with id [friendId] from user's friend list
+  Future deleteFriend(int friendId);
+
+  /// Sends friendship request
+  Future sendFriendRequest(int friendId, FriendRequestType requestType);
 
   const LpsApiClient();
 }
@@ -24,6 +49,11 @@ class Credential extends Equatable {
 
   @override
   List<Object> get props => [userId, accessToken];
+
+  Map<String, String> asAuthorizationHeader() => {
+        'authorization':
+            'Basic ${base64Encode(utf8.encode("$userId:$accessToken"))}'
+      };
 }
 
 /// Contains authorization data
@@ -95,4 +125,17 @@ class AuthorizationException implements Exception {
   factory AuthorizationException.fromStatus(
           String reasonPhrase, int responseCode) =>
       AuthorizationException('Status: $responseCode ($reasonPhrase)');
+
+  @override
+  String toString() => 'Authorization error: $message';
+}
+
+/// Used when error happens during API fetch requests
+class FetchingException implements Exception {
+  final String message;
+
+  FetchingException(this.message) : assert(message != null);
+
+  @override
+  String toString() => 'Fetching exception: $message';
 }

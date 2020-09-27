@@ -1,19 +1,26 @@
+import 'package:flutter/foundation.dart';
+import 'package:lets_play_cities/remote/model/blacklist_item_info.dart';
+import 'package:lets_play_cities/remote/model/friend_info.dart';
+import 'package:lets_play_cities/remote/model/friend_request_type.dart';
+import 'package:lets_play_cities/remote/model/history_info.dart';
+
 import '../auth.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
 /// Remote server REST-api client
 class RemoteLpsApiClient extends LpsApiClient {
-  final RemoteSignInData _data;
   final String _serverUrl;
   final http.Client _httpClient;
+  final Credential _credential;
 
-  const RemoteLpsApiClient(this._serverUrl, this._data, this._httpClient);
+  const RemoteLpsApiClient(this._serverUrl, this._httpClient, this._credential)
+      : assert(_serverUrl != null),
+        assert(_httpClient != null);
 
   @override
-  Future<ClientAccountInfo> signUp() async {
-    // Send the authorization request
-    var responseBody = json.encode(_data.toMap());
+  Future<ClientAccountInfo> signUp(RemoteSignInData data) async {
+    var responseBody = json.encode(data.toMap());
     var response =
         await _httpClient.post('$_serverUrl/user/', body: responseBody);
 
@@ -27,7 +34,77 @@ class RemoteLpsApiClient extends LpsApiClient {
       final responseData = RemoteSignInResponse.fromMap(decoded);
       return responseData.toClientInfo(_serverUrl);
     } catch (e) {
-      throw AuthorizationException('Response error. \n' + e.toString());
+      throw FetchingException('Response error. \n$e');
+    }
+  }
+
+  @override
+  Future<List<FriendInfo>> getFriendsList() => _fetchList('friend')
+      .then((list) => list.map((e) => FriendInfo.fromJson(e)).toList());
+
+  @override
+  Future<List<HistoryInfo>> getHistoryList() => _fetchList('history')
+      .then((list) => list.map((e) => HistoryInfo.fromJson(e)).toList());
+
+  @override
+  Future<List<BlackListItemInfo>> getBanList() => _fetchList('blacklist')
+      .then((list) => list.map((e) => BlackListItemInfo.fromJson(e)).toList());
+
+  Future<List<dynamic>> _fetchList(String urlPostfix) async {
+    _requireCredential();
+
+    return _decodeJson(
+      await _httpClient.get(
+        '$_serverUrl/$urlPostfix/',
+        headers: _credential.asAuthorizationHeader(),
+      ),
+    ) as List<dynamic>;
+  }
+
+  @override
+  Future deleteFriend(int friendId) async {
+    _requireCredential();
+
+    _requireOK(
+      await _httpClient.delete(
+        '$_serverUrl/friend/$friendId',
+        headers: _credential.asAuthorizationHeader(),
+      ),
+    );
+  }
+
+  @override
+  Future sendFriendRequest(int friendId, FriendRequestType requestType) async {
+    _requireCredential();
+
+    _requireOK(
+      await _httpClient.put(
+        '$_serverUrl/friend/request/$friendId/${describeEnum(requestType)}',
+        headers: _credential.asAuthorizationHeader(),
+      ),
+    );
+  }
+
+  void _requireCredential() {
+    if (_credential == null) {
+      throw ArgumentError.notNull('credential');
+    }
+  }
+
+  void _requireOK(http.Response response) {
+    if (response.statusCode != 200) {
+      throw AuthorizationException.fromStatus(
+          response.reasonPhrase, response.statusCode);
+    }
+  }
+
+  dynamic _decodeJson(http.Response response, {bool requireOK = true}) {
+    if (requireOK) _requireOK(response);
+
+    try {
+      return json.decode(response.body);
+    } catch (e) {
+      throw FetchingException('JSON decoding error. \n$e');
     }
   }
 }
