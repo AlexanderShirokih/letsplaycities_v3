@@ -10,8 +10,9 @@ import 'package:lets_play_cities/screens/common/utils.dart';
 
 /// Provides common functionality for all fetching-type screens.
 mixin BaseListFetchingScreenMixin<T, W extends StatefulWidget> on State<W> {
-  List<T> _data;
-  String _error;
+  final StreamController<List<T>> _dataStream = StreamController();
+
+  List<T> _currentData;
 
   /// Returns [Future] that fetches data of appropriate type
   /// If [forceRefresh] is `true` data must be fetched from the network,
@@ -23,27 +24,25 @@ mixin BaseListFetchingScreenMixin<T, W extends StatefulWidget> on State<W> {
 
   /// Replaces [old] element to [curr].
   /// If [curr] is `null` [old] element will be removed.
-  void replace(T old, T curr) {
-    if (_data != null) {
-      final idx = _data.indexOf(old);
-      if (idx != -1) {
-        setState(() {
+  void replace(T old, T curr) => _updateData((data) {
+        final idx = data.indexOf(old);
+        if (idx != -1) {
           if (curr == null) {
-            _data.removeAt(idx);
+            data.removeAt(idx);
           } else {
-            _data[idx] = curr;
+            data[idx] = curr;
           }
-        });
-      }
-    }
-  }
+        }
+      });
 
   /// Inserts [element] to current data list at [position]
-  void insert(int position, T element) {
-    if (_data != null) {
-      setState(() {
-        _data.insert(position, element);
-      });
+  void insert(int position, T element) =>
+      _updateData((data) => data.insert(position, element));
+
+  void _updateData(Function(List<T> data) action) {
+    if (_currentData != null && !_dataStream.isClosed) {
+      action(_currentData);
+      _dataStream.sink.add(_currentData);
     }
   }
 
@@ -53,10 +52,16 @@ mixin BaseListFetchingScreenMixin<T, W extends StatefulWidget> on State<W> {
       .catchError(
           (e) => _setData(null, e is SocketException ? '' : e.toString()));
 
-  void _setData(List<T> data, String error) => setState(() {
-        _data = data;
-        _error = error;
-      });
+  void _setData(List<T> data, String error) {
+    if (!_dataStream.isClosed) {
+      if (data != null) {
+        _dataStream.sink.add(data);
+      }
+      if (error != null) {
+        _dataStream.sink.addError(error);
+      }
+    }
+  }
 
   @override
   void initState() {
@@ -66,6 +71,7 @@ mixin BaseListFetchingScreenMixin<T, W extends StatefulWidget> on State<W> {
 
   @override
   void dispose() {
+    _dataStream.close();
     super.dispose();
   }
 
@@ -123,14 +129,16 @@ mixin BaseListFetchingScreenMixin<T, W extends StatefulWidget> on State<W> {
   Widget build(BuildContext context) => Container(
         child: RefreshIndicator(
           onRefresh: () async => _fetch(true),
-          child: Builder(
-            builder: (ctx) {
-              if (_data != null) {
-                return _data.isEmpty
+          child: StreamBuilder<List<T>>(
+            stream: _dataStream.stream,
+            builder: (ctx, snap) {
+              if (snap.hasData) {
+                _currentData = snap.data;
+                return snap.data.isEmpty
                     ? _showPlaceholder(ctx)
-                    : _showList(ctx, _data);
-              } else if (_error != null) {
-                return _showError(ctx, _error);
+                    : _showList(ctx, snap.data);
+              } else if (snap.hasError) {
+                return _showError(ctx, snap.error.toString());
               }
               return Center(
                 child: Column(
