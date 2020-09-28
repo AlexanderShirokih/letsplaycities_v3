@@ -70,7 +70,8 @@ mixin BaseListFetchingScreenMixin<T, W extends StatefulWidget> on State<W> {
   }
 
   /// Builds item from fetched [data]
-  Widget buildItem(BuildContext context, ApiRepository repo, T data, int position);
+  Widget buildItem(
+      BuildContext context, ApiRepository repo, T data, int position);
 
   /// Creates slider widget which is [Colors.green] for left position
   /// and [Colors.red] for right.
