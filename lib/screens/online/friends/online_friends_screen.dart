@@ -182,4 +182,16 @@ class _OnlineFriendsScreenState extends State<OnlineFriendsScreen>
   @override
   Future<List<FriendInfo>> fetchData(ApiRepository repo, bool forceRefresh) =>
       repo.getFriendsList(forceRefresh);
+
+  @override
+  Widget getOnListEmptyPlaceHolder(BuildContext context) => Text(
+        withLocalization(
+            context, (l10n) => l10n.online['no_friends_placeholder']),
+        textAlign: TextAlign.center,
+        style: withData<TextStyle, TextTheme>(
+          Theme.of(context).textTheme,
+          (textTheme) =>
+              textTheme.headline5.copyWith(color: textTheme.caption.color),
+        ),
+      );
 }

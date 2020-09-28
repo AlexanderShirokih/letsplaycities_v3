@@ -18,6 +18,9 @@ mixin BaseListFetchingScreenMixin<T, W extends StatefulWidget> on State<W> {
   /// otherwise data could be retrieved from local cache.
   Future<List<T>> fetchData(ApiRepository repo, bool forceRefresh);
 
+  /// Returns widget that will be shown when fetched list is empty
+  Widget getOnListEmptyPlaceHolder(BuildContext context);
+
   /// Replaces [old] element to [curr].
   /// If [curr] is `null` [old] element will be removed.
   void replace(T old, T curr) {
@@ -76,7 +79,9 @@ mixin BaseListFetchingScreenMixin<T, W extends StatefulWidget> on State<W> {
           child: Builder(
             builder: (ctx) {
               if (_data != null) {
-                return _showList(ctx, _data);
+                return _data.isEmpty
+                    ? _showPlaceholder(ctx)
+                    : _showList(ctx, _data);
               } else if (_error != null) {
                 return _showError(ctx, _error);
               }
@@ -148,5 +153,17 @@ mixin BaseListFetchingScreenMixin<T, W extends StatefulWidget> on State<W> {
             )
           ],
         ),
+      );
+
+  Widget _showPlaceholder(BuildContext context) => Stack(
+        children: [
+          ListView(),
+          Center(
+            child: Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: getOnListEmptyPlaceHolder(context),
+            ),
+          )
+        ],
       );
 }

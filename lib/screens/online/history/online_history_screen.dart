@@ -27,6 +27,18 @@ class _OnlineHistoryScreenState extends State<OnlineHistoryScreen>
       repo.getHistoryList(forceRefresh);
 
   @override
+  Widget getOnListEmptyPlaceHolder(BuildContext context) => Text(
+        withLocalization(
+            context, (l10n) => l10n.online['no_history_placeholder']),
+        textAlign: TextAlign.center,
+        style: withData<TextStyle, TextTheme>(
+          Theme.of(context).textTheme,
+          (textTheme) =>
+              textTheme.headline5.copyWith(color: textTheme.caption.color),
+        ),
+      );
+
+  @override
   Widget buildItem(
           BuildContext context, ApiRepository repo, HistoryInfo data) =>
       Card(
