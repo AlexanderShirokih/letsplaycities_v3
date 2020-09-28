@@ -7,8 +7,8 @@ import 'package:lets_play_cities/remote/api_repository.dart';
 import 'package:lets_play_cities/screens/common/utils.dart';
 import 'package:lets_play_cities/utils/string_utils.dart';
 
-import '../base_list_fetching_screen_mixin.dart';
-import '../network_avatar_building_mixin.dart';
+import 'base_list_fetching_screen_mixin.dart';
+import 'network_avatar_building_mixin.dart';
 
 /// Friends list screen
 /// Provides a list of user friends and the way to remove friends,

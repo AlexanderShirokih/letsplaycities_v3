@@ -2,8 +2,8 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:flutter/material.dart';
 
 import 'package:lets_play_cities/screens/common/utils.dart';
-import 'package:lets_play_cities/screens/online/friends/online_friends_screen.dart';
-import 'package:lets_play_cities/screens/online/history/online_history_screen.dart';
+import 'package:lets_play_cities/screens/online/friends.dart';
+import 'package:lets_play_cities/screens/online/history.dart';
 
 import 'online_game_preparation_screen.dart';
 

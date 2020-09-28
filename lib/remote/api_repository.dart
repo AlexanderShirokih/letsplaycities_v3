@@ -40,7 +40,7 @@ class ApiRepository {
   /// in all the other cases cached instance of history list will be used.
   Future<List<HistoryInfo>> getHistoryList(bool forceLoading) async {
     if (_cachedHistoryList == null || forceLoading) {
-      _cachedHistoryList = <HistoryInfo>[];//await _client.getHistoryList();
+      _cachedHistoryList = await _client.getHistoryList();
     }
     return _cachedHistoryList;
   }

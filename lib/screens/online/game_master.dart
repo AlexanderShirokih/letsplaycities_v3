@@ -7,7 +7,7 @@ import 'package:lets_play_cities/remote/account_manager.dart';
 import 'package:lets_play_cities/remote/api_repository.dart';
 import 'package:lets_play_cities/remote/auth.dart';
 import 'package:lets_play_cities/remote/stub_account_manager.dart';
-import 'package:lets_play_cities/screens/online/game/logged_in_game_master.dart';
+import 'package:lets_play_cities/screens/online/logged_in_game_master.dart';
 
 /// Shows Log-in screen if user is not logged in yet or shows
 /// [LoggedInOnlineGameMasterScreen].

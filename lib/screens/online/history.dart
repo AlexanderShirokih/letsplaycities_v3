@@ -45,11 +45,22 @@ class _OnlineHistoryScreenState extends State<OnlineHistoryScreen>
         elevation: 4.0,
         child: ListTile(
           contentPadding: EdgeInsets.all(8.0),
-          leading: buildAvatar(
-            data.userId,
-            data.login,
-            data.pictureUrl,
-            46.0,
+          leading: Stack(
+            alignment: Alignment.bottomRight,
+            fit: StackFit.loose,
+            children: [
+              buildAvatar(
+                data.userId,
+                data.login,
+                data.pictureUrl,
+                46.0,
+              ),
+              if (data.isFriend)
+                FaIcon(
+                  FontAwesomeIcons.userFriends,
+                  color: Theme.of(context).primaryColor,
+                ),
+            ],
           ),
           title: Text(data.login),
           subtitle: _buildSubtitle(context, data),
