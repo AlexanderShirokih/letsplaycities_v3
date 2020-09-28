@@ -10,6 +10,9 @@ import 'package:lets_play_cities/utils/string_utils.dart';
 import '../base_list_fetching_screen_mixin.dart';
 import '../network_avatar_building_mixin.dart';
 
+/// Friends list screen
+/// Provides a list of user friends and the way to remove friends,
+/// accept or decline friend requests
 class OnlineFriendsScreen extends StatefulWidget {
   const OnlineFriendsScreen({Key key}) : super(key: key);
 
@@ -39,7 +42,7 @@ class _OnlineFriendsScreenState extends State<OnlineFriendsScreen>
                 onComplete: () => repo.deleteFriend(data.userId),
                 onUndo: () => insert(data.copy()),
               );
-            } else if (data.isSender) {
+            } else if (data.sender) {
               _showUndoSnackbar(
                 l10n.online['request_cancelled'],
                 onComplete: () => repo.deleteFriend(data.userId),
@@ -57,7 +60,7 @@ class _OnlineFriendsScreenState extends State<OnlineFriendsScreen>
           direction: DismissDirection.endToStart,
           background: data.accepted
               ? _createRemoveFromFriendsBackground(l10n)
-              : _createDenyFriendsRequestBackground(l10n, data.isSender),
+              : _createDenyFriendsRequestBackground(l10n, data.sender),
           child: _createListTile(data, repo, l10n),
         ),
       ),
@@ -132,7 +135,7 @@ class _OnlineFriendsScreenState extends State<OnlineFriendsScreen>
         title: Text(data.login),
         subtitle: data.accepted
             ? null
-            : (data.isSender
+            : (data.sender
                 ? Text(l10n.online['my_request'])
                 : Align(
                     alignment: Alignment.bottomLeft,

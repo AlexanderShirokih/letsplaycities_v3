@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 
 import 'package:lets_play_cities/screens/common/utils.dart';
 import 'package:lets_play_cities/screens/online/friends/online_friends_screen.dart';
+import 'package:lets_play_cities/screens/online/history/online_history_screen.dart';
 
 import 'online_game_preparation_screen.dart';
 
@@ -21,10 +22,7 @@ class _LoggedInOnlineGameMasterScreenState
   final _tabs = <Widget>[
     OnlineGamePreparationScreen(),
     OnlineFriendsScreen(),
-    Container(
-      color: Colors.green,
-      child: Center(child: Text('ID=3')),
-    ),
+    OnlineHistoryScreen(),
     Container(
       color: Colors.yellow,
       child: Center(child: Text('ID=4')),
@@ -40,7 +38,13 @@ class _LoggedInOnlineGameMasterScreenState
         context,
         (l10n) => Scaffold(
           appBar: AppBar(
-            title: Text(l10n.online['title']),
+            title: Text([
+              l10n.online['title'],
+              l10n.online['friends_tab'],
+              l10n.online['history_tab'],
+              l10n.online['blacklist_tab'],
+              l10n.online['profile_tab'],
+            ][_tabId]),
           ),
           body: _tabs[_tabId],
           bottomNavigationBar: withData<Widget, Color>(
@@ -51,29 +55,29 @@ class _LoggedInOnlineGameMasterScreenState
               items: [
                 BottomNavigationBarItem(
                   icon: FaIcon(FontAwesomeIcons.dice),
-                  label: l10n.online['game_tab'].toString(),
+                  label: l10n.online['game_tab'],
                   backgroundColor: color,
                 ),
                 BottomNavigationBarItem(
                   icon: FaIcon(
                     FontAwesomeIcons.userFriends,
                   ),
-                  label: l10n.online['friends_tab'].toString(),
+                  label: l10n.online['friends_tab'],
                   backgroundColor: color,
                 ),
                 BottomNavigationBarItem(
                   icon: FaIcon(FontAwesomeIcons.history),
-                  label: l10n.online['history_tab'].toString(),
+                  label: l10n.online['history_tab'],
                   backgroundColor: color,
                 ),
                 BottomNavigationBarItem(
                   icon: FaIcon(FontAwesomeIcons.userSlash),
-                  label: l10n.online['blacklist_tab'].toString(),
+                  label: l10n.online['blacklist_tab'],
                   backgroundColor: color,
                 ),
                 BottomNavigationBarItem(
                   icon: FaIcon(FontAwesomeIcons.userCircle),
-                  label: l10n.online['profile_tab'].toString(),
+                  label: l10n.online['profile_tab'],
                   backgroundColor: color,
                 ),
               ],

@@ -1,11 +1,11 @@
 /// Utilities functions for formatting strings.
 
 extension FormatExtension on String {
-  /// Formats '%1$ %2$'.format('Hello', 'world') to 'Hello world'
-  String format(List<String> params) {
+  /// Formats '%1$ %2$'.format(['Hello', 'world']) to 'Hello world'
+  String format(List<Object> params) {
     var result = this;
     for (var i = 1; i < params.length + 1; i++) {
-      result = result.replaceAll('%$i\$', params[i - 1]);
+      result = result.replaceAll('%$i\$', params[i - 1].toString());
     }
     return result;
   }
@@ -26,6 +26,22 @@ extension CapitalizeExtension on String {
     }
 
     return buffer.toString();
+  }
+}
+
+/// Returns plural form depending of [count] value.
+/// [count]:
+///   1 - returns variant[0],
+///   2 - returns variant[1],
+///   other - returns variant[2]
+String getPluralForm(List<String> variants, int count) {
+  switch (count) {
+    case 1:
+      return variants[0];
+    case 2:
+      return variants[1];
+    default:
+      return variants[2];
   }
 }
 

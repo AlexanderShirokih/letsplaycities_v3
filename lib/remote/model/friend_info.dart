@@ -18,25 +18,25 @@ class FriendInfo extends Equatable {
   final bool accepted;
 
   /// Is user owns this request or friendship
-  final bool isSender;
+  final bool sender;
 
   const FriendInfo._({
     @required this.userId,
     @required this.login,
     @required this.pictureUrl,
     @required this.accepted,
-    @required this.isSender,
+    @required this.sender,
   })  : assert(login != null),
         assert(userId != null),
         assert(accepted != null),
-        assert(isSender != null);
+        assert(sender != null);
 
   FriendInfo.fromJson(Map<String, dynamic> data)
       : this._(
           userId: data['userId'],
           login: data['login'],
           accepted: data['accepted'],
-          isSender: data['isSender'],
+          sender: data['sender'],
           pictureUrl: getPictureUrlOrNull(data['userId'], data['pictureHash']),
         );
 
@@ -49,6 +49,6 @@ class FriendInfo extends Equatable {
         login: login,
         pictureUrl: pictureUrl,
         accepted: accepted ?? this.accepted,
-        isSender: isSender,
+        sender: sender,
       );
 }

@@ -18,7 +18,7 @@ class HistoryInfo extends Equatable {
   final bool isFriend;
 
   /// Entity creation data (timestamp)
-  final String creationDate;
+  final DateTime startTime;
 
   /// Battle duration in seconds
   final int duration;
@@ -30,7 +30,7 @@ class HistoryInfo extends Equatable {
     @required this.userId,
     @required this.login,
     @required this.isFriend,
-    @required this.creationDate,
+    @required this.startTime,
     @required this.duration,
     @required this.wordsCount,
     @required this.pictureUrl,
@@ -39,7 +39,7 @@ class HistoryInfo extends Equatable {
         assert(isFriend != null),
         assert(duration != null),
         assert(wordsCount != null),
-        assert(creationDate != null);
+        assert(startTime != null);
 
   HistoryInfo.fromJson(Map<String, dynamic> data)
       : this._(
@@ -48,7 +48,7 @@ class HistoryInfo extends Equatable {
           isFriend: data['isFriend'] == 'true',
           duration: data['duration'],
           wordsCount: data['wordsCount'],
-          creationDate: data['creationDate'],
+          startTime: DateTime.fromMillisecondsSinceEpoch(data['startTime']),
           pictureUrl: getPictureUrlOrNull(data['userId'], data['pictureHash']),
         );
 
@@ -60,6 +60,6 @@ class HistoryInfo extends Equatable {
         isFriend,
         duration,
         wordsCount,
-        creationDate,
+        startTime,
       ];
 }

@@ -142,7 +142,7 @@
     "game_tab": "Игра",
     "friends_tab": "Друзья",
     "history_tab": "История",
-    "blacklist_tab": "Заблок.",
+    "blacklist_tab": "Заблокированные игроки",
     "profile_tab": "Профиль",
     "loading": "Загрузка...",
     "loading_error": "Не удалось загрузить данные",
@@ -151,11 +151,18 @@
     "accept_friendship_request": "Принять заявку",
     "decline_friendship_request": "Отклонить заявку",
     "cancel_friendship_request": "Отменить заявку",
-    "request": "[Заявка]",
     "my_request": "[Ваша заявка]",
     "removed_from_friends": "%1$ удален из друзей",
     "request_cancelled": "Заявка отменена",
     "request_accepted": "Заявка принята",
-    "request_declined": "Заявка отклонена"
+    "request_declined": "Заявка отклонена",
+    "no_friends_placeholder": "У вас пока нет друзей. Вы можете добавить друга во время онлайн игры.",
+    "no_history_placeholder": "История игр пока пуста. Сыграйте хотя бы одну игру.",
+    "no_blacklist_placeholder": "Список заблокированных игроков пуст",
+    "words_count": [
+      "%1$ слово",
+      "%1$ слова",
+      "%1$ слов"
+    ]
   }
 }

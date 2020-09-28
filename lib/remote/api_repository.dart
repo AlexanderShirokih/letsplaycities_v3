@@ -1,11 +1,13 @@
 import 'package:lets_play_cities/remote/auth.dart';
 import 'package:lets_play_cities/remote/model/friend_info.dart';
 import 'package:lets_play_cities/remote/model/friend_request_type.dart';
+import 'package:lets_play_cities/remote/model/history_info.dart';
 
 /// Repository class wrapping [LpsApiClient]
 class ApiRepository {
   final LpsApiClient _client;
   List<FriendInfo> _cachedFriendsList;
+  List<HistoryInfo> _cachedHistoryList;
 
   ApiRepository(this._client);
 
@@ -32,4 +34,14 @@ class ApiRepository {
   /// Sends new friendship request
   Future sendNewFriendshipRequest(int targetId) =>
       _client.sendFriendRequest(targetId, FriendRequestType.SEND);
+
+  /// Gets user battle history.
+  /// Network request will used only first time or when [forceLoading] is `true`
+  /// in all the other cases cached instance of history list will be used.
+  Future<List<HistoryInfo>> getHistoryList(bool forceLoading) async {
+    if (_cachedHistoryList == null || forceLoading) {
+      _cachedHistoryList = await _client.getHistoryList();
+    }
+    return _cachedHistoryList;
+  }
 }
