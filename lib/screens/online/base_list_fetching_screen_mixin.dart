@@ -38,11 +38,11 @@ mixin BaseListFetchingScreenMixin<T, W extends StatefulWidget> on State<W> {
     }
   }
 
-  /// Inserts [element] to current data list
-  void insert(T element) {
+  /// Inserts [element] to current data list at [position]
+  void insert(int position, T element) {
     if (_data != null) {
       setState(() {
-        _data.insert(0, element);
+        _data.insert(position, element);
       });
     }
   }
@@ -70,7 +70,53 @@ mixin BaseListFetchingScreenMixin<T, W extends StatefulWidget> on State<W> {
   }
 
   /// Builds item from fetched [data]
-  Widget buildItem(BuildContext context, ApiRepository repo, T data);
+  Widget buildItem(BuildContext context, ApiRepository repo, T data, int position);
+
+  /// Creates slider widget which is [Colors.green] for left position
+  /// and [Colors.red] for right.
+  Widget createPositionedSlideBackground(bool isLeft, Widget child) =>
+      Container(
+        decoration: BoxDecoration(
+          color: isLeft ? Colors.green : Colors.red,
+          borderRadius: BorderRadius.circular(4.0),
+        ),
+        child: Align(
+          alignment: isLeft ? Alignment.centerLeft : Alignment.centerRight,
+          child: Padding(
+            padding: const EdgeInsets.only(right: 12.0),
+            child: child,
+          ),
+        ),
+      );
+
+  /// Shows a snackbar with optional undo action.
+  /// Calls [onComplete] if it's not null when a snackbar dismissed by timeout.
+  /// Calls [onUndo] if it's not null when undo button is pressed.
+  void showUndoSnackbar(String text,
+      {Future Function() onComplete, void Function() onUndo}) {
+    Scaffold.of(context)
+        .showSnackBar(
+          SnackBar(
+            duration: const Duration(seconds: 3),
+            content: Text(text),
+            action: withLocalization(
+              context,
+              (l10n) => onComplete == null
+                  ? null
+                  : SnackBarAction(
+                      label: l10n.cancel,
+                      onPressed: onUndo,
+                    ),
+            ),
+          ),
+        )
+        .closed
+        .then((reason) {
+      if (reason == SnackBarClosedReason.timeout) {
+        return onComplete?.call();
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) => Container(
@@ -110,7 +156,7 @@ mixin BaseListFetchingScreenMixin<T, W extends StatefulWidget> on State<W> {
         (repo) => ListView.builder(
           padding: EdgeInsets.all(8.0),
           itemCount: data.length,
-          itemBuilder: (ctx, i) => buildItem(context, repo, data[i]),
+          itemBuilder: (ctx, i) => buildItem(context, repo, data[i], i),
         ),
       );
 

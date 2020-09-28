@@ -62,6 +62,30 @@ class RemoteLpsApiClient extends LpsApiClient {
   }
 
   @override
+  Future addToBanlist(int userId) async {
+    _requireCredential();
+
+    _requireOK(
+      await _httpClient.put(
+        '$_serverUrl/blacklist/$userId',
+        headers: _credential.asAuthorizationHeader(),
+      ),
+    );
+  }
+
+  @override
+  Future removeFromBanlist(int userId) async {
+    _requireCredential();
+
+    _requireOK(
+      await _httpClient.delete(
+        '$_serverUrl/blacklist/$userId',
+        headers: _credential.asAuthorizationHeader(),
+      ),
+    );
+  }
+
+  @override
   Future deleteFriend(int friendId) async {
     _requireCredential();
 

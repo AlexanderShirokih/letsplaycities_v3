@@ -25,11 +25,17 @@ abstract class LpsApiClient {
   /// Queries battle history list from server. Throws an exception if cannot fetch data.
   Future<List<HistoryInfo>> getHistoryList();
 
-  /// Deletes user with id [friendId] from user's friend list
+  /// Deletes a user with id [friendId] from user's friend list
   Future deleteFriend(int friendId);
 
-  /// Sends friendship request
+  /// Sends a friendship request
   Future sendFriendRequest(int friendId, FriendRequestType requestType);
+
+  /// Removes a user with [userId] from players ban list
+  Future removeFromBanlist(int userId);
+
+  /// Adds a user with [userId] to players ban list
+  Future addToBanlist(int userId);
 
   const LpsApiClient();
 }

@@ -40,7 +40,7 @@ class _OnlineHistoryScreenState extends State<OnlineHistoryScreen>
 
   @override
   Widget buildItem(
-          BuildContext context, ApiRepository repo, HistoryInfo data) =>
+          BuildContext context, ApiRepository repo, HistoryInfo data, _) =>
       Card(
         elevation: 4.0,
         child: ListTile(

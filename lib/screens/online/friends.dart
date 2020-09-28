@@ -25,7 +25,12 @@ class _OnlineFriendsScreenState extends State<OnlineFriendsScreen>
         BaseListFetchingScreenMixin<FriendInfo, OnlineFriendsScreen>,
         NetworkAvatarBuildingMixin {
   @override
-  Widget buildItem(BuildContext context, ApiRepository repo, FriendInfo data) {
+  Widget buildItem(
+    BuildContext context,
+    ApiRepository repo,
+    FriendInfo data,
+    int position,
+  ) {
     return withLocalization(
       context,
       (l10n) => Card(
@@ -35,25 +40,25 @@ class _OnlineFriendsScreenState extends State<OnlineFriendsScreen>
           onDismissed: (_) {
             replace(data, null);
             if (data.accepted) {
-              _showUndoSnackbar(
+              showUndoSnackbar(
                 l10n.online['removed_from_friends']
                     .toString()
                     .format([data.login]),
                 onComplete: () => repo.deleteFriend(data.userId),
-                onUndo: () => insert(data.copy()),
+                onUndo: () => insert(position, data),
               );
             } else if (data.sender) {
-              _showUndoSnackbar(
+              showUndoSnackbar(
                 l10n.online['request_cancelled'],
                 onComplete: () => repo.deleteFriend(data.userId),
-                onUndo: () => insert(data.copy()),
+                onUndo: () => insert(position, data),
               );
             } else {
-              _showUndoSnackbar(
+              showUndoSnackbar(
                 l10n.online['request_declined'],
                 onComplete: () =>
                     repo.sendFriendRequestAcceptance(data.userId, false),
-                onUndo: () => insert(data.copy()),
+                onUndo: () => insert(position, data),
               );
             }
           },
@@ -68,7 +73,7 @@ class _OnlineFriendsScreenState extends State<OnlineFriendsScreen>
   }
 
   Widget _createRemoveFromFriendsBackground(LocalizationService l10n) =>
-      _createPositionedSlideBackground(
+      createPositionedSlideBackground(
         false,
         Row(
           mainAxisSize: MainAxisSize.min,
@@ -87,7 +92,7 @@ class _OnlineFriendsScreenState extends State<OnlineFriendsScreen>
 
   Widget _createDenyFriendsRequestBackground(
           LocalizationService l10n, bool canCancel) =>
-      _createPositionedSlideBackground(
+      createPositionedSlideBackground(
         false,
         Row(
           mainAxisSize: MainAxisSize.min,
@@ -104,21 +109,6 @@ class _OnlineFriendsScreenState extends State<OnlineFriendsScreen>
             ),
             SizedBox(width: 12.0),
           ],
-        ),
-      );
-
-  Widget _createPositionedSlideBackground(bool isLeft, Widget child) =>
-      Container(
-        decoration: BoxDecoration(
-          color: isLeft ? Colors.green : Colors.red,
-          borderRadius: BorderRadius.circular(4.0),
-        ),
-        child: Align(
-          alignment: isLeft ? Alignment.centerLeft : Alignment.centerRight,
-          child: Padding(
-            padding: const EdgeInsets.only(right: 12.0),
-            child: child,
-          ),
         ),
       );
 
@@ -146,38 +136,12 @@ class _OnlineFriendsScreenState extends State<OnlineFriendsScreen>
                             .sendFriendRequestAcceptance(data.userId, true)
                             .then((_) =>
                                 replace(data, data.copy(accepted: true)));
-                        _showUndoSnackbar(l10n.online['request_accepted']);
+                        showUndoSnackbar(l10n.online['request_accepted']);
                       },
                       child: Text(l10n.online['accept_friendship_request']),
                     ),
                   )),
       );
-
-  void _showUndoSnackbar(String text,
-      {Future Function() onComplete, void Function() onUndo}) {
-    Scaffold.of(context)
-        .showSnackBar(
-          SnackBar(
-            duration: const Duration(seconds: 3),
-            content: Text(text),
-            action: withLocalization(
-              context,
-              (l10n) => onComplete == null
-                  ? null
-                  : SnackBarAction(
-                      label: l10n.cancel,
-                      onPressed: onUndo,
-                    ),
-            ),
-          ),
-        )
-        .closed
-        .then((reason) {
-      if (reason == SnackBarClosedReason.timeout) {
-        return onComplete?.call();
-      }
-    });
-  }
 
   @override
   Future<List<FriendInfo>> fetchData(ApiRepository repo, bool forceRefresh) =>

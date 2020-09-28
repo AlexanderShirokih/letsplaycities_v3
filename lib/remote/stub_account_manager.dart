@@ -5,8 +5,8 @@ import 'account_manager.dart';
 class StubAccountManager extends AccountManager {
   @override
   RemoteAccountInfo getLastSignedInAccount() => RemoteAccountInfo(
-        name: 'Alexander Shirokikh(test)',
-        credential: Credential(accessToken: '*ok3W(vW', userId: 54),
+        name: 'Test',
+        credential: Credential(accessToken: "i'mapass", userId: 30955),
         pictureUri: null,
         canReceiveMessages: false,
       );

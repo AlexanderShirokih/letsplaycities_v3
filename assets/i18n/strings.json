@@ -4,6 +4,7 @@
   "cancel": "Отмена",
   "back": "Назад",
   "apply": "Применить",
+  "delete": "Удалить",
   "game": {
     "go_to_menu": "Выйти в меню?",
     "surrender": "Завершить игру?",
@@ -153,12 +154,13 @@
     "cancel_friendship_request": "Отменить заявку",
     "my_request": "[Ваша заявка]",
     "removed_from_friends": "%1$ удален из друзей",
+    "banlist_entry_removed": "Запись удалена",
     "request_cancelled": "Заявка отменена",
     "request_accepted": "Заявка принята",
     "request_declined": "Заявка отклонена",
     "no_friends_placeholder": "У вас пока нет друзей. Вы можете добавить друга во время онлайн игры.",
     "no_history_placeholder": "История игр пока пуста. Сыграйте хотя бы одну игру.",
-    "no_blacklist_placeholder": "Список заблокированных игроков пуст",
+    "no_blacklist_placeholder": "Здесь будут отображаться игроки, которых вы внесли в черный список",
     "words_count": [
       "%1$ слово",
       "%1$ слова",

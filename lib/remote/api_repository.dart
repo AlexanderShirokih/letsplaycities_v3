@@ -1,21 +1,24 @@
 import 'package:lets_play_cities/remote/auth.dart';
 import 'package:lets_play_cities/remote/model/friend_info.dart';
-import 'package:lets_play_cities/remote/model/friend_request_type.dart';
 import 'package:lets_play_cities/remote/model/history_info.dart';
+import 'package:lets_play_cities/remote/model/friend_request_type.dart';
+import 'package:lets_play_cities/remote/model/blacklist_item_info.dart';
 
 /// Repository class wrapping [LpsApiClient]
 class ApiRepository {
   final LpsApiClient _client;
-  List<FriendInfo> _cachedFriendsList;
+
+  List<BlackListItemInfo> _cachedBanList;
   List<HistoryInfo> _cachedHistoryList;
+  List<FriendInfo> _cachedFriendsList;
 
   ApiRepository(this._client);
 
   /// Gets user friends list.
-  /// Network request will used only first time or when [forceLoading] is `true`
+  /// Network request will used only first time or when [forceRefresh] is `true`
   /// in all the other cases cached instance of friends list will be used.
-  Future<List<FriendInfo>> getFriendsList(bool forceLoading) async {
-    if (_cachedFriendsList == null || forceLoading) {
+  Future<List<FriendInfo>> getFriendsList(bool forceRefresh) async {
+    if (_cachedFriendsList == null || forceRefresh) {
       _cachedFriendsList = await _client.getFriendsList();
     }
     return _cachedFriendsList;
@@ -36,12 +39,28 @@ class ApiRepository {
       _client.sendFriendRequest(targetId, FriendRequestType.SEND);
 
   /// Gets user battle history.
-  /// Network request will used only first time or when [forceLoading] is `true`
+  /// Network request will used only first time or when [forceRefresh] is `true`
   /// in all the other cases cached instance of history list will be used.
-  Future<List<HistoryInfo>> getHistoryList(bool forceLoading) async {
-    if (_cachedHistoryList == null || forceLoading) {
+  Future<List<HistoryInfo>> getHistoryList(bool forceRefresh) async {
+    if (_cachedHistoryList == null || forceRefresh) {
       _cachedHistoryList = await _client.getHistoryList();
     }
     return _cachedHistoryList;
   }
+
+  /// Gets user which was blocked by player.
+  /// Network request will used only first time or when [forceRefresh] is `true`
+  /// in all the other cases cached instance of blocked users list will be used.
+  Future<List<BlackListItemInfo>> getBanlist(bool forceRefresh) async {
+    if (_cachedBanList == null || forceRefresh) {
+      _cachedBanList = await _client.getBanList();
+    }
+    return _cachedBanList;
+  }
+
+  /// Removes a user with [userId] from players ban list
+  Future removeFromBanlist(int userId) => _client.removeFromBanlist(userId);
+
+  /// Adds a user with [userId] to players ban list
+  Future addToBanlist(int userId) => _client.addToBanlist(userId);
 }

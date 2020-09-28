@@ -18,6 +18,8 @@ abstract class LocalizationService {
 
   String get apply;
 
+  String get delete;
+
   /// [GameScreen] localizations
   Map<String, dynamic> get game;
 
