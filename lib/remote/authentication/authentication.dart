@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:equatable/equatable.dart';
 import 'package:lets_play_cities/remote/model/friend_request_type.dart';
+import 'package:lets_play_cities/remote/model/profile_info.dart';
 import 'package:meta/meta.dart';
 
 import 'package:lets_play_cities/remote/auth.dart';
@@ -36,6 +37,11 @@ abstract class LpsApiClient {
 
   /// Adds a user with [userId] to players ban list
   Future addToBanlist(int userId);
+
+  /// Fetches information about user profile
+  /// If [targetId] is passed profile info about that user will be fetched.
+  /// If [targetId] is null info about current user will be fetched
+  Future<ProfileInfo> getProfileInfo(int targetId);
 
   const LpsApiClient();
 }

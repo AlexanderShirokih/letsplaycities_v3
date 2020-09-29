@@ -15,6 +15,10 @@ class StubAccountManager extends AccountManager {
   @override
   Future<RemoteAccountInfo> signIn() => throw ('Unimplemented!');
 
+  // TODO:
+  @override
+  Future signOut() => throw ('Unimplemented');
+
   @override
   bool isSignedIn() => true;
 }

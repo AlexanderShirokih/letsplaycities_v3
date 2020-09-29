@@ -3,12 +3,14 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 import 'package:lets_play_cities/remote/api_repository.dart';
 import 'package:lets_play_cities/screens/common/utils.dart';
 
+import 'common_online_widgets.dart';
+
 /// Provides common functionality for all fetching-type screens.
+/// Requires [ApiRepository] to be injected in the widget tree.
 mixin BaseListFetchingScreenMixin<T, W extends StatefulWidget> on State<W> {
   final StreamController<List<T>> _dataStream = StreamController();
 
@@ -138,23 +140,9 @@ mixin BaseListFetchingScreenMixin<T, W extends StatefulWidget> on State<W> {
                     ? _showPlaceholder(ctx)
                     : _showList(ctx, snap.data);
               } else if (snap.hasError) {
-                return _showError(ctx, snap.error.toString());
+                return showError(ctx, snap.error.toString());
               }
-              return Center(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    CircularProgressIndicator(),
-                    SizedBox(height: 6.0),
-                    withLocalization(
-                      ctx,
-                      (l10n) => Text(l10n.online['loading']),
-                    )
-                  ],
-                ),
-              );
+              return showLoadingWidget(ctx);
             },
           ),
         ),
@@ -166,47 +154,6 @@ mixin BaseListFetchingScreenMixin<T, W extends StatefulWidget> on State<W> {
           padding: EdgeInsets.all(8.0),
           itemCount: data.length,
           itemBuilder: (ctx, i) => buildItem(context, repo, data[i], i),
-        ),
-      );
-
-  Widget _showError(BuildContext context, String error) => withLocalization(
-        context,
-        (l10n) => Stack(
-          children: [
-            ListView(),
-            Center(
-              child: Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: error.isEmpty
-                      ? [
-                          Icon(
-                            Icons.wifi_off,
-                            size: 64.0,
-                            color: Theme.of(context).textTheme.caption.color,
-                          ),
-                          const SizedBox(height: 12),
-                          Text(l10n.online['loading_error']),
-                        ]
-                      : [
-                          FaIcon(
-                            FontAwesomeIcons.bug,
-                            size: 64.0,
-                            color: Theme.of(context).textTheme.caption.color,
-                          ),
-                          const SizedBox(height: 12),
-                          Text(
-                            l10n.online['unk_error'],
-                            style: Theme.of(context).textTheme.subtitle2,
-                          ),
-                          const SizedBox(height: 6),
-                          Text(error, textAlign: TextAlign.center)
-                        ],
-                ),
-              ),
-            )
-          ],
         ),
       );
 

@@ -1,12 +1,9 @@
 import 'package:flutter/foundation.dart';
-import 'package:lets_play_cities/remote/model/blacklist_item_info.dart';
-import 'package:lets_play_cities/remote/model/friend_info.dart';
-import 'package:lets_play_cities/remote/model/friend_request_type.dart';
-import 'package:lets_play_cities/remote/model/history_info.dart';
-
-import '../auth.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+
+import 'package:lets_play_cities/remote/models.dart';
+import 'package:lets_play_cities/remote/auth.dart';
 
 /// Remote server REST-api client
 class RemoteLpsApiClient extends LpsApiClient {
@@ -105,6 +102,22 @@ class RemoteLpsApiClient extends LpsApiClient {
       await _httpClient.put(
         '$_serverUrl/friend/request/$friendId/${describeEnum(requestType)}',
         headers: _credential.asAuthorizationHeader(),
+      ),
+    );
+  }
+
+  @override
+  Future<ProfileInfo> getProfileInfo(int targetId) async {
+    _requireCredential();
+
+    targetId ??= _credential.userId;
+
+    return ProfileInfo.fromJson(
+      _decodeJson(
+        await _httpClient.get(
+          '$_serverUrl/user/$targetId',
+          headers: _credential.asAuthorizationHeader(),
+        ),
       ),
     );
   }

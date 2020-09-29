@@ -3,6 +3,7 @@ import 'package:lets_play_cities/remote/model/friend_info.dart';
 import 'package:lets_play_cities/remote/model/history_info.dart';
 import 'package:lets_play_cities/remote/model/friend_request_type.dart';
 import 'package:lets_play_cities/remote/model/blacklist_item_info.dart';
+import 'package:lets_play_cities/remote/model/profile_info.dart';
 
 /// Repository class wrapping [LpsApiClient]
 class ApiRepository {
@@ -11,6 +12,7 @@ class ApiRepository {
   List<BlackListItemInfo> _cachedBanList;
   List<HistoryInfo> _cachedHistoryList;
   List<FriendInfo> _cachedFriendsList;
+  ProfileInfo _cachedProfileInfo;
 
   ApiRepository(this._client);
 
@@ -63,4 +65,18 @@ class ApiRepository {
 
   /// Adds a user with [userId] to players ban list
   Future addToBanlist(int userId) => _client.addToBanlist(userId);
+
+  /// Fetches information about user profile
+  /// If [targetId] is passed profile info about that user will be fetched.
+  /// If [targetId] is null info about current user will be fetched
+  /// Network request will used either on first time or when [forceRefresh] is
+  /// `true` in all the other cases cached instance of profile info list will
+  /// be used.
+  Future<ProfileInfo> getProfileInfo(int targetId, bool forceRefresh) async {
+    if (_cachedProfileInfo == null || forceRefresh) {
+      _cachedProfileInfo = await _client.getProfileInfo(targetId);
+    }
+    return _cachedProfileInfo;
+  }
+
 }

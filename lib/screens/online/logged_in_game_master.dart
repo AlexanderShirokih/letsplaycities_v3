@@ -2,9 +2,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:flutter/material.dart';
 
 import 'package:lets_play_cities/screens/common/utils.dart';
-import 'package:lets_play_cities/screens/online/banlist.dart';
-import 'package:lets_play_cities/screens/online/friends.dart';
-import 'package:lets_play_cities/screens/online/history.dart';
+import 'package:lets_play_cities/screens/online/profile.dart';
 
 import 'online_game_preparation_screen.dart';
 
@@ -22,13 +20,7 @@ class _LoggedInOnlineGameMasterScreenState
 
   final _tabs = <Widget>[
     OnlineGamePreparationScreen(),
-    OnlineFriendsScreen(),
-    OnlineHistoryScreen(),
-    OnlineBanlistScreen(),
-    Container(
-      color: Colors.red,
-      child: Center(child: Text('ID=5')),
-    ),
+    OnlineProfileView(),
   ];
 
   @override
@@ -38,9 +30,6 @@ class _LoggedInOnlineGameMasterScreenState
           appBar: AppBar(
             title: Text([
               l10n.online['title'],
-              l10n.online['friends_tab'],
-              l10n.online['history_tab'],
-              l10n.online['blacklist_tab'],
               l10n.online['profile_tab'],
             ][_tabId]),
           ),
@@ -54,23 +43,6 @@ class _LoggedInOnlineGameMasterScreenState
                 BottomNavigationBarItem(
                   icon: FaIcon(FontAwesomeIcons.dice),
                   label: l10n.online['game_tab'],
-                  backgroundColor: color,
-                ),
-                BottomNavigationBarItem(
-                  icon: FaIcon(
-                    FontAwesomeIcons.userFriends,
-                  ),
-                  label: l10n.online['friends_tab'],
-                  backgroundColor: color,
-                ),
-                BottomNavigationBarItem(
-                  icon: FaIcon(FontAwesomeIcons.history),
-                  label: l10n.online['history_tab'],
-                  backgroundColor: color,
-                ),
-                BottomNavigationBarItem(
-                  icon: FaIcon(FontAwesomeIcons.userSlash),
-                  label: l10n.online['blacklist_tab'],
                   backgroundColor: color,
                 ),
                 BottomNavigationBarItem(

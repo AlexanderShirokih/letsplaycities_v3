@@ -28,11 +28,4 @@ class BlackListItemInfo extends Equatable {
 
   @override
   List<Object> get props => [userId, login, pictureUrl];
-
-  /// Creates a copy of this object
-  BlackListItemInfo copy() => BlackListItemInfo._(
-        userId: userId,
-        login: login,
-        pictureUrl: pictureUrl,
-      );
 }
