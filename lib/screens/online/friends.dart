@@ -5,6 +5,7 @@ import 'package:lets_play_cities/l18n/localization_service.dart';
 import 'package:lets_play_cities/remote/model/friend_info.dart';
 import 'package:lets_play_cities/remote/api_repository.dart';
 import 'package:lets_play_cities/screens/common/utils.dart';
+import 'package:lets_play_cities/screens/online/profile.dart';
 import 'package:lets_play_cities/utils/string_utils.dart';
 
 import 'base_list_fetching_screen_mixin.dart';
@@ -31,7 +32,7 @@ class _OnlineFriendsScreenState extends State<OnlineFriendsScreen>
     FriendInfo data,
     int position,
   ) {
-    return withLocalization(
+    return readWithLocalization(
       context,
       (l10n) => Card(
         elevation: 4.0,
@@ -115,6 +116,10 @@ class _OnlineFriendsScreenState extends State<OnlineFriendsScreen>
   Widget _createListTile(
           FriendInfo data, ApiRepository repo, LocalizationService l10n) =>
       ListTile(
+        onTap: () => Navigator.push(
+          context,
+          OnlineProfileView.createRoute(context, targetId: data.userId),
+        ),
         contentPadding: EdgeInsets.all(8.0),
         leading: buildAvatar(
           data.userId,
@@ -149,7 +154,7 @@ class _OnlineFriendsScreenState extends State<OnlineFriendsScreen>
 
   @override
   Widget getOnListEmptyPlaceHolder(BuildContext context) => Text(
-        withLocalization(
+        readWithLocalization(
             context, (l10n) => l10n.online['no_friends_placeholder']),
         textAlign: TextAlign.center,
         style: withData<TextStyle, TextTheme>(

@@ -1,17 +1,29 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
+import 'package:lets_play_cities/remote/account_manager.dart';
 
 import 'package:lets_play_cities/remote/api_repository.dart';
 import 'package:lets_play_cities/remote/model/history_info.dart';
 import 'package:lets_play_cities/screens/common/utils.dart';
 import 'package:lets_play_cities/screens/online/base_list_fetching_screen_mixin.dart';
 import 'package:lets_play_cities/screens/online/network_avatar_building_mixin.dart';
+import 'package:lets_play_cities/screens/online/profile.dart';
 import 'package:lets_play_cities/utils/string_utils.dart';
 
 /// Battle history list screen
 /// Provides a list of user battle history
+/// Requires [ApiRepository] and [AccountManager] repositories in the widget tree.
 class OnlineHistoryScreen extends StatefulWidget {
+  /// Opponents id. If `null` then will showed all account owner history
+  final int targetId;
+
+  /// If `true` - column container will used instead of listview
+  final bool embedded;
+
+  const OnlineHistoryScreen({this.targetId, this.embedded = false});
+
   @override
   _OnlineHistoryScreenState createState() => _OnlineHistoryScreenState();
 }
@@ -23,12 +35,25 @@ class _OnlineHistoryScreenState extends State<OnlineHistoryScreen>
   static final DateFormat _timeFormat = DateFormat('dd.MM.yyyy');
 
   @override
+  bool get scrollable => !widget.embedded;
+
+  @override
   Future<List<HistoryInfo>> fetchData(ApiRepository repo, bool forceRefresh) =>
-      repo.getHistoryList(forceRefresh);
+      repo.getHistoryList(forceRefresh, targetId: _getTargetId());
+
+  int _getTargetId() => widget.targetId != null &&
+          context
+                  .read<AccountManager>()
+                  .getLastSignedInAccount()
+                  .credential
+                  .userId !=
+              widget.targetId
+      ? widget.targetId
+      : null;
 
   @override
   Widget getOnListEmptyPlaceHolder(BuildContext context) => Text(
-        withLocalization(
+        buildWithLocalization(
             context, (l10n) => l10n.online['no_history_placeholder']),
         textAlign: TextAlign.center,
         style: withData<TextStyle, TextTheme>(
@@ -44,6 +69,10 @@ class _OnlineHistoryScreenState extends State<OnlineHistoryScreen>
       Card(
         elevation: 4.0,
         child: ListTile(
+          onTap: () => Navigator.push(
+            context,
+            OnlineProfileView.createRoute(context, targetId: data.userId),
+          ),
           contentPadding: EdgeInsets.all(8.0),
           leading: Stack(
             alignment: Alignment.bottomRight,
@@ -63,12 +92,14 @@ class _OnlineHistoryScreenState extends State<OnlineHistoryScreen>
             ],
           ),
           title: Text(data.login),
-          subtitle: _buildSubtitle(context, data),
+          subtitle: Builder(
+            builder: (context) => _buildSubtitle(context, data),
+          ),
         ),
       );
 
   Widget _buildSubtitle(BuildContext context, HistoryInfo data) =>
-      withLocalization(
+      buildWithLocalization(
         context,
         (l10n) => Align(
           alignment: Alignment.centerLeft,

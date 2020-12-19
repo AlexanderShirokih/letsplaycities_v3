@@ -66,6 +66,12 @@ class DictionaryUpdater {
     final databaseFile = await DictionaryFactory.internalDatabaseFile;
     yield* _loadDictionaryData(databaseFile, latestVersion).distinct();
 
+    final isDatabaseExists = await databaseFile.exists();
+
+    if (!isDatabaseExists) {
+      return;
+    }
+
     // Build the meta file
     await _buildMeta(File('${databaseFile.path}.meta'), latestVersion);
 
@@ -81,7 +87,7 @@ class DictionaryUpdater {
     final total = response.contentLength;
     var done = 0;
 
-    final sink = output.openWrite();
+    final sink = await output.create().then((file) => file.openWrite());
 
     try {
       await for (final portion in response.stream) {
@@ -90,7 +96,8 @@ class DictionaryUpdater {
         yield (done / total * 100).round();
       }
     } finally {
-      await sink.close();
+        await sink.close();
+        await sink.done;
     }
   }
 

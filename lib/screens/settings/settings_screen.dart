@@ -10,14 +10,14 @@ import 'package:lets_play_cities/screens/settings/stats/stats_screen.dart';
 
 class SettingsScreen extends StatelessWidget {
   @override
-  Widget build(BuildContext context) => withLocalization(
+  Widget build(BuildContext context) => buildWithLocalization(
         context,
         (l10n) => Scaffold(
           appBar: AppBar(
             title: Text(l10n.settings['settings']),
           ),
           body: _SettingsItemsList(
-              l10n.settings, context.repository<GamePreferences>()),
+              l10n.settings, context.watch<GamePreferences>()),
         ),
       );
 }

@@ -9,7 +9,7 @@ class InputFieldsGroup extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return _CityInputField(
-        context.repository<GameSessionRepository>(), context.bloc<GameBloc>());
+        context.watch<GameSessionRepository>(), context.watch<GameBloc>());
   }
 }
 

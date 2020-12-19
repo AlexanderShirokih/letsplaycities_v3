@@ -53,7 +53,7 @@ class _CityCheckingResultBarState extends State<CityCheckingResultBar>
 
   @override
   Widget build(BuildContext context) {
-    final repo = context.repository<GameSessionRepository>();
+    final repo = context.watch<GameSessionRepository>();
     return StreamBuilder<WordCheckingResult>(
       stream: repo.wordCheckingResults,
       builder: (context, snapshot) {

@@ -43,14 +43,14 @@ class _OnlineGameMasterScreenState extends State<OnlineGameMasterScreen> {
         value: StubAccountManager(),
         child: Builder(
           builder: (ctx) {
-            return ctx.repository<AccountManager>().isSignedIn()
+            return ctx.watch<AccountManager>().isSignedIn()
                 ? RepositoryProvider<ApiRepository>.value(
                     value: ApiRepository(
                       RemoteLpsApiClient(
                         AppConfig.remotePublicApiURL,
                         _client,
                         ctx
-                            .repository<AccountManager>()
+                            .watch<AccountManager>()
                             .getLastSignedInAccount()
                             .credential,
                       ),

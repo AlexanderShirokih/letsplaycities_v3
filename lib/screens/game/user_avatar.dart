@@ -25,7 +25,7 @@ class UserAvatar extends StatelessWidget {
   @override
   Widget build(BuildContext rootContext) => StreamBuilder<Map<User, bool>>(
         stream: rootContext
-            .repository<GameServiceEventsRepository>()
+            .watch<GameServiceEventsRepository>()
             .getUserSwitches(),
         builder: (context, snapshot) => Column(
           mainAxisSize: MainAxisSize.min,

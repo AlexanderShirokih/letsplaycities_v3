@@ -54,7 +54,7 @@ class DictionaryFactory {
         _getCachedDescriptor(),
         internalDatabaseFile.then((file) => _parseDescriptor(file.path, true)),
         _parseDescriptor(_EMBEDDED_DICTIONARY_PATH, false),
-      ]).where((desc) => desc != null).toList();
+      ]).where((desc) => desc != null && desc.isValid()).toList();
 
   static Future<String> _loadDescriptor(bool isInternal, String path) =>
       (isInternal ? File(path).readAsString() : rootBundle.loadString(path));
@@ -113,11 +113,16 @@ abstract class _DictionaryDescriptor {
   Future<_Dictionary> getDictionary();
 
   int get order;
+
+  bool isValid();
 }
 
 /// Gets dictionary from given instance
 class _CacheDescriptor extends _DictionaryDescriptor {
   final _Dictionary _cached;
+
+  @override
+  bool isValid() => _cached != null;
 
   _CacheDescriptor(this._cached) : super(_cached.version);
 
@@ -136,8 +141,18 @@ class _InternalDescriptor extends _DictionaryDescriptor
   _InternalDescriptor(this._internalFile, int version) : super(version);
 
   @override
-  Future<_Dictionary> getDictionary() =>
-      _internalFile.exists().then((isExists) => isExists ? _parse() : null);
+  bool isValid() => _internalFile.existsSync();
+
+  @override
+  Future<_Dictionary> getDictionary() => _internalFile.exists().then(
+        (isExists) {
+          if (isExists) {
+            return _parse();
+          } else {
+            return null;
+          }
+        },
+      );
 
   Future<_Dictionary> _parse() => _internalFile
       .readAsBytes()
@@ -163,6 +178,9 @@ class _EmbeddedDescriptor extends _DictionaryDescriptor
 
   @override
   int get order => 2;
+
+  @override
+  bool isValid() => true;
 }
 
 /// Contains common methods for dictionary parsing

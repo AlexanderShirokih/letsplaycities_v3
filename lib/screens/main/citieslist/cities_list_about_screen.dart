@@ -7,7 +7,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 class CitiesListAboutScreen extends StatelessWidget {
   @override
-  Widget build(BuildContext context) => withLocalization(
+  Widget build(BuildContext context) => buildWithLocalization(
         context,
         (l10n) => Scaffold(
           appBar: AppBar(

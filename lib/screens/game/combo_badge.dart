@@ -13,7 +13,7 @@ class ComboBadgeWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final comboNames = (context.repository<LocalizationService>().game['combos']
+    final comboNames = (context.watch<LocalizationService>().game['combos']
             as List<dynamic>)
         .cast<String>();
 

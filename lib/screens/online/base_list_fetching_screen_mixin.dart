@@ -24,6 +24,9 @@ mixin BaseListFetchingScreenMixin<T, W extends StatefulWidget> on State<W> {
   /// Returns widget that will be shown when fetched list is empty
   Widget getOnListEmptyPlaceHolder(BuildContext context);
 
+  /// If `true` ListView will be used as container, otherwise - Column
+  bool get scrollable => true;
+
   /// Replaces [old] element to [curr].
   /// If [curr] is `null` [old] element will be removed.
   void replace(T old, T curr) => _updateData((data) {
@@ -49,7 +52,7 @@ mixin BaseListFetchingScreenMixin<T, W extends StatefulWidget> on State<W> {
   }
 
   Future _fetch(bool forceRefresh) => Future.sync(() => _setData(null, null))
-      .then((_) => fetchData(context.repository<ApiRepository>(), forceRefresh))
+      .then((_) => fetchData(context.read<ApiRepository>(), forceRefresh))
       .then((value) => _setData(value, null))
       .catchError(
           (e) => _setData(null, e is SocketException ? '' : e.toString()));
@@ -103,12 +106,12 @@ mixin BaseListFetchingScreenMixin<T, W extends StatefulWidget> on State<W> {
   /// Calls [onUndo] if it's not null when undo button is pressed.
   void showUndoSnackbar(String text,
       {Future Function() onComplete, void Function() onUndo}) {
-    Scaffold.of(context)
+    ScaffoldMessenger.of(context)
         .showSnackBar(
           SnackBar(
             duration: const Duration(seconds: 3),
             content: Text(text),
-            action: withLocalization(
+            action: buildWithLocalization(
               context,
               (l10n) => onComplete == null
                   ? null
@@ -149,12 +152,20 @@ mixin BaseListFetchingScreenMixin<T, W extends StatefulWidget> on State<W> {
       );
 
   Widget _showList(BuildContext context, List<T> data) => withData(
-        context.repository<ApiRepository>(),
-        (repo) => ListView.builder(
-          padding: EdgeInsets.all(8.0),
-          itemCount: data.length,
-          itemBuilder: (ctx, i) => buildItem(context, repo, data[i], i),
-        ),
+        context.watch<ApiRepository>(),
+        (repo) => scrollable
+            ? ListView.builder(
+                padding: EdgeInsets.all(8.0),
+                itemCount: data.length,
+                itemBuilder: (ctx, i) => buildItem(context, repo, data[i], i),
+              )
+            : Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Column(
+                  children: List.generate(
+                      data.length, (i) => buildItem(context, repo, data[i], i)),
+                ),
+              ),
       );
 
   Widget _showPlaceholder(BuildContext context) => Stack(

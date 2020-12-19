@@ -29,17 +29,15 @@ class ErrorHandlerView extends StatelessWidget {
                       Text(_errorDescription,
                           style: Theme.of(context).textTheme.bodyText2),
                       SizedBox(height: 24.0),
-                      Text(_stackTrace + _stackTrace,
+                      Text(_stackTrace,
                           style: Theme.of(context).textTheme.bodyText2)
                     ],
                   ),
                 ),
                 RaisedButton(
                   onPressed: () => Navigator.maybePop(context),
-                  child: Text(context
-                      .repository<LocalizationService>()
-                      .back
-                      .toUpperCase()),
+                  child: Text(
+                      context.watch<LocalizationService>().back.toUpperCase()),
                 ),
               ],
             ),

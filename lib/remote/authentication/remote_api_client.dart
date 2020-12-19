@@ -40,19 +40,22 @@ class RemoteLpsApiClient extends LpsApiClient {
       .then((list) => list.map((e) => FriendInfo.fromJson(e)).toList());
 
   @override
-  Future<List<HistoryInfo>> getHistoryList() => _fetchList('history')
-      .then((list) => list.map((e) => HistoryInfo.fromJson(e)).toList());
+  Future<List<HistoryInfo>> getHistoryList([int targetId]) =>
+      _fetchList('history', targetId)
+          .then((list) => list.map((e) => HistoryInfo.fromJson(e)).toList());
 
   @override
   Future<List<BlackListItemInfo>> getBanList() => _fetchList('blacklist')
       .then((list) => list.map((e) => BlackListItemInfo.fromJson(e)).toList());
 
-  Future<List<dynamic>> _fetchList(String urlPostfix) async {
+  Future<List<dynamic>> _fetchList(String urlPostfix, [int targetId]) async {
     _requireCredential();
 
     return _decodeJson(
       await _httpClient.get(
-        '$_serverUrl/$urlPostfix/',
+        targetId == null
+            ? '$_serverUrl/$urlPostfix/'
+            : '$_serverUrl/$urlPostfix/$targetId',
         headers: _credential.asAuthorizationHeader(),
       ),
     ) as List<dynamic>;

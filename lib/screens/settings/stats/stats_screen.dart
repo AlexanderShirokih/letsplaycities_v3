@@ -11,7 +11,7 @@ import 'package:lets_play_cities/utils/string_utils.dart';
 
 class StatisticsScreen extends StatelessWidget {
   @override
-  Widget build(BuildContext context) => withLocalization(
+  Widget build(BuildContext context) => buildWithLocalization(
         context,
         (l10n) => Scaffold(
           appBar: AppBar(
@@ -19,7 +19,7 @@ class StatisticsScreen extends StatelessWidget {
           ),
           body: _StatisticsList(
             l10n.stats,
-            _getOrCreate(context.repository<GamePreferences>()),
+            _getOrCreate(context.watch<GamePreferences>()),
           ),
         ),
       );
@@ -54,6 +54,7 @@ class _StatisticsList extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Row(
+                textBaseline: TextBaseline.alphabetic,
                 crossAxisAlignment: CrossAxisAlignment.baseline,
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [

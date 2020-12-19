@@ -23,8 +23,10 @@ abstract class LpsApiClient {
   /// Queries ban list from server. Throws an exception if cannot fetch data.
   Future<List<BlackListItemInfo>> getBanList();
 
-  /// Queries battle history list from server. Throws an exception if cannot fetch data.
-  Future<List<HistoryInfo>> getHistoryList();
+  /// Queries battle history list from server. Throws an exception if cannot
+  /// fetch data. If [targetId] passes common history of signed in user and
+  /// target user will shown.
+  Future<List<HistoryInfo>> getHistoryList([int targetId]);
 
   /// Deletes a user with id [friendId] from user's friend list
   Future deleteFriend(int friendId);

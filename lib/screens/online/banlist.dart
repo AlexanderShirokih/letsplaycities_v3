@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+
 import 'package:lets_play_cities/l18n/localization_service.dart';
 import 'package:lets_play_cities/remote/api_repository.dart';
 import 'package:lets_play_cities/remote/model/blacklist_item_info.dart';
 import 'package:lets_play_cities/screens/common/utils.dart';
+import 'package:lets_play_cities/screens/online/profile.dart';
 
 import 'base_list_fetching_screen_mixin.dart';
 import 'network_avatar_building_mixin.dart';
@@ -28,7 +30,7 @@ class _OnlineBanlistScreenState extends State<OnlineBanlistScreen>
 
   @override
   Widget getOnListEmptyPlaceHolder(BuildContext context) => Text(
-        withLocalization(
+    buildWithLocalization(
             context, (l10n) => l10n.online['no_blacklist_placeholder']),
         textAlign: TextAlign.center,
         style: withData<TextStyle, TextTheme>(
@@ -45,7 +47,7 @@ class _OnlineBanlistScreenState extends State<OnlineBanlistScreen>
     BlackListItemInfo data,
     int position,
   ) =>
-      withLocalization(
+      buildWithLocalization(
         context,
         (l10n) => Card(
           elevation: 4.0,
@@ -88,6 +90,10 @@ class _OnlineBanlistScreenState extends State<OnlineBanlistScreen>
 
   Widget _buildListTile(BlackListItemInfo data, LocalizationService l10n) =>
       ListTile(
+        onTap: () => Navigator.push(
+          context,
+          OnlineProfileView.createRoute(context, targetId: data.userId),
+        ),
         contentPadding: EdgeInsets.all(8.0),
         leading: buildAvatar(
           data.userId,

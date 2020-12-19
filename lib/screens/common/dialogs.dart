@@ -21,7 +21,7 @@ Future<bool> showConfirmationDialog(
 }) =>
     showDialog(
       context: context,
-      builder: (BuildContext context) => withLocalization(
+      builder: (BuildContext context) => buildWithLocalization(
         context,
         (l10n) => AlertDialog(
           title: title == null ? null : Text(title),
@@ -108,7 +108,7 @@ class _SingleChoiceDialogState extends State<SingleChoiceDialog> {
         actions: [
           FlatButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: withLocalization(
+            child: buildWithLocalization(
                 context, (l10n) => Text(l10n.cancel.toUpperCase())),
           )
         ],

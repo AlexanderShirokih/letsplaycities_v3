@@ -18,11 +18,11 @@ class TopBar extends StatelessWidget {
         color: Theme.of(context).primaryColor,
         child: RepositoryProvider<GameServiceEventsRepository>(
           create: (context) => context
-              .repository<GameSessionRepository>()
+              .read<GameSessionRepository>()
               .createGameServiceEventsRepository(),
           child: Builder(
             builder: (context) {
-              final repo = context.repository<GameSessionRepository>();
+              final repo = context.watch<GameSessionRepository>();
               final leftUser = repo.getUserByPosition(Position.LEFT);
               final rightUser = repo.getUserByPosition(Position.RIGHT);
               return Column(
@@ -81,13 +81,13 @@ class _ActionButtons extends StatelessWidget {
                 _createActionButton(context, FontAwesomeIcons.flag,
                     confirmationMessageKey: 'surrender',
                     onConfirmed: () => context
-                        .bloc<GameBloc>()
+                        .read<GameBloc>()
                         .add(const GameEventSurrender())),
                 if (_gameSessionRepository.helpAvailable)
                   _createActionButton(context, FontAwesomeIcons.lightbulb,
                       confirmationMessageKey: 'show_help',
                       onConfirmed: () => context
-                          .bloc<GameBloc>()
+                          .read<GameBloc>()
                           .add(const GameEventShowHelp())),
                 if (_gameSessionRepository.messagingAvailable)
                   _createActionButton(context, FontAwesomeIcons.envelope,
@@ -97,7 +97,7 @@ class _ActionButtons extends StatelessWidget {
             SizedBox(width: 0.0, height: 16.0),
             StreamBuilder<String>(
                 stream: context
-                    .repository<GameServiceEventsRepository>()
+                    .watch<GameServiceEventsRepository>()
                     .getTimerTicks(),
                 builder: (context, snapshot) {
                   return Text(
@@ -122,7 +122,7 @@ class _ActionButtons extends StatelessWidget {
               : showConfirmationDialog(
                   context,
                   message: context
-                      .repository<LocalizationService>()
+                      .read<LocalizationService>()
                       .game[confirmationMessageKey],
                   onOk: onConfirmed,
                 ),
