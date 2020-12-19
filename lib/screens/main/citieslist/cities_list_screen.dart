@@ -18,7 +18,7 @@ class CitiesListScreen extends StatelessWidget {
   final _citiesListBloc = CitiesListBloc();
 
   @override
-  Widget build(BuildContext context) => withLocalization(
+  Widget build(BuildContext context) => buildWithLocalization(
         context,
         (l10n) => BlocBuilder<CitiesListBloc, CitiesListState>(
           cubit: _citiesListBloc,

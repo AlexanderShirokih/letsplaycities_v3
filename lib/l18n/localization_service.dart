@@ -14,6 +14,8 @@ abstract class LocalizationService {
 
   String get cancel;
 
+  String get edit;
+
   String get back;
 
   String get apply;

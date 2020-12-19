@@ -13,7 +13,7 @@ class CitiesList extends StatelessWidget {
   Widget build(BuildContext context) => Expanded(
         child: StreamBuilder<List<GameItem>>(
           stream: context
-              .repository<GameSessionRepository>()
+              .watch<GameSessionRepository>()
               .createGameItemsRepository()
               .getItemsList(),
           builder: (context, state) => ListView(

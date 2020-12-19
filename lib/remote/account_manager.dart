@@ -13,4 +13,7 @@ abstract class AccountManager {
 
   /// Returns `true` if user signed in to any account
   bool isSignedIn();
+
+  /// Updates picture for currently logged account
+  Future<void> updatePicture();
 }

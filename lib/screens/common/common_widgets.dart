@@ -55,7 +55,7 @@ class MaterialIconButton extends StatelessWidget {
 /// Creates expanded background image with from theme data
 Widget createBackground(BuildContext context) => Positioned.fill(
       child: Image.asset(
-        context.repository<theme.Theme>().backgroundImage,
+        context.watch<theme.Theme>().backgroundImage,
         fit: BoxFit.cover,
       ),
     );

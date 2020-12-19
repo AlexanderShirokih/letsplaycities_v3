@@ -3,7 +3,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:lets_play_cities/screens/common/utils.dart';
 
 /// Shows widget with error messages
-Widget showError(BuildContext context, String error) => withLocalization(
+Widget showError(BuildContext context, String error) => buildWithLocalization(
       context,
       (l10n) => Stack(
         children: [
@@ -53,7 +53,7 @@ Widget showLoadingWidget(BuildContext context) => Center(
         children: [
           CircularProgressIndicator(),
           SizedBox(height: 6.0),
-          withLocalization(
+          buildWithLocalization(
             context,
             (l10n) => Text(l10n.online['loading']),
           )

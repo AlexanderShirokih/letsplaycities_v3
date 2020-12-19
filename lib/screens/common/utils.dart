@@ -9,11 +9,17 @@ typedef BuildWithData<T, S> = T Function(S);
 
 /// Gets [LocalizationService] from context and passes it to
 /// [buildWithLocalization] and returns its result
-T withLocalization<T>(
+T buildWithLocalization<T>(
   BuildContext context,
   BuildWithLocalization<T> buildWithLocalization,
 ) =>
-    buildWithLocalization(context.repository<LocalizationService>());
+    buildWithLocalization(context.watch<LocalizationService>());
+
+T readWithLocalization<T>(
+    BuildContext context,
+    BuildWithLocalization<T> buildWithLocalization,
+    ) =>
+    buildWithLocalization(context.read<LocalizationService>());
 
 /// Passes [data] to lambda function and returns it's result
 T withData<T, S>(S data, BuildWithData<T, S> builder) => builder(data);

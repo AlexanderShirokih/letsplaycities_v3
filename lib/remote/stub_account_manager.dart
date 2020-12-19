@@ -21,4 +21,8 @@ class StubAccountManager extends AccountManager {
 
   @override
   bool isSignedIn() => true;
+
+  // TODO: Implement updatePicture
+  @override
+  Future<void> updatePicture() => throw ('Unimplemented');
 }

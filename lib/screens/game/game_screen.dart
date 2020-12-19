@@ -27,9 +27,9 @@ class GameScreen extends StatelessWidget {
   /// Creates new instance of [GameScreen] wraps it with [MaterialPageRoute]
   static MaterialPageRoute createGameScreenRoute(GameMode gameMode) =>
       MaterialPageRoute(builder: (context) {
-        final isFirstTime = context.repository<GamePreferences>().isFirstLaunch;
+        final isFirstTime = context.watch<GamePreferences>().isFirstLaunch;
         if (isFirstTime && gameMode.isLocal()) {
-          return withLocalization(
+          return buildWithLocalization(
             context,
             (l10n) => FirstTimeOnBoardingScreen(
               gameMode: gameMode,
@@ -44,8 +44,8 @@ class GameScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final prefs = context.repository<GamePreferences>();
-    return withLocalization(
+    final prefs = context.watch<GamePreferences>();
+    return buildWithLocalization(
       context,
       (l10n) => Scaffold(
         body: WillPopScope(
@@ -63,7 +63,7 @@ class GameScreen extends StatelessWidget {
                   child: Builder(
                     builder: (context) =>
                         BlocConsumer<GameBloc, GameLifecycleState>(
-                      cubit: context.bloc<GameBloc>(),
+                      cubit: context.watch<GameBloc>(),
                       builder: (context, state) {
                         if (state is GameState) {
                           return _buildGameStateLayout(state);
@@ -124,11 +124,11 @@ Widget _buildGameStateLayout(GameState gameState) => RepositoryProvider(
           ),
           Builder(
             builder: (context) =>
-                context.repository<GamePreferences>().soundEnabled
+                context.watch<GamePreferences>().soundEnabled
                     ? SoundPlayer(
                         assetSoundPath: 'sound/click.mp3',
                         windowStream: context
-                            .repository<GameSessionRepository>()
+                            .watch<GameSessionRepository>()
                             .createGameItemsRepository()
                             .getGameItems())
                     : SizedBox.shrink(),

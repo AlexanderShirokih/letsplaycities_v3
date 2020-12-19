@@ -15,6 +15,8 @@ import 'package:lets_play_cities/screens/online/history.dart';
 import 'package:lets_play_cities/screens/online/network_avatar_building_mixin.dart';
 import 'package:lets_play_cities/utils/string_utils.dart';
 
+import 'avatars/avatar_chooser_dialog.dart';
+
 /// Shows user profile
 class OnlineProfileView extends StatefulWidget {
   /// Profile owner id. If `null` than current authorized user will be used
@@ -24,6 +26,34 @@ class OnlineProfileView extends StatefulWidget {
 
   @override
   _OnlineProfileViewState createState() => _OnlineProfileViewState();
+
+  /// Creates navigation route for [OnlineProfileView] wrapped in [Scaffold].
+  /// [context] must contain [ApiRepository] and [AccountManager] injected
+  /// with [RepositoryProvider] in the widget tree.
+  static Route createRoute(BuildContext context, {int targetId}) =>
+      MaterialPageRoute(
+        builder: (ctx) => Scaffold(
+          appBar: AppBar(
+            title: Text(
+              readWithLocalization(
+                  context, (l10n) => l10n.online['profile_tab']),
+            ),
+          ),
+          body: MultiRepositoryProvider(
+            providers: [
+              RepositoryProvider.value(
+                value: context.watch<ApiRepository>(),
+              ),
+              RepositoryProvider.value(
+                value: context.watch<AccountManager>(),
+              ),
+            ],
+            child: OnlineProfileView(
+              targetId: targetId,
+            ),
+          ),
+        ),
+      );
 }
 
 class _OnlineProfileViewState extends State<OnlineProfileView>
@@ -35,7 +65,7 @@ class _OnlineProfileViewState extends State<OnlineProfileView>
 
   @override
   Widget build(BuildContext context) => withData<Widget, ApiRepository>(
-        context.repository<ApiRepository>(),
+        context.watch<ApiRepository>(),
         (repo) => RefreshIndicator(
           onRefresh: () async => setState(() {
             _shouldUpdate = true;
@@ -48,7 +78,10 @@ class _OnlineProfileViewState extends State<OnlineProfileView>
                   builder: (context, snap) {
                     if (snap.hasData) {
                       _shouldUpdate = false;
-                      return _buildProfileView(context, snap.data);
+                      return _buildProfileView(
+                          snap.data.friendshipStatus == FriendshipStatus.owner,
+                          context,
+                          snap.data);
                     } else if (snap.hasError) {
                       return showError(context, snap.error.toString());
                     } else {
@@ -64,11 +97,11 @@ class _OnlineProfileViewState extends State<OnlineProfileView>
                     padding: const EdgeInsets.only(bottom: 24.0, right: 24.0),
                     child: FloatingActionButton.extended(
                       onPressed: () => context
-                          .repository<AccountManager>()
+                          .read<AccountManager>()
                           .signOut()
                           .then((_) => Navigator.of(context).pop()),
                       icon: FaIcon(FontAwesomeIcons.signOutAlt),
-                      label: withLocalization(
+                      label: buildWithLocalization(
                         context,
                         (l10n) => Text(l10n.online['sign_out']),
                       ),
@@ -80,21 +113,23 @@ class _OnlineProfileViewState extends State<OnlineProfileView>
         ),
       );
 
-  Widget _buildProfileView(BuildContext context, ProfileInfo data) =>
-      withLocalization(
+  Widget _buildProfileView(
+          bool isOwner, BuildContext context, ProfileInfo data) =>
+      buildWithLocalization(
         context,
         (l10n) => ListView(
           children: [
-            ..._buildTopBlock(data, context, l10n),
+            ..._buildTopBlock(isOwner, data, context, l10n),
             ..._buildIdBlock(data, context),
-            ..._buildActionsBlock(data, context, l10n),
-            ..._buildNavigationBlock(data, context, l10n),
+            ..._buildActionsBlock(isOwner, data, context, l10n),
+            ..._buildNavigationBlock(isOwner, data, context, l10n),
+            ..._buildRelatedHistoryBlock(isOwner, data, context, l10n),
           ],
         ),
       );
 
-  Iterable<Widget> _buildTopBlock(
-      ProfileInfo data, BuildContext context, LocalizationService l10n) sync* {
+  Iterable<Widget> _buildTopBlock(bool isOwner, ProfileInfo data,
+      BuildContext context, LocalizationService l10n) sync* {
     yield Container(
       padding: EdgeInsets.all(28.0),
       child: Row(
@@ -103,9 +138,15 @@ class _OnlineProfileViewState extends State<OnlineProfileView>
         children: [
           Container(
             child: InkWell(
-              onTap: () {
-                // TODO: Update avatar for native accounts
-              },
+              onTap: isOwner
+                  ? () => showDialog(
+                        context: context,
+                        builder: (_) => RepositoryProvider.value(
+                          value: context.watch<AccountManager>(),
+                          child: AvatarChooserDialog(l10n),
+                        ),
+                      )
+                  : null,
               child:
                   buildAvatar(data.userId, data.login, data.pictureUrl, 60.0),
             ),
@@ -121,7 +162,7 @@ class _OnlineProfileViewState extends State<OnlineProfileView>
                   overflow: TextOverflow.fade,
                 ),
                 const SizedBox(height: 12.0),
-                _showOnlineStatus(l10n, data),
+                _showOnlineStatus(isOwner, l10n, data),
                 ..._showRole(l10n, data),
               ],
             ),
@@ -132,9 +173,9 @@ class _OnlineProfileViewState extends State<OnlineProfileView>
     yield const Divider(height: 18.0, thickness: 1.0);
   }
 
-  Iterable<Widget> _buildActionsBlock(
-      ProfileInfo data, BuildContext context, LocalizationService l10n) sync* {
-    if (_isOwner()) return;
+  Iterable<Widget> _buildActionsBlock(bool isOwner, ProfileInfo data,
+      BuildContext context, LocalizationService l10n) sync* {
+    if (isOwner) return;
     yield Container(
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -159,9 +200,9 @@ class _OnlineProfileViewState extends State<OnlineProfileView>
     yield const Divider(height: 18.0, thickness: 1.0);
   }
 
-  Iterable<Widget> _buildNavigationBlock(
-      ProfileInfo data, BuildContext context, LocalizationService l10n) sync* {
-    if (!_isOwner()) return;
+  Iterable<Widget> _buildNavigationBlock(bool isOwner, ProfileInfo data,
+      BuildContext context, LocalizationService l10n) sync* {
+    if (!isOwner) return;
     yield _buildNavigationButton(FaIcon(FontAwesomeIcons.userFriends),
         l10n.online['friends_tab'], () => OnlineFriendsScreen());
     yield _buildNavigationButton(FaIcon(FontAwesomeIcons.history),
@@ -177,8 +218,15 @@ class _OnlineProfileViewState extends State<OnlineProfileView>
         onTap: () => Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (ctx) => RepositoryProvider.value(
-              value: context.repository<ApiRepository>(),
+            builder: (ctx) => MultiRepositoryProvider(
+              providers: [
+                RepositoryProvider.value(
+                  value: context.watch<ApiRepository>(),
+                ),
+                RepositoryProvider.value(
+                  value: context.watch<AccountManager>(),
+                ),
+              ],
               child: Scaffold(
                 appBar: AppBar(
                   title: Text(label),
@@ -192,22 +240,44 @@ class _OnlineProfileViewState extends State<OnlineProfileView>
         title: Text(label),
       );
 
-  Widget _getFriendshipButton(
-          ProfileInfo data, BuildContext context, LocalizationService l10n) =>
-      RaisedButton(
+  Widget _createButton(String label, void Function() onPressed) => RaisedButton(
+        padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 16.0),
         shape: _createRoundedBorder(),
-        onPressed: () {},
+        onPressed: onPressed,
         color: Theme.of(context).primaryColor,
-        child: Text(l10n.online['add_to_friend']),
+        child: Text(label),
       );
+
+  Widget _getFriendshipButton(
+      ProfileInfo data, BuildContext context, LocalizationService l10n) {
+    switch (data.friendshipStatus) {
+      case FriendshipStatus.notFriends:
+        return _createButton(l10n.online['add_to_friend'], () {
+          //TODO: Add to friends
+        });
+      case FriendshipStatus.friends:
+        return _createButton(l10n.online['remove_from_friends'], () {
+          //TODO: Remove from friends
+        });
+
+      case FriendshipStatus.inputRequest:
+        return _createButton(l10n.online['cancel_friendship_request'], () {
+          //TODO: Cancel request
+        });
+      case FriendshipStatus.outputRequest:
+        return _AcceptOrDeclineButton(l10n);
+      default:
+        throw ('Can\'t show friendship button for itself');
+    }
+  }
 
   Widget _getFriendRequestButton(
           ProfileInfo data, BuildContext context, LocalizationService l10n) =>
-      RaisedButton(
-        shape: _createRoundedBorder(),
-        onPressed: () {},
-        child: Text(l10n.online['invite']),
-        color: Theme.of(context).primaryColor,
+      _createButton(
+        l10n.online['invite'],
+        () {
+          // TODO: Handle invite button
+        },
       );
 
   ShapeBorder _createRoundedBorder() => RoundedRectangleBorder(
@@ -235,9 +305,11 @@ class _OnlineProfileViewState extends State<OnlineProfileView>
     }
   }
 
-  Widget _showOnlineStatus(LocalizationService l10n, ProfileInfo data) {
+  Widget _showOnlineStatus(
+      bool isOwner, LocalizationService l10n, ProfileInfo data) {
     bool _isOnline(ProfileInfo info) =>
-        DateTime.now().difference(info.lastVisitDate) < Duration(minutes: 10);
+        DateTime.now().difference(info.lastVisitDate) < Duration(minutes: 10) ||
+        isOwner;
 
     return (_isOnline(data))
         ? Row(
@@ -260,6 +332,20 @@ class _OnlineProfileViewState extends State<OnlineProfileView>
           );
   }
 
+  Iterable<Widget> _buildRelatedHistoryBlock(bool isOwner, ProfileInfo data,
+      BuildContext context, LocalizationService l10n) sync* {
+    if (isOwner) return;
+    yield Padding(
+      padding: const EdgeInsets.all(12.0),
+      child: Text(
+        l10n.online['battle_history'],
+        style: Theme.of(context).textTheme.headline6,
+      ),
+    );
+    yield OnlineHistoryScreen(targetId: widget.targetId, embedded: true);
+    yield const Divider(height: 18.0, thickness: 1.0);
+  }
+
   String _getDate(LocalizationService l10n, DateTime date) {
     final baseFormat = l10n.online['last_online'].toString();
     final now = DateTime.now();
@@ -280,8 +366,54 @@ class _OnlineProfileViewState extends State<OnlineProfileView>
       widget.targetId == null ||
       widget.targetId ==
           context
-              .repository<AccountManager>()
+              .read<AccountManager>()
               .getLastSignedInAccount()
               .credential
               .userId;
+}
+
+class _AcceptOrDeclineButton extends StatefulWidget {
+  final LocalizationService l10n;
+
+  const _AcceptOrDeclineButton(this.l10n);
+
+  @override
+  __AcceptOrDeclineButtonState createState() =>
+      __AcceptOrDeclineButtonState(l10n);
+}
+
+class __AcceptOrDeclineButtonState extends State<_AcceptOrDeclineButton> {
+  final List<String> _values;
+
+  int _selected = 0;
+
+  __AcceptOrDeclineButtonState(LocalizationService l10n)
+      : _values = [
+          l10n.online['accept_friendship_request'],
+          l10n.online['decline_friendship_request']
+        ];
+
+  @override
+  Widget build(BuildContext context) => Container(
+        padding: EdgeInsets.only(left: 10.0),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(12.0),
+          color: Theme.of(context).primaryColor,
+        ),
+        child: DropdownButton(
+            value: _selected,
+            elevation: 5,
+            items: [0, 1]
+                .map((e) => DropdownMenuItem(
+                    value: e,
+                    child: Text(
+                      _values[e],
+                      style: Theme.of(context).textTheme.bodyText1,
+                    )))
+                .toList(),
+            onChanged: (newValue) => setState(() {
+                  _selected = newValue;
+                  // TODO: Accept or decline
+                })),
+      );
 }

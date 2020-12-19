@@ -27,13 +27,13 @@ class GameResultsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Scaffold(
-        body: withLocalization(
+        body: buildWithLocalization(
           context,
           (l10n) => Stack(
             children: [
               Positioned.fill(
                 child: Image.asset(
-                  context.repository<theme.Theme>().backgroundImage,
+                  context.watch<theme.Theme>().backgroundImage,
                   fit: BoxFit.cover,
                 ),
               ),

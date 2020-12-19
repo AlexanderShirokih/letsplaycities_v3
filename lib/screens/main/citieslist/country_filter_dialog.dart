@@ -35,7 +35,7 @@ class _CountryFilterDialogState extends State<CountryFilterDialog> {
             .toList();
 
   @override
-  Widget build(BuildContext context) => withLocalization(
+  Widget build(BuildContext context) => buildWithLocalization(
         context,
         (l10n) => AlertDialog(
           contentPadding: EdgeInsets.only(top: 12.0),
