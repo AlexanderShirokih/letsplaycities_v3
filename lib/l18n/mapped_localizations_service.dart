@@ -64,4 +64,7 @@ class MappedLocalizationsService extends LocalizationService {
 
   @override
   Map<String, dynamic> get online => _data['online'];
+
+  @override
+  Map<String, dynamic> get misc => _data['misc'];
 }

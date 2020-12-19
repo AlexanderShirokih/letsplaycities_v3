@@ -45,4 +45,7 @@ abstract class LocalizationService {
 
   /// [OnlineGameMasterScreen] localizations
   Map<String, dynamic> get online => null;
+
+  /// Miscellaneous localizations
+  Map<String, dynamic> get misc;
 }

@@ -12,12 +12,14 @@ dependencies:
 
   http: ^0.12.2
   meta: ^1.1.7
+  image: ^2.1.19
   equatable: ^1.2.3
   url_launcher: ^5.7.2
   package_info: ^0.4.1
   flutter_bloc: ^6.0.1
   audioplayers: ^0.16.1
   path_provider: ^1.6.14
+  image_picker: ^0.6.7+17
   shared_preferences: ^0.5.10
   font_awesome_flutter: ^8.8.1
 
