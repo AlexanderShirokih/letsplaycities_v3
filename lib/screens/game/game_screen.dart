@@ -123,15 +123,14 @@ Widget _buildGameStateLayout(GameState gameState) => RepositoryProvider(
             ),
           ),
           Builder(
-            builder: (context) =>
-                context.watch<GamePreferences>().soundEnabled
-                    ? SoundPlayer(
-                        assetSoundPath: 'sound/click.mp3',
-                        windowStream: context
-                            .watch<GameSessionRepository>()
-                            .createGameItemsRepository()
-                            .getGameItems())
-                    : SizedBox.shrink(),
+            builder: (context) => context.watch<GamePreferences>().soundEnabled
+                ? SoundPlayer(
+                    assetSoundPath: 'sound/click.mp3',
+                    windowStream: context
+                        .watch<GameSessionRepository>()
+                        .createGameItemsRepository()
+                        .getGameItems())
+                : SizedBox.shrink(),
           ),
         ],
       ),

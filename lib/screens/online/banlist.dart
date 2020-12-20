@@ -30,7 +30,7 @@ class _OnlineBanlistScreenState extends State<OnlineBanlistScreen>
 
   @override
   Widget getOnListEmptyPlaceHolder(BuildContext context) => Text(
-    buildWithLocalization(
+        buildWithLocalization(
             context, (l10n) => l10n.online['no_blacklist_placeholder']),
         textAlign: TextAlign.center,
         style: withData<TextStyle, TextTheme>(
