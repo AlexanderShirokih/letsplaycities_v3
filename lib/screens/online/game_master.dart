@@ -7,6 +7,7 @@ import 'package:lets_play_cities/remote/account_manager.dart';
 import 'package:lets_play_cities/remote/api_repository.dart';
 import 'package:lets_play_cities/remote/auth.dart';
 import 'package:lets_play_cities/remote/stub_account_manager.dart';
+import 'package:lets_play_cities/screens/common/common_widgets.dart';
 import 'package:lets_play_cities/screens/online/logged_in_game_master.dart';
 
 /// Shows Log-in screen if user is not logged in yet or shows
@@ -44,18 +45,23 @@ class _OnlineGameMasterScreenState extends State<OnlineGameMasterScreen> {
         child: Builder(
           builder: (ctx) {
             return ctx.watch<AccountManager>().isSignedIn()
-                ? RepositoryProvider<ApiRepository>.value(
-                    value: ApiRepository(
-                      RemoteLpsApiClient(
-                        AppConfig.remotePublicApiURL,
-                        _client,
-                        ctx
-                            .watch<AccountManager>()
-                            .getLastSignedInAccount()
-                            .credential,
-                      ),
-                    ),
-                    child: LoggedInOnlineGameMasterScreen(),
+                ? FutureBuilder<RemoteAccountInfo>(
+                    future:
+                        ctx.watch<AccountManager>().getLastSignedInAccount(),
+                    builder: (context, lastSignedInAccount) {
+                      if (!lastSignedInAccount.hasData)
+                        return LoadingView('...');
+                      return RepositoryProvider<ApiRepository>.value(
+                        value: ApiRepository(
+                          RemoteLpsApiClient(
+                            AppConfig.remotePublicApiURL,
+                            _client,
+                            lastSignedInAccount.requireData.credential,
+                          ),
+                        ),
+                        child: LoggedInOnlineGameMasterScreen(),
+                      );
+                    },
                   )
                 : Container(
                     color: Colors.red,

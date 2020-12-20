@@ -96,8 +96,8 @@ class DictionaryUpdater {
         yield (done / total * 100).round();
       }
     } finally {
-        await sink.close();
-        await sink.done;
+      await sink.close();
+      await sink.done;
     }
   }
 

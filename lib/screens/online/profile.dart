@@ -6,7 +6,9 @@ import 'package:intl/intl.dart';
 import 'package:lets_play_cities/l18n/localization_service.dart';
 import 'package:lets_play_cities/remote/account_manager.dart';
 import 'package:lets_play_cities/remote/api_repository.dart';
+import 'package:lets_play_cities/remote/auth.dart';
 import 'package:lets_play_cities/remote/model/profile_info.dart';
+import 'package:lets_play_cities/screens/common/common_widgets.dart';
 import 'package:lets_play_cities/screens/common/utils.dart';
 import 'package:lets_play_cities/screens/online/banlist.dart';
 import 'package:lets_play_cities/screens/online/common_online_widgets.dart';
@@ -15,7 +17,7 @@ import 'package:lets_play_cities/screens/online/history.dart';
 import 'package:lets_play_cities/screens/online/network_avatar_building_mixin.dart';
 import 'package:lets_play_cities/utils/string_utils.dart';
 
-import 'avatars/avatar_chooser_dialog.dart';
+import 'avatars/avatar_chooser.dart';
 
 /// Shows user profile
 class OnlineProfileView extends StatefulWidget {
@@ -64,53 +66,63 @@ class _OnlineProfileViewState extends State<OnlineProfileView>
   bool _shouldUpdate = false;
 
   @override
-  Widget build(BuildContext context) => withData<Widget, ApiRepository>(
-        context.watch<ApiRepository>(),
-        (repo) => RefreshIndicator(
-          onRefresh: () async => setState(() {
-            _shouldUpdate = true;
-          }),
-          child: Stack(
-            children: [
-              Positioned.fill(
-                child: FutureBuilder<ProfileInfo>(
-                  future: repo.getProfileInfo(widget.targetId, _shouldUpdate),
-                  builder: (context, snap) {
-                    if (snap.hasData) {
-                      _shouldUpdate = false;
-                      return _buildProfileView(
-                          snap.data.friendshipStatus == FriendshipStatus.owner,
-                          context,
-                          snap.data);
-                    } else if (snap.hasError) {
-                      return showError(context, snap.error.toString());
-                    } else {
-                      return showLoadingWidget(context);
-                    }
-                  },
-                ),
-              ),
-              if (_isOwner())
-                Align(
-                  alignment: Alignment.bottomRight,
-                  child: Padding(
-                    padding: const EdgeInsets.only(bottom: 24.0, right: 24.0),
-                    child: FloatingActionButton.extended(
-                      onPressed: () => context
-                          .read<AccountManager>()
-                          .signOut()
-                          .then((_) => Navigator.of(context).pop()),
-                      icon: FaIcon(FontAwesomeIcons.signOutAlt),
-                      label: buildWithLocalization(
-                        context,
-                        (l10n) => Text(l10n.online['sign_out']),
-                      ),
+  Widget build(BuildContext context) => FutureBuilder<RemoteAccountInfo>(
+        future: context.watch<AccountManager>().getLastSignedInAccount(),
+        builder: (context, account) {
+          if (!account.hasData) return LoadingView('...');
+
+          return withData<Widget, ApiRepository>(
+            context.watch<ApiRepository>(),
+            (repo) => RefreshIndicator(
+              onRefresh: () async => setState(() {
+                _shouldUpdate = true;
+              }),
+              child: Stack(
+                children: [
+                  Positioned.fill(
+                    child: FutureBuilder<ProfileInfo>(
+                      future:
+                          repo.getProfileInfo(widget.targetId, _shouldUpdate),
+                      builder: (context, snap) {
+                        if (snap.hasData) {
+                          _shouldUpdate = false;
+                          return _buildProfileView(
+                              snap.data.friendshipStatus ==
+                                  FriendshipStatus.owner,
+                              context,
+                              snap.data);
+                        } else if (snap.hasError) {
+                          return showError(context, snap.error.toString());
+                        } else {
+                          return showLoadingWidget(context);
+                        }
+                      },
                     ),
                   ),
-                )
-            ],
-          ),
-        ),
+                  if (_isOwner(account.data))
+                    Align(
+                      alignment: Alignment.bottomRight,
+                      child: Padding(
+                        padding:
+                            const EdgeInsets.only(bottom: 24.0, right: 24.0),
+                        child: FloatingActionButton.extended(
+                          onPressed: () => context
+                              .read<AccountManager>()
+                              .signOut()
+                              .then((_) => Navigator.of(context).pop()),
+                          icon: FaIcon(FontAwesomeIcons.signOutAlt),
+                          label: buildWithLocalization(
+                            context,
+                            (l10n) => Text(l10n.online['sign_out']),
+                          ),
+                        ),
+                      ),
+                    )
+                ],
+              ),
+            ),
+          );
+        },
       );
 
   Widget _buildProfileView(
@@ -139,11 +151,11 @@ class _OnlineProfileViewState extends State<OnlineProfileView>
           Container(
             child: InkWell(
               onTap: isOwner
-                  ? () => showDialog(
+                  ? () => showModalBottomSheet(
                         context: context,
-                        builder: (_) => RepositoryProvider.value(
-                          value: context.watch<AccountManager>(),
-                          child: AvatarChooserDialog(l10n),
+                        builder: (_) => AvatarChooserView(
+                          l10n,
+                          context.read<AccountManager>(),
                         ),
                       )
                   : null,
@@ -362,14 +374,8 @@ class _OnlineProfileViewState extends State<OnlineProfileView>
     }
   }
 
-  bool _isOwner() =>
-      widget.targetId == null ||
-      widget.targetId ==
-          context
-              .read<AccountManager>()
-              .getLastSignedInAccount()
-              .credential
-              .userId;
+  bool _isOwner(RemoteAccountInfo account) =>
+      widget.targetId == null || widget.targetId == account.credential.userId;
 }
 
 class _AcceptOrDeclineButton extends StatefulWidget {

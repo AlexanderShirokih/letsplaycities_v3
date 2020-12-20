@@ -13,9 +13,9 @@ class ComboBadgeWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final comboNames = (context.watch<LocalizationService>().game['combos']
-            as List<dynamic>)
-        .cast<String>();
+    final comboNames =
+        (context.watch<LocalizationService>().game['combos'] as List<dynamic>)
+            .cast<String>();
 
     return StreamBuilder<Map<ComboType, int>>(
       stream: _comboEvents,

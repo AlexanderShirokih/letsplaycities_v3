@@ -16,9 +16,9 @@ T buildWithLocalization<T>(
     buildWithLocalization(context.watch<LocalizationService>());
 
 T readWithLocalization<T>(
-    BuildContext context,
-    BuildWithLocalization<T> buildWithLocalization,
-    ) =>
+  BuildContext context,
+  BuildWithLocalization<T> buildWithLocalization,
+) =>
     buildWithLocalization(context.read<LocalizationService>());
 
 /// Passes [data] to lambda function and returns it's result

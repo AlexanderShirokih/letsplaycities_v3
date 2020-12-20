@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import 'package:lets_play_cities/remote/account_manager.dart';
 
 import 'package:lets_play_cities/remote/api_repository.dart';
+import 'package:lets_play_cities/remote/auth.dart';
 import 'package:lets_play_cities/remote/model/history_info.dart';
 import 'package:lets_play_cities/screens/common/utils.dart';
 import 'package:lets_play_cities/screens/online/base_list_fetching_screen_mixin.dart';
@@ -38,18 +39,17 @@ class _OnlineHistoryScreenState extends State<OnlineHistoryScreen>
   bool get scrollable => !widget.embedded;
 
   @override
-  Future<List<HistoryInfo>> fetchData(ApiRepository repo, bool forceRefresh) =>
-      repo.getHistoryList(forceRefresh, targetId: _getTargetId());
+  Future<List<HistoryInfo>> fetchData(
+      ApiRepository repo, bool forceRefresh) async {
+    final account =
+        await context.read<AccountManager>().getLastSignedInAccount();
+    return repo.getHistoryList(forceRefresh, targetId: _getTargetId(account));
+  }
 
-  int _getTargetId() => widget.targetId != null &&
-          context
-                  .read<AccountManager>()
-                  .getLastSignedInAccount()
-                  .credential
-                  .userId !=
-              widget.targetId
-      ? widget.targetId
-      : null;
+  int _getTargetId(RemoteAccountInfo account) =>
+      widget.targetId != null && account.credential.userId != widget.targetId
+          ? widget.targetId
+          : null;
 
   @override
   Widget getOnListEmptyPlaceHolder(BuildContext context) => Text(
