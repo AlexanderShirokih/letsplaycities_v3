@@ -1,5 +1,6 @@
+import 'dart:io';
+
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:http/http.dart' as http;
 import 'dart:async';
 
 import 'package:lets_play_cities/base/scoring.dart';
@@ -12,6 +13,7 @@ import 'package:lets_play_cities/base/repositories/game_session_repo.dart';
 import 'package:lets_play_cities/base/game/handlers/local_endpoint.dart';
 import 'package:lets_play_cities/base/game/game_result.dart';
 import 'package:lets_play_cities/l18n/localization_service.dart';
+import 'package:lets_play_cities/remote/remote_module.dart';
 import 'package:lets_play_cities/utils/string_utils.dart';
 
 import 'package:meta/meta.dart';
@@ -24,7 +26,7 @@ part 'game_events.dart';
 part 'game_states.dart';
 
 class GameBloc extends Bloc<GameStateEvent, GameLifecycleState> {
-  final http.Client _http = http.Client();
+  HttpClient _http;
   final GamePreferences _prefs;
   final LocalizationService _localizations;
   final GameMode _gameMode;
@@ -53,7 +55,7 @@ class GameBloc extends Bloc<GameStateEvent, GameLifecycleState> {
         _gameMode = gameMode,
         super(InitialState()) {
     add(const GameEventBeginDataLoading());
-    _dictionaryUpdater = DictionaryUpdater(_prefs, _http);
+    _dictionaryUpdater = DictionaryUpdater(_prefs, getDio());
   }
 
   @override

@@ -233,10 +233,10 @@ class _OnlineProfileViewState extends State<OnlineProfileView>
             builder: (ctx) => MultiRepositoryProvider(
               providers: [
                 RepositoryProvider.value(
-                  value: context.watch<ApiRepository>(),
+                  value: context.read<ApiRepository>(),
                 ),
                 RepositoryProvider.value(
-                  value: context.watch<AccountManager>(),
+                  value: context.read<AccountManager>(),
                 ),
               ],
               child: Scaffold(

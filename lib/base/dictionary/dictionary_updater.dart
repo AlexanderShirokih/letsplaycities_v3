@@ -2,10 +2,9 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:lets_play_cities/app_config.dart';
+import 'package:dio/dio.dart';
 import 'package:lets_play_cities/base/dictionary/impl/dictionary_factory.dart';
 import 'package:lets_play_cities/base/preferences.dart';
-import 'package:http/http.dart' as http;
 
 /// Describes dictionary update period constants
 enum DictionaryUpdatePeriod { NEVER, THREE_HOURS, DAILY }
@@ -28,7 +27,7 @@ extension DictionaryUpdatePeriodExt on DictionaryUpdatePeriod {
 /// [DictionaryUpdater] is responsible for checking dictionary updates and downloading it
 class DictionaryUpdater {
   final GamePreferences _prefs;
-  final http.Client _http;
+  final Dio _http;
 
   DictionaryUpdater(this._prefs, this._http);
 
@@ -80,17 +79,20 @@ class DictionaryUpdater {
   }
 
   Stream<int> _loadDictionaryData(File output, int latestVersion) async* {
-    final uri =
-        Uri.parse('${AppConfig.remotePublicApiURL}/data-$latestVersion.db2');
-    final response = await _http.send(http.Request('GET', uri));
+    final response = await _http.get(
+      '/data-$latestVersion.db2',
+      options: Options(responseType: ResponseType.stream),
+    );
 
-    final total = response.contentLength;
+    final total =
+        int.parse(response.headers.value(Headers.contentLengthHeader)) ?? 1;
+
     var done = 0;
 
     final sink = await output.create().then((file) => file.openWrite());
 
     try {
-      await for (final portion in response.stream) {
+      await for (final portion in response.data.stream) {
         done += portion.length;
         sink.add(portion);
         yield (done / total * 100).round();
@@ -106,10 +108,10 @@ class DictionaryUpdater {
   }
 
   Future<int> _fetchLatestDictionaryVersion() async {
-    final response = await _http.get('${AppConfig.remotePublicApiURL}/update');
+    final response = await _http.get('/update');
 
     if (response.statusCode == 200) {
-      final resp = jsonDecode(response.body);
+      final resp = jsonDecode(response.data);
       return resp['dictionary']['version'] as int;
     }
 

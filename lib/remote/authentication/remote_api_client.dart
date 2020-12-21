@@ -1,5 +1,5 @@
+import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
-import 'package:http/http.dart' as http;
 import 'dart:convert';
 
 import 'package:lets_play_cities/remote/models.dart';
@@ -7,29 +7,26 @@ import 'package:lets_play_cities/remote/auth.dart';
 
 /// Remote server REST-api client
 class RemoteLpsApiClient extends LpsApiClient {
-  final String _serverUrl;
-  final http.Client _httpClient;
+  final Dio _httpClient;
   final Credential _credential;
 
-  const RemoteLpsApiClient(this._serverUrl, this._httpClient, this._credential)
-      : assert(_serverUrl != null),
-        assert(_httpClient != null);
+  const RemoteLpsApiClient(this._httpClient, this._credential)
+      : assert(_httpClient != null);
 
   @override
   Future<ClientAccountInfo> signUp(RemoteSignInData data) async {
     var responseBody = json.encode(data.toMap());
-    var response =
-        await _httpClient.post('$_serverUrl/user/', body: responseBody);
+    final response = await _httpClient.post('/user/', data: responseBody);
 
     if (response.statusCode != 200) {
       throw AuthorizationException.fromStatus(
-          response.reasonPhrase, response.statusCode);
+          response.statusMessage, response.statusCode);
     }
 
     try {
-      final decoded = json.decode(response.body);
+      final decoded = json.decode(response.data);
       final responseData = RemoteSignInResponse.fromMap(decoded);
-      return responseData.toClientInfo(_serverUrl);
+      return responseData.toClientInfo(_httpClient.options.baseUrl);
     } catch (e) {
       throw FetchingException('Response error. \n$e');
     }
@@ -53,10 +50,8 @@ class RemoteLpsApiClient extends LpsApiClient {
 
     return _decodeJson(
       await _httpClient.get(
-        targetId == null
-            ? '$_serverUrl/$urlPostfix/'
-            : '$_serverUrl/$urlPostfix/$targetId',
-        headers: _credential.asAuthorizationHeader(),
+        targetId == null ? '/$urlPostfix/' : '/$urlPostfix/$targetId',
+        options: Options(headers: _credential.asAuthorizationHeader()),
       ),
     ) as List<dynamic>;
   }
@@ -67,8 +62,8 @@ class RemoteLpsApiClient extends LpsApiClient {
 
     _requireOK(
       await _httpClient.put(
-        '$_serverUrl/blacklist/$userId',
-        headers: _credential.asAuthorizationHeader(),
+        '/blacklist/$userId',
+        options: Options(headers: _credential.asAuthorizationHeader()),
       ),
     );
   }
@@ -79,8 +74,8 @@ class RemoteLpsApiClient extends LpsApiClient {
 
     _requireOK(
       await _httpClient.delete(
-        '$_serverUrl/blacklist/$userId',
-        headers: _credential.asAuthorizationHeader(),
+        '/blacklist/$userId',
+        options: Options(headers: _credential.asAuthorizationHeader()),
       ),
     );
   }
@@ -91,8 +86,8 @@ class RemoteLpsApiClient extends LpsApiClient {
 
     _requireOK(
       await _httpClient.delete(
-        '$_serverUrl/friend/$friendId',
-        headers: _credential.asAuthorizationHeader(),
+        '/friend/$friendId',
+        options: Options(headers: _credential.asAuthorizationHeader()),
       ),
     );
   }
@@ -103,8 +98,8 @@ class RemoteLpsApiClient extends LpsApiClient {
 
     _requireOK(
       await _httpClient.put(
-        '$_serverUrl/friend/request/$friendId/${describeEnum(requestType)}',
-        headers: _credential.asAuthorizationHeader(),
+        '/friend/request/$friendId/${describeEnum(requestType)}',
+        options: Options(headers: _credential.asAuthorizationHeader()),
       ),
     );
   }
@@ -118,8 +113,8 @@ class RemoteLpsApiClient extends LpsApiClient {
     return ProfileInfo.fromJson(
       _decodeJson(
         await _httpClient.get(
-          '$_serverUrl/user/$targetId',
-          headers: _credential.asAuthorizationHeader(),
+          '/user/$targetId',
+          options: Options(headers: _credential.asAuthorizationHeader()),
         ),
       ),
     );
@@ -131,18 +126,18 @@ class RemoteLpsApiClient extends LpsApiClient {
     }
   }
 
-  void _requireOK(http.Response response) {
+  void _requireOK(Response response) {
     if (response.statusCode != 200) {
       throw AuthorizationException.fromStatus(
-          response.reasonPhrase, response.statusCode);
+          response.statusMessage, response.statusCode);
     }
   }
 
-  dynamic _decodeJson(http.Response response, {bool requireOK = true}) {
+  dynamic _decodeJson(Response response, {bool requireOK = true}) {
     if (requireOK) _requireOK(response);
 
     try {
-      return json.decode(response.body);
+      return response.data;
     } catch (e) {
       throw FetchingException('JSON decoding error. \n$e');
     }

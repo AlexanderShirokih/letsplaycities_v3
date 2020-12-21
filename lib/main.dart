@@ -1,5 +1,9 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:lets_play_cities/remote/remote_module.dart';
 
 import 'package:lets_play_cities/themes/theme.dart' as theme;
 import 'package:lets_play_cities/base/preferences.dart';
@@ -74,6 +78,9 @@ class LetsPlayCitiesApp extends StatelessWidget {
       .then((_) => _getRootDependencies());
 
   Future<_InitialData> _getRootDependencies() async {
+    await rootBundle.loadString('assets/cert/lps.pem').then((pem) {
+      HttpOverrides.global = MyHttpOverrides(pem);
+    });
     return _InitialData(
       localizations: await LocalizationsFactory().createDefaultLocalizations(),
       preferences:
