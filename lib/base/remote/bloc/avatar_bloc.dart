@@ -41,8 +41,7 @@ class AvatarBloc extends Bloc<AvatarEvent, AvatarState> {
     final pickedFile = await picker.getImage(source: source);
 
     if (pickedFile != null) {
-      await _accountManager.updatePicture(
-          pickedFile.readAsBytes());
+      await _accountManager.updatePicture(pickedFile.readAsBytes());
     } else {
       print('No image selected.');
     }
