@@ -42,8 +42,6 @@ class AvatarBloc extends Bloc<AvatarEvent, AvatarState> {
 
     if (pickedFile != null) {
       await _accountManager.updatePicture(pickedFile.readAsBytes());
-    } else {
-      print('No image selected.');
     }
   }
 
