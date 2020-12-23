@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'dart:async';
 
@@ -26,7 +24,6 @@ part 'game_events.dart';
 part 'game_states.dart';
 
 class GameBloc extends Bloc<GameStateEvent, GameLifecycleState> {
-  HttpClient _http;
   final GamePreferences _prefs;
   final LocalizationService _localizations;
   final GameMode _gameMode;
@@ -39,7 +36,6 @@ class GameBloc extends Bloc<GameStateEvent, GameLifecycleState> {
     if (state is GameState) {
       await (state as GameState).gameSessionRepository.finish();
     }
-    _http.close();
     return super.close();
   }
 
