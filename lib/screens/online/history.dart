@@ -46,7 +46,7 @@ class _OnlineHistoryScreenState extends State<OnlineHistoryScreen>
     return repo.getHistoryList(forceRefresh, targetId: _getTargetId(account));
   }
 
-  int _getTargetId(RemoteAccountInfo account) =>
+  int _getTargetId(RemoteAccount account) =>
       widget.targetId != null && account.credential.userId != widget.targetId
           ? widget.targetId
           : null;

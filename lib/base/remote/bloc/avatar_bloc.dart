@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:lets_play_cities/remote/account_manager.dart';
+import 'package:lets_play_cities/remote/api_repository.dart';
 
 part 'avatar_event.dart';
 
@@ -12,10 +12,10 @@ part 'avatar_state.dart';
 /// BLoc that handles user picture actions
 class AvatarBloc extends Bloc<AvatarEvent, AvatarState> {
   final picker = ImagePicker();
-  final AccountManager _accountManager;
+  final ApiRepository _apiRepository;
 
-  AvatarBloc(this._accountManager)
-      : assert(_accountManager != null),
+  AvatarBloc(this._apiRepository)
+      : assert(_apiRepository != null),
         super(AvatarInitial());
 
   @override
@@ -41,11 +41,11 @@ class AvatarBloc extends Bloc<AvatarEvent, AvatarState> {
     final pickedFile = await picker.getImage(source: source);
 
     if (pickedFile != null) {
-      await _accountManager.updatePicture(pickedFile.readAsBytes());
+      await _apiRepository.updatePicture(pickedFile.readAsBytes());
     }
   }
 
   Stream<AvatarState> removeImage() async* {
-    await _accountManager.removePicture();
+    await _apiRepository.removePicture();
   }
 }

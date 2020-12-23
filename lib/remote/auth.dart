@@ -1,2 +1,2 @@
-export 'authentication/authentication.dart';
-export 'authentication/remote_api_client.dart';
+export 'authentication.dart';
+export 'remote_api_client.dart';

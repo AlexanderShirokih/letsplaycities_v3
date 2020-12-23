@@ -3,7 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:lets_play_cities/base/remote/bloc/avatar_bloc.dart';
 import 'package:lets_play_cities/l18n/localization_service.dart';
-import 'package:lets_play_cities/remote/account_manager.dart';
+import 'package:lets_play_cities/remote/api_repository.dart';
 import 'package:lets_play_cities/screens/common/common_widgets.dart';
 
 /// Used to update or delete user avatar
@@ -11,8 +11,8 @@ class AvatarChooserView extends StatelessWidget {
   final LocalizationService l10n;
   final AvatarBloc _avatarBloc;
 
-  AvatarChooserView(this.l10n, AccountManager accountManager)
-      : _avatarBloc = AvatarBloc(accountManager);
+  AvatarChooserView(this.l10n, ApiRepository apiRepository)
+      : _avatarBloc = AvatarBloc(apiRepository);
 
   @override
   Widget build(BuildContext context) {

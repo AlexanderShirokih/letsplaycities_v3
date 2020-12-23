@@ -1,5 +1,8 @@
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:flutter/material.dart';
+import 'package:lets_play_cities/remote/api_repository.dart';
+import 'package:lets_play_cities/remote/authentication.dart';
 
 import 'package:lets_play_cities/screens/common/utils.dart';
 import 'package:lets_play_cities/screens/online/profile.dart';
@@ -26,34 +29,37 @@ class _LoggedInOnlineGameMasterScreenState
   @override
   Widget build(BuildContext context) => buildWithLocalization(
         context,
-        (l10n) => Scaffold(
-          appBar: AppBar(
-            title: Text([
-              l10n.online['title'],
-              l10n.online['profile_tab'],
-            ][_tabId]),
-          ),
-          body: _tabs[_tabId],
-          bottomNavigationBar: withData<Widget, Color>(
-            Theme.of(context).primaryColor,
-            (color) => BottomNavigationBar(
-              currentIndex: _tabId,
-              elevation: 5.0,
-              items: [
-                BottomNavigationBarItem(
-                  icon: FaIcon(FontAwesomeIcons.dice),
-                  label: l10n.online['game_tab'],
-                  backgroundColor: color,
-                ),
-                BottomNavigationBarItem(
-                  icon: FaIcon(FontAwesomeIcons.userCircle),
-                  label: l10n.online['profile_tab'],
-                  backgroundColor: color,
-                ),
-              ],
-              onTap: (tabId) => setState(() {
-                _tabId = tabId;
-              }),
+        (l10n) => RepositoryProvider<ApiRepository>.value(
+          value: context.watch<RemoteAccount>().getApiRepository(),
+          child: Scaffold(
+            appBar: AppBar(
+              title: Text([
+                l10n.online['title'],
+                l10n.online['profile_tab'],
+              ][_tabId]),
+            ),
+            body: _tabs[_tabId],
+            bottomNavigationBar: withData<Widget, Color>(
+              Theme.of(context).primaryColor,
+              (color) => BottomNavigationBar(
+                currentIndex: _tabId,
+                elevation: 5.0,
+                items: [
+                  BottomNavigationBarItem(
+                    icon: FaIcon(FontAwesomeIcons.dice),
+                    label: l10n.online['game_tab'],
+                    backgroundColor: color,
+                  ),
+                  BottomNavigationBarItem(
+                    icon: FaIcon(FontAwesomeIcons.userCircle),
+                    label: l10n.online['profile_tab'],
+                    backgroundColor: color,
+                  ),
+                ],
+                onTap: (tabId) => setState(() {
+                  _tabId = tabId;
+                }),
+              ),
             ),
           ),
         ),

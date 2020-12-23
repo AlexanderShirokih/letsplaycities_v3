@@ -2,10 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:lets_play_cities/remote/account_manager.dart';
-import 'package:lets_play_cities/remote/api_repository.dart';
 import 'package:lets_play_cities/remote/auth.dart';
-import 'package:lets_play_cities/remote/remote_module.dart';
-import 'package:lets_play_cities/remote/stub_account_manager.dart';
+import 'package:lets_play_cities/remote/account_manager_impl.dart';
 import 'package:lets_play_cities/screens/common/common_widgets.dart';
 import 'package:lets_play_cities/screens/online/logged_in_game_master.dart';
 
@@ -21,24 +19,20 @@ class OnlineGameMasterScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) =>
       RepositoryProvider<AccountManager>.value(
-        value: StubAccountManager(),
+        value: AccountManagerImpl(),
         child: Builder(
           builder: (ctx) {
-            return ctx.watch<AccountManager>().isSignedIn()
-                ? FutureBuilder<RemoteAccountInfo>(
+            final accountManager = ctx.watch<AccountManager>();
+            return accountManager.isSignedIn()
+                ? FutureBuilder<RemoteAccount>(
                     future:
                         ctx.watch<AccountManager>().getLastSignedInAccount(),
                     builder: (context, lastSignedInAccount) {
                       if (!lastSignedInAccount.hasData) {
                         return LoadingView('...');
                       }
-                      return RepositoryProvider<ApiRepository>.value(
-                        value: ApiRepository(
-                          RemoteLpsApiClient(
-                            getDio(),
-                            lastSignedInAccount.requireData.credential,
-                          ),
-                        ),
+                      return RepositoryProvider<RemoteAccount>.value(
+                        value: lastSignedInAccount.requireData,
                         child: LoggedInOnlineGameMasterScreen(),
                       );
                     },

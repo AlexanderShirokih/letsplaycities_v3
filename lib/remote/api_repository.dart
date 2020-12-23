@@ -1,10 +1,12 @@
 import 'dart:collection';
+import 'dart:typed_data';
 
-import 'package:lets_play_cities/remote/auth.dart';
-import 'package:lets_play_cities/remote/model/friend_info.dart';
-import 'package:lets_play_cities/remote/model/history_info.dart';
-import 'package:lets_play_cities/remote/model/friend_request_type.dart';
+import 'package:lets_play_cities/base/remote/bloc/avatar_resize_mixin.dart';
+import 'package:lets_play_cities/remote/api_client.dart';
 import 'package:lets_play_cities/remote/model/blacklist_item_info.dart';
+import 'package:lets_play_cities/remote/model/friend_info.dart';
+import 'package:lets_play_cities/remote/model/friend_request_type.dart';
+import 'package:lets_play_cities/remote/model/history_info.dart';
 import 'package:lets_play_cities/remote/model/profile_info.dart';
 
 class _TargetedList<T> {
@@ -15,7 +17,7 @@ class _TargetedList<T> {
 }
 
 /// Repository class wrapping [LpsApiClient]
-class ApiRepository {
+class ApiRepository with AvatarResizeMixin {
   static const _kMaxProfilesCacheSize = 12;
 
   final LpsApiClient _client;
@@ -115,4 +117,14 @@ class ApiRepository {
     }
     return profile;
   }
+
+  /// Updates picture for currently logged account
+  Future<void> updatePicture(Future<Uint8List> imageData) async {
+    // Create thumbnail
+    final thumbnail = await createThumbnail(await imageData);
+    await _client.updatePicture(thumbnail);
+  }
+
+  /// Removes user picture from currently logged account
+  Future<void> removePicture() => _client.removePicture();
 }

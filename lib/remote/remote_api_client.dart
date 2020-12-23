@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'dart:convert';
 
+import 'package:lets_play_cities/remote/api_client.dart';
 import 'package:lets_play_cities/remote/models.dart';
 import 'package:lets_play_cities/remote/auth.dart';
 
@@ -142,6 +143,18 @@ class RemoteLpsApiClient extends LpsApiClient {
       throw FetchingException('JSON decoding error. \n$e');
     }
   }
+
+  @override
+  Future removePicture() {
+    // TODO: implement removePicture
+    throw UnimplementedError();
+  }
+
+  @override
+  Future updatePicture(List<int> thumbnail) {
+    // TODO: implement updatePicture
+    throw UnimplementedError();
+  }
 }
 
 class RemoteSignInResponse {
@@ -177,8 +190,7 @@ class RemoteSignInResponse {
         role: UserRoleExtension.fromString(data['state']),
       );
 
-  ClientAccountInfo toClientInfo(String avatarLookupServer) =>
-      RemoteAccountInfo(
+  ClientAccountInfo toClientInfo(String avatarLookupServer) => RemoteAccount(
         credential: Credential(userId: userId, accessToken: accessToken),
         name: login,
         pictureUri:

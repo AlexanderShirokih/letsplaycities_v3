@@ -44,10 +44,10 @@ class OnlineProfileView extends StatefulWidget {
           body: MultiRepositoryProvider(
             providers: [
               RepositoryProvider.value(
-                value: context.watch<ApiRepository>(),
+                value: context.read<ApiRepository>(),
               ),
               RepositoryProvider.value(
-                value: context.watch<AccountManager>(),
+                value: context.read<AccountManager>(),
               ),
             ],
             child: OnlineProfileView(
@@ -66,7 +66,7 @@ class _OnlineProfileViewState extends State<OnlineProfileView>
   bool _shouldUpdate = false;
 
   @override
-  Widget build(BuildContext context) => FutureBuilder<RemoteAccountInfo>(
+  Widget build(BuildContext context) => FutureBuilder<RemoteAccount>(
         future: context.watch<AccountManager>().getLastSignedInAccount(),
         builder: (context, account) {
           if (!account.hasData) return LoadingView('...');
@@ -155,7 +155,7 @@ class _OnlineProfileViewState extends State<OnlineProfileView>
                         context: context,
                         builder: (_) => AvatarChooserView(
                           l10n,
-                          context.read<AccountManager>(),
+                          context.read<ApiRepository>(),
                         ),
                       )
                   : null,
@@ -374,7 +374,7 @@ class _OnlineProfileViewState extends State<OnlineProfileView>
     }
   }
 
-  bool _isOwner(RemoteAccountInfo account) =>
+  bool _isOwner(RemoteAccount account) =>
       widget.targetId == null || widget.targetId == account.credential.userId;
 }
 
