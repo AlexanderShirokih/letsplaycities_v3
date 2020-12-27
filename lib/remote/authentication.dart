@@ -115,9 +115,10 @@ class AuthorizationException implements Exception {
 /// Used when error happens during API fetch requests
 class FetchingException implements Exception {
   final String message;
+  final Uri uri;
 
-  FetchingException(this.message) : assert(message != null);
+  FetchingException(this.message, this.uri) : assert(message != null);
 
   @override
-  String toString() => 'Fetching exception: $message';
+  String toString() => 'Fetching exception: $message, URL: $uri';
 }

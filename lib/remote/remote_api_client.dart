@@ -1,7 +1,9 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
+import 'package:crypto/crypto.dart' as crypto;
 import 'dart:convert';
 
+import 'package:http_parser/http_parser.dart' as http_parser;
 import 'package:lets_play_cities/remote/api_client.dart';
 import 'package:lets_play_cities/remote/models.dart';
 import 'package:lets_play_cities/remote/auth.dart';
@@ -29,7 +31,7 @@ class RemoteLpsApiClient extends LpsApiClient {
       final responseData = RemoteSignInResponse.fromMap(decoded);
       return responseData.toClientInfo(_httpClient.options.baseUrl);
     } catch (e) {
-      throw FetchingException('Response error. \n$e');
+      throw FetchingException('Response error. \n$e', response.request.uri);
     }
   }
 
@@ -49,8 +51,8 @@ class RemoteLpsApiClient extends LpsApiClient {
   Future<List<dynamic>> _fetchList(String urlPostfix, [int targetId]) async {
     _requireCredential();
 
-    return _decodeJson(
-      await _httpClient.get(
+    return await _decodeJson(
+      () => _httpClient.get(
         targetId == null ? '/$urlPostfix/' : '/$urlPostfix/$targetId',
         options: Options(headers: _credential.asAuthorizationHeader()),
       ),
@@ -61,8 +63,8 @@ class RemoteLpsApiClient extends LpsApiClient {
   Future addToBanlist(int userId) async {
     _requireCredential();
 
-    _requireOK(
-      await _httpClient.put(
+    await _requireOK(
+      () => _httpClient.put(
         '/blacklist/$userId',
         options: Options(headers: _credential.asAuthorizationHeader()),
       ),
@@ -73,8 +75,8 @@ class RemoteLpsApiClient extends LpsApiClient {
   Future removeFromBanlist(int userId) async {
     _requireCredential();
 
-    _requireOK(
-      await _httpClient.delete(
+    await _requireOK(
+      () => _httpClient.delete(
         '/blacklist/$userId',
         options: Options(headers: _credential.asAuthorizationHeader()),
       ),
@@ -85,8 +87,8 @@ class RemoteLpsApiClient extends LpsApiClient {
   Future deleteFriend(int friendId) async {
     _requireCredential();
 
-    _requireOK(
-      await _httpClient.delete(
+    await _requireOK(
+      () => _httpClient.delete(
         '/friend/$friendId',
         options: Options(headers: _credential.asAuthorizationHeader()),
       ),
@@ -97,8 +99,8 @@ class RemoteLpsApiClient extends LpsApiClient {
   Future sendFriendRequest(int friendId, FriendRequestType requestType) async {
     _requireCredential();
 
-    _requireOK(
-      await _httpClient.put(
+    await _requireOK(
+      () => _httpClient.put(
         '/friend/request/$friendId/${describeEnum(requestType)}',
         options: Options(headers: _credential.asAuthorizationHeader()),
       ),
@@ -112,13 +114,54 @@ class RemoteLpsApiClient extends LpsApiClient {
     targetId ??= _credential.userId;
 
     return ProfileInfo.fromJson(
-      _decodeJson(
-        await _httpClient.get(
+      await _decodeJson(
+        () => _httpClient.get(
           '/user/$targetId',
           options: Options(headers: _credential.asAuthorizationHeader()),
         ),
       ),
     );
+  }
+
+  @override
+  Future removePicture() async {
+    _requireCredential();
+    await _requireOK(
+      () => _httpClient.delete(
+        '/user/picture',
+        options: Options(headers: _credential.asAuthorizationHeader()),
+      ),
+    );
+  }
+
+  @override
+  Future updatePicture(List<int> thumbnail, String contentType) async {
+    _requireCredential();
+
+    final hash = _getHash(thumbnail);
+    final extension = contentType.replaceAll('/', '').replaceAll('image', '');
+    final form = FormData.fromMap({
+      'hash': hash,
+      'imageFile': MultipartFile.fromBytes(
+        thumbnail,
+        filename: '$hash.$extension',
+        contentType: http_parser.MediaType.parse(contentType),
+      ),
+    });
+
+    await _requireOK(
+      () => _httpClient.post(
+        '/user/picture/upload',
+        options: Options(headers: _credential.asAuthorizationHeader()),
+        data: form,
+      ),
+    );
+  }
+
+  String _getHash(List<int> data) {
+    var md5 = crypto.md5;
+    var digest = md5.convert(data);
+    return digest.toString();
   }
 
   void _requireCredential() {
@@ -127,33 +170,45 @@ class RemoteLpsApiClient extends LpsApiClient {
     }
   }
 
-  void _requireOK(Response response) {
-    if (response.statusCode != 200) {
-      throw AuthorizationException.fromStatus(
-          response.statusMessage, response.statusCode);
-    }
-  }
-
-  dynamic _decodeJson(Response response, {bool requireOK = true}) {
-    if (requireOK) _requireOK(response);
-
+  Future<Response<dynamic>> _requireOK(
+    Future<Response> Function() responseSupplier,
+  ) async {
     try {
-      return response.data;
-    } catch (e) {
-      throw FetchingException('JSON decoding error. \n$e');
+      final response = await responseSupplier();
+      if (response.statusCode != 200) {
+        throw AuthorizationException.fromStatus(
+            response.statusMessage, response.statusCode);
+      }
+      return response;
+    } on DioError catch (e, s) {
+      print('API Error: $e,\n at: $s');
+
+      var description = 'no description';
+
+      try {
+        final mappedData = e.response.data as Map<String, dynamic>;
+        final error = mappedData['error'];
+        if (error != null) {
+          description = error;
+        }
+      } catch (_) {}
+
+      throw FetchingException(
+          '${e.message}, error=$description', e.request.uri);
     }
   }
 
-  @override
-  Future removePicture() {
-    // TODO: implement removePicture
-    throw UnimplementedError();
-  }
-
-  @override
-  Future updatePicture(List<int> thumbnail) {
-    // TODO: implement updatePicture
-    throw UnimplementedError();
+  Future<dynamic> _decodeJson(Future<Response> Function() response,
+      {bool requireOK = true}) async {
+    try {
+      if (requireOK) {
+        return (await _requireOK(response)).data;
+      } else {
+        return (await response()).data;
+      }
+    } on DioError catch (e) {
+      throw FetchingException('JSON decoding error. \n$e', e.request.uri);
+    }
   }
 }
 

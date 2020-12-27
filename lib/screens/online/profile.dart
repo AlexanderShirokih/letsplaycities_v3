@@ -156,6 +156,9 @@ class _OnlineProfileViewState extends State<OnlineProfileView>
                         builder: (_) => AvatarChooserView(
                           l10n,
                           context.read<ApiRepository>(),
+                          onAvatarUpdated: () => setState(() {
+                            _shouldUpdate = true;
+                          }),
                         ),
                       )
                   : null,

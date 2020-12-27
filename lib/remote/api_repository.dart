@@ -120,9 +120,8 @@ class ApiRepository with AvatarResizeMixin {
 
   /// Updates picture for currently logged account
   Future<void> updatePicture(Future<Uint8List> imageData) async {
-    // Create thumbnail
     final thumbnail = await createThumbnail(await imageData);
-    await _client.updatePicture(thumbnail);
+    await _client.updatePicture(thumbnail, 'image/png');
   }
 
   /// Removes user picture from currently logged account

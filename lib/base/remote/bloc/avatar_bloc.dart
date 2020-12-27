@@ -33,19 +33,23 @@ class AvatarBloc extends Bloc<AvatarEvent, AvatarState> {
         yield* getImage(ImageSource.camera);
         break;
     }
-
-    yield AvatarDoneState();
   }
 
   Stream<AvatarState> getImage(ImageSource source) async* {
     final pickedFile = await picker.getImage(source: source);
 
     if (pickedFile != null) {
+      yield AvatarLoadingState();
       await _apiRepository.updatePicture(pickedFile.readAsBytes());
+      yield AvatarDoneState(true);
+    } else {
+      yield AvatarDoneState();
     }
   }
 
   Stream<AvatarState> removeImage() async* {
+    yield AvatarLoadingState();
     await _apiRepository.removePicture();
+    yield AvatarDoneState(true);
   }
 }

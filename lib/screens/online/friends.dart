@@ -154,7 +154,7 @@ class _OnlineFriendsScreenState extends State<OnlineFriendsScreen>
 
   @override
   Widget getOnListEmptyPlaceHolder(BuildContext context) => Text(
-        readWithLocalization(
+        buildWithLocalization(
             context, (l10n) => l10n.online['no_friends_placeholder']),
         textAlign: TextAlign.center,
         style: withData<TextStyle, TextTheme>(

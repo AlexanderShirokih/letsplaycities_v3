@@ -43,7 +43,7 @@ abstract class LpsApiClient {
   Future<ProfileInfo> getProfileInfo(int targetId);
 
   /// Updates picture for currently logged account
-  Future updatePicture(List<int> thumbnail);
+  Future updatePicture(List<int> thumbnail, String imageType);
 
   /// Removes user picture from currently logged account
   Future removePicture();
