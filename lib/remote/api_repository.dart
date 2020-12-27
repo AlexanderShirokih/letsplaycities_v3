@@ -41,6 +41,10 @@ class ApiRepository with AvatarResizeMixin {
     return _cachedFriendsList;
   }
 
+  void _invalidateFriendsList() {
+    _cachedFriendsList = null;
+  }
+
   /// Deletes friend from friend list.
   Future deleteFriend(BaseProfileInfo friend) => _client
       .deleteFriend(friend.userId)
@@ -48,14 +52,17 @@ class ApiRepository with AvatarResizeMixin {
 
   /// Accepts or denies input friendship request from user [friendId]
   Future sendFriendRequestAcceptance(BaseProfileInfo friend, bool isAccepted) =>
-      _client.sendFriendRequest(
-        friend.userId,
-        isAccepted ? FriendRequestType.ACCEPT : FriendRequestType.DENY,
-      );
+      _client
+          .sendFriendRequest(
+            friend.userId,
+            isAccepted ? FriendRequestType.ACCEPT : FriendRequestType.DENY,
+          )
+          .then((_) => _invalidateFriendsList());
 
   /// Sends new friendship request
-  Future sendNewFriendshipRequest(BaseProfileInfo target) =>
-      _client.sendFriendRequest(target.userId, FriendRequestType.SEND);
+  Future sendNewFriendshipRequest(BaseProfileInfo target) => _client
+      .sendFriendRequest(target.userId, FriendRequestType.SEND)
+      .then((_) => _cachedProfilesInfo?.remove(target));
 
   /// Gets user battle history.
   /// Network request will used only first time or when [forceRefresh] is `true`
@@ -69,7 +76,9 @@ class ApiRepository with AvatarResizeMixin {
       orElse: () => null,
     );
 
-    if (battleHistory == null || forceRefresh) {
+    final noHistory = battleHistory == null;
+
+    if (noHistory || forceRefresh) {
       if (_cachedHistoriesInfo.length == _kMaxProfilesCacheSize) {
         _cachedHistoriesInfo.removeLast();
       }
@@ -77,7 +86,10 @@ class ApiRepository with AvatarResizeMixin {
         target.userId,
         await _client.getHistoryList(target.userId),
       );
-      _cachedHistoriesInfo.add(battleHistory);
+
+      if(!noHistory) {
+        _cachedHistoriesInfo.add(battleHistory);
+      }
     }
     return battleHistory.data;
   }

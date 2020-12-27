@@ -3,11 +3,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:intl/intl.dart';
 
+import 'package:lets_play_cities/base/remote/bloc/user_actions_bloc.dart';
 import 'package:lets_play_cities/l18n/localization_service.dart';
-import 'package:lets_play_cities/remote/account_manager.dart';
-import 'package:lets_play_cities/remote/api_repository.dart';
 import 'package:lets_play_cities/remote/auth.dart';
-import 'package:lets_play_cities/remote/model/profile_info.dart';
 import 'package:lets_play_cities/screens/common/common_widgets.dart';
 import 'package:lets_play_cities/screens/common/utils.dart';
 import 'package:lets_play_cities/screens/online/banlist.dart';
@@ -21,10 +19,10 @@ import 'avatars/avatar_chooser.dart';
 
 /// Shows user profile
 class OnlineProfileView extends StatefulWidget {
-  /// Profile owner id. If `null` than current authorized user will be used
-  final int targetId;
+  /// Profile owner. If `null` then current authorized user will be used
+  final BaseProfileInfo target;
 
-  const OnlineProfileView({this.targetId, Key key}) : super(key: key);
+  const OnlineProfileView({this.target, Key key}) : super(key: key);
 
   @override
   _OnlineProfileViewState createState() => _OnlineProfileViewState();
@@ -32,7 +30,7 @@ class OnlineProfileView extends StatefulWidget {
   /// Creates navigation route for [OnlineProfileView] wrapped in [Scaffold].
   /// [context] must contain [ApiRepository] and [AccountManager] injected
   /// with [RepositoryProvider] in the widget tree.
-  static Route createRoute(BuildContext context, {int targetId}) =>
+  static Route createRoute(BuildContext context, {BaseProfileInfo target}) =>
       MaterialPageRoute(
         builder: (ctx) => Scaffold(
           appBar: AppBar(
@@ -51,7 +49,7 @@ class OnlineProfileView extends StatefulWidget {
               ),
             ],
             child: OnlineProfileView(
-              targetId: targetId,
+              target: target,
             ),
           ),
         ),
@@ -74,15 +72,14 @@ class _OnlineProfileViewState extends State<OnlineProfileView>
           return withData<Widget, ApiRepository>(
             context.watch<ApiRepository>(),
             (repo) => RefreshIndicator(
-              onRefresh: () async => setState(() {
-                _shouldUpdate = true;
-              }),
+              onRefresh: () async => _update(),
               child: Stack(
                 children: [
                   Positioned.fill(
                     child: FutureBuilder<ProfileInfo>(
-                      future:
-                          repo.getProfileInfo(widget.targetId, _shouldUpdate),
+                      future: repo.getProfileInfo(
+                          widget.target ?? account.data.baseProfileInfo,
+                          _shouldUpdate),
                       builder: (context, snap) {
                         if (snap.hasData) {
                           _shouldUpdate = false;
@@ -156,14 +153,11 @@ class _OnlineProfileViewState extends State<OnlineProfileView>
                         builder: (_) => AvatarChooserView(
                           l10n,
                           context.read<ApiRepository>(),
-                          onAvatarUpdated: () => setState(() {
-                            _shouldUpdate = true;
-                          }),
+                          onAvatarUpdated: () => _update(),
                         ),
                       )
                   : null,
-              child:
-                  buildAvatar(data.userId, data.login, data.pictureUrl, 60.0),
+              child: buildAvatar(data, 60.0),
             ),
           ),
           Padding(
@@ -191,15 +185,49 @@ class _OnlineProfileViewState extends State<OnlineProfileView>
   Iterable<Widget> _buildActionsBlock(bool isOwner, ProfileInfo data,
       BuildContext context, LocalizationService l10n) sync* {
     if (isOwner) return;
-    yield Container(
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        children: [
-          _getFriendshipButton(data, context, l10n),
-          _getFriendRequestButton(data, context, l10n),
-        ],
-      ),
+
+    final userActionsBloc = UserActionsBloc(context.watch<ApiRepository>());
+
+    yield BlocConsumer<UserActionsBloc, UserActionsState>(
+      cubit: userActionsBloc,
+      builder: (context, state) {
+        if (state is UserActionDoneState && state.error != null) {
+          return showError(context, state.error);
+        }
+        final isProcessing = state is UserProcessingActionState;
+        return Container(
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              _getFriendshipButton(
+                  data, context, userActionsBloc, l10n, isProcessing),
+              _getFriendRequestButton(
+                  data, context, userActionsBloc, l10n, isProcessing),
+            ],
+          ),
+        );
+      },
+      listener: (context, state) {
+        if (state is UserActionConfirmationState) {
+          showUndoSnackbar(
+            context,
+            state.sourceEvent.confirmationMessage,
+            onComplete: () => userActionsBloc.add(state.sourceEvent),
+          );
+        } else if (state is UserActionDoneState) {
+          final message = state.sourceEvent.confirmationMessage;
+          if (message != null) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                duration: const Duration(seconds: 3),
+                content: Text(state.sourceEvent.confirmationMessage),
+              ),
+            );
+          }
+          _update();
+        }
+      },
     );
     yield const Divider(height: 18.0, thickness: 1.0);
   }
@@ -264,35 +292,66 @@ class _OnlineProfileViewState extends State<OnlineProfileView>
       );
 
   Widget _getFriendshipButton(
-      ProfileInfo data, BuildContext context, LocalizationService l10n) {
+    ProfileInfo data,
+    BuildContext context,
+    UserActionsBloc bloc,
+    LocalizationService l10n,
+    bool disabled,
+  ) {
     switch (data.friendshipStatus) {
       case FriendshipStatus.notFriends:
-        return _createButton(l10n.online['add_to_friend'], () {
-          //TODO: Add to friends
-        });
+        return _createButton(
+            l10n.online['add_to_friend'],
+            disabled
+                ? null
+                : () => bloc.add(UserEvent(
+                      data,
+                      UserUserAction.addToFriends,
+                    )));
       case FriendshipStatus.friends:
-        return _createButton(l10n.online['remove_from_friends'], () {
-          //TODO: Remove from friends
-        });
+        return _createButton(
+            l10n.online['remove_from_friends'],
+            disabled
+                ? null
+                : () => bloc
+                    .add(UserEvent(data, UserUserAction.removeFromFriends)));
 
       case FriendshipStatus.inputRequest:
-        return _createButton(l10n.online['cancel_friendship_request'], () {
-          //TODO: Cancel request
-        });
+        return _createButton(
+            l10n.online['cancel_friendship_request'],
+            disabled
+                ? null
+                : () =>
+                    bloc.add(UserEvent(data, UserUserAction.cancelRequest)));
       case FriendshipStatus.outputRequest:
-        return _AcceptOrDeclineButton(l10n);
+        return _AcceptOrDeclineButton(
+          l10n,
+          onResult: disabled
+              ? null
+              : (isAccepted) => bloc.add(UserEvent(
+                    data,
+                    isAccepted
+                        ? UserUserAction.acceptRequest
+                        : UserUserAction.declineRequest,
+                  )),
+        );
       default:
         throw ('Can\'t show friendship button for itself');
     }
   }
 
   Widget _getFriendRequestButton(
-          ProfileInfo data, BuildContext context, LocalizationService l10n) =>
+    ProfileInfo data,
+    BuildContext context,
+    UserActionsBloc bloc,
+    LocalizationService l10n,
+    bool disabled,
+  ) =>
       _createButton(
         l10n.online['invite'],
-        () {
-          // TODO: Handle invite button
-        },
+        disabled
+            ? null
+            : () => bloc.add(UserEvent(data, UserUserAction.invite)),
       );
 
   ShapeBorder _createRoundedBorder() => RoundedRectangleBorder(
@@ -357,7 +416,7 @@ class _OnlineProfileViewState extends State<OnlineProfileView>
         style: Theme.of(context).textTheme.headline6,
       ),
     );
-    yield OnlineHistoryScreen(targetId: widget.targetId, embedded: true);
+    yield OnlineHistoryScreen(target: widget.target, embedded: true);
     yield const Divider(height: 18.0, thickness: 1.0);
   }
 
@@ -377,14 +436,20 @@ class _OnlineProfileViewState extends State<OnlineProfileView>
     }
   }
 
+  void _update() => setState(() {
+        _shouldUpdate = true;
+      });
+
   bool _isOwner(RemoteAccount account) =>
-      widget.targetId == null || widget.targetId == account.credential.userId;
+      widget.target == null ||
+      widget.target.userId == account.credential.userId;
 }
 
 class _AcceptOrDeclineButton extends StatefulWidget {
   final LocalizationService l10n;
+  final void Function(bool) onResult;
 
-  const _AcceptOrDeclineButton(this.l10n);
+  const _AcceptOrDeclineButton(this.l10n, {@required this.onResult});
 
   @override
   __AcceptOrDeclineButtonState createState() =>
@@ -412,17 +477,19 @@ class __AcceptOrDeclineButtonState extends State<_AcceptOrDeclineButton> {
         child: DropdownButton(
             value: _selected,
             elevation: 5,
-            items: [0, 1]
-                .map((e) => DropdownMenuItem(
-                    value: e,
-                    child: Text(
-                      _values[e],
-                      style: Theme.of(context).textTheme.bodyText1,
-                    )))
-                .toList(),
+            items: widget.onResult == null
+                ? null
+                : [0, 1]
+                    .map((e) => DropdownMenuItem(
+                        value: e,
+                        child: Text(
+                          _values[e],
+                          style: Theme.of(context).textTheme.bodyText1,
+                        )))
+                    .toList(),
             onChanged: (newValue) => setState(() {
                   _selected = newValue;
-                  // TODO: Accept or decline
+                  widget.onResult(newValue == 0);
                 })),
       );
 }
