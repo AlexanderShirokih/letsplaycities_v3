@@ -18,12 +18,12 @@ import 'package:lets_play_cities/utils/string_utils.dart';
 /// Requires [ApiRepository] and [AccountManager] repositories in the widget tree.
 class OnlineHistoryScreen extends StatefulWidget {
   /// Opponents id. If `null` then will showed all account owner history
-  final int targetId;
+  final BaseProfileInfo target;
 
   /// If `true` - column container will used instead of listview
   final bool embedded;
 
-  const OnlineHistoryScreen({this.targetId, this.embedded = false});
+  const OnlineHistoryScreen({this.target, this.embedded = false});
 
   @override
   _OnlineHistoryScreenState createState() => _OnlineHistoryScreenState();
@@ -43,13 +43,11 @@ class _OnlineHistoryScreenState extends State<OnlineHistoryScreen>
       ApiRepository repo, bool forceRefresh) async {
     final account =
         await context.read<AccountManager>().getLastSignedInAccount();
-    return repo.getHistoryList(forceRefresh, targetId: _getTargetId(account));
+    return repo.getHistoryList(forceRefresh, _getTargetProfile(account));
   }
 
-  int _getTargetId(RemoteAccount account) =>
-      widget.targetId != null && account.credential.userId != widget.targetId
-          ? widget.targetId
-          : null;
+  BaseProfileInfo _getTargetProfile(RemoteAccount account) =>
+      widget.target ?? account.baseProfileInfo;
 
   @override
   Widget getOnListEmptyPlaceHolder(BuildContext context) => Text(
@@ -71,19 +69,14 @@ class _OnlineHistoryScreenState extends State<OnlineHistoryScreen>
         child: ListTile(
           onTap: () => Navigator.push(
             context,
-            OnlineProfileView.createRoute(context, targetId: data.userId),
+            OnlineProfileView.createRoute(context, target: data),
           ),
           contentPadding: EdgeInsets.all(8.0),
           leading: Stack(
             alignment: Alignment.bottomRight,
             fit: StackFit.loose,
             children: [
-              buildAvatar(
-                data.userId,
-                data.login,
-                data.pictureUrl,
-                46.0,
-              ),
+              buildAvatar(data, 46.0),
               if (data.isFriend)
                 FaIcon(
                   FontAwesomeIcons.userFriends,

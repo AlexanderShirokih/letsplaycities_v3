@@ -1,19 +1,10 @@
-import 'package:equatable/equatable.dart';
+import 'package:lets_play_cities/remote/auth.dart';
 import 'package:meta/meta.dart';
 
 import 'package:lets_play_cities/remote/model/utils.dart';
 
 /// A data class describing battle history record
-class HistoryInfo extends Equatable {
-  /// Opponent user id
-  final int userId;
-
-  /// Opponent user name
-  final String login;
-
-  /// Opponent user picture URL
-  final String pictureUrl;
-
+class HistoryInfo extends BaseProfileInfo {
   /// `true` if this user is a friend to request owner
   final bool isFriend;
 
@@ -27,19 +18,18 @@ class HistoryInfo extends Equatable {
   final int wordsCount;
 
   const HistoryInfo._({
-    @required this.userId,
-    @required this.login,
+    @required int userId,
+    @required String login,
+    @required String pictureUrl,
     @required this.isFriend,
     @required this.startTime,
     @required this.duration,
     @required this.wordsCount,
-    @required this.pictureUrl,
-  })  : assert(login != null),
-        assert(userId != null),
-        assert(isFriend != null),
+  })  : assert(isFriend != null),
         assert(duration != null),
         assert(wordsCount != null),
-        assert(startTime != null);
+        assert(startTime != null),
+        super(userId: userId, login: login, pictureUrl: pictureUrl);
 
   HistoryInfo.fromJson(Map<String, dynamic> data)
       : this._(
@@ -54,9 +44,7 @@ class HistoryInfo extends Equatable {
 
   @override
   List<Object> get props => [
-        userId,
-        login,
-        pictureUrl,
+        ...super.props,
         isFriend,
         duration,
         wordsCount,

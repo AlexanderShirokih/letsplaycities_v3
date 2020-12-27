@@ -54,38 +54,54 @@ extension FriendshipStatusExt on FriendshipStatus {
       .singleWhere((element) => describeEnum(element) == s);
 }
 
-/// A data class describing information about user
-class ProfileInfo extends Equatable {
+/// A data class containing base user info
+class BaseProfileInfo extends Equatable {
   /// User id
   final int userId;
 
   /// User name
   final String login;
 
+  /// User picture URL. May be `null`
+  final String pictureUrl;
+
+  const BaseProfileInfo({
+    @required this.userId,
+    @required this.login,
+    @required this.pictureUrl,
+  })  : assert(login != null),
+        assert(userId != null);
+
+  @override
+  List<Object> get props => [userId, login];
+}
+
+/// A data class describing information about user
+class ProfileInfo extends BaseProfileInfo {
   /// Last date when user plays online game
   final DateTime lastVisitDate;
 
   /// Is friend request accepted
   final Role role;
 
-  /// Users profile picture url
-  final String pictureUrl;
-
   /// Friendship status between authorized user and this profile
   final FriendshipStatus friendshipStatus;
 
   const ProfileInfo._({
-    @required this.userId,
-    @required this.login,
-    @required this.pictureUrl,
+    @required int userId,
+    @required String login,
+    @required String pictureUrl,
     @required this.role,
     @required this.lastVisitDate,
     @required this.friendshipStatus,
   })  : assert(role != null),
-        assert(login != null),
-        assert(userId != null),
         assert(lastVisitDate != null),
-        assert(friendshipStatus != null);
+        assert(friendshipStatus != null),
+        super(
+          userId: userId,
+          login: login,
+          pictureUrl: pictureUrl,
+        );
 
   ProfileInfo.fromJson(Map<String, dynamic> data)
       : this._(
@@ -101,11 +117,9 @@ class ProfileInfo extends Equatable {
 
   @override
   List<Object> get props => [
-        userId,
-        login,
+        ...super.props,
         role,
         lastVisitDate,
-        pictureUrl,
         friendshipStatus,
       ];
 }

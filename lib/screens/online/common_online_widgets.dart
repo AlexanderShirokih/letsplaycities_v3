@@ -7,7 +7,7 @@ Widget showError(BuildContext context, String error) => buildWithLocalization(
       context,
       (l10n) => Stack(
         children: [
-          ListView(),
+          Container(height: 10.0, child: ListView()),
           Center(
             child: Padding(
               padding: const EdgeInsets.all(8.0),

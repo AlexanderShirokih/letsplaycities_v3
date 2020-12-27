@@ -101,35 +101,6 @@ mixin BaseListFetchingScreenMixin<T, W extends StatefulWidget> on State<W> {
         ),
       );
 
-  /// Shows a snackbar with optional undo action.
-  /// Calls [onComplete] if it's not null when a snackbar dismissed by timeout.
-  /// Calls [onUndo] if it's not null when undo button is pressed.
-  void showUndoSnackbar(String text,
-      {Future Function() onComplete, void Function() onUndo}) {
-    ScaffoldMessenger.of(context)
-        .showSnackBar(
-          SnackBar(
-            duration: const Duration(seconds: 3),
-            content: Text(text),
-            action: buildWithLocalization(
-              context,
-              (l10n) => onComplete == null
-                  ? null
-                  : SnackBarAction(
-                      label: l10n.cancel,
-                      onPressed: onUndo,
-                    ),
-            ),
-          ),
-        )
-        .closed
-        .then((reason) {
-      if (reason == SnackBarClosedReason.timeout) {
-        return onComplete?.call();
-      }
-    });
-  }
-
   @override
   Widget build(BuildContext context) => Container(
         child: RefreshIndicator(
@@ -170,7 +141,7 @@ mixin BaseListFetchingScreenMixin<T, W extends StatefulWidget> on State<W> {
 
   Widget _showPlaceholder(BuildContext context) => Stack(
         children: [
-          ListView(),
+          Container(height: 10.0, child: ListView()),
           Center(
             child: Padding(
               padding: const EdgeInsets.all(8.0),

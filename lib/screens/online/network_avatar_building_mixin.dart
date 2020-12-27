@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:lets_play_cities/remote/auth.dart';
 
 /// Contains utility functions to build avatars from the network
 mixin NetworkAvatarBuildingMixin {
@@ -13,27 +14,26 @@ mixin NetworkAvatarBuildingMixin {
   ];
 
   /// Creates [CircleAvatar] from [pictureUrl] if it's not `null` or builds
-  /// default text avatar from [login] initials
-  Widget buildAvatar(
-          int userId, String login, String pictureUrl, double radius) =>
-      pictureUrl == null
-          ? _buildTextAvatar(userId, login, 46.0)
+  /// default text avatar from [profile.login] initials
+  Widget buildAvatar(BaseProfileInfo profile, double radius) =>
+      profile.pictureUrl == null
+          ? _buildTextAvatar(profile, 46.0)
           : CircleAvatar(
               radius: 46.0,
-              key: ObjectKey(userId),
-              backgroundImage: NetworkImage(pictureUrl),
+              key: ObjectKey(profile),
+              backgroundImage: NetworkImage(profile.pictureUrl),
               backgroundColor: Colors.transparent,
             );
 
-  Widget _buildTextAvatar(int userId, String login, double radius) =>
+  Widget _buildTextAvatar(BaseProfileInfo profile, double radius) =>
       CircleAvatar(
         radius: 46.0,
-        key: ObjectKey(userId),
+        key: ObjectKey(profile),
         child: Text(
-          _getInitials(login),
+          _getInitials(profile.login),
           style: TextStyle(fontSize: 24.0),
         ),
-        backgroundColor: _colors[userId % _colors.length],
+        backgroundColor: _colors[profile.userId % _colors.length],
       );
 
   String _getInitials(String login) => login

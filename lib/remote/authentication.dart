@@ -89,6 +89,13 @@ class RemoteAccount extends ClientAccountInfo with EquatableMixin {
   @override
   List<Object> get props => [credential, name, picture];
 
+  /// Returns [BaseProfileInfo] for this account
+  BaseProfileInfo get baseProfileInfo => BaseProfileInfo(
+        userId: credential.userId,
+        login: name,
+        pictureUrl: (picture as NetworkPictureSource).pictureURL,
+      );
+
   /// Creates [ApiRepository] for this account
   ApiRepository getApiRepository() => ApiRepository(
         RemoteLpsApiClient(

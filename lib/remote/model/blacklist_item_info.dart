@@ -1,23 +1,21 @@
-import 'package:equatable/equatable.dart';
+import 'package:lets_play_cities/remote/auth.dart';
 import 'package:meta/meta.dart';
 
 import 'utils.dart';
 
 /// A data class describing banned user (blacklist entity)
-class BlackListItemInfo extends Equatable {
-  /// Banned user name
-  final String login;
-
+class BlackListItemInfo extends BaseProfileInfo {
   /// Banned user picture URL
-  final String pictureUrl;
 
-  /// Banned user id
-  final int userId;
-
-  const BlackListItemInfo._(
-      {@required this.userId, @required this.login, @required this.pictureUrl})
-      : assert(login != null),
-        assert(userId != null);
+  const BlackListItemInfo._({
+    @required int userId,
+    @required String login,
+    @required String pictureUrl,
+  }) : super(
+          userId: userId,
+          login: login,
+          pictureUrl: pictureUrl,
+        );
 
   BlackListItemInfo.fromJson(Map<String, dynamic> data)
       : this._(
@@ -25,7 +23,4 @@ class BlackListItemInfo extends Equatable {
           login: data['login'],
           pictureUrl: getPictureUrlOrNull(data['userId'], data['pictureHash']),
         );
-
-  @override
-  List<Object> get props => [userId, login, pictureUrl];
 }

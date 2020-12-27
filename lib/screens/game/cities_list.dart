@@ -3,7 +3,7 @@ import 'package:flutter/widgets.dart';
 import 'package:lets_play_cities/base/data.dart';
 import 'package:lets_play_cities/base/game/game_item.dart';
 import 'package:lets_play_cities/base/repositories/game_session_repo.dart';
-import 'package:lets_play_cities/screens/common/common_widgets.dart';
+import 'package:lets_play_cities/screens/common/utils.dart';
 import 'package:lets_play_cities/utils/string_utils.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 

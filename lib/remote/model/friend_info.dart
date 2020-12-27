@@ -1,19 +1,10 @@
-import 'package:equatable/equatable.dart';
+import 'package:lets_play_cities/remote/model/profile_info.dart';
 import 'package:meta/meta.dart';
 
 import 'package:lets_play_cities/remote/model/utils.dart';
 
 /// A data class describing users friend
-class FriendInfo extends Equatable {
-  /// Friend user name
-  final String login;
-
-  /// Friend user picture URL
-  final String pictureUrl;
-
-  /// Friend user id
-  final int userId;
-
+class FriendInfo extends BaseProfileInfo {
   /// Is friend request accepted
   final bool accepted;
 
@@ -21,15 +12,14 @@ class FriendInfo extends Equatable {
   final bool sender;
 
   const FriendInfo._({
-    @required this.userId,
-    @required this.login,
-    @required this.pictureUrl,
+    @required int userId,
+    @required String login,
+    @required String pictureUrl,
     @required this.accepted,
     @required this.sender,
-  })  : assert(login != null),
-        assert(userId != null),
-        assert(accepted != null),
-        assert(sender != null);
+  })  : assert(accepted != null),
+        assert(sender != null),
+        super(userId: userId, login: login, pictureUrl: pictureUrl);
 
   FriendInfo.fromJson(Map<String, dynamic> data)
       : this._(
@@ -41,7 +31,7 @@ class FriendInfo extends Equatable {
         );
 
   @override
-  List<Object> get props => [userId, login, accepted, pictureUrl];
+  List<Object> get props => [...super.props, userId, login, accepted];
 
   /// Creates copy of this object with ability to customize some fields values
   FriendInfo copy({bool accepted}) => FriendInfo._(

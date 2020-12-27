@@ -42,28 +42,30 @@ class ApiRepository with AvatarResizeMixin {
   }
 
   /// Deletes friend from friend list.
-  Future deleteFriend(int friendId) => _client.deleteFriend(friendId);
+  Future deleteFriend(BaseProfileInfo friend) => _client
+      .deleteFriend(friend.userId)
+      .then((_) => _cachedFriendsList?.remove(friend));
 
   /// Accepts or denies input friendship request from user [friendId]
-  Future sendFriendRequestAcceptance(int friendId, bool isAccepted) =>
+  Future sendFriendRequestAcceptance(BaseProfileInfo friend, bool isAccepted) =>
       _client.sendFriendRequest(
-        friendId,
+        friend.userId,
         isAccepted ? FriendRequestType.ACCEPT : FriendRequestType.DENY,
       );
 
   /// Sends new friendship request
-  Future sendNewFriendshipRequest(int targetId) =>
-      _client.sendFriendRequest(targetId, FriendRequestType.SEND);
+  Future sendNewFriendshipRequest(BaseProfileInfo target) =>
+      _client.sendFriendRequest(target.userId, FriendRequestType.SEND);
 
   /// Gets user battle history.
   /// Network request will used only first time or when [forceRefresh] is `true`
   /// in all the other cases cached instance of history list will be used.
-  /// If [targetId] is not `null` common history of logged-in user and [targetId]
-  /// will shown.
-  Future<List<HistoryInfo>> getHistoryList(bool forceRefresh,
-      {int targetId}) async {
+  Future<List<HistoryInfo>> getHistoryList(
+      bool forceRefresh, BaseProfileInfo target) async {
+    assert(target != null);
+
     var battleHistory = _cachedHistoriesInfo.singleWhere(
-      (element) => element.targetId == targetId,
+      (element) => element.targetId == target.userId,
       orElse: () => null,
     );
 
@@ -72,8 +74,8 @@ class ApiRepository with AvatarResizeMixin {
         _cachedHistoriesInfo.removeLast();
       }
       battleHistory = _TargetedList(
-        targetId,
-        await _client.getHistoryList(targetId),
+        target.userId,
+        await _client.getHistoryList(target.userId),
       );
       _cachedHistoriesInfo.add(battleHistory);
     }
@@ -90,31 +92,42 @@ class ApiRepository with AvatarResizeMixin {
     return _cachedBanList;
   }
 
-  /// Removes a user with [userId] from players ban list
-  Future removeFromBanlist(int userId) => _client.removeFromBanlist(userId);
+  /// Removes a user with [user] from players ban list
+  Future removeFromBanlist(BaseProfileInfo user) =>
+      _client.removeFromBanlist(user.userId);
 
-  /// Adds a user with [userId] to players ban list
-  Future addToBanlist(int userId) => _client.addToBanlist(userId);
+  /// Adds a user with [user] to players ban list
+  Future addToBanlist(BaseProfileInfo user) =>
+      _client.addToBanlist(user.userId);
 
   /// Fetches information about user profile
-  /// If [targetId] is passed profile info about that user will be fetched.
-  /// If [targetId] is null info about current user will be fetched
+  /// If [target] is passed profile info about that user will be fetched.
+  /// If [target] is null info about current user will be fetched
   /// Network request will used either on first time or when [forceRefresh] is
   /// `true` in all the other cases cached instance of profile info list will
   /// be used.
-  Future<ProfileInfo> getProfileInfo(int targetId, bool forceRefresh) async {
+  Future<ProfileInfo> getProfileInfo(
+      BaseProfileInfo target, bool forceRefresh) async {
+    assert(target != null);
+
     var profile = _cachedProfilesInfo.singleWhere(
-      (element) => element.userId == targetId,
+      (element) => element.userId == target.userId,
       orElse: () => null,
     );
 
-    if (profile == null || forceRefresh) {
+    final noProfile = profile == null;
+
+    if (noProfile || forceRefresh) {
       if (_cachedProfilesInfo.length == _kMaxProfilesCacheSize) {
         _cachedProfilesInfo.removeLast();
       }
-      profile = await _client.getProfileInfo(targetId);
-      _cachedProfilesInfo.add(profile);
+
+      profile = await _client.getProfileInfo(target.userId);
+      if (!noProfile) {
+        _cachedProfilesInfo.add(profile);
+      }
     }
+
     return profile;
   }
 

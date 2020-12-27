@@ -4,6 +4,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:lets_play_cities/l18n/localization_service.dart';
 import 'package:lets_play_cities/remote/api_repository.dart';
 import 'package:lets_play_cities/remote/model/blacklist_item_info.dart';
+import 'package:lets_play_cities/screens/common/common_widgets.dart';
 import 'package:lets_play_cities/screens/common/utils.dart';
 import 'package:lets_play_cities/screens/online/profile.dart';
 
@@ -56,8 +57,9 @@ class _OnlineBanlistScreenState extends State<OnlineBanlistScreen>
             onDismissed: (_) {
               replace(data, null);
               showUndoSnackbar(
+                context,
                 l10n.online['banlist_entry_removed'],
-                onComplete: () => repo.removeFromBanlist(data.userId),
+                onComplete: () => repo.removeFromBanlist(data),
                 onUndo: () => insert(position, data),
               );
             },
@@ -92,15 +94,10 @@ class _OnlineBanlistScreenState extends State<OnlineBanlistScreen>
       ListTile(
         onTap: () => Navigator.push(
           context,
-          OnlineProfileView.createRoute(context, targetId: data.userId),
+          OnlineProfileView.createRoute(context, target: data),
         ),
         contentPadding: EdgeInsets.all(8.0),
-        leading: buildAvatar(
-          data.userId,
-          data.login,
-          data.pictureUrl,
-          46.0,
-        ),
+        leading: buildAvatar(data, 46.0),
         title: Text(data.login),
       );
 }

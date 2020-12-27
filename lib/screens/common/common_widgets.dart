@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import 'package:lets_play_cities/screens/common/utils.dart';
 import 'package:lets_play_cities/themes/theme.dart' as theme;
 
 /// Creates material button with [_text] on center and leading [_icon], if present.
@@ -85,8 +86,31 @@ class LoadingView extends StatelessWidget {
       );
 }
 
-/// Loads flag image from assets for [countryCode]
-Image createFlagImage(int countryCode) => Image.asset(
-      'assets/images/flags/flag_$countryCode.png',
-      height: 20.0,
-    );
+/// Shows a snackbar with optional undo action.
+/// Calls [onComplete] if it's not null when a snackbar dismissed by timeout.
+/// Calls [onUndo] if it's not null when undo button is pressed.
+void showUndoSnackbar(BuildContext context, String text,
+    {void Function() onComplete, void Function() onUndo}) {
+  ScaffoldMessenger.of(context)
+      .showSnackBar(
+        SnackBar(
+          duration: const Duration(seconds: 3),
+          content: Text(text),
+          action: readWithLocalization(
+            context,
+            (l10n) => onComplete == null
+                ? null
+                : SnackBarAction(
+                    label: l10n.cancel,
+                    onPressed: onUndo ?? () {},
+                  ),
+          ),
+        ),
+      )
+      .closed
+      .then((reason) {
+    if (reason == SnackBarClosedReason.timeout) {
+      return onComplete?.call();
+    }
+  });
+}
