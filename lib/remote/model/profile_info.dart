@@ -48,6 +48,26 @@ enum FriendshipStatus {
   owner,
 }
 
+enum BanStatus {
+  /// Neither user or owner bans each other
+  notBanned,
+
+  /// Owner was banned by user
+  inputBan,
+
+  /// This user banned by owner
+  outputBan,
+
+  /// There is owner profile
+  owner
+}
+
+extension BanStatusExt on BanStatus {
+  /// Converts string representation of this enum to enum constant
+  static BanStatus fromString(String s) =>
+      BanStatus.values.singleWhere((element) => describeEnum(element) == s);
+}
+
 extension FriendshipStatusExt on FriendshipStatus {
   /// Converts string representation of this enum to enum constant
   static FriendshipStatus fromString(String s) => FriendshipStatus.values
@@ -87,12 +107,16 @@ class ProfileInfo extends BaseProfileInfo {
   /// Friendship status between authorized user and this profile
   final FriendshipStatus friendshipStatus;
 
+  /// Ban status between authorized user and this profile
+  final BanStatus banStatus;
+
   const ProfileInfo._({
     @required int userId,
     @required String login,
     @required String pictureUrl,
     @required this.role,
     @required this.lastVisitDate,
+    @required this.banStatus,
     @required this.friendshipStatus,
   })  : assert(role != null),
         assert(lastVisitDate != null),
@@ -109,6 +133,7 @@ class ProfileInfo extends BaseProfileInfo {
           userId: data['userId'],
           friendshipStatus:
               FriendshipStatusExt.fromString(data['friendshipStatus']),
+          banStatus: BanStatusExt.fromString(data['banStatus']),
           role: RoleExt.fromString(data['role']),
           lastVisitDate:
               DateTime.fromMillisecondsSinceEpoch(data['lastVisitDate']),

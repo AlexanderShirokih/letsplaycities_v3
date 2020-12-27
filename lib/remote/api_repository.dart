@@ -87,7 +87,7 @@ class ApiRepository with AvatarResizeMixin {
         await _client.getHistoryList(target.userId),
       );
 
-      if(!noHistory) {
+      if (!noHistory) {
         _cachedHistoriesInfo.add(battleHistory);
       }
     }

@@ -42,8 +42,6 @@ class UserActionsBloc extends Bloc<UserActionsEvent, UserActionsState> {
   }
 
   Stream<UserActionsState> _doActions(UserEvent sourceEvent) async* {
-    print('Do action=${sourceEvent.action}');
-
     final target = sourceEvent.target;
     yield UserProcessingActionState();
 

@@ -186,6 +186,21 @@ class _OnlineProfileViewState extends State<OnlineProfileView>
       BuildContext context, LocalizationService l10n) sync* {
     if (isOwner) return;
 
+    if (data.banStatus == BanStatus.inputBan) {
+      yield Container(
+        alignment: Alignment.center,
+        child: Text(
+          l10n.online['input_ban'],
+          style: Theme.of(context).textTheme.caption.copyWith(
+                fontSize: 16.0,
+                color: Theme.of(context).errorColor,
+              ),
+        ),
+      );
+      yield const Divider(height: 18.0, thickness: 1.0);
+      return;
+    }
+
     final userActionsBloc = UserActionsBloc(context.watch<ApiRepository>());
 
     yield BlocConsumer<UserActionsBloc, UserActionsState>(
@@ -346,13 +361,41 @@ class _OnlineProfileViewState extends State<OnlineProfileView>
     UserActionsBloc bloc,
     LocalizationService l10n,
     bool disabled,
-  ) =>
-      _createButton(
-        l10n.online['invite'],
-        disabled
-            ? null
-            : () => bloc.add(UserEvent(data, UserUserAction.invite)),
-      );
+  ) {
+    switch (data.banStatus) {
+      case BanStatus.outputBan:
+        return _createButton(
+          l10n.online['unban'],
+          disabled
+              ? null
+              : () => bloc.add(UserEvent(
+                    data,
+                    UserUserAction.unbanUser,
+                    confirmationMessage: l10n.online['user_unbanned'],
+                  )),
+        );
+      case BanStatus.notBanned:
+        return data.friendshipStatus == FriendshipStatus.friends
+            ? _createButton(
+                l10n.online['invite'],
+                disabled
+                    ? null
+                    : () => bloc.add(UserEvent(data, UserUserAction.invite)),
+              )
+            : _createButton(
+                l10n.online['ban'],
+                disabled
+                    ? null
+                    : () => bloc.add(UserEvent(
+                          data,
+                          UserUserAction.banUser,
+                          confirmationMessage: l10n.online['user_banned'],
+                        )),
+              );
+      default:
+        return Container();
+    }
+  }
 
   ShapeBorder _createRoundedBorder() => RoundedRectangleBorder(
       borderRadius: BorderRadius.circular(12.0), side: BorderSide.none);
