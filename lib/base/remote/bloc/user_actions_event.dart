@@ -15,6 +15,21 @@ enum UserUserAction {
   unbanUser,
 }
 
+enum UserFetchType {
+  getFriendsList,
+  getHistoryList,
+  getBanlist,
+}
+
+class UserFetchListEvent extends UserActionsEvent {
+  final bool forceRefresh;
+
+  UserFetchListEvent(this.forceRefresh) : assert(forceRefresh != null);
+
+  @override
+  List<Object> get props => [forceRefresh];
+}
+
 class UserEvent extends UserActionsEvent {
   final UserUserAction action;
   final BaseProfileInfo target;

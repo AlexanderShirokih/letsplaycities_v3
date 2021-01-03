@@ -18,9 +18,7 @@ class UserActionsBloc extends Bloc<UserActionsEvent, UserActionsState> {
         super(UserActionsInitial());
 
   @override
-  Stream<UserActionsState> mapEventToState(
-    UserActionsEvent event,
-  ) async* {
+  Stream<UserActionsState> mapEventToState(UserActionsEvent event) async* {
     if (event is UserEvent && event.undoable) {
       yield UserActionConfirmationState(event);
       return;
@@ -35,8 +33,7 @@ class UserActionsBloc extends Bloc<UserActionsEvent, UserActionsState> {
     return _doActions(sourceEvent).transform(
         StreamTransformer<UserActionsState, UserActionsState>.fromHandlers(
       handleError: (e, s, sink) {
-        sink.add(
-            UserActionDoneState(sourceEvent, e.toString() ?? s.toString()));
+        sink.add(UserActionErrorState(e, s));
       },
     ));
   }

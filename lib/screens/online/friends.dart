@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:lets_play_cities/base/remote/bloc/user_actions_bloc.dart';
 import 'package:lets_play_cities/l18n/localization_service.dart';
 import 'package:lets_play_cities/remote/model/friend_info.dart';
-import 'package:lets_play_cities/remote/api_repository.dart';
-import 'package:lets_play_cities/screens/common/common_widgets.dart';
 import 'package:lets_play_cities/screens/common/utils.dart';
 import 'package:lets_play_cities/screens/online/profile.dart';
 import 'package:lets_play_cities/utils/string_utils.dart';
@@ -15,68 +15,53 @@ import 'network_avatar_building_mixin.dart';
 /// Friends list screen
 /// Provides a list of user friends and the way to remove friends,
 /// accept or decline friend requests
-class OnlineFriendsScreen extends StatefulWidget {
+class OnlineFriendsScreen extends StatelessWidget
+    with BaseListFetchingScreenMixin<FriendInfo>, NetworkAvatarBuildingMixin {
   const OnlineFriendsScreen({Key key}) : super(key: key);
 
   @override
-  _OnlineFriendsScreenState createState() => _OnlineFriendsScreenState();
-}
+  UserFetchType get fetchEvent => UserFetchType.getFriendsList;
 
-class _OnlineFriendsScreenState extends State<OnlineFriendsScreen>
-    with
-        BaseListFetchingScreenMixin<FriendInfo, OnlineFriendsScreen>,
-        NetworkAvatarBuildingMixin {
   @override
-  Widget buildItem(
-    BuildContext context,
-    ApiRepository repo,
-    FriendInfo data,
-    int position,
-  ) {
+  Widget buildItem(BuildContext context, FriendInfo data) {
     return readWithLocalization(
       context,
       (l10n) => Card(
         elevation: 4.0,
         child: Dismissible(
-          key: ValueKey(data),
+          key: UniqueKey(),
           onDismissed: (_) {
-            replace(data, null);
             if (data.accepted) {
-              showUndoSnackbar(
-                context,
-                l10n.online['removed_from_friends']
-                    .toString()
-                    .format([data.login]),
-                onComplete: () => repo.deleteFriend(data),
-                onUndo: () => insert(position, data),
-              );
+              context.read<UserActionsBloc>().add(UserEvent(
+                    data,
+                    UserUserAction.removeFromFriends,
+                    confirmationMessage: l10n.online['removed_from_friends']
+                        .toString()
+                        .format([data.login]),
+                    undoable: true,
+                  ));
             } else if (data.sender) {
-              showUndoSnackbar(
-                context,
-                l10n.online['request_cancelled'],
-                onComplete: () => repo.deleteFriend(data),
-                onUndo: () => insert(position, data),
-              );
+              context.read<UserActionsBloc>().add(UserEvent(
+                  data, UserUserAction.removeFromFriends,
+                  confirmationMessage: l10n.online['request_cancelled']));
             } else {
-              showUndoSnackbar(
-                context,
-                l10n.online['request_declined'],
-                onComplete: () => repo.sendFriendRequestAcceptance(data, false),
-                onUndo: () => insert(position, data),
-              );
+              context.read<UserActionsBloc>().add(UserEvent(
+                  data, UserUserAction.declineRequest,
+                  confirmationMessage: l10n.online['request_declined']));
             }
           },
           direction: DismissDirection.endToStart,
           background: data.accepted
-              ? _createRemoveFromFriendsBackground(l10n)
-              : _createDenyFriendsRequestBackground(l10n, data.sender),
-          child: _createListTile(data, repo, l10n),
+              ? _createRemoveFromFriendsBackground(context, l10n)
+              : _createDenyFriendsRequestBackground(context, l10n, data.sender),
+          child: _createListTile(context, data, l10n),
         ),
       ),
     );
   }
 
-  Widget _createRemoveFromFriendsBackground(LocalizationService l10n) =>
+  Widget _createRemoveFromFriendsBackground(
+          BuildContext context, LocalizationService l10n) =>
       createPositionedSlideBackground(
         false,
         Row(
@@ -95,7 +80,7 @@ class _OnlineFriendsScreenState extends State<OnlineFriendsScreen>
       );
 
   Widget _createDenyFriendsRequestBackground(
-          LocalizationService l10n, bool canCancel) =>
+          BuildContext context, LocalizationService l10n, bool canCancel) =>
       createPositionedSlideBackground(
         false,
         Row(
@@ -117,7 +102,7 @@ class _OnlineFriendsScreenState extends State<OnlineFriendsScreen>
       );
 
   Widget _createListTile(
-          FriendInfo data, ApiRepository repo, LocalizationService l10n) =>
+          BuildContext context, FriendInfo data, LocalizationService l10n) =>
       ListTile(
         onTap: () => Navigator.push(
           context,
@@ -134,20 +119,14 @@ class _OnlineFriendsScreenState extends State<OnlineFriendsScreen>
                     alignment: Alignment.bottomLeft,
                     child: FlatButton(
                       padding: EdgeInsets.zero,
-                      onPressed: () {
-                        repo.sendFriendRequestAcceptance(data, true).then(
-                            (_) => replace(data, data.copy(accepted: true)));
-                        showUndoSnackbar(
-                            context, l10n.online['request_accepted']);
-                      },
+                      onPressed: () => context.watch<UserActionsBloc>().add(
+                          UserEvent(data, UserUserAction.acceptRequest,
+                              confirmationMessage:
+                                  l10n.online['request_accepted'])),
                       child: Text(l10n.online['accept_friendship_request']),
                     ),
                   )),
       );
-
-  @override
-  Future<List<FriendInfo>> fetchData(ApiRepository repo, bool forceRefresh) =>
-      repo.getFriendsList(forceRefresh);
 
   @override
   Widget getOnListEmptyPlaceHolder(BuildContext context) => Text(

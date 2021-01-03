@@ -1,11 +1,10 @@
+import 'package:intl/intl.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:intl/intl.dart';
-import 'package:lets_play_cities/remote/account_manager.dart';
 
-import 'package:lets_play_cities/remote/api_repository.dart';
-import 'package:lets_play_cities/remote/auth.dart';
+import 'package:lets_play_cities/base/remote/bloc/user_actions_bloc.dart';
+import 'package:lets_play_cities/remote/account_manager.dart';
+import 'package:lets_play_cities/remote/model/profile_info.dart';
 import 'package:lets_play_cities/remote/model/history_info.dart';
 import 'package:lets_play_cities/screens/common/utils.dart';
 import 'package:lets_play_cities/screens/online/base_list_fetching_screen_mixin.dart';
@@ -16,38 +15,24 @@ import 'package:lets_play_cities/utils/string_utils.dart';
 /// Battle history list screen
 /// Provides a list of user battle history
 /// Requires [ApiRepository] and [AccountManager] repositories in the widget tree.
-class OnlineHistoryScreen extends StatefulWidget {
-  /// Opponents id. If `null` then will showed all account owner history
-  final BaseProfileInfo target;
+class OnlineHistoryScreen extends StatelessWidget
+    with BaseListFetchingScreenMixin<HistoryInfo>, NetworkAvatarBuildingMixin {
+  static final DateFormat _timeFormat = DateFormat('dd.MM.yyyy');
 
   /// If `true` - column container will used instead of listview
   final bool embedded;
 
+  @override
+  bool get scrollable => !embedded;
+
+  @override
+  UserFetchType get fetchEvent => UserFetchType.getHistoryList;
+
+  /// Opponents id. If `null` then will showed all account owner history
+  @override
+  final BaseProfileInfo target;
+
   const OnlineHistoryScreen({this.target, this.embedded = false});
-
-  @override
-  _OnlineHistoryScreenState createState() => _OnlineHistoryScreenState();
-}
-
-class _OnlineHistoryScreenState extends State<OnlineHistoryScreen>
-    with
-        BaseListFetchingScreenMixin<HistoryInfo, OnlineHistoryScreen>,
-        NetworkAvatarBuildingMixin {
-  static final DateFormat _timeFormat = DateFormat('dd.MM.yyyy');
-
-  @override
-  bool get scrollable => !widget.embedded;
-
-  @override
-  Future<List<HistoryInfo>> fetchData(
-      ApiRepository repo, bool forceRefresh) async {
-    final account =
-        await context.read<AccountManager>().getLastSignedInAccount();
-    return repo.getHistoryList(forceRefresh, _getTargetProfile(account));
-  }
-
-  BaseProfileInfo _getTargetProfile(RemoteAccount account) =>
-      widget.target ?? account.baseProfileInfo;
 
   @override
   Widget getOnListEmptyPlaceHolder(BuildContext context) => Text(
@@ -62,9 +47,7 @@ class _OnlineHistoryScreenState extends State<OnlineHistoryScreen>
       );
 
   @override
-  Widget buildItem(
-          BuildContext context, ApiRepository repo, HistoryInfo data, _) =>
-      Card(
+  Widget buildItem(BuildContext context, HistoryInfo data) => Card(
         elevation: 4.0,
         child: ListTile(
           onTap: () => Navigator.push(

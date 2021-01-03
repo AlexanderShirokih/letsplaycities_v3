@@ -206,7 +206,7 @@ class _OnlineProfileViewState extends State<OnlineProfileView>
     yield BlocConsumer<UserActionsBloc, UserActionsState>(
       cubit: userActionsBloc,
       builder: (context, state) {
-        if (state is UserActionDoneState && state.error != null) {
+        if (state is UserActionErrorState) {
           return showError(context, state.error);
         }
         final isProcessing = state is UserProcessingActionState;
@@ -264,7 +264,7 @@ class _OnlineProfileViewState extends State<OnlineProfileView>
     yield _buildNavigationButton(FaIcon(FontAwesomeIcons.userFriends),
         l10n.online['friends_tab'], () => OnlineFriendsScreen());
     yield _buildNavigationButton(FaIcon(FontAwesomeIcons.history),
-        l10n.online['history_tab'], () => OnlineHistoryScreen());
+        l10n.online['history_tab'], () => OnlineHistoryScreen(target: data));
     yield _buildNavigationButton(FaIcon(FontAwesomeIcons.userSlash),
         l10n.online['blacklist_tab'], () => OnlineBanlistScreen());
     yield const Divider(height: 18.0, thickness: 1.0);
