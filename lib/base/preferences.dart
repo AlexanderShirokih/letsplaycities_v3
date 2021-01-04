@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:lets_play_cities/base/dictionary.dart';
 import 'package:lets_play_cities/base/scoring.dart';
+import 'package:lets_play_cities/remote/authentication.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// Represents application preferences
@@ -56,6 +57,12 @@ abstract class GamePreferences {
   /// Is there a first application launch?
   /// After first calls sets to false
   bool get isFirstLaunch;
+
+  /// Gets currently logged in user credentials
+  Credential get currentCredentials;
+
+  /// Updates current credentials. Pass `null` to log out user.
+  Future setCurrentCredentials(Credential newCredentials);
 }
 
 class SharedPreferencesGamePrefs extends GamePreferences {
@@ -132,5 +139,26 @@ class SharedPreferencesGamePrefs extends GamePreferences {
     final ifFirst = _prefs.getBool('firstLaunch') ?? true;
     if (ifFirst) _prefs.setBool('firstLaunch', false);
     return ifFirst;
+  }
+
+  @override
+  Future setCurrentCredentials(Credential newCredentials) {
+    return newCredentials == null
+        ? _prefs.remove('uhash').then((_) => _prefs.remove('uid'))
+        : _prefs
+            .setString('uhash', newCredentials.accessToken)
+            .then((_) => _prefs.setInt('uid', newCredentials.userId));
+  }
+
+  @override
+  Credential get currentCredentials {
+    final userId = _prefs.getInt('uid');
+    final uhash = _prefs.getString('uhash');
+
+    if (userId == null || uhash == null || userId == 0) {
+      return null;
+    }
+
+    return Credential(userId: userId, accessToken: uhash);
   }
 }

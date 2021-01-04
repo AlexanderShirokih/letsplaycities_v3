@@ -40,7 +40,9 @@ public class MigrationHelper {
                 getScoring(old.getString("scrbkey", null)),
                 old.getLong("last_upd_date", 0),
                 getDictionaryUpdatePeriod(old.getInt("dic_upd", 0)),
-                old.getBoolean("first_launch", true)
+                old.getBoolean("first_launch", true),
+                old.getInt("user_id", 0),
+                old.getString("acc_hash", "")
         );
     }
 
@@ -153,11 +155,13 @@ public class MigrationHelper {
                 .putBoolean("flutter.soundEnabled", gamePrefs.soundEnabled)
                 .putBoolean("flutter.firstLaunch", gamePrefs.isFirstLaunch)
                 .putLong("flutter.wordsDifficulty", gamePrefs.wordsDifficulty)
+                .putLong("flutter.uid", gamePrefs.userId)
                 .putLong("flutter.timeLimit", gamePrefs.timeLimit)
                 .putLong("flutter.scoringType", gamePrefs.scoringType)
                 .putLong("flutter.dictionaryUpdatePeriod", gamePrefs.dictionaryUpdatePeriod)
                 .putLong("flutter.lastDictionaryCheckDate", gamePrefs.lastDictionaryCheckDate)
                 .putString("flutter.scoringData", gamePrefs.scoringData)
+                .putString("flutter.uhash", gamePrefs.accessHash)
                 .commit(); // Flush to storage immediately
     }
 
@@ -230,6 +234,12 @@ public class MigrationHelper {
         /// Is there a first launch
         final boolean isFirstLaunch;
 
+        /// User ID of currently logged in user. `0` if there is no users logged currently.
+        final int userId;
+
+        /// User access hash. May be `null` if there is no users logged currently.
+        final String accessHash;
+
         private GamePreferences(
                 int wordsDifficulty,
                 boolean correctionEnabled,
@@ -240,7 +250,9 @@ public class MigrationHelper {
                 String scoringData,
                 long lastDictionaryCheckDate,
                 int dictionaryUpdatePeriod,
-                boolean isFirstLaunch
+                boolean isFirstLaunch,
+                int userId,
+                String accessHash
         ) {
             this.wordsDifficulty = wordsDifficulty;
             this.correctionEnabled = correctionEnabled;
@@ -252,6 +264,8 @@ public class MigrationHelper {
             this.lastDictionaryCheckDate = lastDictionaryCheckDate;
             this.dictionaryUpdatePeriod = dictionaryUpdatePeriod;
             this.isFirstLaunch = isFirstLaunch;
+            this.userId = userId;
+            this.accessHash = accessHash;
         }
     }
 }

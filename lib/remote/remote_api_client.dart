@@ -29,7 +29,11 @@ class RemoteLpsApiClient extends LpsApiClient {
     try {
       final decoded = json.decode(response.data);
       final responseData = RemoteSignInResponse.fromMap(decoded);
-      return responseData.toClientInfo(_httpClient.options.baseUrl);
+      final credential = Credential(
+          userId: responseData.userId, accessToken: responseData.accessToken);
+
+      return responseData.toClientInfo(_httpClient.options.baseUrl,
+          RemoteLpsApiClient(_httpClient, credential));
     } catch (e) {
       throw FetchingException('Response error. \n$e', response.request.uri);
     }
@@ -245,12 +249,15 @@ class RemoteSignInResponse {
         role: UserRoleExtension.fromString(data['state']),
       );
 
-  ClientAccountInfo toClientInfo(String avatarLookupServer) => RemoteAccount(
+  ClientAccountInfo toClientInfo(
+          String avatarLookupServer, LpsApiClient owningClient) =>
+      RemoteAccount(
         credential: Credential(userId: userId, accessToken: accessToken),
         name: login,
         pictureUri:
             '$avatarLookupServer/user/$userId/picture?hash=$pictureHash',
         canReceiveMessages: false,
+        client: owningClient,
       );
 }
 

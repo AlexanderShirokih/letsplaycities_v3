@@ -1,28 +1,42 @@
+import 'package:lets_play_cities/base/preferences.dart';
+import 'package:lets_play_cities/remote/remote_api_client.dart';
+import 'package:lets_play_cities/remote/remote_module.dart';
+
+import 'api_client.dart';
 import 'authentication.dart';
 import 'account_manager.dart';
 
-/// Test implementation
 class AccountManagerImpl extends AccountManager {
+  final GamePreferences _preferences;
+
+  AccountManagerImpl(this._preferences) : assert(_preferences != null);
+
   @override
   Future<RemoteAccount> getLastSignedInAccount() async {
-    // TODO: Fetch real data
+    final credentials = _preferences.currentCredentials;
+    if (credentials == null) return null;
+
+    final client = _createClient(credentials);
+
+    // TODO: Save current name and picture URI or fetch fresh profile info
     return RemoteAccount(
-      name: 'Test',
-      credential: Credential(accessToken: "i'mapass", userId: 30955),
+      name: 'User #${credentials.userId}',
+      credential: credentials,
+      client: client,
       pictureUri: null,
       canReceiveMessages: false,
     );
   }
 
-  //TODO:
   @override
-  Future<RemoteAccount> signIn() => throw ('Unimplemented!');
+  Future<RemoteAccount> signIn(RemoteSignInData signInData) =>
+      _createClient(null).signUp(signInData);
 
-  // TODO:
   @override
-  Future signOut() => throw ('Unimplemented');
+  Future signOut() => _preferences.setCurrentCredentials(null);
 
-  // TODO:
-  @override
-  bool isSignedIn() => true;
+  LpsApiClient _createClient(Credential credential) => RemoteLpsApiClient(
+        getDio(),
+        credential,
+      );
 }

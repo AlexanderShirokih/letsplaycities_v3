@@ -1,10 +1,10 @@
 import 'dart:convert';
 
 import 'package:equatable/equatable.dart';
+import 'package:lets_play_cities/remote/api_client.dart';
 import 'package:meta/meta.dart';
 
 import 'package:lets_play_cities/remote/api_repository.dart';
-import 'package:lets_play_cities/remote/remote_module.dart';
 import 'package:lets_play_cities/remote/auth.dart';
 import 'package:lets_play_cities/base/data.dart';
 
@@ -68,11 +68,14 @@ class RemoteAccount extends ClientAccountInfo with EquatableMixin {
   /// User credentials
   final Credential credential;
 
+  final LpsApiClient client;
+
   RemoteAccount({
     @required this.credential,
     @required this.name,
     @required this.canReceiveMessages,
     @required String pictureUri,
+    @required this.client,
   })  : picture = NetworkPictureSource(pictureUri),
         assert(credential != null),
         assert(name != null);
@@ -97,12 +100,7 @@ class RemoteAccount extends ClientAccountInfo with EquatableMixin {
       );
 
   /// Creates [ApiRepository] for this account
-  ApiRepository getApiRepository() => ApiRepository(
-        RemoteLpsApiClient(
-          getDio(),
-          credential,
-        ),
-      );
+  ApiRepository getApiRepository() => ApiRepository(client);
 }
 
 /// Used when some authorization error happened
