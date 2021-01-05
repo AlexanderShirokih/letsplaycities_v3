@@ -131,7 +131,8 @@ class LoginScreen extends StatelessWidget {
                       onPressed: () {
                         // TODO: Handle button click
                       },
-                    ),Text(
+                    ),
+                    Text(
                       '?',
                       style: Theme.of(context).textTheme.bodyText1,
                     ),
