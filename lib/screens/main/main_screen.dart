@@ -145,9 +145,13 @@ class _AnimatedMainButtonsState extends State<AnimatedMainButtons>
         children: [
           CustomMaterialButton('Играть', Icon(Icons.play_arrow),
               () => _setPrimaryButtonsVisibility(false)),
-          CustomMaterialButton(
-              'Достижения', FaIcon(FontAwesomeIcons.medal), () {}),
-          CustomMaterialButton('Рейтинги', Icon(Icons.trending_up), () {}),
+          CustomMaterialButton('Достижения', FaIcon(FontAwesomeIcons.medal),
+              () {
+            // TODO: Implement achievements service
+          }),
+          CustomMaterialButton('Рейтинги', Icon(Icons.trending_up), () {
+            // TODO: Implement ratings service
+          }),
           CustomMaterialButton(
               'Города',
               Icon(Icons.apartment),
@@ -165,7 +169,9 @@ class _AnimatedMainButtonsState extends State<AnimatedMainButtons>
               () => _runGameScreen(context, GameMode.PlayerVsPlayer)),
           CustomMaterialButton(
               'Онлайн', Icon(Icons.language), () => _runOnlineScreen(context)),
-          CustomMaterialButton('Мультиплеер', Icon(Icons.wifi), () {}),
+          CustomMaterialButton('Мультиплеер', Icon(Icons.wifi), () {
+            // TODO: Implement Multiplayer mode
+          }),
         ],
       );
 

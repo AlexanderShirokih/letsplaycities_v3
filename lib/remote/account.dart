@@ -63,6 +63,26 @@ class LocalAccountInfo extends ClientAccountInfo with EquatableMixin {
   List<Object> get props => [name, picture];
 }
 
+/// [ClientAccountInfo] constructed from [ProfileInfo]
+class AdvancedAccountInfo extends ClientAccountInfo with EquatableMixin {
+  final ProfileInfo profileInfo;
+
+  @override
+  final bool canReceiveMessages;
+
+  AdvancedAccountInfo(this.profileInfo, this.canReceiveMessages)
+      : assert(profileInfo != null);
+
+  @override
+  String get name => profileInfo.login;
+
+  @override
+  PictureSource get picture => NetworkPictureSource(profileInfo.pictureUrl);
+
+  @override
+  List<Object> get props => [name, picture];
+}
+
 /// Contains remote account info of the user
 class RemoteAccount extends ClientAccountInfo with EquatableMixin {
   /// User credentials
@@ -101,29 +121,4 @@ class RemoteAccount extends ClientAccountInfo with EquatableMixin {
 
   /// Creates [ApiRepository] for this account
   ApiRepository getApiRepository() => ApiRepository(client);
-}
-
-/// Used when some authorization error happened
-class AuthorizationException implements Exception {
-  final String message;
-
-  AuthorizationException(this.message) : assert(message != null);
-
-  factory AuthorizationException.fromStatus(
-          String reasonPhrase, int responseCode) =>
-      AuthorizationException('Status: $responseCode ($reasonPhrase)');
-
-  @override
-  String toString() => 'Authorization error: $message';
-}
-
-/// Used when error happens during API fetch requests
-class FetchingException implements Exception {
-  final String message;
-  final Uri uri;
-
-  FetchingException(this.message, this.uri) : assert(message != null);
-
-  @override
-  String toString() => 'Fetching exception: $message, URL: $uri';
 }

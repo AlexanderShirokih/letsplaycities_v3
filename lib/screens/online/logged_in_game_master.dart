@@ -2,12 +2,12 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:lets_play_cities/remote/api_repository.dart';
-import 'package:lets_play_cities/remote/authentication.dart';
+import 'package:lets_play_cities/remote/account.dart';
 
 import 'package:lets_play_cities/screens/common/utils.dart';
 import 'package:lets_play_cities/screens/online/profile.dart';
 
-import 'online_game_preparation_screen.dart';
+import 'game_waiting_room_screen.dart';
 
 /// A screen used to prepare user for online game and navigate between
 /// online-related routes when user is logged in
@@ -22,7 +22,7 @@ class _LoggedInOnlineGameMasterScreenState
   int _tabId = 0;
 
   final _tabs = <Widget>[
-    OnlineGamePreparationScreen(),
+    GameWaitingRoomScreen(),
     OnlineProfileView(),
   ];
 

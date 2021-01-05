@@ -5,6 +5,7 @@ import 'dart:convert';
 
 import 'package:http_parser/http_parser.dart' as http_parser;
 import 'package:lets_play_cities/remote/api_client.dart';
+import 'package:lets_play_cities/remote/exceptions.dart';
 import 'package:lets_play_cities/remote/models.dart';
 import 'package:lets_play_cities/remote/auth.dart';
 
@@ -231,7 +232,7 @@ class RemoteSignInResponse {
   final String pictureHash;
 
   /// Users role (ex: banned,ready, admin) (legacy names)
-  final UserRole role;
+  final Role role;
 
   RemoteSignInResponse({
     this.userId,
@@ -261,15 +262,18 @@ class RemoteSignInResponse {
       );
 }
 
-/// Account state types
-enum UserRole { banned, ready, admin }
-
-extension UserRoleExtension on UserRole {
-  static UserRole fromString(String s) {
-    for (var state in UserRole.values) {
-      if (state.toString() == s) return state;
+extension UserRoleExtension on Role {
+  static Role fromString(String s) {
+    switch (s) {
+      case 'banned':
+        return Role.banned;
+      case 'ready':
+        return Role.regular;
+      case 'admin':
+        return Role.admin;
+      default:
+        throw ('Unknown UserRole: $s');
     }
-    throw ('Unknown UserRole: $s');
   }
 }
 
@@ -301,25 +305,4 @@ class RemoteSignInData {
         'accToken': accessToken,
         'snUID': snUID
       };
-}
-
-enum AuthType { Native, Google, Vkontakte, Odnoklassniki, Facebook }
-
-extension AuthTypeExtension on AuthType {
-  String get name {
-    switch (this) {
-      case AuthType.Native:
-        return 'nv';
-      case AuthType.Google:
-        return 'gl';
-      case AuthType.Vkontakte:
-        return 'vk';
-      case AuthType.Odnoklassniki:
-        return 'ok';
-      case AuthType.Facebook:
-        return 'fb';
-      default:
-        throw Exception('Unknown AuthType value: $this');
-    }
-  }
 }

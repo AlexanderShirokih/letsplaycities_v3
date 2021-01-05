@@ -24,7 +24,7 @@ class GameScreen extends StatelessWidget {
 
   GameScreen(this.gameMode);
 
-  /// Creates new instance of [GameScreen] wraps it with [MaterialPageRoute]
+  /// Creates new instance of [GameScreen] and wraps it with [MaterialPageRoute]
   static MaterialPageRoute createGameScreenRoute(GameMode gameMode) =>
       MaterialPageRoute(builder: (context) {
         final isFirstTime = context.watch<GamePreferences>().isFirstLaunch;
@@ -63,7 +63,6 @@ class GameScreen extends StatelessWidget {
                   child: Builder(
                     builder: (context) =>
                         BlocConsumer<GameBloc, GameLifecycleState>(
-                      cubit: context.watch<GameBloc>(),
                       builder: (context, state) {
                         if (state is GameState) {
                           return _buildGameStateLayout(state);

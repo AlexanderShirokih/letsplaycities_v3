@@ -2,7 +2,7 @@ import 'dart:convert';
 
 import 'package:lets_play_cities/base/dictionary.dart';
 import 'package:lets_play_cities/base/scoring.dart';
-import 'package:lets_play_cities/remote/authentication.dart';
+import 'package:lets_play_cities/remote/account.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// Represents application preferences

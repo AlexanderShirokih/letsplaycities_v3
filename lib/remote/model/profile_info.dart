@@ -1,7 +1,41 @@
+import 'package:meta/meta.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter/foundation.dart';
+
 import 'package:lets_play_cities/remote/model/utils.dart';
-import 'package:meta/meta.dart';
+
+/// Describes account types
+enum AuthType { Native, Google, Vkontakte, Odnoklassniki, Facebook }
+
+extension AuthTypeExtension on AuthType {
+  String get name {
+    switch (this) {
+      case AuthType.Native:
+        return 'nv';
+      case AuthType.Google:
+        return 'gl';
+      case AuthType.Vkontakte:
+        return 'vk';
+      case AuthType.Odnoklassniki:
+        return 'ok';
+      case AuthType.Facebook:
+        return 'fb';
+      default:
+        throw Exception('Unknown AuthType value: $this');
+    }
+  }
+
+  String get fullName => describeEnum(this);
+
+  static AuthType fromString(String s) {
+    for (final type in AuthType.values) {
+      if (type.fullName == s) {
+        return type;
+      }
+    }
+    return null;
+  }
+}
 
 /// Describes user roles
 enum Role {
@@ -104,13 +138,16 @@ class ProfileInfo extends BaseProfileInfo {
   /// Is friend request accepted
   final Role role;
 
+  /// User account origin
+  final AuthType authType;
+
   /// Friendship status between authorized user and this profile
   final FriendshipStatus friendshipStatus;
 
   /// Ban status between authorized user and this profile
   final BanStatus banStatus;
 
-  const ProfileInfo._({
+  const ProfileInfo({
     @required int userId,
     @required String login,
     @required String pictureUrl,
@@ -118,9 +155,12 @@ class ProfileInfo extends BaseProfileInfo {
     @required this.lastVisitDate,
     @required this.banStatus,
     @required this.friendshipStatus,
+    @required this.authType,
   })  : assert(role != null),
         assert(lastVisitDate != null),
         assert(friendshipStatus != null),
+        assert(banStatus != null),
+        assert(authType != null),
         super(
           userId: userId,
           login: login,
@@ -128,13 +168,14 @@ class ProfileInfo extends BaseProfileInfo {
         );
 
   ProfileInfo.fromJson(Map<String, dynamic> data)
-      : this._(
+      : this(
           login: data['login'],
           userId: data['userId'],
           friendshipStatus:
               FriendshipStatusExt.fromString(data['friendshipStatus']),
           banStatus: BanStatusExt.fromString(data['banStatus']),
           role: RoleExt.fromString(data['role']),
+          authType: AuthTypeExtension.fromString(data['authType']),
           lastVisitDate:
               DateTime.fromMillisecondsSinceEpoch(data['lastVisitDate']),
           pictureUrl: getPictureUrlOrNull(data['userId'], data['pictureHash']),
@@ -146,5 +187,7 @@ class ProfileInfo extends BaseProfileInfo {
         role,
         lastVisitDate,
         friendshipStatus,
+        banStatus,
+        authType,
       ];
 }

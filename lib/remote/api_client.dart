@@ -1,4 +1,4 @@
-import 'package:lets_play_cities/remote/authentication.dart';
+import 'package:lets_play_cities/remote/account.dart';
 import 'package:lets_play_cities/remote/remote_api_client.dart';
 import 'package:lets_play_cities/remote/model/blacklist_item_info.dart';
 import 'package:lets_play_cities/remote/model/friend_info.dart';
