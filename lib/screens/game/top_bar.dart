@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:lets_play_cities/base/data.dart';
@@ -32,12 +31,16 @@ class TopBar extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       UserAvatar(
-                        onPressed: () {},
+                        onPressed: () {
+                          // TODO: Handle left avatar click
+                        },
                         user: leftUser,
                       ),
                       _ActionButtons(repo),
                       UserAvatar(
-                        onPressed: () {},
+                        onPressed: () {
+                          // TODO: Handle right avatar click
+                        },
                         user: rightUser,
                       ),
                     ],
@@ -91,7 +94,9 @@ class _ActionButtons extends StatelessWidget {
                           .add(const GameEventShowHelp())),
                 if (_gameSessionRepository.messagingAvailable)
                   _createActionButton(context, FontAwesomeIcons.envelope,
-                      onConfirmed: () {}),
+                      onConfirmed: () {
+                    // TODO: Send message
+                  }),
               ],
             ),
             SizedBox(width: 0.0, height: 16.0),

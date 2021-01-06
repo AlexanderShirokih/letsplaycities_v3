@@ -3,6 +3,18 @@ import 'package:lets_play_cities/base/game/management.dart';
 import 'package:lets_play_cities/base/users.dart';
 import 'package:meta/meta.dart';
 
+/// Marker class for throwing any exceptions on word checks
+class WordCheckingException implements Exception {
+  final String description;
+
+  const WordCheckingException(this.description);
+}
+
+/// Thrown when word sent on the wrong move
+class WrongMoveException extends WordCheckingException {
+  const WrongMoveException() : super('Wrong move!');
+}
+
 /// [WordCheckingResult] describes states when [User] should
 /// return after receiving input from keyboard.
 @sealed
@@ -11,6 +23,29 @@ class WordCheckingResult extends GameEvent {
   bool isDescriptiveError() => true;
 
   bool isSuccessful() => false;
+
+  const WordCheckingResult();
+
+  /// Creates word checking result from [WordResult] enum state
+  factory WordCheckingResult.of(
+      WordResult result, User owner, String word) {
+    switch (result) {
+      case WordResult.ACCEPTED:
+        return Accepted(word, owner);
+      case WordResult.RECEIVED:
+        return Error(WordCheckingException(
+            'WordResult.RECEIVED is unexpected in this case'));
+      case WordResult.ALREADY:
+        return AlreadyUsed(word);
+      case WordResult.NO_WORD:
+        return NotFound(word);
+      case WordResult.WRONG_MOVE:
+        return Error(WrongMoveException());
+      case WordResult.UNKNOWN:
+      default:
+        return Error(WordCheckingException('Unknown word result!'));
+    }
+  }
 }
 
 /// Used when input [word] has already used.

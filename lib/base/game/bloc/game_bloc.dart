@@ -128,9 +128,9 @@ class GameBloc extends Bloc<GameStateEvent, GameLifecycleState> {
     unawaited(repository
         .run()
         .then((GameResult result) => add(GameEventFinish(result)))
-        .catchError((error) {
+        .catchError((error, stack) {
       // TODO: Handle errors
-      print('Error: $error');
+      print('Error: $error,\nStack: $stack');
     }));
   }
 

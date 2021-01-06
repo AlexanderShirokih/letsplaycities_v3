@@ -6,7 +6,6 @@ import 'package:lets_play_cities/base/users.dart';
 import 'package:meta/meta.dart';
 
 import 'game_config.dart';
-import 'game_mode.dart';
 import 'handlers.dart';
 import 'management.dart';
 
@@ -27,11 +26,11 @@ class GameSessionFactory {
         config.usersList ?? UsersList.forGameMode(mode, dictionary);
 
     final gameProcessorsStack = [
-      if (mode.isLocal()) TrustedEventsInterceptor(),
+      TrustedEventsInterceptor(),
       FirstLetterChecker(),
       ExclusionsChecker(exclusions),
       DatabaseChecker(dictionary),
-      ...(config.additionalEventHandlers ?? []),
+      ...(config.additionalEventHandlers ?? <EventHandler>[]),
       Endpoint(dictionary, onUserInputAccepted, scoreController),
     ];
 

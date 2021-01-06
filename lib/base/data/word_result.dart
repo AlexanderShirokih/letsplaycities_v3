@@ -1,6 +1,6 @@
 /// The result of word processing
 enum WordResult {
-  /// Received from the server
+  /// Input word from another player received from the server
   RECEIVED,
 
   /// Accepted by server
