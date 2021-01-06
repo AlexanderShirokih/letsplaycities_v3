@@ -1,7 +1,7 @@
 import 'dart:convert';
 
 import 'package:equatable/equatable.dart';
-import 'package:lets_play_cities/remote/api_client.dart';
+import 'package:lets_play_cities/remote/client/api_client.dart';
 import 'package:meta/meta.dart';
 
 import 'package:lets_play_cities/remote/api_repository.dart';

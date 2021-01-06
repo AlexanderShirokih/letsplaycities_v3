@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lets_play_cities/base/game/bloc/game_bloc.dart';
+import 'package:lets_play_cities/base/game/game_config.dart';
 import 'package:lets_play_cities/base/game/game_mode.dart';
 import 'package:lets_play_cities/base/preferences.dart';
 import 'package:lets_play_cities/base/repos.dart';
@@ -12,34 +13,34 @@ import 'package:lets_play_cities/screens/common/utils.dart';
 import 'package:lets_play_cities/screens/game/first_time_onboarding_screen.dart';
 
 import '../common/common_widgets.dart';
+import '../game_results/game_results_screen.dart';
 import 'cities_list.dart';
 import 'city_checking_result_bar.dart';
-import '../game_results/game_results_screen.dart';
 import 'input_fields.dart';
 import 'top_bar.dart';
 
 /// Screen that shows all game-related interface
 class GameScreen extends StatelessWidget {
-  final GameMode gameMode;
+  final GameConfig gameConfig;
 
-  GameScreen(this.gameMode);
+  GameScreen(this.gameConfig);
 
   /// Creates new instance of [GameScreen] and wraps it with [MaterialPageRoute]
-  static MaterialPageRoute createGameScreenRoute(GameMode gameMode) =>
+  static MaterialPageRoute createGameScreenRoute(GameConfig gameConfig) =>
       MaterialPageRoute(builder: (context) {
         final isFirstTime = context.watch<GamePreferences>().isFirstLaunch;
-        if (isFirstTime && gameMode.isLocal()) {
+        if (isFirstTime && gameConfig.gameMode.isLocal()) {
           return buildWithLocalization(
             context,
             (l10n) => FirstTimeOnBoardingScreen(
-              gameMode: gameMode,
+              gameConfig: gameConfig,
               duration: const Duration(seconds: 4),
               strings: (l10n.firstTimeOnBoarding['messages'] as List<dynamic>)
                   .cast<String>(),
             ),
           );
         }
-        return GameScreen(gameMode);
+        return GameScreen(gameConfig);
       });
 
   @override
@@ -59,7 +60,9 @@ class GameScreen extends StatelessWidget {
               SizedBox.expand(
                 child: BlocProvider(
                   create: (_) => GameBloc(
-                      prefs: prefs, gameMode: gameMode, localizations: l10n),
+                      prefs: prefs,
+                      gameConfig: gameConfig,
+                      localizations: l10n),
                   child: Builder(
                     builder: (context) =>
                         BlocConsumer<GameBloc, GameLifecycleState>(
@@ -88,7 +91,7 @@ class GameScreen extends StatelessWidget {
                             MaterialPageRoute(
                               builder: (_) => GameResultsScreen(
                                 state.gameResult,
-                                state.gameMode,
+                                state.gameConfig,
                               ),
                             ),
                           );

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:lets_play_cities/base/game/game_mode.dart';
+import 'package:lets_play_cities/base/game/game_config.dart';
 import 'package:lets_play_cities/screens/game/game_screen.dart';
 
 /// Shows tips [strings] one by one with [duration] between them and then starts
@@ -7,26 +7,26 @@ import 'package:lets_play_cities/screens/game/game_screen.dart';
 class FirstTimeOnBoardingScreen extends StatefulWidget {
   final List<String> strings;
   final Duration duration;
-  final GameMode gameMode;
+  final GameConfig gameConfig;
 
   const FirstTimeOnBoardingScreen({
     @required this.strings,
     @required this.duration,
-    @required this.gameMode,
+    @required this.gameConfig,
   })  : assert(strings != null),
         assert(duration != null),
-        assert(gameMode != null);
+        assert(gameConfig != null);
 
   @override
   _FirstTimeOnBoardingScreenState createState() =>
-      _FirstTimeOnBoardingScreenState(strings, duration, gameMode);
+      _FirstTimeOnBoardingScreenState(strings, duration, gameConfig);
 }
 
 class _FirstTimeOnBoardingScreenState extends State<FirstTimeOnBoardingScreen>
     with SingleTickerProviderStateMixin {
   final List<String> _strings;
   final Duration _duration;
-  final GameMode _gameMode;
+  final GameConfig _gameConfig;
 
   AnimationController _controller;
   Animation<double> _fadeAnimation;
@@ -35,7 +35,7 @@ class _FirstTimeOnBoardingScreenState extends State<FirstTimeOnBoardingScreen>
   int _currentTextId = 0;
 
   _FirstTimeOnBoardingScreenState(
-      this._strings, this._duration, this._gameMode);
+      this._strings, this._duration, this._gameConfig);
 
   @override
   void initState() {
@@ -52,7 +52,7 @@ class _FirstTimeOnBoardingScreenState extends State<FirstTimeOnBoardingScreen>
             });
           } else {
             Navigator.pushReplacement(context,
-                MaterialPageRoute(builder: (_) => GameScreen(_gameMode)));
+                MaterialPageRoute(builder: (_) => GameScreen(_gameConfig)));
           }
         }
       });

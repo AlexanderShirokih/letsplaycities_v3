@@ -1,39 +1,46 @@
-import 'package:flutter/material.dart';
-
 import 'package:lets_play_cities/base/game_session.dart';
 import 'package:lets_play_cities/base/dictionary.dart';
+import 'package:lets_play_cities/base/preferences.dart';
 import 'package:lets_play_cities/base/scoring.dart';
 import 'package:lets_play_cities/base/users.dart';
+import 'package:meta/meta.dart';
 
+import 'game_config.dart';
 import 'game_mode.dart';
 import 'handlers.dart';
 import 'management.dart';
 
+/// Factory class used to create [GameSession] instances
 class GameSessionFactory {
+  /// Creates [GameSession] depending on given parameters.
+  /// Note that [GameConfig] will override some parameters.
   static GameSession createForGameMode({
-    @required ScoreController scoreController,
-    @required ScoringType scoringTypeMode,
-    @required GameMode mode,
+    @required GamePreferences preferences,
+    @required GameConfig config,
     @required ExclusionsService exclusions,
     @required DictionaryService dictionary,
-    @required OnUserInputAccepted onUserInputAccepted,
-    @required int timeLimit,
+    @required ScoreController scoreController,
+    @required void Function() onUserInputAccepted,
   }) {
-    final usersList = UsersList.forGameMode(mode, dictionary);
+    final mode = config.gameMode;
+    final usersList =
+        config.usersList ?? UsersList.forGameMode(mode, dictionary);
 
-    final localGameProcessorsStack = [
-      TrustedEventsInterceptor(),
+    final gameProcessorsStack = [
+      if (mode.isLocal()) TrustedEventsInterceptor(),
       FirstLetterChecker(),
       ExclusionsChecker(exclusions),
       DatabaseChecker(dictionary),
-      LocalEndpoint(dictionary, () => onUserInputAccepted(), scoreController),
+      ...(config.additionalEventHandlers ?? []),
+      Endpoint(dictionary, onUserInputAccepted, scoreController),
     ];
 
     return GameSession(
-        mode: mode,
-        usersList: usersList,
-        scoringType: scoringTypeMode,
-        eventChannel: ProcessingEventChannel(localGameProcessorsStack),
-        timeLimit: timeLimit);
+      mode: mode,
+      usersList: usersList,
+      scoringType: preferences.scoringType,
+      eventChannel: ProcessingEventChannel(gameProcessorsStack),
+      timeLimit: config.timeLimit ?? preferences.timeLimit,
+    );
   }
 }

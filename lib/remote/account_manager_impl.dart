@@ -1,8 +1,8 @@
 import 'package:lets_play_cities/base/preferences.dart';
-import 'package:lets_play_cities/remote/remote_api_client.dart';
+import 'package:lets_play_cities/remote/client/remote_api_client.dart';
 import 'package:lets_play_cities/remote/remote_module.dart';
 
-import 'api_client.dart';
+import 'client/api_client.dart';
 import 'account.dart';
 import 'account_manager.dart';
 

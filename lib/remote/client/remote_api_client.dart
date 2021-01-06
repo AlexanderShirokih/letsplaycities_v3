@@ -4,7 +4,7 @@ import 'package:crypto/crypto.dart' as crypto;
 import 'dart:convert';
 
 import 'package:http_parser/http_parser.dart' as http_parser;
-import 'package:lets_play_cities/remote/api_client.dart';
+import 'package:lets_play_cities/remote/client/api_client.dart';
 import 'package:lets_play_cities/remote/exceptions.dart';
 import 'package:lets_play_cities/remote/models.dart';
 import 'package:lets_play_cities/remote/auth.dart';

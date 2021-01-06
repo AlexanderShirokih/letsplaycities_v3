@@ -70,9 +70,9 @@ class GameState extends GameLifecycleState {
 /// Used when the game ends
 class GameResultsState extends GameLifecycleState {
   final GameResult gameResult;
-  final GameMode gameMode;
+  final GameConfig gameConfig;
 
-  const GameResultsState(this.gameResult, this.gameMode);
+  const GameResultsState(this.gameResult, this.gameConfig);
 }
 
 /// Used when some fatal error happens

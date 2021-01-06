@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 import 'package:async/async.dart';
-import 'package:lets_play_cities/remote/base_socket_connector.dart';
+import 'package:lets_play_cities/remote/client/base_socket_connector.dart';
 import 'package:lets_play_cities/remote/exceptions.dart';
 import 'package:web_socket_channel/io.dart';
 
@@ -60,7 +60,7 @@ class WebSocketConnector implements AbstractSocketConnector {
       _channel = null;
     }
 
-    if (!_streamController.isClosed) {
+    if (!(_streamController?.isClosed ?? true)) {
       await _workStreamDone;
       await _streamController.close();
     }

@@ -5,10 +5,10 @@ import 'package:lets_play_cities/base/data/word_result.dart';
 import 'package:lets_play_cities/remote/exceptions.dart';
 import 'package:lets_play_cities/remote/model/incoming_models.dart';
 import 'package:lets_play_cities/remote/model/outgoing_models.dart';
-import 'package:lets_play_cities/remote/socket_api.dart';
+import 'package:lets_play_cities/remote/client/socket_api.dart';
 
-import 'model/profile_info.dart';
-import 'model/utils.dart';
+import '../model/profile_info.dart';
+import '../model/utils.dart';
 
 class JsonMessageConverter implements MessageConverter {
   @override

@@ -10,12 +10,13 @@ import 'package:lets_play_cities/base/remote/bloc/waiting_room_bloc.dart';
 import 'package:lets_play_cities/l18n/localization_service.dart';
 import 'package:lets_play_cities/remote/account.dart';
 import 'package:lets_play_cities/remote/account_manager.dart';
-import 'package:lets_play_cities/remote/json_message_converter.dart';
-import 'package:lets_play_cities/remote/remote_game_client.dart';
-import 'package:lets_play_cities/remote/socket_api.dart';
-import 'package:lets_play_cities/remote/web_socket_connector.dart';
+import 'package:lets_play_cities/remote/client/json_message_converter.dart';
+import 'package:lets_play_cities/remote/client/remote_game_client.dart';
+import 'package:lets_play_cities/remote/client/socket_api.dart';
+import 'package:lets_play_cities/remote/client/web_socket_connector.dart';
 
 import 'package:lets_play_cities/screens/common/utils.dart';
+import 'package:lets_play_cities/screens/game/game_screen.dart';
 
 /// Initial screen where user resides until game starts
 class GameWaitingRoomScreen extends StatelessWidget {
@@ -74,9 +75,11 @@ class GameWaitingRoomScreen extends StatelessWidget {
             },
             listener: (context, state) {
               if (state is StartGameState) {
-                // TODO: Start the game screen
-                print(
-                    'Start game with ${state.players.first.name} and ${state.players.last.name}');
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (BuildContext context) => GameScreen(state.config),
+                  ),
+                );
               }
             },
           ),

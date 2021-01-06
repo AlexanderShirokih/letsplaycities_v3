@@ -50,11 +50,11 @@ class WaitingRoomConnectionError extends WaitingRoomState {
 
 /// State used when opponents was found and game should starts
 class StartGameState extends WaitingRoomState {
-  /// List of room players. First item on list should make move first
-  final List<Player> players;
+  /// Ready to start network game config
+  final GameConfig config;
 
-  const StartGameState(this.players) : assert(players != null);
+  const StartGameState(this.config) : assert(config != null);
 
   @override
-  List<Object> get props => [players];
+  List<Object> get props => [config];
 }

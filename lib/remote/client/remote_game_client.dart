@@ -1,12 +1,17 @@
 import 'package:flutter/cupertino.dart';
+import 'package:lets_play_cities/base/game/game_config.dart';
+import 'package:lets_play_cities/base/game/game_mode.dart';
 import 'package:lets_play_cities/base/game/player/player.dart';
+import 'package:lets_play_cities/base/game/player/users_list.dart';
 import 'package:lets_play_cities/base/platform/app_version.dart';
 import 'package:lets_play_cities/base/preferences.dart';
 import 'package:lets_play_cities/remote/auth.dart';
 import 'package:lets_play_cities/remote/exceptions.dart';
 import 'package:lets_play_cities/remote/model/incoming_models.dart';
 import 'package:lets_play_cities/remote/model/outgoing_models.dart';
-import 'package:lets_play_cities/remote/socket_api.dart';
+import 'package:lets_play_cities/remote/client/socket_api.dart';
+
+import '../handlers/network_endpoint.dart';
 
 /// Describes rules and order of sending mess
 class RemoteGameClient {
@@ -69,7 +74,7 @@ class RemoteGameClient {
   /// [opponent].
   /// Waits for opponent and then returns list of game players.
   /// First player in list make move first
-  Future<List<Player>> play(BaseProfileInfo opponent) async {
+  Future<GameConfig> play(BaseProfileInfo opponent) async {
     socketApi.sendMessage(PlayMessage(
       mode: opponent == null ? PlayMode.RANDOM_PAIR : PlayMode.FRIEND,
       oppUid: opponent?.userId,
@@ -84,9 +89,15 @@ class RemoteGameClient {
       join.canReceiveMessages,
     ));
 
-    return join.youStarter
+    final users = join.youStarter
         ? [owningPlayer, opponentPlayer]
         : [opponentPlayer, owningPlayer];
+
+    return GameConfig(
+        gameMode: GameMode.Network,
+        usersList: UsersList(users),
+        timeLimit: 92,
+        additionalEventHandlers: [NetworkEndpoint(this)]);
   }
 
   /// Closes current connection

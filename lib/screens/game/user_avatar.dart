@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-
 import 'package:lets_play_cities/base/data.dart';
+import 'package:lets_play_cities/base/game/management.dart';
 import 'package:lets_play_cities/base/repos.dart';
 import 'package:lets_play_cities/base/users.dart';
 
@@ -23,7 +23,7 @@ class UserAvatar extends StatelessWidget {
         super(key: key);
 
   @override
-  Widget build(BuildContext rootContext) => StreamBuilder<Map<User, bool>>(
+  Widget build(BuildContext rootContext) => StreamBuilder<OnUserSwitchedEvent>(
         stream:
             rootContext.watch<GameServiceEventsRepository>().getUserSwitches(),
         builder: (context, snapshot) => Column(
@@ -40,9 +40,7 @@ class UserAvatar extends StatelessWidget {
                 child: buildUserAvatar(source),
                 shape: StadiumBorder(
                   side: BorderSide(
-                    color: snapshot.hasData &&
-                            snapshot.data.entries
-                                .any((u) => u.value && u.key == _user)
+                    color: snapshot.hasData && snapshot.data.nextUser == _user
                         ? Theme.of(context).primaryColorDark
                         : Colors.white,
                     width: 5.0,
@@ -51,11 +49,7 @@ class UserAvatar extends StatelessWidget {
               ),
             ),
             SizedBox(height: 4.0),
-            Text(
-              snapshot.hasData
-                  ? snapshot.data.keys.singleWhere((user) => user == _user).info
-                  : '--',
-            ),
+            Text(_user?.info ?? '--'),
           ],
         ),
       );
@@ -82,7 +76,8 @@ ImageProvider _getImageProviderByPictureSource(PictureSource source) {
   if (source is AssetPictureSource) {
     return AssetImage(source.assetName);
   }
-  if (source is NetworkPictureSource) {
+
+  if (source is NetworkPictureSource && source.pictureURL != null) {
     return NetworkImage(source.pictureURL);
   }
 

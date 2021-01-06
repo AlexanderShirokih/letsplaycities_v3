@@ -1,13 +1,14 @@
 import 'dart:async';
 
 import 'package:bloc/bloc.dart';
+import 'package:pedantic/pedantic.dart';
 import 'package:equatable/equatable.dart';
-import 'package:lets_play_cities/base/users.dart';
+
+import 'package:lets_play_cities/base/game/game_config.dart';
 import 'package:lets_play_cities/remote/account.dart';
 import 'package:lets_play_cities/remote/auth.dart';
 import 'package:lets_play_cities/remote/exceptions.dart';
-import 'package:lets_play_cities/remote/remote_game_client.dart';
-import 'package:pedantic/pedantic.dart';
+import 'package:lets_play_cities/remote/client/remote_game_client.dart';
 
 part 'waiting_room_event.dart';
 
@@ -44,7 +45,8 @@ class WaitingRoomBloc extends Bloc<WaitingRoomEvent, WaitingRoomState> {
     } else if (event is PlayEvent) {
       yield* _play(event.opponent);
     } else if (event is StartGameEvent) {
-      yield StartGameState(event.players);
+      yield StartGameState(event.config);
+      yield WaitingRoomInitial();
     }
   }
 
@@ -73,8 +75,8 @@ class WaitingRoomBloc extends Bloc<WaitingRoomEvent, WaitingRoomState> {
   Stream<WaitingRoomState> _play(BaseProfileInfo opponent) async* {
     yield WaitingForOpponentsState();
 
-    unawaited(_gameClient.play(opponent).then((List<Player> players) {
-      add(StartGameEvent(players));
+    unawaited(_gameClient.play(opponent).then((GameConfig config) {
+      add(StartGameEvent(config));
     }).catchError((error, stack) {
       print('$error:\n$stack');
       add(CancelEvent());

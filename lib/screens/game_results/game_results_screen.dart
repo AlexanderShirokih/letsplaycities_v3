@@ -2,15 +2,15 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:lets_play_cities/base/game/game_config.dart';
 import 'package:lets_play_cities/base/game/game_mode.dart';
-
 import 'package:lets_play_cities/base/game/game_result.dart';
 import 'package:lets_play_cities/base/game/management.dart';
 import 'package:lets_play_cities/l18n/localization_service.dart';
 import 'package:lets_play_cities/platform/share.dart';
+import 'package:lets_play_cities/screens/common/utils.dart';
 import 'package:lets_play_cities/screens/game/game_screen.dart';
 import 'package:lets_play_cities/screens/game/user_avatar.dart';
-import 'package:lets_play_cities/screens/common/utils.dart';
 import 'package:lets_play_cities/themes/theme.dart' as theme;
 import 'package:lets_play_cities/utils/string_utils.dart';
 
@@ -21,9 +21,9 @@ class GameResultsScreen extends StatelessWidget {
 
   final GameResult _gameResult;
 
-  final GameMode _gameMode;
+  final GameConfig _gameConfig;
 
-  const GameResultsScreen(this._gameResult, this._gameMode);
+  const GameResultsScreen(this._gameResult, this._gameConfig);
 
   @override
   Widget build(BuildContext context) => Scaffold(
@@ -138,9 +138,9 @@ class GameResultsScreen extends StatelessWidget {
                       const SizedBox(height: 24.0),
                       FloatingActionButton(
                         heroTag: 'replay',
-                        onPressed: () => _gameMode.isLocal()
+                        onPressed: () => _gameConfig.gameMode.isLocal()
                             ? Navigator.pushReplacement(context,
-                                GameScreen.createGameScreenRoute(_gameMode))
+                                GameScreen.createGameScreenRoute(_gameConfig))
                             : Navigator.pop(context),
                         child: Icon(Icons.replay),
                       ),

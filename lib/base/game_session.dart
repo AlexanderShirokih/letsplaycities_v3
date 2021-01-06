@@ -27,6 +27,7 @@ class GameSession {
   /// Time limit in seconds per users move
   final int timeLimit;
 
+  // TODO: Should we close it anyway?
   // This stream will closed automatically by closing [_disconnectionEvents]
   // ignore: close_sinks
   final _inputEvents = StreamController<GameEvent>.broadcast();
@@ -181,7 +182,6 @@ class GameSession {
 
   Future cancel() async {
     _gameRunning = false;
-
     await usersList.close();
   }
 }

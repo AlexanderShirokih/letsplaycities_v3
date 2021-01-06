@@ -1,5 +1,5 @@
 import 'package:lets_play_cities/remote/exceptions.dart';
-import 'package:lets_play_cities/remote/base_socket_connector.dart';
+import 'package:lets_play_cities/remote/client/base_socket_connector.dart';
 import 'package:lets_play_cities/remote/model/incoming_models.dart';
 import 'package:lets_play_cities/remote/model/outgoing_models.dart';
 

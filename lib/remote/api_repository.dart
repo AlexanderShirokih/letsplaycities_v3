@@ -2,7 +2,7 @@ import 'dart:collection';
 import 'dart:typed_data';
 
 import 'package:lets_play_cities/base/remote/bloc/avatar_resize_mixin.dart';
-import 'package:lets_play_cities/remote/api_client.dart';
+import 'package:lets_play_cities/remote/client/api_client.dart';
 import 'package:lets_play_cities/remote/model/blacklist_item_info.dart';
 import 'package:lets_play_cities/remote/model/friend_info.dart';
 import 'package:lets_play_cities/remote/model/friend_request_type.dart';

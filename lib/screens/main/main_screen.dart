@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:lets_play_cities/base/game/game_config.dart';
 import 'package:lets_play_cities/base/game/game_mode.dart';
 import 'package:lets_play_cities/screens/common/common_widgets.dart';
 import 'package:lets_play_cities/screens/game/game_screen.dart';
@@ -176,7 +177,8 @@ class _AnimatedMainButtonsState extends State<AnimatedMainButtons>
       );
 
   Future _runGameScreen(BuildContext context, GameMode gameMode) =>
-      Navigator.push(context, GameScreen.createGameScreenRoute(gameMode));
+      Navigator.push(context,
+          GameScreen.createGameScreenRoute(GameConfig(gameMode: gameMode)));
 
   Future _runOnlineScreen(BuildContext context) =>
       Navigator.push(context, OnlineGameMasterScreen.createNavigationRoute());

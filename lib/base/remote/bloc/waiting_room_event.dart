@@ -41,10 +41,10 @@ class PlayEvent extends WaitingRoomEvent {
 
 /// Used internally to start the game
 class StartGameEvent extends WaitingRoomEvent {
-  final List<Player> players;
+  final GameConfig config;
 
-  const StartGameEvent(this.players) : assert(players != null);
+  const StartGameEvent(this.config) : assert(config != null);
 
   @override
-  List<Object> get props => [players];
+  List<Object> get props => [config];
 }

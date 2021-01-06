@@ -1,4 +1,7 @@
+import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:pedantic/pedantic.dart';
+import 'package:meta/meta.dart';
 import 'dart:async';
 
 import 'package:lets_play_cities/base/scoring.dart';
@@ -8,14 +11,13 @@ import 'package:lets_play_cities/base/dictionary/impl/country_list_loader_factor
 import 'package:lets_play_cities/base/dictionary/impl/dictionary_factory.dart';
 import 'package:lets_play_cities/base/dictionary/impl/exclusions_factory.dart';
 import 'package:lets_play_cities/base/repositories/game_session_repo.dart';
-import 'package:lets_play_cities/base/game/handlers/local_endpoint.dart';
+import 'package:lets_play_cities/base/game/handlers.dart';
 import 'package:lets_play_cities/base/game/game_result.dart';
 import 'package:lets_play_cities/l18n/localization_service.dart';
 import 'package:lets_play_cities/remote/remote_module.dart';
 import 'package:lets_play_cities/utils/string_utils.dart';
 
-import 'package:meta/meta.dart';
-
+import '../game_config.dart';
 import '../game_mode.dart';
 import '../game_session_factory.dart';
 
@@ -26,7 +28,7 @@ part 'game_states.dart';
 class GameBloc extends Bloc<GameStateEvent, GameLifecycleState> {
   final GamePreferences _prefs;
   final LocalizationService _localizations;
-  final GameMode _gameMode;
+  final GameConfig _gameConfig;
 
   OnUserInputAccepted onUserInputAccepted;
   DictionaryUpdater _dictionaryUpdater;
@@ -42,13 +44,13 @@ class GameBloc extends Bloc<GameStateEvent, GameLifecycleState> {
   GameBloc({
     @required LocalizationService localizations,
     @required GamePreferences prefs,
-    @required GameMode gameMode,
+    @required GameConfig gameConfig,
   })  : assert(prefs != null),
-        assert(gameMode != null),
+        assert(gameConfig != null),
         assert(localizations != null),
         _prefs = prefs,
         _localizations = localizations,
-        _gameMode = gameMode,
+        _gameConfig = gameConfig,
         super(InitialState()) {
     add(const GameEventBeginDataLoading());
     _dictionaryUpdater = DictionaryUpdater(_prefs, getDio());
@@ -79,7 +81,7 @@ class GameBloc extends Bloc<GameStateEvent, GameLifecycleState> {
 
   /// Begins game loading sequence
   Stream<GameLifecycleState> _beginLoading() async* {
-    if (_gameMode.isLocal()) {
+    if (_gameConfig.gameMode.isLocal()) {
       yield* _checkForUpdates();
     }
 
@@ -110,13 +112,12 @@ class GameBloc extends Bloc<GameStateEvent, GameLifecycleState> {
 
     final repository = GameSessionRepository(
       GameSessionFactory.createForGameMode(
-        mode: _gameMode,
-        scoringTypeMode: _prefs.scoringType,
+        config: _gameConfig,
+        preferences: _prefs,
         exclusions: dataState.exclusions,
         dictionary: dataState.dictionary,
-        onUserInputAccepted: () => onUserInputAccepted(),
-        timeLimit: _prefs.timeLimit,
         scoreController: dataState.scoreController,
+        onUserInputAccepted: () => onUserInputAccepted(),
       ),
     );
 
@@ -124,9 +125,13 @@ class GameBloc extends Bloc<GameStateEvent, GameLifecycleState> {
         repository, dataState.dictionary, dataState.scoreController);
 
     // Send finish event when the game ends
-    // TODO: refactor to be able to close Future when the game bloc disposes
-    // ignore: unawaited_futures
-    repository.run().then((GameResult result) => add(GameEventFinish(result)));
+    unawaited(repository
+        .run()
+        .then((GameResult result) => add(GameEventFinish(result)))
+        .catchError((error) {
+      // TODO: Handle errors
+      print('Error: $error');
+    }));
   }
 
   /// Calls [DictionaryUpdater.checkForUpdates] to fetch updates from the server.
@@ -146,7 +151,7 @@ class GameBloc extends Bloc<GameStateEvent, GameLifecycleState> {
     final gameState = state as GameState;
     await gameState.gameSessionRepository.finish();
 
-    yield GameResultsState(event.gameResult, _gameMode);
+    yield GameResultsState(event.gameResult, _gameConfig);
   }
 
   void _surrender() {

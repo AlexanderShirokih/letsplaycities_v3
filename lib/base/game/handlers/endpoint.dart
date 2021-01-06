@@ -2,8 +2,8 @@ import 'package:lets_play_cities/base/data.dart';
 import 'package:lets_play_cities/base/scoring.dart';
 import 'package:lets_play_cities/base/dictionary.dart';
 import 'package:lets_play_cities/base/game/combo.dart';
-import 'package:lets_play_cities/base/game/handlers.dart';
 import 'package:lets_play_cities/base/game/management.dart';
+import 'package:lets_play_cities/base/game/handlers.dart';
 import 'package:lets_play_cities/base/game/player/player.dart';
 
 /// User as callback hook to notify UI that word is accepted and input fields
@@ -12,7 +12,7 @@ typedef OnUserInputAccepted = void Function();
 
 /// Intercepts [Accepted] words, commits them to the database
 /// and attaches country codes.
-class LocalEndpoint extends EventHandler {
+class Endpoint extends EventHandler {
   /// Handles users scores and checks the winner
   final ScoreController _scoreController;
 
@@ -22,7 +22,7 @@ class LocalEndpoint extends EventHandler {
 
   DateTime _currentUserStartTime;
 
-  LocalEndpoint(
+  Endpoint(
       this._dictionaryService, this._onUserInputAccepted, this._scoreController)
       : assert(_dictionaryService != null),
         assert(_onUserInputAccepted != null);
