@@ -122,7 +122,7 @@ class BaseProfileInfo extends Equatable {
   const BaseProfileInfo({
     @required this.userId,
     @required this.login,
-    @required this.pictureUrl,
+    this.pictureUrl,
   })  : assert(login != null),
         assert(userId != null);
 

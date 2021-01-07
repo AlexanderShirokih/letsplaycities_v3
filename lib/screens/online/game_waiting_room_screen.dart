@@ -3,7 +3,6 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-
 import 'package:lets_play_cities/app_config.dart';
 import 'package:lets_play_cities/base/preferences.dart';
 import 'package:lets_play_cities/base/remote/bloc/waiting_room_bloc.dart';
@@ -15,7 +14,6 @@ import 'package:lets_play_cities/remote/client/remote_game_client.dart';
 import 'package:lets_play_cities/remote/client/socket_api.dart';
 import 'package:lets_play_cities/remote/client/web_socket_connector.dart';
 import 'package:lets_play_cities/screens/common/common_widgets.dart';
-
 import 'package:lets_play_cities/screens/common/utils.dart';
 import 'package:lets_play_cities/screens/game/game_screen.dart';
 
@@ -94,29 +92,23 @@ class GameWaitingRoomScreen extends StatelessWidget {
 /// Initial view that shows 'connect' button
 class _ReadyToConnectView extends StatelessWidget {
   @override
-  Widget build(BuildContext context) => WillPopScope(
-        onWillPop: () async {
-          context.read<WaitingRoomBloc>().add(CancelEvent());
-          return true;
-        },
-        child: Center(
-          child: buildWithLocalization(
-            context,
-            (l10n) => Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.all(18.0),
-                  child: Text(
-                    l10n.online['game_desc'],
-                    textAlign: TextAlign.center,
-                    style: Theme.of(context).textTheme.headline6,
-                  ),
+  Widget build(BuildContext context) => Center(
+        child: buildWithLocalization(
+          context,
+          (l10n) => Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(18.0),
+                child: Text(
+                  l10n.online['game_desc'],
+                  textAlign: TextAlign.center,
+                  style: Theme.of(context).textTheme.headline6,
                 ),
-                const SizedBox(height: 18.0),
-                _createConnectButton(context),
-              ],
-            ),
+              ),
+              const SizedBox(height: 18.0),
+              _createConnectButton(context),
+            ],
           ),
         ),
       );

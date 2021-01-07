@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:dio/dio.dart';
 import 'package:lets_play_cities/app_config.dart';
+import 'package:lets_play_cities/remote/api_repository.dart';
 
 // HTTP Overrides providing PEM certificate validation
 class MyHttpOverrides extends HttpOverrides {
@@ -20,6 +21,8 @@ class MyHttpOverrides extends HttpOverrides {
 
 Dio _dioInstance;
 
+ApiRepositoryProvider _apiRepositoryProvider;
+
 /// Returns DIO client instance
 Dio getDio() {
   _dioInstance ??= Dio(
@@ -30,4 +33,9 @@ Dio getDio() {
     ),
   );
   return _dioInstance;
+}
+
+/// Returns [ApiRepositoryProvider] singleton
+ApiRepositoryProvider getApiRepositoryProvider() {
+  return (_apiRepositoryProvider ??= ApiRepositoryProvider());
 }

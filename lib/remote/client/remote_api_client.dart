@@ -1,13 +1,13 @@
 import 'dart:convert';
+
+import 'package:crypto/crypto.dart' as crypto;
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
-import 'package:crypto/crypto.dart' as crypto;
-
 import 'package:http_parser/http_parser.dart' as http_parser;
+import 'package:lets_play_cities/remote/auth.dart';
 import 'package:lets_play_cities/remote/client/api_client.dart';
 import 'package:lets_play_cities/remote/exceptions.dart';
 import 'package:lets_play_cities/remote/models.dart';
-import 'package:lets_play_cities/remote/auth.dart';
 
 /// Remote server REST-api client
 class RemoteLpsApiClient extends LpsApiClient {
@@ -53,11 +53,14 @@ class RemoteLpsApiClient extends LpsApiClient {
       .then((list) => list.map((e) => BlackListItemInfo.fromJson(e)).toList());
 
   Future<List<dynamic>> _fetchList(String urlPostfix, [int targetId]) async {
+    final isOwner = _credential.userId == targetId;
     _requireCredential();
 
     return await _decodeJson(
       () => _httpClient.get(
-        targetId == null ? '/$urlPostfix/' : '/$urlPostfix/$targetId',
+        targetId == null || isOwner
+            ? '/$urlPostfix/'
+            : '/$urlPostfix/$targetId',
         options: Options(headers: _credential.asAuthorizationHeader()),
       ),
     ) as List<dynamic>;
@@ -179,14 +182,13 @@ class RemoteLpsApiClient extends LpsApiClient {
   ) async {
     try {
       final response = await responseSupplier();
+
       if (response.statusCode != 200) {
         throw AuthorizationException.fromStatus(
             response.statusMessage, response.statusCode);
       }
       return response;
-    } on DioError catch (e, s) {
-      print('API Error: $e,\n at: $s');
-
+    } on DioError catch (e) {
       var description = 'no description';
 
       try {

@@ -27,8 +27,7 @@ class WordCheckingResult extends GameEvent {
   const WordCheckingResult();
 
   /// Creates word checking result from [WordResult] enum state
-  factory WordCheckingResult.of(
-      WordResult result, User owner, String word) {
+  factory WordCheckingResult.of(WordResult result, User owner, String word) {
     switch (result) {
       case WordResult.ACCEPTED:
         return Accepted(word, owner);

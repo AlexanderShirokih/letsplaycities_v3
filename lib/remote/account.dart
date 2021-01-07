@@ -1,12 +1,12 @@
 import 'dart:convert';
 
 import 'package:equatable/equatable.dart';
-import 'package:lets_play_cities/remote/client/api_client.dart';
-import 'package:meta/meta.dart';
-
+import 'package:lets_play_cities/base/data.dart';
 import 'package:lets_play_cities/remote/api_repository.dart';
 import 'package:lets_play_cities/remote/auth.dart';
-import 'package:lets_play_cities/base/data.dart';
+import 'package:lets_play_cities/remote/client/api_client.dart';
+import 'package:lets_play_cities/remote/remote_module.dart';
+import 'package:meta/meta.dart';
 
 /// Contains user credentials, which is the result of server authorization.
 class Credential extends Equatable {
@@ -129,5 +129,6 @@ class RemoteAccount extends ClientAccountInfo with EquatableMixin {
       );
 
   /// Creates [ApiRepository] for this account
-  ApiRepository getApiRepository() => ApiRepository(client);
+  ApiRepository getApiRepository() =>
+      getApiRepositoryProvider().getApiRepository(client);
 }

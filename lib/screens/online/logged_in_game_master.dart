@@ -1,9 +1,8 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:flutter/material.dart';
-import 'package:lets_play_cities/remote/api_repository.dart';
 import 'package:lets_play_cities/remote/account.dart';
-
+import 'package:lets_play_cities/remote/api_repository.dart';
 import 'package:lets_play_cities/screens/common/utils.dart';
 import 'package:lets_play_cities/screens/online/profile.dart';
 

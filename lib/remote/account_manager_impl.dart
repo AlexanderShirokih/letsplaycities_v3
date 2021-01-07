@@ -1,6 +1,7 @@
 import 'package:async/async.dart';
 
 import 'package:lets_play_cities/base/preferences.dart';
+import 'package:lets_play_cities/remote/auth.dart';
 import 'package:lets_play_cities/remote/client/remote_api_client.dart';
 import 'package:lets_play_cities/remote/remote_module.dart';
 import 'package:lets_play_cities/remote/model/utils.dart';
@@ -31,7 +32,10 @@ class AccountManagerImpl extends AccountManager {
     final client = _createClient(credentials);
 
     return _fetchedAccount.fetch(() async {
-      final profile = await client.getProfileInfo(credentials.userId);
+      final profile = await getApiRepositoryProvider()
+          .getApiRepository(client)
+          .getProfileInfo(
+              BaseProfileInfo(userId: credentials.userId, login: ''), true);
 
       return RemoteAccount(
         credential: credentials,

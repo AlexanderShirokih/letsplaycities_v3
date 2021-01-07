@@ -25,6 +25,11 @@ class WaitingRoomBloc extends Bloc<WaitingRoomEvent, WaitingRoomState> {
         super(WaitingRoomInitial());
 
   @override
+  Future<Function> close() {
+    return _gameClient.disconnect().whenComplete(() => super.close());
+  }
+
+  @override
   void onError(Object error, StackTrace stackTrace) {
     if (error is ConnectionException) {
       add(CancelEvent());
