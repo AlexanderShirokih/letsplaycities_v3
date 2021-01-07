@@ -1,7 +1,7 @@
+import 'dart:convert';
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:crypto/crypto.dart' as crypto;
-import 'dart:convert';
 
 import 'package:http_parser/http_parser.dart' as http_parser;
 import 'package:lets_play_cities/remote/client/api_client.dart';
@@ -18,7 +18,7 @@ class RemoteLpsApiClient extends LpsApiClient {
       : assert(_httpClient != null);
 
   @override
-  Future<ClientAccountInfo> signUp(RemoteSignInData data) async {
+  Future<RemoteSignUpResponse> signUp(RemoteSignUpData data) async {
     var responseBody = json.encode(data.toMap());
     final response = await _httpClient.post('/user/', data: responseBody);
 
@@ -29,12 +29,11 @@ class RemoteLpsApiClient extends LpsApiClient {
 
     try {
       final decoded = json.decode(response.data);
-      final responseData = RemoteSignInResponse.fromMap(decoded);
-      final credential = Credential(
-          userId: responseData.userId, accessToken: responseData.accessToken);
+      if (decoded['error'] != null) {
+        throw decoded['error'];
+      }
 
-      return responseData.toClientInfo(_httpClient.options.baseUrl,
-          RemoteLpsApiClient(_httpClient, credential));
+      return RemoteSignUpResponse.fromMap(decoded['data']);
     } catch (e) {
       throw FetchingException('Response error. \n$e', response.request.uri);
     }
@@ -217,7 +216,7 @@ class RemoteLpsApiClient extends LpsApiClient {
   }
 }
 
-class RemoteSignInResponse {
+class RemoteSignUpResponse {
   /// Unique user ID.
   /// Used to uniquely identify user on the game server.
   final int userId;
@@ -231,34 +230,27 @@ class RemoteSignInResponse {
   /// Profile picture
   final String pictureHash;
 
-  /// Users role (ex: banned,ready, admin) (legacy names)
+  /// Users role on server
   final Role role;
 
-  RemoteSignInResponse({
-    this.userId,
-    this.login,
-    this.accessToken,
-    this.pictureHash,
-    this.role,
+  final AuthType authType;
+
+  RemoteSignUpResponse({
+    @required this.userId,
+    @required this.login,
+    @required this.accessToken,
+    @required this.pictureHash,
+    @required this.role,
+    @required this.authType,
   });
 
-  factory RemoteSignInResponse.fromMap(dynamic data) => RemoteSignInResponse(
+  factory RemoteSignUpResponse.fromMap(dynamic data) => RemoteSignUpResponse(
         userId: int.tryParse(data['userId']),
-        login: data['login'],
-        accessToken: data['accessToken'],
-        pictureHash: data['pictureHash'],
+        login: data['name'],
+        accessToken: data['accHash'],
+        pictureHash: data['picHash'],
         role: UserRoleExtension.fromString(data['state']),
-      );
-
-  ClientAccountInfo toClientInfo(
-          String avatarLookupServer, LpsApiClient owningClient) =>
-      RemoteAccount(
-        credential: Credential(userId: userId, accessToken: accessToken),
-        name: login,
-        pictureUri:
-            '$avatarLookupServer/user/$userId/picture?hash=$pictureHash',
-        canReceiveMessages: false,
-        client: owningClient,
+        authType: AuthTypeExtension.fromString(data['authType']),
       );
 }
 
@@ -278,7 +270,7 @@ extension UserRoleExtension on Role {
 }
 
 /// Request for authentication on the remote game server
-class RemoteSignInData {
+class RemoteSignUpData {
   /// User name
   String login;
 

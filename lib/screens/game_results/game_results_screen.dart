@@ -109,11 +109,7 @@ class GameResultsScreen extends StatelessWidget {
                                 spreadRadius: 2)
                           ],
                         ),
-                        child: CircleAvatar(
-                          child: buildUserAvatar(
-                              _gameResult.owner.accountInfo.picture),
-                          radius: _kAvatarRadius,
-                        ),
+                        child: buildAvatarForUser(_gameResult.owner, 50.0),
                       )
                     ],
                   ),

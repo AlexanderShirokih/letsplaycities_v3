@@ -2,14 +2,28 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lets_play_cities/base/game/bloc/game_bloc.dart';
+import 'package:lets_play_cities/base/game/bloc/service_events_bloc.dart';
 import 'package:lets_play_cities/base/repos.dart';
 import 'package:lets_play_cities/screens/common/common_widgets.dart';
 
 class InputFieldsGroup extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return _CityInputField(
-        context.watch<GameSessionRepository>(), context.watch<GameBloc>());
+    return BlocBuilder<ServiceEventsBloc, ServiceEventsState>(
+      builder: (context, state) {
+        return AnimatedSwitcher(
+          duration: const Duration(seconds: 1),
+          child: state.isMessageFieldOpened
+              ? _ChatMessageInputField()
+              : _CityInputField(context.watch<GameSessionRepository>(),
+                  context.watch<GameBloc>()),
+          transitionBuilder: (child, animation) => ScaleTransition(
+            child: child,
+            scale: animation,
+          ),
+        );
+      },
+    );
   }
 }
 
@@ -54,7 +68,12 @@ class _CityInputFieldState extends State<_CityInputField> {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const MaterialIconButton(Icons.keyboard_voice),
+            MaterialIconButton(
+              Icons.keyboard_voice,
+              onPressed: () {
+                // TODO: Implement voice helper
+              },
+            ),
             Expanded(
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 4.0),
@@ -85,4 +104,62 @@ class _CityInputFieldState extends State<_CityInputField> {
     inputController.dispose();
     super.dispose();
   }
+}
+
+/// Used to enter chat messages
+class _ChatMessageInputField extends StatefulWidget {
+  const _ChatMessageInputField({Key key}) : super(key: key);
+
+  @override
+  __ChatMessageInputFieldState createState() => __ChatMessageInputFieldState();
+}
+
+class __ChatMessageInputFieldState extends State<_ChatMessageInputField> {
+  final inputController = TextEditingController();
+
+  void _onSubmit(BuildContext context, String value) {
+    if (value.isNotEmpty) {
+      context.read<GameSessionRepository>().sendChatMessage(value);
+      context
+          .read<ServiceEventsBloc>()
+          .add(ServiceEventsEvent.ToggleMessageField);
+      inputController.clear();
+    }
+  }
+
+  @override
+  void dispose() {
+    inputController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => Container(
+        margin: const EdgeInsets.all(8.0),
+        color: Colors.white,
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(12.0, 0.0, 4.0, 0.0),
+                child: TextField(
+                  onSubmitted: (text) => _onSubmit(context, text),
+                  controller: inputController,
+                  cursorColor: Theme.of(context).primaryColor,
+                  textCapitalization: TextCapitalization.words,
+                  decoration: const InputDecoration(
+                    border: InputBorder.none,
+                    hintText: 'Сообщение',
+                  ),
+                ),
+              ),
+            ),
+            MaterialIconButton(
+              Icons.send,
+              onPressed: () => _onSubmit(context, inputController.text),
+            ),
+          ],
+        ),
+      );
 }

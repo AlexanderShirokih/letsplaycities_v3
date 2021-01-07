@@ -39,10 +39,11 @@ class MaterialIconButton extends StatelessWidget {
   final IconData iconData;
   final Function onPressed;
 
-  const MaterialIconButton(this.iconData, {this.onPressed});
+  const MaterialIconButton(this.iconData, {@required this.onPressed});
 
   @override
   Widget build(BuildContext context) => Material(
+        color: Colors.transparent,
         child: IconButton(
           onPressed: onPressed,
           highlightColor: Colors.transparent,

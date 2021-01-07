@@ -88,12 +88,21 @@ class RemoteAccount extends ClientAccountInfo with EquatableMixin {
   /// User credentials
   final Credential credential;
 
+  /// Users role on server
+  final Role role;
+
+  /// Account origin
+  final AuthType authType;
+
+  /// Client instance for fetching API request from using this account credentials
   final LpsApiClient client;
 
   RemoteAccount({
     @required this.credential,
     @required this.name,
     @required this.canReceiveMessages,
+    @required this.role,
+    @required this.authType,
     @required String pictureUri,
     @required this.client,
   })  : picture = NetworkPictureSource(pictureUri),

@@ -15,11 +15,11 @@ mixin NetworkAvatarBuildingMixin {
 
   /// Creates [CircleAvatar] from [pictureUrl] if it's not `null` or builds
   /// default text avatar from [profile.login] initials
-  Widget buildAvatar(BaseProfileInfo profile, double radius) =>
+  Widget buildAvatar(BaseProfileInfo profile, [double radius = 46.0]) =>
       profile.pictureUrl == null
-          ? _buildTextAvatar(profile, 46.0)
+          ? _buildTextAvatar(profile, radius)
           : CircleAvatar(
-              radius: 46.0,
+              radius: radius,
               key: ObjectKey(profile),
               backgroundImage: NetworkImage(profile.pictureUrl),
               backgroundColor: Colors.transparent,
@@ -27,7 +27,7 @@ mixin NetworkAvatarBuildingMixin {
 
   Widget _buildTextAvatar(BaseProfileInfo profile, double radius) =>
       CircleAvatar(
-        radius: 46.0,
+        radius: radius,
         key: ObjectKey(profile),
         child: Text(
           _getInitials(profile.login),

@@ -5,20 +5,16 @@ import 'package:lets_play_cities/base/data.dart';
 import 'package:lets_play_cities/base/game/management.dart';
 import 'package:lets_play_cities/base/repos.dart';
 import 'package:lets_play_cities/base/users.dart';
+import 'package:lets_play_cities/remote/account.dart';
+import 'package:lets_play_cities/screens/online/network_avatar_building_mixin.dart';
 
 /// Creates circular user avatar with border around it.
-class UserAvatar extends StatelessWidget {
+class UserAvatar extends StatelessWidget with NetworkAvatarBuildingMixin {
   final User _user;
   final CrossAxisAlignment alignment;
-  final PictureSource source;
-  final Function onPressed;
 
-  UserAvatar({
-    @required User user,
-    @required this.onPressed,
-    Key key,
-  })  : source = user.accountInfo.picture,
-        alignment = _getAlignmentByPosition(user.position),
+  UserAvatar({@required User user, Key key})
+      : alignment = _getAlignmentByPosition(user.position),
         _user = user,
         super(key: key);
 
@@ -30,26 +26,13 @@ class UserAvatar extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: alignment,
           children: [
-            Container(
-              width: 70.0,
-              height: 70.0,
-              child: FlatButton(
-                onPressed: onPressed,
-                color: Colors.white,
-                padding: EdgeInsets.zero,
-                child: buildUserAvatar(source),
-                shape: StadiumBorder(
-                  side: BorderSide(
-                    color: snapshot.hasData && snapshot.data.nextUser == _user
-                        ? Theme.of(context).primaryColorDark
-                        : Colors.white,
-                    width: 5.0,
-                  ),
-                ),
-              ),
+            _AvatarBorderAnimator(
+              user: _user,
+              isActive: snapshot.hasData && snapshot.data.nextUser == _user,
+              borderColor: Theme.of(context).primaryColor,
             ),
             SizedBox(height: 4.0),
-            Text(_user?.info ?? '--'),
+            Text(_user.info),
           ],
         ),
       );
@@ -60,17 +43,86 @@ class UserAvatar extends StatelessWidget {
           : CrossAxisAlignment.end;
 }
 
-/// Creates users avatar Image depending of picture type
-Widget buildUserAvatar(PictureSource pictureSource) => _buildImage(
-    _getImageProviderByPictureSource(pictureSource),
-    const AssetImage(_kImagePlaceholder));
+class _AvatarBorderAnimator extends StatefulWidget {
+  final User user;
+  final bool isActive;
+  final Color borderColor;
+
+  const _AvatarBorderAnimator({
+    Key key,
+    @required this.user,
+    @required this.isActive,
+    @required this.borderColor,
+  }) : super(key: key);
+
+  @override
+  __AvatarBorderAnimatorState createState() => __AvatarBorderAnimatorState();
+}
+
+class __AvatarBorderAnimatorState extends State<_AvatarBorderAnimator>
+    with TickerProviderStateMixin {
+  AnimationController _controller;
+  Animation<Color> animation;
+
+  @override
+  void initState() {
+    super.initState();
+
+    _controller = AnimationController(
+      duration: const Duration(milliseconds: 2000),
+      vsync: this,
+    )..repeat(reverse: true);
+
+    animation = ColorTween(
+      begin: widget.borderColor,
+      end: Colors.white,
+    ).animate(_controller)
+      ..addListener(() {
+        setState(() {});
+      });
+  }
+
+  @override
+  void dispose() {
+    _controller?.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      child: buildAvatarForUser(widget.user, 35.0),
+      decoration: ShapeDecoration(
+        shape: StadiumBorder(
+          side: BorderSide(
+            color: widget.isActive ? animation.value : Colors.white,
+            width: 5.0,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _NetworkAvatarBuilder with NetworkAvatarBuildingMixin {}
+
+Widget buildAvatarForUser(User user, double radius) {
+  final builder = _NetworkAvatarBuilder();
+  final accountInfo = user.accountInfo;
+  if (accountInfo is RemoteAccount) {
+    return builder.buildAvatar(accountInfo.baseProfileInfo, radius);
+  } else if (accountInfo is AdvancedAccountInfo) {
+    return builder.buildAvatar(accountInfo.profileInfo, radius);
+  } else {
+    return CircleAvatar(
+      radius: radius,
+      backgroundImage:
+          _getImageProviderByPictureSource(user.accountInfo.picture),
+    );
+  }
+}
 
 const _kImagePlaceholder = 'assets/images/player_big.png';
-
-Widget _buildImage(ImageProvider target, ImageProvider placeholder) =>
-    (target is AssetImage)
-        ? Image(image: target)
-        : FadeInImage(image: target, placeholder: placeholder);
 
 ImageProvider _getImageProviderByPictureSource(PictureSource source) {
   if (source is AssetPictureSource) {

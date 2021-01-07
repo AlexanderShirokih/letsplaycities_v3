@@ -1,4 +1,3 @@
-import 'package:lets_play_cities/remote/account.dart';
 import 'package:lets_play_cities/remote/client/remote_api_client.dart';
 import 'package:lets_play_cities/remote/model/blacklist_item_info.dart';
 import 'package:lets_play_cities/remote/model/friend_info.dart';
@@ -10,9 +9,9 @@ import 'package:lets_play_cities/remote/model/profile_info.dart';
 abstract class LpsApiClient {
   const LpsApiClient();
 
-  /// Sends sign up request and returns [ClientAccountInfo] containing user data
+  /// Sends sign up request and returns [RemoteSignUpResponse] containing user data
   /// or throws [AuthorizationException] if cannot sign up on server by any reason.
-  Future<ClientAccountInfo> signUp(RemoteSignInData data);
+  Future<RemoteSignUpResponse> signUp(RemoteSignUpData data);
 
   /// Queries friends list from server. Throws an exception if cannot fetch data.
   Future<List<FriendInfo>> getFriendsList();

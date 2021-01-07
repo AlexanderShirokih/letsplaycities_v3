@@ -24,7 +24,9 @@ class GameSessionRepository {
   bool get helpAvailable => _session.mode == GameMode.PlayerVsAndroid;
 
   /// `true` if this game mode supports messaging
-  bool get messagingAvailable => _session.mode == GameMode.Network;
+  bool get messagingAvailable =>
+      _session.mode == GameMode.Network &&
+      _session.usersList.all.every((user) => user.isMessagesAllowed);
 
   /// Returns latest accepted word
   String get lastAcceptedWord => _session.lastAcceptedWord;
@@ -42,7 +44,7 @@ class GameSessionRepository {
       _session.getUserByPosition(position);
 
   /// Finished the game and surrenders current player
-  void surrender() => _session.surrender();
+  Future surrender() => _session.surrender();
 
   /// Called to dispose internal StreamControllers
   Future finish() async {
@@ -56,6 +58,11 @@ class GameSessionRepository {
 
   /// Dispatches input word to the game session
   void sendInputWord(String input) {
-    _userInputDebounce.run(() => _session.deliverUserInput((input)));
+    _userInputDebounce.run(() => _session.deliverUserInput(input));
+  }
+
+  /// Dispatches input message to the game session
+  void sendChatMessage(String message) {
+    _userInputDebounce.run(() => _session.deliverUserMessage(message));
   }
 }

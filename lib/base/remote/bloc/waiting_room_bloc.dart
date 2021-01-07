@@ -68,8 +68,8 @@ class WaitingRoomBloc extends Bloc<WaitingRoomEvent, WaitingRoomState> {
   }
 
   Stream<WaitingRoomState> _stopConnection() async* {
-    await _gameClient.disconnect();
     yield WaitingRoomInitial();
+    await _gameClient.disconnect();
   }
 
   Stream<WaitingRoomState> _play(BaseProfileInfo opponent) async* {
@@ -78,9 +78,10 @@ class WaitingRoomBloc extends Bloc<WaitingRoomEvent, WaitingRoomState> {
     unawaited(_gameClient.play(opponent).then((GameConfig config) {
       add(StartGameEvent(config));
     }).catchError((error, stack) {
-      print('$error:\n$stack');
-      add(CancelEvent());
-      add(OnConnectionFailedEvent());
-    }));
+      if (state is! WaitingRoomInitial) {
+        add(CancelEvent());
+        add(OnConnectionFailedEvent());
+      }
+    }, test: (err) => err is ConnectionException));
   }
 }

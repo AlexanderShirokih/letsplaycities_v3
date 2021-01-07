@@ -40,6 +40,7 @@ class GameSessionFactory {
       scoringType: preferences.scoringType,
       eventChannel: ProcessingEventChannel(gameProcessorsStack),
       timeLimit: config.timeLimit ?? preferences.timeLimit,
+      externalEvents: config.externalEventSource,
     );
   }
 }

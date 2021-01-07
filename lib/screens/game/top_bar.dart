@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:lets_play_cities/base/data.dart';
 import 'package:lets_play_cities/base/game/bloc/game_bloc.dart';
+import 'package:lets_play_cities/base/game/bloc/service_events_bloc.dart';
 import 'package:lets_play_cities/base/repos.dart';
 import 'package:lets_play_cities/l18n/localization_service.dart';
 import 'package:lets_play_cities/screens/common/dialogs.dart';
@@ -30,19 +31,9 @@ class TopBar extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      UserAvatar(
-                        onPressed: () {
-                          // TODO: Handle left avatar click
-                        },
-                        user: leftUser,
-                      ),
+                      UserAvatar(user: leftUser),
                       _ActionButtons(repo),
-                      UserAvatar(
-                        onPressed: () {
-                          // TODO: Handle right avatar click
-                        },
-                        user: rightUser,
-                      ),
+                      UserAvatar(user: rightUser),
                     ],
                   ),
                   Row(
@@ -93,10 +84,13 @@ class _ActionButtons extends StatelessWidget {
                           .read<GameBloc>()
                           .add(const GameEventShowHelp())),
                 if (_gameSessionRepository.messagingAvailable)
-                  _createActionButton(context, FontAwesomeIcons.envelope,
-                      onConfirmed: () {
-                    // TODO: Send message
-                  }),
+                  _createActionButton(
+                    context,
+                    FontAwesomeIcons.envelope,
+                    onConfirmed: () => context
+                        .read<ServiceEventsBloc>()
+                        .add(ServiceEventsEvent.ToggleMessageField),
+                  ),
               ],
             ),
             SizedBox(width: 0.0, height: 16.0),

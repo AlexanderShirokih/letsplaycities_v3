@@ -1,21 +1,21 @@
-import 'package:equatable/equatable.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:pedantic/pedantic.dart';
-import 'package:meta/meta.dart';
 import 'dart:async';
 
-import 'package:lets_play_cities/base/scoring.dart';
-import 'package:lets_play_cities/base/preferences.dart';
+import 'package:equatable/equatable.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lets_play_cities/base/dictionary.dart';
 import 'package:lets_play_cities/base/dictionary/impl/country_list_loader_factory.dart';
 import 'package:lets_play_cities/base/dictionary/impl/dictionary_factory.dart';
 import 'package:lets_play_cities/base/dictionary/impl/exclusions_factory.dart';
-import 'package:lets_play_cities/base/repositories/game_session_repo.dart';
-import 'package:lets_play_cities/base/game/handlers.dart';
 import 'package:lets_play_cities/base/game/game_result.dart';
+import 'package:lets_play_cities/base/game/handlers.dart';
+import 'package:lets_play_cities/base/preferences.dart';
+import 'package:lets_play_cities/base/repositories/game_session_repo.dart';
+import 'package:lets_play_cities/base/scoring.dart';
 import 'package:lets_play_cities/l18n/localization_service.dart';
 import 'package:lets_play_cities/remote/remote_module.dart';
 import 'package:lets_play_cities/utils/string_utils.dart';
+import 'package:meta/meta.dart';
+import 'package:pedantic/pedantic.dart';
 
 import '../game_config.dart';
 import '../game_mode.dart';
@@ -71,7 +71,7 @@ class GameBloc extends Bloc<GameStateEvent, GameLifecycleState> {
     } else if (event is GameEventFinish) {
       yield* _finishGame(event);
     } else if (event is GameEventSurrender) {
-      _surrender();
+      await _surrender();
     } else if (event is GameEventShowHelp) {
       await _showHelp();
     } else {
@@ -129,7 +129,6 @@ class GameBloc extends Bloc<GameStateEvent, GameLifecycleState> {
         .run()
         .then((GameResult result) => add(GameEventFinish(result)))
         .catchError((error, stack) {
-      // TODO: Handle errors
       print('Error: $error,\nStack: $stack');
     }));
   }
@@ -154,9 +153,9 @@ class GameBloc extends Bloc<GameStateEvent, GameLifecycleState> {
     yield GameResultsState(event.gameResult, _gameConfig);
   }
 
-  void _surrender() {
+  Future _surrender() async {
     if (state is GameState) {
-      (state as GameState).gameSessionRepository.surrender();
+      await (state as GameState).gameSessionRepository.surrender();
     }
   }
 

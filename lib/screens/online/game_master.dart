@@ -5,6 +5,8 @@ import 'package:lets_play_cities/base/preferences.dart';
 import 'package:lets_play_cities/remote/auth.dart';
 import 'package:lets_play_cities/remote/account_manager.dart';
 import 'package:lets_play_cities/remote/account_manager_impl.dart';
+import 'package:lets_play_cities/screens/common/common_widgets.dart';
+import 'package:lets_play_cities/screens/common/utils.dart';
 import 'package:lets_play_cities/screens/online/logged_in_game_master.dart';
 import 'package:lets_play_cities/screens/online/login_screen.dart';
 
@@ -27,7 +29,13 @@ class OnlineGameMasterScreen extends StatelessWidget {
               future: ctx.watch<AccountManager>().getLastSignedInAccount(),
               builder: (context, lastSignedInAccount) {
                 if (!lastSignedInAccount.hasData) {
-                  return LoginScreen();
+                  if (lastSignedInAccount.connectionState ==
+                      ConnectionState.done) {
+                    return LoginScreen();
+                  } else {
+                    return buildWithLocalization(context,
+                        (l10n) => LoadingView(l10n.online['fetching_profile']));
+                  }
                 }
                 return RepositoryProvider<RemoteAccount>.value(
                   value: lastSignedInAccount.requireData,

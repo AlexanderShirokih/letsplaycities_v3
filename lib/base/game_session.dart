@@ -1,4 +1,6 @@
 import 'dart:async';
+import 'package:meta/meta.dart';
+import 'package:pedantic/pedantic.dart';
 
 import 'package:lets_play_cities/base/data.dart';
 import 'package:lets_play_cities/base/game/game_result.dart';
@@ -9,7 +11,6 @@ import 'package:lets_play_cities/base/game/management.dart';
 import 'package:lets_play_cities/base/game/player/surrender_exception.dart';
 import 'package:lets_play_cities/utils/string_utils.dart';
 import 'package:lets_play_cities/utils/stream_utils.dart';
-import 'package:meta/meta.dart';
 
 class GameSession {
   /// Game participants
@@ -27,11 +28,13 @@ class GameSession {
   /// Time limit in seconds per users move
   final int timeLimit;
 
-  // TODO: Should we close it anyway?
-  // This stream will closed automatically by closing [_disconnectionEvents]
+  // This stream will closed automatically by closing [_serviceEvents]
   // ignore: close_sinks
   final _inputEvents = StreamController<GameEvent>.broadcast();
-  final _disconnectionEvents = StreamController<OnMoveFinished>.broadcast();
+
+  /// Stream for sending other event types to _inputEvents through event pipeline.
+  /// DON'T send events directly. Use [_sendServiceEvent].
+  final _serviceEvents = StreamController<GameEvent>.broadcast();
 
   bool _gameRunning = true;
 
@@ -43,20 +46,22 @@ class GameSession {
       .where((event) => event is WordCheckingResult)
       .cast<WordCheckingResult>();
 
-  GameSession(
-      {@required this.mode,
-      @required this.usersList,
-      @required this.eventChannel,
-      @required this.scoringType,
-      @required this.timeLimit})
-      : assert(usersList != null),
+  GameSession({
+    @required this.mode,
+    @required this.usersList,
+    @required this.eventChannel,
+    @required this.scoringType,
+    @required this.timeLimit,
+    Stream<GameEvent> Function(GameSession) externalEvents,
+  })  : assert(usersList != null),
         assert(scoringType != null),
         assert(eventChannel != null),
         assert(timeLimit != null) {
-    inputEvents.listen((event) {
-      //TODO: Debug print
-      print('EVENT=$event');
-    });
+    if (externalEvents != null) {
+      unawaited(externalEvents(this)
+          .asyncMap((event) => _sendServiceEvent(event))
+          .drain());
+    }
   }
 
   /// Returns user attached to the [position]
@@ -74,11 +79,24 @@ class GameSession {
     usersList.currentPlayer?.onUserInput(userInput);
   }
 
+  /// Dispatches user input to the current [Player] in users list
+  void deliverUserMessage(String message) {
+    final currentPlayer = usersList.currentPlayer ??
+        usersList.all.firstWhere((element) => element is Player);
+
+    _sendServiceEvent(MessageEvent(message, currentPlayer));
+  }
+
+  /// Sends service event to _serviceEvents pipe
+  Future _sendServiceEvent(GameEvent event) {
+    return _serviceEvents.addStream(eventChannel.sendEvent(event));
+  }
+
   /// Finishes the current game and surrenders the player
   /// if it is a current user now.
-  void surrender() {
+  Future surrender() async {
     _gameRunning = false;
-    _disconnectionEvents.add(
+    await _sendServiceEvent(
       OnMoveFinished(
         usersList.currentPlayer == null
             ? MoveFinishType.Disconnected
@@ -123,7 +141,7 @@ class GameSession {
       yield* mergeStreamsWhile([
         _createTimer(),
         _makeMoveForCurrentUser(),
-        _disconnectionEvents.stream
+        _serviceEvents.stream,
       ], (element) {
         final isMoveFinished = element is OnMoveFinished;
         if (isMoveFinished &&
@@ -183,5 +201,6 @@ class GameSession {
   Future cancel() async {
     _gameRunning = false;
     await usersList.close();
+    await _serviceEvents.close();
   }
 }

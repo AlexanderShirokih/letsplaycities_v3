@@ -6,7 +6,7 @@ abstract class AccountManager {
   Future<RemoteAccount> getLastSignedInAccount();
 
   /// Runs sign in authorization sequence
-  Future<RemoteAccount> signIn(RemoteSignInData signInData);
+  Future<RemoteAccount> signUp(RemoteSignUpData signInData);
 
   /// Signs out from the currently logged account
   Future signOut();

@@ -14,6 +14,7 @@ import 'package:lets_play_cities/remote/client/json_message_converter.dart';
 import 'package:lets_play_cities/remote/client/remote_game_client.dart';
 import 'package:lets_play_cities/remote/client/socket_api.dart';
 import 'package:lets_play_cities/remote/client/web_socket_connector.dart';
+import 'package:lets_play_cities/screens/common/common_widgets.dart';
 
 import 'package:lets_play_cities/screens/common/utils.dart';
 import 'package:lets_play_cities/screens/game/game_screen.dart';
@@ -28,7 +29,8 @@ class GameWaitingRoomScreen extends StatelessWidget {
       future: context.watch<AccountManager>().getLastSignedInAccount(),
       builder: (context, account) {
         if (!account.hasData) {
-          return Text('Unauthorized!');
+          return buildWithLocalization(
+              context, (l10n) => LoadingView(l10n.online['fetching_profile']));
         }
 
         return BlocProvider.value(

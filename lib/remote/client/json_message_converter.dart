@@ -54,7 +54,8 @@ class JsonMessageConverter implements MessageConverter {
         );
       case 'timeout':
         return TimeoutMessage();
-      // TODO: Implement another message types
+      case 'leave':
+        return DisconnectedMessage();
       default:
         throw UnknownMessageException('Unexpected kind of message: $action');
     }

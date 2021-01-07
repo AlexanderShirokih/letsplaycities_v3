@@ -59,7 +59,7 @@ class OnlineHistoryScreen extends StatelessWidget
             alignment: Alignment.bottomRight,
             fit: StackFit.loose,
             children: [
-              buildAvatar(data, 46.0),
+              buildAvatar(data),
               if (data.isFriend)
                 FaIcon(
                   FontAwesomeIcons.userFriends,

@@ -1,5 +1,7 @@
 import 'package:lets_play_cities/base/game/handlers.dart';
+import 'package:lets_play_cities/base/game/management.dart';
 import 'package:lets_play_cities/base/game/player/users_list.dart';
+import 'package:lets_play_cities/base/game_session.dart';
 import 'package:meta/meta.dart';
 
 import 'package:lets_play_cities/base/game/game_mode.dart';
@@ -21,10 +23,14 @@ class GameConfig {
   /// Will be appended before [Endpoint] handler.
   final List<EventHandler> additionalEventHandlers;
 
+  /// Additional stream with [GameEvent]s
+  final Stream<GameEvent> Function(GameSession) externalEventSource;
+
   const GameConfig({
     @required this.gameMode,
     this.timeLimit,
     this.usersList,
     this.additionalEventHandlers,
+    this.externalEventSource,
   }) : assert(gameMode != null);
 }

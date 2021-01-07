@@ -147,6 +147,7 @@
     "connected": "Подключено",
     "connecting_to_server": "Подключение к серверу...",
     "connection_error": "Не удалось подключиться к серверу.",
+    "fetching_profile": "Загрузка профиля...",
     "authorization": "Авторизация...",
     "awaiting_for_opp": "Ожидание оппонента...",
     "friends_tab": "Друзья",

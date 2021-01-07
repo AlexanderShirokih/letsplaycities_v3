@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lets_play_cities/base/game/bloc/game_bloc.dart';
+import 'package:lets_play_cities/base/game/bloc/service_events_bloc.dart';
 import 'package:lets_play_cities/base/game/game_config.dart';
 import 'package:lets_play_cities/base/game/game_mode.dart';
 import 'package:lets_play_cities/base/preferences.dart';
@@ -111,29 +112,33 @@ class GameScreen extends StatelessWidget {
 
 Widget _buildGameStateLayout(GameState gameState) => RepositoryProvider(
       create: (BuildContext context) => gameState.gameSessionRepository,
-      child: Column(
-        children: [
-          TopBar(),
-          CitiesList(),
-          Container(
-            alignment: Alignment.bottomCenter,
-            child: Column(
-              children: [
-                CityCheckingResultBar(),
-                InputFieldsGroup(),
-              ],
+      child: BlocProvider<ServiceEventsBloc>.value(
+        value: ServiceEventsBloc(),
+        child: Column(
+          children: [
+            TopBar(),
+            CitiesList(),
+            Container(
+              alignment: Alignment.bottomCenter,
+              child: Column(
+                children: [
+                  CityCheckingResultBar(),
+                  InputFieldsGroup(),
+                ],
+              ),
             ),
-          ),
-          Builder(
-            builder: (context) => context.watch<GamePreferences>().soundEnabled
-                ? SoundPlayer(
-                    assetSoundPath: 'sound/click.mp3',
-                    windowStream: context
-                        .watch<GameSessionRepository>()
-                        .createGameItemsRepository()
-                        .getGameItems())
-                : SizedBox.shrink(),
-          ),
-        ],
+            Builder(
+              builder: (context) =>
+                  context.watch<GamePreferences>().soundEnabled
+                      ? SoundPlayer(
+                          assetSoundPath: 'sound/click.mp3',
+                          windowStream: context
+                              .watch<GameSessionRepository>()
+                              .createGameItemsRepository()
+                              .getGameItems())
+                      : SizedBox.shrink(),
+            ),
+          ],
+        ),
       ),
     );

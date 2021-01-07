@@ -12,14 +12,6 @@ class GameServiceEventsRepository {
       .where((event) => event is OnUserSwitchedEvent)
       .cast<OnUserSwitchedEvent>();
 
-  //     .map((userSwitchEvent) {
-  //   return userSwitchEvent.allUsers.asMap().map((key, value) {
-  //     final isNext = value == userSwitchEvent.nextUser;
-  //     print('USER=$value, isNext=$isNext');
-  //     return MapEntry(value, isNext);
-  //   });
-  // });
-
   /// Returns stream that emits timer ticks
   Stream<String> getTimerTicks() => _eventsStream
       .where((event) => (event) is TimeEvent)

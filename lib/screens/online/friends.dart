@@ -109,7 +109,7 @@ class OnlineFriendsScreen extends StatelessWidget
           OnlineProfileView.createRoute(context, target: data),
         ),
         contentPadding: EdgeInsets.all(8.0),
-        leading: buildAvatar(data, 46.0),
+        leading: buildAvatar(data),
         title: Text(data.login),
         subtitle: data.accepted
             ? null
