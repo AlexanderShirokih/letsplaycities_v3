@@ -11,6 +11,9 @@ class RemoteException implements Exception {
 /// Indicates that unknown kind of message was received
 class UnknownMessageException extends RemoteException {
   const UnknownMessageException(String description) : super(description);
+
+  UnknownMessageException.badEnumType(dynamic value)
+      : this('Unknown enum type: $value');
 }
 
 /// Used as wrapper for SocketException

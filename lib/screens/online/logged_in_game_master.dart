@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:lets_play_cities/remote/account.dart';
 import 'package:lets_play_cities/remote/api_repository.dart';
+import 'package:lets_play_cities/remote/auth.dart';
 import 'package:lets_play_cities/screens/common/utils.dart';
 import 'package:lets_play_cities/screens/online/profile.dart';
 
@@ -11,6 +12,8 @@ import 'game_waiting_room_screen.dart';
 /// A screen used to prepare user for online game and navigate between
 /// online-related routes when user is logged in
 class LoggedInOnlineGameMasterScreen extends StatefulWidget {
+  const LoggedInOnlineGameMasterScreen({Key key}) : super(key: key);
+
   @override
   _LoggedInOnlineGameMasterScreenState createState() =>
       _LoggedInOnlineGameMasterScreenState();

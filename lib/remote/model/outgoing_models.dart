@@ -1,5 +1,5 @@
-import 'package:meta/meta.dart';
 import 'package:equatable/equatable.dart';
+import 'package:meta/meta.dart';
 
 /// Base class for all outgoing socket messages
 abstract class OutgoingMessage extends Equatable {
@@ -86,4 +86,23 @@ class OutgoingChatMessage extends OutgoingMessage {
   final String msg;
 
   const OutgoingChatMessage({@required this.msg});
+}
+
+enum InvitationResult { accept, decline }
+
+/// Result decision on input request
+class InvitationResultMessage extends OutgoingMessage {
+  /// Users decision
+  final InvitationResult result;
+
+  /// Inviter ID
+  final int oppId;
+
+  const InvitationResultMessage({
+    @required this.result,
+    @required this.oppId,
+  });
+
+  @override
+  List<Object> get props => [result, oppId];
 }

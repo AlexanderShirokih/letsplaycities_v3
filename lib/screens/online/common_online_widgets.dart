@@ -60,3 +60,62 @@ Widget showLoadingWidget(BuildContext context) => Center(
         ],
       ),
     );
+
+/// Used when remote account is unreachable to display an error message
+class ConnectionErrorView extends StatelessWidget {
+  final void Function() onReload;
+
+  const ConnectionErrorView({Key key, @required this.onReload})
+      : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(),
+      body: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: IconTheme(
+                  data: IconThemeData(
+                    color: Theme.of(context).hintColor,
+                    size: 64.0,
+                  ),
+                  child: Icon(Icons.wifi_off),
+                ),
+              ),
+              buildWithLocalization(
+                context,
+                (l10n) => Text(
+                  l10n.online['connection_error'],
+                  textAlign: TextAlign.center,
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 24.0),
+                child: RaisedButton.icon(
+                  icon: FaIcon(FontAwesomeIcons.sync),
+                  color: Theme.of(context).primaryColor,
+                  label: Padding(
+                    padding: const EdgeInsets.all(12.0),
+                    child: buildWithLocalization(
+                        context, (l10n) => Text(l10n.online['reload'])),
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12.0),
+                  ),
+                  onPressed: onReload,
+                ),
+              )
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}

@@ -26,8 +26,26 @@ class WaitingRoomConnectingState extends WaitingRoomState {
 
 /// State used when user waits for available opponents in random pair mode
 class WaitingForOpponentsState extends WaitingRoomState {
+  /// Target opponent to play with. Null for random pair mode
+  final BaseProfileInfo target;
+
+  const WaitingForOpponentsState(this.target);
+
   @override
-  List<Object> get props => [];
+  List<Object> get props => [target];
+}
+
+/// State used to tell negative invitation result.
+class WaitingRoomInvitationNegativeResult extends WaitingRoomState {
+  final InviteResultType result;
+  final BaseProfileInfo target;
+
+  const WaitingRoomInvitationNegativeResult(this.result, this.target)
+      : assert(result != null),
+        assert(target != null);
+
+  @override
+  List<Object> get props => [result, target];
 }
 
 /// Used when user authorization was failed

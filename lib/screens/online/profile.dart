@@ -2,20 +2,87 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:intl/intl.dart';
-
+import 'package:lets_play_cities/base/preferences.dart';
 import 'package:lets_play_cities/base/remote/bloc/user_actions_bloc.dart';
 import 'package:lets_play_cities/l18n/localization_service.dart';
 import 'package:lets_play_cities/remote/auth.dart';
 import 'package:lets_play_cities/screens/common/common_widgets.dart';
+import 'package:lets_play_cities/screens/common/error_handler_widget.dart';
 import 'package:lets_play_cities/screens/common/utils.dart';
 import 'package:lets_play_cities/screens/online/banlist.dart';
 import 'package:lets_play_cities/screens/online/common_online_widgets.dart';
 import 'package:lets_play_cities/screens/online/friends.dart';
+import 'package:lets_play_cities/screens/online/game_waiting_room_screen.dart';
 import 'package:lets_play_cities/screens/online/history.dart';
 import 'package:lets_play_cities/screens/online/network_avatar_building_mixin.dart';
 import 'package:lets_play_cities/utils/string_utils.dart';
 
 import 'avatars/avatar_chooser.dart';
+
+/// Shows user profile independently from already injected providers
+class OnlineProfileViewStandalone extends StatefulWidget {
+  final BaseProfileInfo target;
+
+  const OnlineProfileViewStandalone(this.target);
+
+  @override
+  _OnlineProfileViewStandaloneState createState() =>
+      _OnlineProfileViewStandaloneState();
+}
+
+class _OnlineProfileViewStandaloneState
+    extends State<OnlineProfileViewStandalone> {
+  @override
+  Widget build(BuildContext context) {
+    return RepositoryProvider<AccountManager>.value(
+      value: AccountManager.fromPreferences(context.watch<GamePreferences>()),
+      child: Builder(
+        builder: (ctx) {
+          return FutureBuilder<RemoteAccount>(
+            future: ctx.watch<AccountManager>().getLastSignedInAccount(),
+            builder: (context, lastSignedInAccount) {
+              if (lastSignedInAccount.hasError) {
+                return ConnectionErrorView(onReload: () => setState(() {}));
+              }
+              if (!lastSignedInAccount.hasData) {
+                if (lastSignedInAccount.connectionState ==
+                    ConnectionState.done) {
+                  try {
+                    throw 'Unauthorized';
+                  } catch (e, s) {
+                    return ErrorHandlerView(e, s.toString());
+                  }
+                } else {
+                  return buildWithLocalization(context,
+                      (l10n) => LoadingView(l10n.online['fetching_profile']));
+                }
+              }
+              return Scaffold(
+                appBar: AppBar(
+                  title: Text(
+                    buildWithLocalization(
+                        context, (l10n) => l10n.online['profile_tab']),
+                  ),
+                ),
+                body: MultiRepositoryProvider(
+                  providers: [
+                    RepositoryProvider<RemoteAccount>.value(
+                      value: lastSignedInAccount.requireData,
+                    ),
+                    RepositoryProvider<ApiRepository>.value(
+                      value: lastSignedInAccount.requireData.getApiRepository(),
+                    ),
+                  ],
+                  child: OnlineProfileView(target: widget.target),
+                ),
+              );
+            },
+          );
+        },
+      ),
+    );
+  }
+}
 
 /// Shows user profile
 class OnlineProfileView extends StatefulWidget {
@@ -29,7 +96,7 @@ class OnlineProfileView extends StatefulWidget {
 
   /// Creates navigation route for [OnlineProfileView] wrapped in [Scaffold].
   /// [context] must contain [ApiRepository] and [AccountManager] injected
-  /// with [RepositoryProvider] in the widget tree.
+  /// using [RepositoryProvider] in the widget tree.
   static Route createRoute(BuildContext context, {BaseProfileInfo target}) =>
       MaterialPageRoute(
         builder: (ctx) => Scaffold(
@@ -299,7 +366,7 @@ class _OnlineProfileViewState extends State<OnlineProfileView>
       );
 
   Widget _createButton(String label, void Function() onPressed) => RaisedButton(
-        padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 16.0),
+        padding: const EdgeInsets.symmetric(horizontal: 18.0, vertical: 18.0),
         shape: _createRoundedBorder(),
         onPressed: onPressed,
         color: Theme.of(context).primaryColor,
@@ -380,7 +447,15 @@ class _OnlineProfileViewState extends State<OnlineProfileView>
                 l10n.online['invite'],
                 disabled
                     ? null
-                    : () => bloc.add(UserEvent(data, UserUserAction.invite)),
+                    : () => Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => RepositoryProvider.value(
+                              value: context.read<AccountManager>(),
+                              child: GameWaitingRoomScreenStandalone(data),
+                            ),
+                          ),
+                        ),
               )
             : _createButton(
                 l10n.online['ban'],

@@ -10,7 +10,6 @@ enum UserUserAction {
   cancelRequest,
   acceptRequest,
   declineRequest,
-  invite,
   banUser,
   unbanUser,
 }

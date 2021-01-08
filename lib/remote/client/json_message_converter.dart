@@ -56,6 +56,12 @@ class JsonMessageConverter implements MessageConverter {
         return TimeoutMessage();
       case 'leave':
         return DisconnectedMessage();
+      case 'fm_request':
+        return InvitationResponseMessage(
+          login: jsonMessage['login'],
+          oppId: jsonMessage['oppUid'],
+          result: InviteResultTypeExt.fromString(jsonMessage['result']),
+        );
       default:
         throw UnknownMessageException('Unexpected kind of message: $action');
     }
@@ -92,8 +98,44 @@ class JsonMessageConverter implements MessageConverter {
         'action': 'msg',
         'msg': message.msg,
       };
+    } else if (message is InvitationResultMessage) {
+      return {
+        'action': 'fm_req_result',
+        'oppUid': message.oppId,
+        'result': message.result.code,
+      };
     }
     throw UnknownMessageException(
         'Unexpected kind of message: ${message.runtimeType}');
+  }
+}
+
+extension InvitationResultExt on InvitationResult {
+  int get code {
+    switch (this) {
+      case InvitationResult.accept:
+        return 1;
+      case InvitationResult.decline:
+        return 2;
+      default:
+        throw UnknownMessageException.badEnumType(this);
+    }
+  }
+}
+
+extension InviteResultTypeExt on InvitationResponseMessage {
+  static InviteResultType fromString(String s) {
+    switch (s) {
+      case 'BUSY':
+        return InviteResultType.busy;
+      case 'NOT_FRIEND':
+        return InviteResultType.notFriend;
+      case 'DENIED':
+        return InviteResultType.denied;
+      case 'NO_USER':
+        return InviteResultType.noUser;
+      default:
+        throw UnknownMessageException.badEnumType(s);
+    }
   }
 }

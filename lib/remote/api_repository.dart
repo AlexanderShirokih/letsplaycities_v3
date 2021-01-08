@@ -100,7 +100,7 @@ class ApiRepository with AvatarResizeMixin {
         await _client.getHistoryList(target.userId),
       );
 
-      if (noHistory) {
+      if (!noHistory) {
         _cachedHistoriesInfo.add(battleHistory);
       }
     }
@@ -135,7 +135,7 @@ class ApiRepository with AvatarResizeMixin {
       BaseProfileInfo target, bool forceRefresh) async {
     assert(target != null);
 
-    var profile = _cachedProfilesInfo.singleWhere(
+    var profile = _cachedProfilesInfo.firstWhere(
       (element) => element.userId == target.userId,
       orElse: () => null,
     );
@@ -149,7 +149,7 @@ class ApiRepository with AvatarResizeMixin {
 
       profile = await _client.getProfileInfo(target.userId);
 
-      if (noProfile) {
+      if (!noProfile) {
         _cachedProfilesInfo.add(profile);
       }
     }

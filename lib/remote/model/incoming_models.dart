@@ -1,7 +1,7 @@
-import 'package:meta/meta.dart';
 import 'package:equatable/equatable.dart';
 import 'package:lets_play_cities/base/data/word_result.dart';
 import 'package:lets_play_cities/remote/models.dart';
+import 'package:meta/meta.dart';
 
 /// Base class for all messages received from server
 abstract class IncomingMessage extends Equatable {
@@ -97,3 +97,39 @@ class ChatMessage extends IncomingMessage {
 
 /// Indicates that move time has gone
 class TimeoutMessage extends IncomingMessage {}
+
+/// Friend mod request result types
+enum InviteResultType {
+  /// Opponents now playing with another user
+  busy,
+
+  /// Opponent declines the request
+  denied,
+
+  /// User is not found or unreachable
+  noUser,
+
+  /// Opponent is not friend to sender
+  notFriend,
+}
+
+/// Response from users invitation request
+class InvitationResponseMessage extends IncomingMessage {
+  /// Target opponent login (may be `null`)
+  final String login;
+
+  /// Target opponent ID (may be `null`)
+  final int oppId;
+
+  /// Request type
+  final InviteResultType result;
+
+  const InvitationResponseMessage({
+    @required this.login,
+    @required this.oppId,
+    @required this.result,
+  });
+
+  @override
+  List<Object> get props => [login, oppId, result];
+}

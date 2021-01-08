@@ -2,15 +2,19 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:lets_play_cities/base/game/game_config.dart';
 import 'package:lets_play_cities/base/game/game_mode.dart';
 import 'package:lets_play_cities/base/game/game_result.dart';
 import 'package:lets_play_cities/base/game/management.dart';
 import 'package:lets_play_cities/l18n/localization_service.dart';
 import 'package:lets_play_cities/platform/share.dart';
+import 'package:lets_play_cities/remote/account.dart';
+import 'package:lets_play_cities/remote/remote_player.dart';
 import 'package:lets_play_cities/screens/common/utils.dart';
 import 'package:lets_play_cities/screens/game/game_screen.dart';
 import 'package:lets_play_cities/screens/game/user_avatar.dart';
+import 'package:lets_play_cities/screens/online/profile.dart';
 import 'package:lets_play_cities/themes/theme.dart' as theme;
 import 'package:lets_play_cities/utils/string_utils.dart';
 
@@ -83,6 +87,7 @@ class GameResultsScreen extends StatelessWidget {
                       _gameResult.hasScore
                           ? _buildScoreContainer(context, l10n)
                           : const SizedBox(height: 48.0),
+                      ..._buildRemoteOpponentsNavigator(context),
                     ],
                   ),
                 ),
@@ -202,5 +207,71 @@ class GameResultsScreen extends StatelessWidget {
       default:
     }
     throw ('Unknown move finish type!');
+  }
+
+  Iterable<Widget> _buildRemoteOpponentsNavigator(BuildContext context) sync* {
+    var opponents = _getRemoteOpponents();
+
+    if (opponents.isEmpty) return;
+
+    yield Row(
+      mainAxisSize: MainAxisSize.max,
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(12.0, 8.0, 0.0, 8.0),
+          child: Text(
+            'Вы играли с:',
+            style: Theme.of(context).textTheme.headline5,
+          ),
+        )
+      ],
+    );
+
+    yield Expanded(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 18.0),
+        child: ListView(
+          children: opponents
+              .map((opp) => Card(
+                    child: ListTile(
+                      contentPadding: EdgeInsets.all(10.0),
+                      leading: buildAvatarForUser(opp, 45.0),
+                      title: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        children: [
+                          FaIcon(
+                            FontAwesomeIcons.externalLinkAlt,
+                            color: Theme.of(context).textTheme.caption.color,
+                            size: 14.0,
+                          ),
+                          const SizedBox(width: 6.0),
+                          Text(
+                            opp.accountInfo.name,
+                            overflow: TextOverflow.fade,
+                          ),
+                        ],
+                      ),
+                      onTap: () => Navigator.pushReplacement(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => OnlineProfileViewStandalone(
+                            (opp.accountInfo as AdvancedAccountInfo)
+                                .profileInfo,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ))
+              .toList(),
+        ),
+      ),
+    );
+  }
+
+  Iterable<RemotePlayer> _getRemoteOpponents() {
+    return _gameConfig.usersList.all
+        .where((user) => user != _gameResult.owner && user is RemotePlayer)
+        .cast<RemotePlayer>();
   }
 }

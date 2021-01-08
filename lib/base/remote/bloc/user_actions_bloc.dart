@@ -62,9 +62,6 @@ class UserActionsBloc extends Bloc<UserActionsEvent, UserActionsState> {
       case UserUserAction.unbanUser:
         await _apiRepository.removeFromBanlist(target);
         break;
-      case UserUserAction.invite:
-        // TODO: Handle this case.
-        break;
     }
 
     yield UserActionDoneState(sourceEvent);

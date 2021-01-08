@@ -74,14 +74,13 @@ class RemoteGameClient {
     }
   }
 
-  /// Sends play message to stand on playing queue or connect to specified
-  /// [opponent].
+  /// Sends play message to stand on playing queue.
   /// Waits for opponent and then returns list of game players.
   /// First player in list make move first
-  Future<GameConfig> play(BaseProfileInfo opponent) async {
+  Future<GameConfig> play() async {
     socketApi.sendMessage(PlayMessage(
-      mode: opponent == null ? PlayMode.RANDOM_PAIR : PlayMode.FRIEND,
-      oppUid: opponent?.userId,
+      mode: PlayMode.RANDOM_PAIR,
+      oppUid: null,
     ));
 
     final join = await socketApi.messages.firstWhere(
@@ -89,6 +88,10 @@ class RemoteGameClient {
             orElse: () => throw ConnectionException('Connection interrupted'))
         as JoinMessage;
 
+    return _buildGameConfig(join);
+  }
+
+  GameConfig _buildGameConfig(JoinMessage join) {
     final owningPlayer = Player(account);
     final opponentPlayer = RemotePlayer(
         AdvancedAccountInfo(
@@ -107,6 +110,32 @@ class RemoteGameClient {
         timeLimit: 92,
         externalEventSource: _translateServiceEvents,
         additionalEventHandlers: [NetworkInterceptor(this)]);
+  }
+
+  /// Sends invitation to [opponent]. Opponent should be in users friend list.
+  /// Returns either [GameConfig] when opponent accepts the game
+  /// or [InvitationResponseMessage] if opponent declines the request or
+  /// it is unreachable.
+  Future<dynamic> invite(BaseProfileInfo opponent) async {
+    socketApi.sendMessage(PlayMessage(
+      mode: PlayMode.FRIEND,
+      oppUid: opponent.userId,
+    ));
+
+    final response = await socketApi.messages.firstWhere(
+        (element) =>
+            element is InvitationResponseMessage || element is JoinMessage,
+        orElse: () => throw ConnectionException('Connection interrupted'));
+
+    if (response is JoinMessage) {
+      // Opponent accepts the request. We can start the game
+      return _buildGameConfig(response);
+    } else if (response is InvitationResponseMessage) {
+      // Opponent declines request or another bad response
+      return response;
+    } else {
+      throw 'Unexpected situation!';
+    }
   }
 
   /// Closes current connection
@@ -135,6 +164,18 @@ class RemoteGameClient {
   /// Sends chat message
   Future sendChatMessage(String message) async {
     socketApi.sendMessage(OutgoingChatMessage(msg: message));
+    return;
+  }
+
+  /// Sends invitation result for previously received request
+  Future sendInvitationResult(
+    BaseProfileInfo sender,
+    InvitationResult result,
+  ) async {
+    socketApi.sendMessage(InvitationResultMessage(
+      result: result,
+      oppId: sender.userId,
+    ));
     return;
   }
 

@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
-
 import 'package:lets_play_cities/base/remote/bloc/user_actions_bloc.dart';
 import 'package:lets_play_cities/remote/api_repository.dart';
 import 'package:lets_play_cities/remote/model/profile_info.dart';
@@ -30,7 +29,7 @@ class UserListActionsBloc extends Bloc<UserActionsEvent, UserActionsState> {
     return _handleFetchEvent(event).transform(
         StreamTransformer<UserActionsState, UserActionsState>.fromHandlers(
       handleError: (e, s, sink) {
-        sink.add(UserActionErrorState(e, s));
+        sink.add(UserActionErrorState(e.toString(), s));
       },
     ));
   }
