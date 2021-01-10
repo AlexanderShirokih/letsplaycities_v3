@@ -63,6 +63,10 @@ abstract class GamePreferences {
 
   /// Updates current credentials. Pass `null` to log out user.
   Future setCurrentCredentials(Credential newCredentials);
+
+  String get lastNativeLogin;
+
+  set lastNativeLogin(String newLogin);
 }
 
 class SharedPreferencesGamePrefs extends GamePreferences {
@@ -160,5 +164,14 @@ class SharedPreferencesGamePrefs extends GamePreferences {
     }
 
     return Credential(userId: userId, accessToken: uhash);
+  }
+
+  // TODO: Implement migration
+  @override
+  String get lastNativeLogin => _prefs.getString('lastNativeLogin');
+
+  @override
+  set lastNativeLogin(String newLogin) {
+    _prefs.setString('lastNativeLogin', newLogin);
   }
 }

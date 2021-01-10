@@ -5,6 +5,7 @@ import 'package:lets_play_cities/screens/common/common_widgets.dart';
 import 'package:lets_play_cities/screens/game/game_screen.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:lets_play_cities/screens/main/citieslist/cities_list_screen.dart';
+import 'package:lets_play_cities/screens/multiplayer/local_multiplayer_screen.dart';
 import 'package:lets_play_cities/screens/online/game_master.dart';
 import 'package:lets_play_cities/screens/settings/settings_screen.dart';
 
@@ -170,9 +171,8 @@ class _AnimatedMainButtonsState extends State<AnimatedMainButtons>
               () => _runGameScreen(context, GameMode.PlayerVsPlayer)),
           CustomMaterialButton(
               'Онлайн', Icon(Icons.language), () => _runOnlineScreen(context)),
-          CustomMaterialButton('Мультиплеер', Icon(Icons.wifi), () {
-            // TODO: Implement Multiplayer mode
-          }),
+          CustomMaterialButton('Мультиплеер', Icon(Icons.wifi),
+              () => _runMultiplayerScreen(context)),
         ],
       );
 
@@ -182,4 +182,7 @@ class _AnimatedMainButtonsState extends State<AnimatedMainButtons>
 
   Future _runOnlineScreen(BuildContext context) =>
       Navigator.push(context, OnlineGameMasterScreen.createNavigationRoute());
+
+  Future _runMultiplayerScreen(BuildContext context) => Navigator.push(
+      context, LocalMultiplayerScreen.createNavigationRoute(context));
 }

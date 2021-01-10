@@ -1,28 +1,26 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lets_play_cities/base/preferences.dart';
-import 'package:lets_play_cities/remote/account_manager.dart';
 import 'package:lets_play_cities/remote/auth.dart';
 import 'package:lets_play_cities/screens/common/common_widgets.dart';
 import 'package:lets_play_cities/screens/common/utils.dart';
 import 'package:lets_play_cities/screens/online/common_online_widgets.dart';
-import 'package:lets_play_cities/screens/online/logged_in_game_master.dart';
 import 'package:lets_play_cities/screens/online/login_screen.dart';
 
-/// Shows Log-in screen if user is not logged in yet or shows
-/// [LoggedInOnlineGameMasterScreen].
-class OnlineGameMasterScreen extends StatefulWidget {
-  /// Creates navigation route to new instance of [OnlineGameMasterScreen]
-  static Route createNavigationRoute() =>
-      MaterialPageRoute(builder: (_) => OnlineGameMasterScreen());
+/// Checks current authentication state. Runs [LoginScreen] if user
+/// is not signed in. Runs [onLoggedIn] when user signed in.
+/// Authenticated [RemoteAccount] will be injected via [RepositoryProvider].
+class AuthenticationView extends StatefulWidget {
+  final WidgetBuilder onLoggedIn;
+
+  const AuthenticationView({Key key, @required this.onLoggedIn})
+      : super(key: key);
 
   @override
-  _OnlineGameMasterScreenState createState() => _OnlineGameMasterScreenState();
+  _AuthenticationViewState createState() => _AuthenticationViewState();
 }
 
-class _OnlineGameMasterScreenState extends State<OnlineGameMasterScreen> {
-  final PageStorageBucket bucket = PageStorageBucket();
-
+class _AuthenticationViewState extends State<AuthenticationView> {
   @override
   Widget build(BuildContext context) =>
       RepositoryProvider<AccountManager>.value(
@@ -39,6 +37,7 @@ class _OnlineGameMasterScreenState extends State<OnlineGameMasterScreen> {
                   if (lastSignedInAccount.connectionState ==
                       ConnectionState.done) {
                     return LoginScreen(
+                      onLoggedIn: () => setState(() {}),
                       preferences: context.watch<GamePreferences>(),
                     );
                   } else {
@@ -48,7 +47,7 @@ class _OnlineGameMasterScreenState extends State<OnlineGameMasterScreen> {
                 }
                 return RepositoryProvider<RemoteAccount>.value(
                   value: lastSignedInAccount.requireData,
-                  child: LoggedInOnlineGameMasterScreen(),
+                  child: widget.onLoggedIn(context),
                 );
               },
             );

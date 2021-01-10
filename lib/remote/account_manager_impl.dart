@@ -22,11 +22,6 @@ class AccountManagerImpl extends AccountManager {
   Future<RemoteAccount> getLastSignedInAccount() async {
     var credentials = _preferences.currentCredentials;
 
-    // TODO: Debug
-    {
-      credentials = Credential(userId: 30955, accessToken: "i'mapass");
-    }
-
     if (credentials == null) return null;
 
     final client = _createClient(credentials);
@@ -58,6 +53,8 @@ class AccountManagerImpl extends AccountManager {
 
     final credential =
         Credential(userId: response.userId, accessToken: response.accessToken);
+
+    await _preferences.setCurrentCredentials(credential);
 
     return RemoteAccount(
       credential: credential,

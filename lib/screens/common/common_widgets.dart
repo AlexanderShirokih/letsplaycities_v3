@@ -115,3 +115,23 @@ void showUndoSnackbar(BuildContext context, String text,
     }
   });
 }
+
+Widget createStyledMaterialButton(
+  BuildContext context,
+  Widget icon,
+  String text,
+  VoidCallback onPressed,
+) =>
+    RaisedButton.icon(
+      elevation: 6.0,
+      color: Theme.of(context).primaryColor,
+      icon: icon,
+      label: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Text(text),
+      ),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12.0),
+      ),
+      onPressed: onPressed,
+    );

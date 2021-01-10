@@ -396,7 +396,7 @@ class _InvitationNegativeResult extends StatelessWidget
       context, (l10n) => l10n.online['invitation_result'][result.index]);
 }
 
-Widget _createBackButton(BuildContext context) => _createBaseButton(
+Widget _createBackButton(BuildContext context) => createStyledMaterialButton(
       context,
       FaIcon(FontAwesomeIcons.angleLeft),
       buildWithLocalization(context, (l10n) => l10n.back),
@@ -415,7 +415,7 @@ Widget _createCancelButton(BuildContext context) => RaisedButton(
       onPressed: () => context.read<WaitingRoomBloc>().add(CancelEvent()),
     );
 
-Widget _createConnectButton(BuildContext context) => _createBaseButton(
+Widget _createConnectButton(BuildContext context) => createStyledMaterialButton(
       context,
       FaIcon(FontAwesomeIcons.dice),
       buildWithLocalization(
@@ -423,24 +423,4 @@ Widget _createConnectButton(BuildContext context) => _createBaseButton(
         (l10n) => l10n.online['connect'],
       ),
       () => context.read<WaitingRoomBloc>().add(ConnectEvent()),
-    );
-
-Widget _createBaseButton(
-  BuildContext context,
-  Widget icon,
-  String text,
-  VoidCallback onPressed,
-) =>
-    RaisedButton.icon(
-      elevation: 6.0,
-      color: Theme.of(context).primaryColor,
-      icon: icon,
-      label: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Text(text),
-      ),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12.0),
-      ),
-      onPressed: onPressed,
     );
