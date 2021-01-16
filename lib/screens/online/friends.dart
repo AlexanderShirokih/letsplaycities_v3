@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:lets_play_cities/base/remote/bloc/user_actions_bloc.dart';
 import 'package:lets_play_cities/l18n/localization_service.dart';
@@ -17,7 +16,7 @@ import 'network_avatar_building_mixin.dart';
 /// accept or decline friend requests
 class OnlineFriendsScreen extends StatelessWidget
     with BaseListFetchingScreenMixin<FriendInfo>, NetworkAvatarBuildingMixin {
-  const OnlineFriendsScreen({Key key}) : super(key: key);
+  const OnlineFriendsScreen({Key? key}) : super(key: key);
 
   @override
   UserFetchType get fetchEvent => UserFetchType.getFriendsList;
@@ -136,7 +135,7 @@ class OnlineFriendsScreen extends StatelessWidget
         style: withData<TextStyle, TextTheme>(
           Theme.of(context).textTheme,
           (textTheme) =>
-              textTheme.headline5.copyWith(color: textTheme.caption.color),
+              textTheme.headline5!.copyWith(color: textTheme.caption!.color),
         ),
       );
 }

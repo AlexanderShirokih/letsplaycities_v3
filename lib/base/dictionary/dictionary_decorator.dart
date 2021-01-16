@@ -8,9 +8,7 @@ class DictionaryDecorator extends DictionaryService {
   final DictionaryService _dictionaryService;
   final GamePreferences _prefs;
 
-  DictionaryDecorator(this._dictionaryService, this._prefs)
-      : assert(_dictionaryService != null),
-        assert(_prefs != null);
+  DictionaryDecorator(this._dictionaryService, this._prefs);
 
   /// Returns index of current difficulty level
   Difficulty get difficulty => _prefs.wordsDifficulty;

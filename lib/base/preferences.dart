@@ -3,6 +3,8 @@ import 'dart:convert';
 import 'package:lets_play_cities/base/dictionary.dart';
 import 'package:lets_play_cities/base/scoring.dart';
 import 'package:lets_play_cities/remote/account.dart';
+
+// ignore: import_of_legacy_library_into_null_safe
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// Represents application preferences
@@ -59,10 +61,10 @@ abstract class GamePreferences {
   bool get isFirstLaunch;
 
   /// Gets currently logged in user credentials
-  Credential get currentCredentials;
+  Credential? get currentCredentials;
 
   /// Updates current credentials. Pass `null` to log out user.
-  Future setCurrentCredentials(Credential newCredentials);
+  Future setCurrentCredentials(Credential? newCredentials);
 
   String get lastNativeLogin;
 
@@ -146,7 +148,7 @@ class SharedPreferencesGamePrefs extends GamePreferences {
   }
 
   @override
-  Future setCurrentCredentials(Credential newCredentials) {
+  Future setCurrentCredentials(Credential? newCredentials) {
     return newCredentials == null
         ? _prefs.remove('uhash').then((_) => _prefs.remove('uid'))
         : _prefs
@@ -155,9 +157,9 @@ class SharedPreferencesGamePrefs extends GamePreferences {
   }
 
   @override
-  Credential get currentCredentials {
-    final userId = _prefs.getInt('uid');
-    final uhash = _prefs.getString('uhash');
+  Credential? get currentCredentials {
+    final int? userId = _prefs.getInt('uid');
+    final String? uhash = _prefs.getString('uhash');
 
     if (userId == null || uhash == null || userId == 0) {
       return null;

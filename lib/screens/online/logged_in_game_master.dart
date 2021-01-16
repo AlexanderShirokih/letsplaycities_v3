@@ -12,7 +12,7 @@ import 'game_waiting_room_screen.dart';
 /// A screen used to prepare user for online game and navigate between
 /// online-related routes when user is logged in
 class LoggedInOnlineGameMasterScreen extends StatefulWidget {
-  const LoggedInOnlineGameMasterScreen({Key key}) : super(key: key);
+  const LoggedInOnlineGameMasterScreen({Key? key}) : super(key: key);
 
   @override
   _LoggedInOnlineGameMasterScreenState createState() =>

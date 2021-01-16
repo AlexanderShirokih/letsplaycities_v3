@@ -23,7 +23,7 @@ enum UserFetchType {
 class UserFetchListEvent extends UserActionsEvent {
   final bool forceRefresh;
 
-  UserFetchListEvent(this.forceRefresh) : assert(forceRefresh != null);
+  UserFetchListEvent(this.forceRefresh);
 
   @override
   List<Object> get props => [forceRefresh];
@@ -32,23 +32,20 @@ class UserFetchListEvent extends UserActionsEvent {
 class UserEvent extends UserActionsEvent {
   final UserUserAction action;
   final BaseProfileInfo target;
-  final String confirmationMessage;
+  final String? confirmationMessage;
   final bool undoable;
 
   const UserEvent(this.target, this.action,
-      {this.confirmationMessage, this.undoable = false})
-      : assert(target != null),
-        assert(action != null);
+      {this.confirmationMessage, this.undoable = false});
 
   @override
-  List<Object> get props => [target, action, confirmationMessage];
+  List<Object> get props => [target, action, confirmationMessage ?? ''];
 }
 
 class UserActionConfirmedEvent extends UserActionsEvent {
   final UserEvent sourceEvent;
 
-  const UserActionConfirmedEvent(this.sourceEvent)
-      : assert(sourceEvent != null);
+  const UserActionConfirmedEvent(this.sourceEvent);
 
   @override
   List<Object> get props => [sourceEvent];

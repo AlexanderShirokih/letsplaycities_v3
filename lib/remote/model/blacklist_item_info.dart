@@ -1,5 +1,4 @@
 import 'package:lets_play_cities/remote/auth.dart';
-import 'package:meta/meta.dart';
 
 import 'utils.dart';
 
@@ -8,9 +7,9 @@ class BlackListItemInfo extends BaseProfileInfo {
   /// Banned user picture URL
 
   const BlackListItemInfo._({
-    @required int userId,
-    @required String login,
-    @required String pictureUrl,
+    required int userId,
+    required String login,
+    required String? pictureUrl,
   }) : super(
           userId: userId,
           login: login,

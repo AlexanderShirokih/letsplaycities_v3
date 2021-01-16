@@ -1,14 +1,14 @@
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter/material.dart';
-
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lets_play_cities/base/cities_list/bloc/cities_list_bloc.dart';
-import 'package:lets_play_cities/base/cities_list/cities_list_filter.dart';
 import 'package:lets_play_cities/base/cities_list/cities_list_entry.dart';
+import 'package:lets_play_cities/base/cities_list/cities_list_filter.dart';
+import 'package:lets_play_cities/base/dictionary/country_entity.dart';
 import 'package:lets_play_cities/l18n/localization_service.dart';
-import 'package:lets_play_cities/screens/main/citieslist/country_filter_dialog.dart';
 import 'package:lets_play_cities/screens/common/common_widgets.dart';
 import 'package:lets_play_cities/screens/common/search_app_bar.dart';
 import 'package:lets_play_cities/screens/common/utils.dart';
+import 'package:lets_play_cities/screens/main/citieslist/country_filter_dialog.dart';
 import 'package:lets_play_cities/utils/string_utils.dart';
 
 import 'cities_list_about_screen.dart';
@@ -21,14 +21,17 @@ class CitiesListScreen extends StatelessWidget {
   Widget build(BuildContext context) => buildWithLocalization(
         context,
         (l10n) => BlocBuilder<CitiesListBloc, CitiesListState>(
-          cubit: _citiesListBloc,
+          value: _citiesListBloc,
           builder: (ctx, state) => Scaffold(
             appBar: SearchAppBar(
               title: l10n.citiesList['title'],
               searchHint: l10n.citiesList['enter_city'],
               actions: [_createFilterButton(ctx)],
               onSearchTextChanged: (text) => _citiesListBloc.add(
-                CitiesListFilteringEvent(nameFilter: text.toLowerCase()),
+                CitiesListFilteringEvent(
+                  nameFilter: text.toLowerCase(),
+                  countryFilter: CountryListFilter.empty(),
+                ),
               ),
             ),
             body: _buildBody(l10n, state),
@@ -77,7 +80,7 @@ class CitiesListScreen extends StatelessWidget {
       ListTile(
           leading: createFlagImage(entry.countryCode),
           title: Text(
-            '${entry.cityName.toTitleCase()} (${data.countryList.firstWhere((county) => county.countryCode == entry.countryCode, orElse: () => null)?.name ?? missingCountryText})',
+            '${entry.cityName.toTitleCase()} (${data.countryList.firstWhere((county) => county.countryCode == entry.countryCode, orElse: () => CountryEntity(missingCountryText, 0, false)).name})',
           ));
 
   Widget _createFilterButton(BuildContext context) => IconButton(
@@ -99,7 +102,8 @@ class CitiesListScreen extends StatelessWidget {
           ).then((countryFilter) {
             if (countryFilter != null) {
               _citiesListBloc.add(
-                CitiesListFilteringEvent(countryFilter: countryFilter),
+                CitiesListFilteringEvent(
+                    countryFilter: countryFilter, nameFilter: ''),
               );
             }
           });

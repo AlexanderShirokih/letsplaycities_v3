@@ -92,9 +92,9 @@ class Accepted extends WordCheckingResult {
 
   final String word;
 
-  final CityStatus status;
+  final CityStatus? status;
 
-  final int countryCode;
+  final int? countryCode;
 
   @override
   bool isDescriptiveError() => false;
@@ -106,9 +106,10 @@ class Accepted extends WordCheckingResult {
   Accepted(this.word, this.owner, {this.status, this.countryCode});
 
   /// Creates deep copy of object and allows to set some fields
-  Accepted clone({CityStatus status, int countryCode}) => Accepted(word, owner,
-      status: status ?? this.status,
-      countryCode: countryCode ?? this.countryCode);
+  Accepted clone({CityStatus? status, int? countryCode}) =>
+      Accepted(word, owner,
+          status: status ?? this.status,
+          countryCode: countryCode ?? this.countryCode);
 }
 
 /// Used when error happens during word processing

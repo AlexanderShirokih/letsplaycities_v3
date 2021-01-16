@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-
 import 'package:lets_play_cities/base/remote/bloc/user_actions_bloc.dart';
 import 'package:lets_play_cities/l18n/localization_service.dart';
 import 'package:lets_play_cities/remote/model/blacklist_item_info.dart';
@@ -20,7 +19,7 @@ class OnlineBanlistScreen extends StatelessWidget
   @override
   UserFetchType get fetchEvent => UserFetchType.getBanlist;
 
-  const OnlineBanlistScreen({Key key}) : super(key: key);
+  const OnlineBanlistScreen({Key? key}) : super(key: key);
 
   @override
   Widget getOnListEmptyPlaceHolder(BuildContext context) => Text(
@@ -30,7 +29,7 @@ class OnlineBanlistScreen extends StatelessWidget
         style: withData<TextStyle, TextTheme>(
           Theme.of(context).textTheme,
           (textTheme) =>
-              textTheme.headline5.copyWith(color: textTheme.caption.color),
+              textTheme.headline5!.copyWith(color: textTheme.caption!.color),
         ),
       );
 

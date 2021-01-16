@@ -14,14 +14,14 @@ class AvatarChooserView extends StatelessWidget {
   AvatarChooserView(
     this.l10n,
     ApiRepository apiRepository, {
-    @required this.onAvatarUpdated,
+    required this.onAvatarUpdated,
   }) : _avatarBloc = AvatarBloc(apiRepository);
 
   @override
   Widget build(BuildContext context) {
     return SafeArea(
       child: BlocConsumer<AvatarBloc, AvatarState>(
-        cubit: _avatarBloc,
+        value: _avatarBloc,
         builder: (context, state) {
           if (state is AvatarLoadingState) {
             return Container(

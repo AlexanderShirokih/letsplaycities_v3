@@ -38,16 +38,16 @@ class GameWaitingRoomScreenStandalone extends StatelessWidget {
 /// Initial screen where user resides until game starts
 class GameWaitingRoomScreen extends StatelessWidget {
   /// If present, invitation will send to the [target] user
-  final BaseProfileInfo target;
+  final BaseProfileInfo? target;
 
   const GameWaitingRoomScreen({
-    Key key,
+    Key? key,
     this.target,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder<RemoteAccount>(
+    return FutureBuilder<RemoteAccount?>(
       future: context.watch<AccountManager>().getLastSignedInAccount(),
       builder: (context, account) {
         if (!account.hasData) {
@@ -58,7 +58,7 @@ class GameWaitingRoomScreen extends StatelessWidget {
         return BlocProvider.value(
           value: WaitingRoomBloc(
             RemoteGameClient(
-              account: account.requireData,
+              account: account.requireData!,
               firebaseToken: Future.value(null),
               preferences: context.watch<GamePreferences>(),
               socketApi: SocketApi(
@@ -66,7 +66,7 @@ class GameWaitingRoomScreen extends StatelessWidget {
                 JsonMessageConverter(),
               ),
             ),
-            account.requireData.credential,
+            account.requireData!.credential,
             target,
           ),
           child: BlocConsumer<WaitingRoomBloc, WaitingRoomState>(
@@ -202,12 +202,12 @@ enum ButtonType { connect, cancel }
 class _TextWithBigIconView extends StatelessWidget {
   final String message;
   final Widget icon;
-  final ButtonType buttonType;
+  final ButtonType? buttonType;
 
   const _TextWithBigIconView({
-    Key key,
-    @required this.message,
-    @required this.icon,
+    Key? key,
+    required this.message,
+    required this.icon,
     this.buttonType,
   }) : super(key: key);
 
@@ -263,9 +263,9 @@ class _WaitingForOpponentsView extends StatefulWidget {
   ];
 
   /// Used in invitation mode. In random mode mode will be `null`.
-  final BaseProfileInfo target;
+  final BaseProfileInfo? target;
 
-  const _WaitingForOpponentsView({Key key, this.target}) : super(key: key);
+  const _WaitingForOpponentsView({Key? key, this.target}) : super(key: key);
 
   @override
   __WaitingForOpponentsViewState createState() {
@@ -278,8 +278,8 @@ class __WaitingForOpponentsViewState extends State<_WaitingForOpponentsView>
     with TickerProviderStateMixin, NetworkAvatarBuildingMixin {
   final IconData _dice;
 
-  AnimationController _controller;
-  Animation<double> _scaleAnimation;
+  late AnimationController _controller;
+  late Animation<double> _scaleAnimation;
 
   __WaitingForOpponentsViewState(this._dice);
 
@@ -327,7 +327,7 @@ class __WaitingForOpponentsViewState extends State<_WaitingForOpponentsView>
             if (widget.target != null)
               Padding(
                 padding: const EdgeInsets.all(12.0),
-                child: buildAvatar(widget.target),
+                child: buildAvatar(widget.target!),
               ),
             buildWithLocalization(
               context,
@@ -335,7 +335,7 @@ class __WaitingForOpponentsViewState extends State<_WaitingForOpponentsView>
                 widget.target == null
                     ? l10n.online['awaiting_for_opp']
                     : (l10n.online['awaiting_for_invite'] as String)
-                        .format([widget.target.login]),
+                        .format([widget.target!.login]),
                 textAlign: TextAlign.center,
                 style: Theme.of(context).textTheme.headline6,
               ),
@@ -360,9 +360,9 @@ class _InvitationNegativeResult extends StatelessWidget
   final BaseProfileInfo target;
 
   const _InvitationNegativeResult({
-    Key key,
-    @required this.result,
-    @required this.target,
+    Key? key,
+    required this.result,
+    required this.target,
   }) : super(key: key);
 
   @override

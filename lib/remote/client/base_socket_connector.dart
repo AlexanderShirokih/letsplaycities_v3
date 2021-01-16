@@ -6,7 +6,7 @@ enum SocketMessageType { connected, data, closed }
 /// has no data.
 class SocketMessage {
   final SocketMessageType type;
-  final String data;
+  final String? data;
 
   SocketMessage(this.type, [this.data]);
 }

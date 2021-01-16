@@ -6,6 +6,7 @@ import 'dart:typed_data';
 
 import 'package:flutter/services.dart';
 import 'package:lets_play_cities/base/dictionary.dart';
+// ignore: import_of_legacy_library_into_null_safe
 import 'package:path_provider/path_provider.dart';
 
 import '../../exceptions.dart';
@@ -16,7 +17,7 @@ class DictionaryFactory {
   static const _EMBEDDED_DICTIONARY_PATH = 'assets/data/data.db2';
   static const _INTERNAL_DICTIONARY_FILE = '/data-last.db2';
 
-  static _Dictionary _cachedDictionary;
+  static _Dictionary? _cachedDictionary;
 
   /// Returns path for internal database file
   static Future<File> get internalDatabaseFile =>
@@ -41,7 +42,7 @@ class DictionaryFactory {
 
   /// Resets saved dictionary instance and clears underlying data
   static void invalidateCache() {
-    _cachedDictionary?.data?.clear();
+    _cachedDictionary?.data.clear();
     _cachedDictionary = null;
   }
 
@@ -54,18 +55,22 @@ class DictionaryFactory {
         _getCachedDescriptor(),
         internalDatabaseFile.then((file) => _parseDescriptor(file.path, true)),
         _parseDescriptor(_EMBEDDED_DICTIONARY_PATH, false),
-      ]).where((desc) => desc != null && desc.isValid()).toList();
+      ])
+          .where((desc) => desc != null && desc.isValid())
+          .cast<_DictionaryDescriptor>() // Drop nullable part
+          .toList();
 
   static Future<String> _loadDescriptor(bool isInternal, String path) =>
       (isInternal ? File(path).readAsString() : rootBundle.loadString(path));
 
   static Future<_DictionaryDescriptor> _fromJson(
-          dynamic data, String dbPath, bool isInternal) =>
-      Future.value(data).then(
-        (data) => isInternal
-            ? _InternalDescriptor(File(dbPath), data['version'])
-            : _EmbeddedDescriptor(dbPath, data['version']),
-      ); // File
+      Map<String, dynamic> data, String dbPath, bool isInternal) async {
+    if (isInternal) {
+      return _InternalDescriptor(File(dbPath), data['version']);
+    } else {
+      return _EmbeddedDescriptor(dbPath, data['version']);
+    }
+  } // File
 
   static Future<_DictionaryDescriptor> _parseDescriptor(
           String dbPath, bool isInternal) =>
@@ -76,9 +81,9 @@ class DictionaryFactory {
               test: (e) => e
                   is FileSystemException); // File not exists or some parsing error
 
-  static Future<_DictionaryDescriptor> _getCachedDescriptor() async {
+  static Future<_DictionaryDescriptor?> _getCachedDescriptor() async {
     return _cachedDictionary != null
-        ? _CacheDescriptor(_cachedDictionary.reset())
+        ? _CacheDescriptor(_cachedDictionary!.reset())
         : null;
   }
 
@@ -96,7 +101,7 @@ class DictionaryFactory {
   _Dictionary _updateCacheEntry(_Dictionary dictionary) {
     if (_cachedDictionary == null) {
       _cachedDictionary = dictionary;
-    } else if (_cachedDictionary.version < dictionary.version) {
+    } else if (_cachedDictionary!.version < (dictionary.version)) {
       invalidateCache();
       _cachedDictionary = dictionary;
     }
@@ -122,7 +127,7 @@ class _CacheDescriptor extends _DictionaryDescriptor {
   final _Dictionary _cached;
 
   @override
-  bool isValid() => _cached != null;
+  bool isValid() => true;
 
   _CacheDescriptor(this._cached) : super(_cached.version);
 
@@ -149,7 +154,7 @@ class _InternalDescriptor extends _DictionaryDescriptor
           if (isExists) {
             return _parse();
           } else {
-            return null;
+            throw 'Internal dictionary is not exists!';
           }
         },
       );
@@ -246,9 +251,7 @@ class _Dictionary {
   final Map<String, CityProperties> data;
   final int version;
 
-  const _Dictionary(this.data, this.version)
-      : assert(data != null),
-        assert(version != null);
+  const _Dictionary(this.data, this.version);
 
   _Dictionary reset() {
     for (final prop in data.values) {

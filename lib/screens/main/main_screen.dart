@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:lets_play_cities/base/game/game_config.dart';
 import 'package:lets_play_cities/base/game/game_mode.dart';
 import 'package:lets_play_cities/screens/common/common_widgets.dart';
 import 'package:lets_play_cities/screens/game/game_screen.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:lets_play_cities/screens/main/citieslist/cities_list_screen.dart';
 import 'package:lets_play_cities/screens/multiplayer/local_multiplayer_screen.dart';
 import 'package:lets_play_cities/screens/online/game_master.dart';
@@ -70,9 +70,9 @@ class AnimatedMainButtons extends StatefulWidget {
 
 class _AnimatedMainButtonsState extends State<AnimatedMainButtons>
     with SingleTickerProviderStateMixin {
-  AnimationController _controller;
-  Animation<Offset> _primaryButtonsOffset;
-  Animation<Offset> _secondaryButtonsOffset;
+  late AnimationController _controller;
+  late Animation<Offset> _primaryButtonsOffset;
+  late Animation<Offset> _secondaryButtonsOffset;
   AnimationStatus _lastDirection = AnimationStatus.forward;
 
   void _setPrimaryButtonsVisibility(bool isVisible) {

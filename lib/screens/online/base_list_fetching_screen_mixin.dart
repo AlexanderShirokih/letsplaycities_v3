@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lets_play_cities/base/remote/bloc/user_actions_bloc.dart';
 import 'package:lets_play_cities/base/remote/bloc/user_list_actions_bloc.dart';
-
 import 'package:lets_play_cities/remote/api_repository.dart';
 import 'package:lets_play_cities/remote/auth.dart';
 import 'package:lets_play_cities/screens/common/common_widgets.dart';
@@ -17,7 +16,7 @@ mixin BaseListFetchingScreenMixin<T> on StatelessWidget {
   UserFetchType get fetchEvent;
 
   /// Returns target `user` to fetch list from users perspective.
-  BaseProfileInfo get target => null;
+  BaseProfileInfo? get target => null;
 
   /// Returns widget that will be shown when fetched list is empty
   Widget getOnListEmptyPlaceHolder(BuildContext context);
@@ -47,7 +46,7 @@ mixin BaseListFetchingScreenMixin<T> on StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Container(
-        child: withData(
+        child: withData<Widget, ApiRepository>(
           context.watch<ApiRepository>(),
           (apiRepo) => MultiBlocProvider(
             providers: [
@@ -70,13 +69,13 @@ mixin BaseListFetchingScreenMixin<T> on StatelessWidget {
                         },
                         child: state.data.isEmpty
                             ? _showPlaceholder(context)
-                            : _showList(context, state.data),
+                            : _showList(context, state.data as List<T>),
                       ),
                       listener: (context, state) {
                         if (state is UserActionConfirmationState) {
                           showUndoSnackbar(
                             context,
-                            state.sourceEvent.confirmationMessage,
+                            state.sourceEvent.confirmationMessage!,
                             onComplete: () => context
                                 .read<UserActionsBloc>()
                                 .add(state.sourceEvent),
@@ -90,8 +89,7 @@ mixin BaseListFetchingScreenMixin<T> on StatelessWidget {
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
                                 duration: const Duration(seconds: 3),
-                                content:
-                                    Text(state.sourceEvent.confirmationMessage),
+                                content: Text(message),
                               ),
                             );
                           }

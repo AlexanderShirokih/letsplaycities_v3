@@ -6,7 +6,7 @@ import 'package:lets_play_cities/screens/common/utils.dart';
 
 class CountryFilterDialog extends StatefulWidget {
   final List<CountryEntity> _countries;
-  final List<int> _currentlyAllowedCounties;
+  final List<int>? _currentlyAllowedCounties;
 
   const CountryFilterDialog(this._countries, this._currentlyAllowedCounties);
 
@@ -28,7 +28,7 @@ class _CountryFilterDialogState extends State<CountryFilterDialog> {
   final List<_CountryFilterDialogItem> _countries;
 
   _CountryFilterDialogState(
-      List<CountryEntity> allCountries, List<int> currentFilter)
+      List<CountryEntity> allCountries, List<int>? currentFilter)
       : _countries = allCountries
             .map((e) => _CountryFilterDialogItem(e.name, e.countryCode,
                 currentFilter?.contains(e.countryCode) ?? true))
@@ -46,9 +46,9 @@ class _CountryFilterDialogState extends State<CountryFilterDialog> {
                 title: Text(l10n.citiesList['select_all']),
                 trailing: Checkbox(
                   value: _countries.every((element) => element.isChecked),
-                  onChanged: (bool value) => setState(
+                  onChanged: (bool? value) => setState(
                     () => _countries.forEach((element) {
-                      element.isChecked = value;
+                      element.isChecked = value ?? false;
                     }),
                   ),
                 ),
@@ -63,8 +63,8 @@ class _CountryFilterDialogState extends State<CountryFilterDialog> {
                           title: Text(entry.name),
                           trailing: Checkbox(
                             value: entry.isChecked,
-                            onChanged: (bool value) => setState(() {
-                              entry.isChecked = value;
+                            onChanged: (bool? value) => setState(() {
+                              entry.isChecked = value ?? false;
                             }),
                           ),
                         ),

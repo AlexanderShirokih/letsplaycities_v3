@@ -6,7 +6,6 @@ import 'package:lets_play_cities/remote/api_repository.dart';
 import 'package:lets_play_cities/remote/auth.dart';
 import 'package:lets_play_cities/remote/client/api_client.dart';
 import 'package:lets_play_cities/remote/remote_module.dart';
-import 'package:meta/meta.dart';
 
 /// Contains user credentials, which is the result of server authorization.
 class Credential extends Equatable {
@@ -17,9 +16,9 @@ class Credential extends Equatable {
   /// Access token is used to authenticate user on the server.
   final String accessToken;
 
-  const Credential({@required this.userId, @required this.accessToken})
-      : assert(userId != null),
-        assert(accessToken != null);
+  const Credential({required this.userId, required this.accessToken});
+
+  const Credential.empty() : this(userId: 0, accessToken: '');
 
   @override
   List<Object> get props => [userId, accessToken];
@@ -49,9 +48,7 @@ class LocalAccountInfo extends ClientAccountInfo with EquatableMixin {
   @override
   final PictureSource picture;
 
-  const LocalAccountInfo({@required this.name, @required this.picture})
-      : assert(name != null),
-        assert(picture != null);
+  const LocalAccountInfo({required this.name, required this.picture});
 
   @override
   final String name;
@@ -70,8 +67,7 @@ class AdvancedAccountInfo extends ClientAccountInfo with EquatableMixin {
   @override
   final bool canReceiveMessages;
 
-  AdvancedAccountInfo(this.profileInfo, this.canReceiveMessages)
-      : assert(profileInfo != null);
+  AdvancedAccountInfo(this.profileInfo, this.canReceiveMessages);
 
   @override
   String get name => profileInfo.login;
@@ -98,16 +94,14 @@ class RemoteAccount extends ClientAccountInfo with EquatableMixin {
   final LpsApiClient client;
 
   RemoteAccount({
-    @required this.credential,
-    @required this.name,
-    @required this.canReceiveMessages,
-    @required this.role,
-    @required this.authType,
-    @required String pictureUri,
-    @required this.client,
-  })  : picture = NetworkPictureSource(pictureUri),
-        assert(credential != null),
-        assert(name != null);
+    required this.credential,
+    required this.name,
+    required this.canReceiveMessages,
+    required this.role,
+    required this.authType,
+    required String? pictureUri,
+    required this.client,
+  }) : picture = NetworkPictureSource(pictureUri);
 
   @override
   final String name;

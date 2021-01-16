@@ -13,7 +13,5 @@ class CountryEntity {
     this.name,
     this.countryCode,
     this.hasSiblingCity,
-  )   : assert(name != null),
-        assert(countryCode != null),
-        assert(hasSiblingCity != null);
+  );
 }

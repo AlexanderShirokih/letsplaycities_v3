@@ -4,8 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:lets_play_cities/base/game/management/word_checking_result.dart';
-import 'package:lets_play_cities/utils/string_utils.dart';
 import 'package:lets_play_cities/base/repos.dart';
+import 'package:lets_play_cities/utils/string_utils.dart';
 
 class CityCheckingResultBar extends StatefulWidget {
   @override
@@ -14,8 +14,8 @@ class CityCheckingResultBar extends StatefulWidget {
 
 class _CityCheckingResultBarState extends State<CityCheckingResultBar>
     with TickerProviderStateMixin {
-  AnimationController controller;
-  Animation<double> animation;
+  late AnimationController controller;
+  late Animation<double> animation;
   bool completed = false;
   bool reverse = true;
 
@@ -59,12 +59,12 @@ class _CityCheckingResultBarState extends State<CityCheckingResultBar>
       builder: (context, snapshot) {
         if (!snapshot.hasData) return Container();
 
-        if (snapshot.data.isDescriptiveError()) {
+        if (snapshot.requireData.isDescriptiveError()) {
           _triggerAnimation();
           return SizeTransition(
             sizeFactor: animation,
             child: _createNotificationBox(
-                context, _translateWordCheckingResult(snapshot.data)),
+                context, _translateWordCheckingResult(snapshot.requireData)),
           );
         } else if (snapshot.data is Corrections) {
           _triggerAnimation(reverse: false);

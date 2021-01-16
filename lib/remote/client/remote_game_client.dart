@@ -15,7 +15,6 @@ import 'package:lets_play_cities/remote/handlers/network_interceptor.dart';
 import 'package:lets_play_cities/remote/model/incoming_models.dart';
 import 'package:lets_play_cities/remote/model/outgoing_models.dart';
 import 'package:lets_play_cities/remote/remote_player.dart';
-import 'package:meta/meta.dart';
 
 /// Describes rules and order of sending mess
 class RemoteGameClient {
@@ -25,14 +24,11 @@ class RemoteGameClient {
   final GamePreferences preferences;
 
   const RemoteGameClient({
-    @required this.account,
-    @required this.socketApi,
-    @required this.firebaseToken,
-    @required this.preferences,
-  })  : assert(account != null),
-        assert(socketApi != null),
-        assert(firebaseToken != null),
-        assert(preferences != null);
+    required this.account,
+    required this.socketApi,
+    required this.firebaseToken,
+    required this.preferences,
+  });
 
   /// Starts connection to the server
   Future<void> connect() {
@@ -106,8 +102,8 @@ class RemoteGameClient {
 
     return GameConfig(
         gameMode: GameMode.Network,
-        usersList: UsersList(users),
-        timeLimit: 92,
+        usersListOverride: UsersList(users),
+        timeLimitOverride: 92,
         externalEventSource: _translateServiceEvents,
         additionalEventHandlers: [NetworkInterceptor(this)]);
   }

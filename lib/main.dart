@@ -11,6 +11,8 @@ import 'package:lets_play_cities/l18n/localization_service.dart';
 import 'package:lets_play_cities/l18n/localizations_factory.dart';
 import 'package:lets_play_cities/platform/shared_prefs_migration.dart';
 import 'package:lets_play_cities/screens/main/main_screen.dart';
+
+// ignore: import_of_legacy_library_into_null_safe
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() => runApp(LetsPlayCitiesApp());
@@ -19,9 +21,7 @@ class _InitialData {
   final LocalizationService localizations;
   final GamePreferences preferences;
 
-  const _InitialData({@required this.localizations, @required this.preferences})
-      : assert(localizations != null),
-        assert(preferences != null);
+  const _InitialData({required this.localizations, required this.preferences});
 }
 
 /// Application root class
@@ -33,10 +33,10 @@ class LetsPlayCitiesApp extends StatelessWidget {
               ? MultiRepositoryProvider(
                   providers: [
                     RepositoryProvider<GamePreferences>(
-                      create: (_) => snap.data.preferences,
+                      create: (_) => snap.requireData.preferences,
                     ),
                     RepositoryProvider<LocalizationService>(
-                      create: (_) => snap.data.localizations,
+                      create: (_) => snap.requireData.localizations,
                     ),
                   ],
                   child: StreamBuilder<theme.Theme>(

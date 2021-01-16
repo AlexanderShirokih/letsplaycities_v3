@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lets_play_cities/base/data.dart';
 import 'package:lets_play_cities/base/game/game_item.dart';
 import 'package:lets_play_cities/base/repositories/game_session_repo.dart';
 import 'package:lets_play_cities/screens/common/utils.dart';
 import 'package:lets_play_cities/utils/string_utils.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 
 /// Represents ListView containing cities and messages
 class CitiesList extends StatelessWidget {
@@ -19,7 +19,7 @@ class CitiesList extends StatelessWidget {
           builder: (context, state) => ListView(
             reverse: true,
             children: state.hasData
-                ? state.data.reversed
+                ? state.requireData.reversed
                     .map((e) => _GameItemListTile(e))
                     .toList(growable: false)
                 : [],
@@ -47,7 +47,7 @@ class _GameItemListTile extends StatelessWidget {
               decoration: _buildDecoration(),
               child: Row(
                 children: [
-                  if (_gameItem is CityInfo) _buildIcon(_gameItem),
+                  if (_gameItem is CityInfo) _buildIcon(_gameItem as CityInfo),
                   const SizedBox(width: 8.0),
                   _buildText(context),
                 ],
@@ -96,7 +96,7 @@ class _GameItemListTile extends StatelessWidget {
 
     if (_gameItem is CityInfo) {
       final textStyle =
-          Theme.of(context).textTheme.bodyText1.copyWith(fontSize: 16);
+          Theme.of(context).textTheme.bodyText1!.copyWith(fontSize: 16);
       final spanTextStyle = textStyle.copyWith(color: kForegroundSpanColor);
       return RichText(text: _buildCitySpans(textStyle, spanTextStyle));
     }

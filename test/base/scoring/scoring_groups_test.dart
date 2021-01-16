@@ -45,7 +45,7 @@ void main() {
 }
     ''';
 
-    ScoringSet set;
+    late ScoringSet set;
 
     expect(() {
       set = ScoringSet.fromJson(json.decode(testString));

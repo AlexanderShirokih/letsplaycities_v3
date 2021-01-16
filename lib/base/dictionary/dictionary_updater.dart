@@ -2,7 +2,9 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+// ignore: import_of_legacy_library_into_null_safe
 import 'package:dio/dio.dart';
+
 import 'package:lets_play_cities/base/dictionary/impl/dictionary_factory.dart';
 import 'package:lets_play_cities/base/preferences.dart';
 
@@ -85,14 +87,14 @@ class DictionaryUpdater {
     );
 
     final total =
-        int.parse(response.headers.value(Headers.contentLengthHeader)) ?? 1;
+        int.parse(response.headers.value(Headers.contentLengthHeader));
 
     var done = 0;
 
     final sink = await output.create().then((file) => file.openWrite());
 
     try {
-      await for (final portion in response.data.stream) {
+      await for (final List<int> portion in response.data.stream) {
         done += portion.length;
         sink.add(portion);
         yield (done / total * 100).round();

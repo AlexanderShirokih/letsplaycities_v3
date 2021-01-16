@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+
+// ignore: import_of_legacy_library_into_null_safe
 import 'package:intl/intl.dart';
 import 'package:lets_play_cities/base/preferences.dart';
 import 'package:lets_play_cities/base/remote/bloc/user_actions_bloc.dart';
@@ -38,7 +40,7 @@ class _OnlineProfileViewStandaloneState
       value: AccountManager.fromPreferences(context.watch<GamePreferences>()),
       child: Builder(
         builder: (ctx) {
-          return FutureBuilder<RemoteAccount>(
+          return FutureBuilder<RemoteAccount?>(
             future: ctx.watch<AccountManager>().getLastSignedInAccount(),
             builder: (context, lastSignedInAccount) {
               if (lastSignedInAccount.hasError) {
@@ -50,7 +52,7 @@ class _OnlineProfileViewStandaloneState
                   try {
                     throw 'Unauthorized';
                   } catch (e, s) {
-                    return ErrorHandlerView(e, s.toString());
+                    return ErrorHandlerView(e.toString(), s.toString());
                   }
                 } else {
                   return buildWithLocalization(context,
@@ -67,10 +69,11 @@ class _OnlineProfileViewStandaloneState
                 body: MultiRepositoryProvider(
                   providers: [
                     RepositoryProvider<RemoteAccount>.value(
-                      value: lastSignedInAccount.requireData,
+                      value: lastSignedInAccount.requireData!,
                     ),
                     RepositoryProvider<ApiRepository>.value(
-                      value: lastSignedInAccount.requireData.getApiRepository(),
+                      value:
+                          lastSignedInAccount.requireData!.getApiRepository(),
                     ),
                   ],
                   child: OnlineProfileView(target: widget.target),
@@ -87,9 +90,9 @@ class _OnlineProfileViewStandaloneState
 /// Shows user profile
 class OnlineProfileView extends StatefulWidget {
   /// Profile owner. If `null` then current authorized user will be used
-  final BaseProfileInfo target;
+  final BaseProfileInfo? target;
 
-  const OnlineProfileView({this.target, Key key}) : super(key: key);
+  const OnlineProfileView({this.target, Key? key}) : super(key: key);
 
   @override
   _OnlineProfileViewState createState() => _OnlineProfileViewState();
@@ -97,7 +100,7 @@ class OnlineProfileView extends StatefulWidget {
   /// Creates navigation route for [OnlineProfileView] wrapped in [Scaffold].
   /// [context] must contain [ApiRepository] and [AccountManager] injected
   /// using [RepositoryProvider] in the widget tree.
-  static Route createRoute(BuildContext context, {BaseProfileInfo target}) =>
+  static Route createRoute(BuildContext context, {BaseProfileInfo? target}) =>
       MaterialPageRoute(
         builder: (ctx) => Scaffold(
           appBar: AppBar(
@@ -131,7 +134,7 @@ class _OnlineProfileViewState extends State<OnlineProfileView>
   bool _shouldUpdate = false;
 
   @override
-  Widget build(BuildContext context) => FutureBuilder<RemoteAccount>(
+  Widget build(BuildContext context) => FutureBuilder<RemoteAccount?>(
         future: context.watch<AccountManager>().getLastSignedInAccount(),
         builder: (context, account) {
           if (!account.hasData) return LoadingView('...');
@@ -145,16 +148,16 @@ class _OnlineProfileViewState extends State<OnlineProfileView>
                   Positioned.fill(
                     child: FutureBuilder<ProfileInfo>(
                       future: repo.getProfileInfo(
-                          widget.target ?? account.data.baseProfileInfo,
+                          widget.target ?? account.requireData!.baseProfileInfo,
                           _shouldUpdate),
                       builder: (context, snap) {
                         if (snap.hasData) {
                           _shouldUpdate = false;
                           return _buildProfileView(
-                              snap.data.friendshipStatus ==
+                              snap.requireData.friendshipStatus ==
                                   FriendshipStatus.owner,
                               context,
-                              snap.data);
+                              snap.requireData);
                         } else if (snap.hasError) {
                           return showError(context, snap.error.toString());
                         } else {
@@ -163,7 +166,7 @@ class _OnlineProfileViewState extends State<OnlineProfileView>
                       },
                     ),
                   ),
-                  if (_isOwner(account.data))
+                  if (_isOwner(account.requireData!))
                     Align(
                       alignment: Alignment.bottomRight,
                       child: Padding(
@@ -258,7 +261,7 @@ class _OnlineProfileViewState extends State<OnlineProfileView>
         alignment: Alignment.center,
         child: Text(
           l10n.online['input_ban'],
-          style: Theme.of(context).textTheme.caption.copyWith(
+          style: Theme.of(context).textTheme.caption!.copyWith(
                 fontSize: 16.0,
                 color: Theme.of(context).errorColor,
               ),
@@ -271,7 +274,7 @@ class _OnlineProfileViewState extends State<OnlineProfileView>
     final userActionsBloc = UserActionsBloc(context.watch<ApiRepository>());
 
     yield BlocConsumer<UserActionsBloc, UserActionsState>(
-      cubit: userActionsBloc,
+      value: userActionsBloc,
       builder: (context, state) {
         if (state is UserActionErrorState) {
           return showError(context, state.error);
@@ -294,7 +297,7 @@ class _OnlineProfileViewState extends State<OnlineProfileView>
         if (state is UserActionConfirmationState) {
           showUndoSnackbar(
             context,
-            state.sourceEvent.confirmationMessage,
+            state.sourceEvent.confirmationMessage!,
             onComplete: () => userActionsBloc.add(state.sourceEvent),
           );
         } else if (state is UserActionDoneState) {
@@ -303,7 +306,7 @@ class _OnlineProfileViewState extends State<OnlineProfileView>
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 duration: const Duration(seconds: 3),
-                content: Text(state.sourceEvent.confirmationMessage),
+                content: Text(state.sourceEvent.confirmationMessage!),
               ),
             );
           }
@@ -319,7 +322,7 @@ class _OnlineProfileViewState extends State<OnlineProfileView>
       alignment: Alignment.center,
       child: Text(
         'ID ${data.userId}',
-        style: Theme.of(context).textTheme.caption.copyWith(fontSize: 16.0),
+        style: Theme.of(context).textTheme.caption!.copyWith(fontSize: 16.0),
       ),
     );
     yield const Divider(height: 18.0, thickness: 1.0);
@@ -365,7 +368,7 @@ class _OnlineProfileViewState extends State<OnlineProfileView>
         title: Text(label),
       );
 
-  Widget _createButton(String label, void Function() onPressed) => RaisedButton(
+  Widget _createButton(String label, VoidCallback? onPressed) => RaisedButton(
         padding: const EdgeInsets.symmetric(horizontal: 18.0, vertical: 18.0),
         shape: _createRoundedBorder(),
         onPressed: onPressed,
@@ -519,7 +522,7 @@ class _OnlineProfileViewState extends State<OnlineProfileView>
             _getDate(l10n, data.lastVisitDate),
             style: Theme.of(context)
                 .textTheme
-                .bodyText2
+                .bodyText2!
                 .copyWith(fontStyle: FontStyle.italic),
           );
   }
@@ -560,14 +563,14 @@ class _OnlineProfileViewState extends State<OnlineProfileView>
 
   bool _isOwner(RemoteAccount account) =>
       widget.target == null ||
-      widget.target.userId == account.credential.userId;
+      widget.target!.userId == account.credential.userId;
 }
 
 class _AcceptOrDeclineButton extends StatefulWidget {
   final LocalizationService l10n;
-  final void Function(bool) onResult;
+  final void Function(bool)? onResult;
 
-  const _AcceptOrDeclineButton(this.l10n, {@required this.onResult});
+  const _AcceptOrDeclineButton(this.l10n, {required this.onResult});
 
   @override
   __AcceptOrDeclineButtonState createState() =>
@@ -605,9 +608,9 @@ class __AcceptOrDeclineButtonState extends State<_AcceptOrDeclineButton> {
                           style: Theme.of(context).textTheme.bodyText1,
                         )))
                     .toList(),
-            onChanged: (newValue) => setState(() {
-                  _selected = newValue;
-                  widget.onResult(newValue == 0);
+            onChanged: (int? newValue) => setState(() {
+                  _selected = newValue ?? 0;
+                  widget.onResult!(_selected == 0);
                 })),
       );
 }

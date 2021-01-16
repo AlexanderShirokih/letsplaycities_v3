@@ -21,7 +21,7 @@ mixin NetworkAvatarBuildingMixin {
           : CircleAvatar(
               radius: radius,
               key: ObjectKey(profile),
-              backgroundImage: NetworkImage(profile.pictureUrl),
+              backgroundImage: NetworkImage(profile.pictureUrl!),
               backgroundColor: Colors.transparent,
             );
 

@@ -10,9 +10,9 @@ class LoginScreen extends StatefulWidget {
   final VoidCallback onLoggedIn;
 
   const LoginScreen({
-    Key key,
-    @required this.onLoggedIn,
-    @required this.preferences,
+    Key? key,
+    required this.onLoggedIn,
+    required this.preferences,
   }) : super(key: key);
 
   @override
@@ -20,7 +20,7 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  TextEditingController _loginController;
+  late TextEditingController _loginController;
   bool _hasLogin = false;
 
   @override
@@ -57,7 +57,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 children: [
                   Text(
                     'Вход',
-                    style: Theme.of(context).textTheme.headline4.copyWith(
+                    style: Theme.of(context).textTheme.headline4!.copyWith(
                         color: Theme.of(context).accentColor,
                         fontWeight: FontWeight.w600),
                   ),

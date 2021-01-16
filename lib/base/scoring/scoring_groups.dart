@@ -1,6 +1,4 @@
 import 'package:equatable/equatable.dart';
-import 'package:meta/meta.dart';
-
 import 'package:lets_play_cities/base/scoring.dart';
 
 /*
@@ -44,7 +42,7 @@ class ScoringGroup with EquatableMixin {
   final ScoringField main;
   List<ScoringField> child;
 
-  ScoringGroup({@required this.main, this.child});
+  ScoringGroup({required this.main, required this.child});
 
   ScoringField operator [](String fieldName) =>
       child.singleWhere((element) => element.name == fieldName);
@@ -74,7 +72,7 @@ class ScoringGroup with EquatableMixin {
         ? (group['child'] as List<dynamic>)
             .map((element) => ScoringField.fromJson(element))
             .toList(growable: false)
-        : List.empty(growable: false);
+        : List<ScoringField>.empty(growable: false);
 
     return ScoringGroup(main: main, child: child);
   }
@@ -84,7 +82,7 @@ class ScoringGroup with EquatableMixin {
 class ScoringSet extends Equatable {
   final List<ScoringGroup> groups;
 
-  ScoringSet({@required this.groups}) : assert(groups != null);
+  ScoringSet({required this.groups});
 
   Map<String, dynamic> toJson() =>
       {'scoringGroups': groups.map((e) => e.toJson()).toList(growable: false)};
@@ -119,12 +117,21 @@ class ScoringSet extends Equatable {
         }).toList(growable: false),
       );
 
-  ScoringGroup _findGroupByName(String name) => groups
-      .singleWhere((group) => group.main.name == name, orElse: () => null);
+  ScoringGroup? _findGroupByName(String name) {
+    try {
+      return groups.singleWhere((group) => group.main.name == name);
+    } on StateError {
+      return null;
+    }
+  }
 
-  static ScoringField _findFieldByName(ScoringGroup group, String name) =>
-      group.child
-          .singleWhere((field) => field.name == name, orElse: () => null);
+  static ScoringField? _findFieldByName(ScoringGroup group, String name) {
+    try {
+      return group.child.singleWhere((field) => field.name == name);
+    } on StateError {
+      return null;
+    }
+  }
 
   factory ScoringSet.fromJson(Map<String, dynamic> data) {
     return ScoringSet(

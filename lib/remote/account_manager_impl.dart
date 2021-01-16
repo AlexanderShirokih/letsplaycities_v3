@@ -1,14 +1,13 @@
 import 'package:async/async.dart';
-
 import 'package:lets_play_cities/base/preferences.dart';
 import 'package:lets_play_cities/remote/auth.dart';
 import 'package:lets_play_cities/remote/client/remote_api_client.dart';
-import 'package:lets_play_cities/remote/remote_module.dart';
 import 'package:lets_play_cities/remote/model/utils.dart';
+import 'package:lets_play_cities/remote/remote_module.dart';
 
-import 'client/api_client.dart';
 import 'account.dart';
 import 'account_manager.dart';
+import 'client/api_client.dart';
 
 class AccountManagerImpl extends AccountManager {
   final GamePreferences _preferences;
@@ -16,10 +15,10 @@ class AccountManagerImpl extends AccountManager {
   final AsyncCache<RemoteAccount> _fetchedAccount =
       AsyncCache(const Duration(minutes: 5));
 
-  AccountManagerImpl(this._preferences) : assert(_preferences != null);
+  AccountManagerImpl(this._preferences);
 
   @override
-  Future<RemoteAccount> getLastSignedInAccount() async {
+  Future<RemoteAccount?> getLastSignedInAccount() async {
     var credentials = _preferences.currentCredentials;
 
     if (credentials == null) return null;
@@ -49,7 +48,7 @@ class AccountManagerImpl extends AccountManager {
       _fetchedAccount.fetch(() => _signUp(signUpData));
 
   Future<RemoteAccount> _signUp(RemoteSignUpData signUpData) async {
-    final response = await _createClient(null).signUp(signUpData);
+    final response = await _createClient(Credential.empty()).signUp(signUpData);
 
     final credential =
         Credential(userId: response.userId, accessToken: response.accessToken);

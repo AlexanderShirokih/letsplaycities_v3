@@ -20,12 +20,10 @@ class Endpoint extends EventHandler {
 
   final OnUserInputAccepted _onUserInputAccepted;
 
-  DateTime _currentUserStartTime;
+  late DateTime _currentUserStartTime;
 
-  Endpoint(
-      this._dictionaryService, this._onUserInputAccepted, this._scoreController)
-      : assert(_dictionaryService != null),
-        assert(_onUserInputAccepted != null);
+  Endpoint(this._dictionaryService, this._onUserInputAccepted,
+      this._scoreController);
 
   @override
   Stream<GameEvent> process(GameEvent event) async* {

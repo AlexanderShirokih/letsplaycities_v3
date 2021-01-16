@@ -1,5 +1,3 @@
-import 'package:meta/meta.dart';
-
 /// Describes city properties, such as:
 /// Country code - country flag index
 /// Difficulty level - difficulty of the city name for average user (0-3)
@@ -17,9 +15,8 @@ class CityProperties {
   int _dataBits;
 
   /// Creates new instance from difficulty level and country code
-  CityProperties({@required int difficulty, @required int countryCode})
-      : assert(difficulty != null && countryCode != null),
-        assert(difficulty >= 0 && difficulty < 3,
+  CityProperties({required int difficulty, required int countryCode})
+      : assert(difficulty >= 0 && difficulty < 3,
             'Invalid difficulty value=$difficulty'),
         assert(countryCode >= 0 && countryCode.bitLength < 16,
             'Invalid country code value=$countryCode'),

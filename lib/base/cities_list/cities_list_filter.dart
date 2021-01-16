@@ -10,14 +10,14 @@ class CitiesListFilter extends Equatable {
   final CountryListFilter countryFilter;
 
   CitiesListFilter({
-    String nameFilter,
-    CountryListFilter countryFilter,
-  })  : nameFilter = nameFilter ?? '',
-        countryFilter = countryFilter ?? const CountryListFilter.empty();
+    this.nameFilter = '',
+    CountryListFilter? countryFilter,
+  }) : countryFilter = countryFilter ?? CountryListFilter.empty();
 
   /// Creates copy of this filter with customizable params
   /// `null` value for input argument means value is not changed
-  CitiesListFilter copy({String nameFilter, CountryListFilter countryFilter}) =>
+  CitiesListFilter copy(
+          {String? nameFilter, CountryListFilter? countryFilter}) =>
       CitiesListFilter(
         nameFilter: nameFilter ?? this.nameFilter,
         countryFilter: countryFilter ?? this.countryFilter,
@@ -64,7 +64,7 @@ class CountryListFilter extends Equatable {
 
   const CountryListFilter(this.allowedCountryCodes, this.isAllPresent);
 
-  const CountryListFilter.empty() : this(null, true);
+  factory CountryListFilter.empty() => CountryListFilter(<int>[], true);
 
   /// Returns `true` if [city] passes the filter.
   bool matches(CitiesListEntry city) =>

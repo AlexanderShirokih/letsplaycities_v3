@@ -1,3 +1,4 @@
+// ignore: import_of_legacy_library_into_null_safe
 import 'package:intl/intl.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -30,7 +31,7 @@ class OnlineHistoryScreen extends StatelessWidget
 
   /// Opponents id. If `null` then will showed all account owner history
   @override
-  final BaseProfileInfo target;
+  final BaseProfileInfo? target;
 
   const OnlineHistoryScreen({this.target, this.embedded = false});
 
@@ -42,7 +43,7 @@ class OnlineHistoryScreen extends StatelessWidget
         style: withData<TextStyle, TextTheme>(
           Theme.of(context).textTheme,
           (textTheme) =>
-              textTheme.headline5.copyWith(color: textTheme.caption.color),
+              textTheme.headline5!.copyWith(color: textTheme.caption!.color),
         ),
       );
 
@@ -80,7 +81,7 @@ class OnlineHistoryScreen extends StatelessWidget
         (l10n) => Align(
           alignment: Alignment.centerLeft,
           child: withData<Widget, Color>(
-            Theme.of(context).textTheme.caption.color,
+            Theme.of(context).textTheme.caption!.color!,
             (color) => Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [

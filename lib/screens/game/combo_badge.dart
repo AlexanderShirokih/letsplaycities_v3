@@ -22,7 +22,7 @@ class ComboBadgeWidget extends StatelessWidget {
       builder: (context, snap) => !snap.hasData
           ? Container()
           : Row(
-              children: snap.data.entries
+              children: snap.requireData.entries
                   .map((e) => _createBadge(context, comboNames, e.key, e.value))
                   .toList(growable: false),
             ),
@@ -63,6 +63,5 @@ class ComboBadgeWidget extends StatelessWidget {
       case ComboType.DIFFERENT_COUNTRIES:
         return FaIcon(FontAwesomeIcons.atlas, color: color);
     }
-    throw ('Bad state!');
   }
 }

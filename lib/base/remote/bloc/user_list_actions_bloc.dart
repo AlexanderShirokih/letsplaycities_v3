@@ -9,12 +9,10 @@ import 'package:lets_play_cities/remote/model/profile_info.dart';
 class UserListActionsBloc extends Bloc<UserActionsEvent, UserActionsState> {
   final ApiRepository _apiRepository;
   final UserFetchType fetchType;
-  final BaseProfileInfo target;
+  final BaseProfileInfo? target;
 
   UserListActionsBloc(this._apiRepository, this.fetchType, [this.target])
-      : assert(_apiRepository != null),
-        assert(fetchType != null),
-        super(UserActionsInitial()) {
+      : super(UserActionsInitial()) {
     add(UserFetchListEvent(false));
   }
 
@@ -44,7 +42,8 @@ class UserListActionsBloc extends Bloc<UserActionsEvent, UserActionsState> {
         data = _apiRepository.getFriendsList(event.forceRefresh);
         break;
       case UserFetchType.getHistoryList:
-        data = _apiRepository.getHistoryList(event.forceRefresh, target);
+        if (target == null) throw 'No target passed!';
+        data = _apiRepository.getHistoryList(event.forceRefresh, target!);
         break;
       case UserFetchType.getBanlist:
         data = _apiRepository.getBanlist(event.forceRefresh);

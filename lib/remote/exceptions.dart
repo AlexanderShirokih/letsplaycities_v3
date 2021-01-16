@@ -40,9 +40,7 @@ class AuthorizationException extends RemoteException {
 class FetchingException extends RemoteException {
   final Uri uri;
 
-  FetchingException(String message, this.uri)
-      : assert(message != null),
-        super(message);
+  FetchingException(String message, this.uri) : super(message);
 
   @override
   String toString() => 'Fetching exception: $description, URL: $uri';

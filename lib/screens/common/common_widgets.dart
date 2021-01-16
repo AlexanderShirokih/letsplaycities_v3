@@ -8,8 +8,8 @@ import 'package:lets_play_cities/themes/theme.dart' as theme;
 /// Hits [_onTap] when the button is tapped.
 class CustomMaterialButton extends StatelessWidget {
   final String _text;
-  final Widget _icon;
-  final Function _onTap;
+  final Widget? _icon;
+  final VoidCallback? _onTap;
 
   CustomMaterialButton(this._text, [this._icon, this._onTap]);
 
@@ -37,9 +37,9 @@ class CustomMaterialButton extends StatelessWidget {
 /// Creates button with icon and ripple effect
 class MaterialIconButton extends StatelessWidget {
   final IconData iconData;
-  final Function onPressed;
+  final VoidCallback onPressed;
 
-  const MaterialIconButton(this.iconData, {@required this.onPressed});
+  const MaterialIconButton(this.iconData, {required this.onPressed});
 
   @override
   Widget build(BuildContext context) => Material(
@@ -66,7 +66,7 @@ Widget createBackground(BuildContext context) => Positioned.fill(
 class LoadingView extends StatelessWidget {
   final String _text;
 
-  LoadingView(this._text) : assert(_text != null);
+  LoadingView(this._text);
 
   @override
   Widget build(BuildContext context) => Center(
@@ -91,7 +91,7 @@ class LoadingView extends StatelessWidget {
 /// Calls [onComplete] if it's not null when a snackbar dismissed by timeout.
 /// Calls [onUndo] if it's not null when undo button is pressed.
 void showUndoSnackbar(BuildContext context, String text,
-    {void Function() onComplete, void Function() onUndo}) {
+    {VoidCallback? onComplete, VoidCallback? onUndo}) {
   ScaffoldMessenger.of(context)
       .showSnackBar(
         SnackBar(

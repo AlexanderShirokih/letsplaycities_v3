@@ -1,11 +1,12 @@
 import 'package:equatable/equatable.dart';
+
+// ignore: import_of_legacy_library_into_null_safe
 import 'package:intl/intl.dart';
-import 'package:meta/meta.dart';
 
 /// Container class for printing both field name(or key) and it's value
 class ScoringFieldData {
   final String name;
-  final String value;
+  final String? value;
 
   const ScoringFieldData(this.name, this.value);
 }
@@ -15,18 +16,17 @@ abstract class ScoringField {
   /// Field name
   final String name;
 
-  const ScoringField(this.name) : assert(name != null);
+  const ScoringField(this.name);
 
-  factory ScoringField.empty({@required String name}) =>
-      EmptyScoringField(name);
+  factory ScoringField.empty({required String name}) => EmptyScoringField(name);
 
-  factory ScoringField.int({@required String name, int value = 0}) =>
+  factory ScoringField.int({required String name, int value = 0}) =>
       IntScoringField(name, value);
 
-  factory ScoringField.time({@required String name}) =>
+  factory ScoringField.time({required String name}) =>
       TimeScoringField(name, 0);
 
-  factory ScoringField.paired({@required String name, String value}) =>
+  factory ScoringField.paired({required String name, String? value}) =>
       PairedScoringField<String, int>(name, value, null);
 
   factory ScoringField.fromJson(Map<String, dynamic> data) {
@@ -57,8 +57,9 @@ abstract class ScoringField {
     }
   }
 
-  /// Returns string representation of field value
-  String asString();
+  /// Returns string representation of field value or `null` if field cannot
+  /// be represented as string
+  String? asString();
 
   /// Returns pair of name(key) and value separately
   ScoringFieldData asPairedString() => ScoringFieldData(name, asString());
@@ -76,7 +77,7 @@ class EmptyScoringField extends ScoringField with EquatableMixin {
   EmptyScoringField(String name) : super(name);
 
   @override
-  String asString() => null;
+  String? asString() => null;
 
   @override
   bool hasValue() => false;
@@ -90,7 +91,7 @@ class EmptyScoringField extends ScoringField with EquatableMixin {
 
 /// [ScoringField] holding [int] value
 class IntScoringField extends ScoringField with EquatableMixin {
-  int value;
+  int? value;
 
   IntScoringField(String name, this.value) : super(name);
 
@@ -101,13 +102,15 @@ class IntScoringField extends ScoringField with EquatableMixin {
   /// Updates the field only if [m] greater that current value
   /// Works only for `int` type
   void max(int m) {
-    if (m > value) value = m;
+    if (value == null || m > value!) {
+      value = m;
+    }
   }
 
   /// Adds any amount to current field value
   /// Works only for `int` type
   void add(int a) {
-    value += a;
+    value = (value ?? 0) + a;
   }
 
   @override
@@ -117,7 +120,7 @@ class IntScoringField extends ScoringField with EquatableMixin {
   String asString() => value.toString();
 
   @override
-  List<Object> get props => [name, value];
+  List<Object?> get props => [name, value];
 
   @override
   bool get stringify => true;
@@ -133,7 +136,7 @@ class TimeScoringField extends IntScoringField {
 
   @override
   String asString() {
-    var s = value;
+    var s = value ?? 0;
     var h = 0;
     var m = 0;
     if (s > 3600) {
@@ -156,8 +159,8 @@ class TimeScoringField extends IntScoringField {
 
 /// [ScoringField] that holds a pair of values
 class PairedScoringField<K, V> extends ScoringField with EquatableMixin {
-  final K key;
-  final V value;
+  final K? key;
+  final V? value;
 
   const PairedScoringField(String name, this.key, this.value) : super(name);
 
@@ -172,7 +175,7 @@ class PairedScoringField<K, V> extends ScoringField with EquatableMixin {
       ScoringFieldData(key.toString(), value.toString());
 
   @override
-  List<Object> get props => [name, key, value];
+  List<Object?> get props => [name, key, value];
 
   @override
   bool get stringify => true;
@@ -182,7 +185,7 @@ class PairedScoringField<K, V> extends ScoringField with EquatableMixin {
       {'type': 'paired', 'name': name, 'key': key, 'value': value};
 
   /// Creates deep copy of this field
-  PairedScoringField<K, V> clone({String name, K key, V value}) =>
+  PairedScoringField<K, V> clone({String? name, K? key, V? value}) =>
       PairedScoringField(
           name ?? this.name, key ?? this.key, value ?? this.value);
 }

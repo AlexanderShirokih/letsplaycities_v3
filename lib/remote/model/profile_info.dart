@@ -1,7 +1,5 @@
-import 'package:meta/meta.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter/foundation.dart';
-
 import 'package:lets_play_cities/remote/model/utils.dart';
 
 /// Describes account types
@@ -33,7 +31,7 @@ extension AuthTypeExtension on AuthType {
         return type;
       }
     }
-    return null;
+    throw 'Unknown value "$s"!';
   }
 }
 
@@ -117,14 +115,13 @@ class BaseProfileInfo extends Equatable {
   final String login;
 
   /// User picture URL. May be `null`
-  final String pictureUrl;
+  final String? pictureUrl;
 
   const BaseProfileInfo({
-    @required this.userId,
-    @required this.login,
+    required this.userId,
+    required this.login,
     this.pictureUrl,
-  })  : assert(login != null),
-        assert(userId != null);
+  });
 
   @override
   List<Object> get props => [userId, login];
@@ -148,20 +145,15 @@ class ProfileInfo extends BaseProfileInfo {
   final BanStatus banStatus;
 
   const ProfileInfo({
-    @required int userId,
-    @required String login,
-    @required String pictureUrl,
-    @required this.role,
-    @required this.lastVisitDate,
-    @required this.banStatus,
-    @required this.friendshipStatus,
-    @required this.authType,
-  })  : assert(role != null),
-        assert(lastVisitDate != null),
-        assert(friendshipStatus != null),
-        assert(banStatus != null),
-        assert(authType != null),
-        super(
+    required int userId,
+    required String login,
+    required String? pictureUrl,
+    required this.role,
+    required this.lastVisitDate,
+    required this.banStatus,
+    required this.friendshipStatus,
+    required this.authType,
+  }) : super(
           userId: userId,
           login: login,
           pictureUrl: pictureUrl,

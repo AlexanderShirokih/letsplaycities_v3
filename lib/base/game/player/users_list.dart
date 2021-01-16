@@ -40,8 +40,8 @@ class UsersList {
       _users.firstWhere((element) => element.position == position);
 
   /// Returns current user in users list as [Player] instance
-  /// or null if current user is not [Player].
-  Player get currentPlayer {
+  /// or `null` if current user is not [Player].
+  Player? get currentPlayer {
     try {
       return _users
           .where((element) => element == current)
@@ -58,7 +58,7 @@ class UsersList {
   }
 
   factory UsersList.forGameMode(
-      GameMode gameMode, DictionaryService dictionaryService) {
+      GameMode gameMode, DictionaryDecorator dictionaryService) {
     switch (gameMode) {
       case GameMode.PlayerVsAndroid:
         return _buildPvAList(dictionaryService);
@@ -69,7 +69,7 @@ class UsersList {
     }
   }
 
-  static UsersList _buildPvAList(DictionaryService dictionary) => UsersList([
+  static UsersList _buildPvAList(DictionaryDecorator dictionary) => UsersList([
         Player(
           LocalAccountInfo(
             name: 'Игрок',

@@ -7,20 +7,20 @@ extension IteratorExt<T> on Iterable<T> {
   /// If element returning by [onDuplicate] is equals to original element or has
   /// a key that already exists it will be ignored.
   Iterable<T> distinctBy(Object Function(T) keySelector,
-          {T Function(T old, T current) onDuplicate}) =>
+          {T Function(T old, T current)? onDuplicate}) =>
       _DistinctIterable(this, keySelector, onDuplicate);
 }
 
 class _DistinctIterable<T> extends Iterable<T> {
   final Iterable<T> _iterable;
   final Object Function(T) _keySelector;
-  final T Function(T old, T current) _onDuplicate;
+  final T? Function(T old, T current) _onDuplicate;
   final Map<Object, T> uniqueElements = {};
 
   _DistinctIterable(
     this._iterable,
     this._keySelector,
-    T Function(T, T) onDuplicate,
+    T? Function(T, T)? onDuplicate,
   ) : _onDuplicate = onDuplicate ?? ((old, curr) => null);
 
   @override

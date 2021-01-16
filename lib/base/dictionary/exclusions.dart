@@ -10,5 +10,5 @@ abstract class ExclusionsService {
 
   /// Returns alternative name for given [city] or `null` if it found.
   /// Returns alternative name of this city or empty string if there are no names found.
-  String getAlternativeName(String city);
+  String? getAlternativeName(String city);
 }

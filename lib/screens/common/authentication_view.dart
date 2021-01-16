@@ -13,7 +13,7 @@ import 'package:lets_play_cities/screens/online/login_screen.dart';
 class AuthenticationView extends StatefulWidget {
   final WidgetBuilder onLoggedIn;
 
-  const AuthenticationView({Key key, @required this.onLoggedIn})
+  const AuthenticationView({Key? key, required this.onLoggedIn})
       : super(key: key);
 
   @override
@@ -27,7 +27,7 @@ class _AuthenticationViewState extends State<AuthenticationView> {
         value: AccountManager.fromPreferences(context.watch<GamePreferences>()),
         child: Builder(
           builder: (ctx) {
-            return FutureBuilder<RemoteAccount>(
+            return FutureBuilder<RemoteAccount?>(
               future: ctx.watch<AccountManager>().getLastSignedInAccount(),
               builder: (context, lastSignedInAccount) {
                 if (lastSignedInAccount.hasError) {
@@ -46,7 +46,7 @@ class _AuthenticationViewState extends State<AuthenticationView> {
                   }
                 }
                 return RepositoryProvider<RemoteAccount>.value(
-                  value: lastSignedInAccount.requireData,
+                  value: lastSignedInAccount.requireData!,
                   child: widget.onLoggedIn(context),
                 );
               },

@@ -1,5 +1,3 @@
-import 'package:meta/meta.dart';
-
 import '../country_entity.dart';
 import '../exclusions.dart';
 
@@ -22,9 +20,7 @@ class Exclusion {
   final ExclusionType type;
   final String thing;
 
-  const Exclusion(this.type, this.thing)
-      : assert(type != null),
-        assert(thing != null);
+  const Exclusion(this.type, this.thing);
 }
 
 /// Manages exclusions for cities.
@@ -49,25 +45,22 @@ class ExclusionsServiceImpl extends ExclusionsService {
   final List<String> states;
 
   ExclusionsServiceImpl({
-    @required this.exclusionsList,
-    @required this.errMessages,
-    @required this.countries,
-    @required this.states,
-  })  : assert(exclusionsList != null),
-        assert(errMessages != null),
-        assert(countries != null),
-        assert(states != null);
+    required this.exclusionsList,
+    required this.errMessages,
+    required this.countries,
+    required this.states,
+  });
 
   @override
   String checkForExclusion(String city) {
     if (countries
         .any((c) => !c.hasSiblingCity && c.name.toLowerCase() == city)) {
-      return errMessages[ErrorCode.THIS_IS_A_COUNTRY]
+      return errMessages[ErrorCode.THIS_IS_A_COUNTRY]!
           .format([city.toTitleCase()]);
     }
 
     if (states.contains(city)) {
-      return errMessages[ErrorCode.THIS_IS_A_STATE]
+      return errMessages[ErrorCode.THIS_IS_A_STATE]!
           .format([city.toTitleCase()]);
     }
 
@@ -80,16 +73,16 @@ class ExclusionsServiceImpl extends ExclusionsService {
 
     switch (ex.type) {
       case ExclusionType.CITY_WAS_RENAMED: // City was renamed
-        return errMessages[ErrorCode.RENAMED_CITY]
+        return errMessages[ErrorCode.RENAMED_CITY]!
             .format([city.toTitleCase(), ex.thing.toTitleCase()]);
       case ExclusionType.INCOMPLETE_NAME: // Incomplete name
-        return errMessages[ErrorCode.INCOMPLETE_CITY]
+        return errMessages[ErrorCode.INCOMPLETE_CITY]!
             .format([ex.thing.toTitleCase()]);
       case ExclusionType.NOT_A_CITY: // Geographic object which are not a city
-        return errMessages[ErrorCode.NOT_A_CITY]
+        return errMessages[ErrorCode.NOT_A_CITY]!
             .format([city.toTitleCase(), ex.thing]);
       case ExclusionType.REGION_NAME: // Historical site
-        return errMessages[ErrorCode.THIS_IS_NOT_A_CITY]
+        return errMessages[ErrorCode.THIS_IS_NOT_A_CITY]!
             .format([city.toTitleCase()]);
       default:
         return '';
@@ -97,7 +90,7 @@ class ExclusionsServiceImpl extends ExclusionsService {
   }
 
   @override
-  String getAlternativeName(String city) {
+  String? getAlternativeName(String city) {
     final ex = exclusionsList[city];
     if (ex == null || ex.type != ExclusionType.ALTERNATIVE_NAME) return null;
     return ex.thing;

@@ -1,7 +1,6 @@
 import 'package:lets_play_cities/base/game/management.dart';
 import 'package:lets_play_cities/base/scoring.dart';
 import 'package:lets_play_cities/base/users.dart';
-import 'package:meta/meta.dart';
 
 /// Contains data about game finish reason and checks the winner.
 class GameResultChecker {
@@ -21,11 +20,11 @@ class GameResultChecker {
   final User owner;
 
   const GameResultChecker({
-    @required this.users,
-    @required this.owner,
-    @required this.finishType,
-    @required this.scoringType,
-    @required this.finishRequester,
+    required this.users,
+    required this.owner,
+    required this.finishType,
+    required this.scoringType,
+    required this.finishRequester,
   });
 
   /// Determines game results relative to [owner].
@@ -90,14 +89,10 @@ class GameResult {
   final User finishRequester;
 
   const GameResult({
-    @required this.owner,
-    @required this.matchResult,
-    @required this.finishType,
-    @required this.hasScore,
-    @required this.finishRequester,
-  })  : assert(owner != null),
-        assert(matchResult != null),
-        assert(finishType != null),
-        assert(hasScore != null),
-        assert(finishRequester != null);
+    required this.owner,
+    required this.matchResult,
+    required this.finishType,
+    required this.hasScore,
+    required this.finishRequester,
+  });
 }

@@ -15,7 +15,7 @@ class AssetPictureSource extends PictureSource {
 
 /// Describes picture from the network
 class NetworkPictureSource extends PictureSource {
-  final String pictureURL;
+  final String? pictureURL;
 
   const NetworkPictureSource(this.pictureURL);
 }

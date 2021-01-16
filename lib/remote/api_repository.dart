@@ -38,8 +38,8 @@ class ApiRepository with AvatarResizeMixin {
   final Queue<_TargetedList<HistoryInfo>> _cachedHistoriesInfo =
       ListQueue(_kMaxProfilesCacheSize);
 
-  List<BlackListItemInfo> _cachedBanList;
-  List<FriendInfo> _cachedFriendsList;
+  List<BlackListItemInfo>? _cachedBanList;
+  List<FriendInfo>? _cachedFriendsList;
 
   @protected
   ApiRepository._(this._client);
@@ -51,7 +51,7 @@ class ApiRepository with AvatarResizeMixin {
     if (_cachedFriendsList == null || forceRefresh) {
       _cachedFriendsList = await _client.getFriendsList();
     }
-    return _cachedFriendsList;
+    return _cachedFriendsList!;
   }
 
   void _invalidateFriendsList() {
@@ -75,33 +75,32 @@ class ApiRepository with AvatarResizeMixin {
   /// Sends new friendship request
   Future sendNewFriendshipRequest(BaseProfileInfo target) => _client
       .sendFriendRequest(target.userId, FriendRequestType.SEND)
-      .then((_) => _cachedProfilesInfo?.remove(target));
+      .then((_) => _cachedProfilesInfo.remove(target));
 
   /// Gets user battle history.
   /// Network request will used only first time or when [forceRefresh] is `true`
   /// in all the other cases cached instance of history list will be used.
   Future<List<HistoryInfo>> getHistoryList(
       bool forceRefresh, BaseProfileInfo target) async {
-    assert(target != null);
+    var noHistory = true;
+    _TargetedList<HistoryInfo> battleHistory;
+    try {
+      battleHistory = _cachedHistoriesInfo
+          .singleWhere((element) => element.targetId == target.userId);
+      noHistory = false;
+    } finally {
+      if (noHistory || forceRefresh) {
+        if (_cachedHistoriesInfo.length == _kMaxProfilesCacheSize) {
+          _cachedHistoriesInfo.removeLast();
+        }
+        battleHistory = _TargetedList(
+          target.userId,
+          await _client.getHistoryList(target.userId),
+        );
 
-    var battleHistory = _cachedHistoriesInfo.singleWhere(
-      (element) => element.targetId == target.userId,
-      orElse: () => null,
-    );
-
-    final noHistory = battleHistory == null;
-
-    if (noHistory || forceRefresh) {
-      if (_cachedHistoriesInfo.length == _kMaxProfilesCacheSize) {
-        _cachedHistoriesInfo.removeLast();
-      }
-      battleHistory = _TargetedList(
-        target.userId,
-        await _client.getHistoryList(target.userId),
-      );
-
-      if (!noHistory) {
-        _cachedHistoriesInfo.add(battleHistory);
+        if (!noHistory) {
+          _cachedHistoriesInfo.add(battleHistory);
+        }
       }
     }
     return battleHistory.data;
@@ -114,7 +113,7 @@ class ApiRepository with AvatarResizeMixin {
     if (_cachedBanList == null || forceRefresh) {
       _cachedBanList = await _client.getBanList();
     }
-    return _cachedBanList;
+    return _cachedBanList!;
   }
 
   /// Removes a user with [user] from players ban list
@@ -133,28 +132,26 @@ class ApiRepository with AvatarResizeMixin {
   /// be used.
   Future<ProfileInfo> getProfileInfo(
       BaseProfileInfo target, bool forceRefresh) async {
-    assert(target != null);
+    ProfileInfo? profile;
+    try {
+      profile = _cachedProfilesInfo
+          .firstWhere((element) => element.userId == target.userId);
+    } finally {
+      final noProfile = profile == null;
 
-    var profile = _cachedProfilesInfo.firstWhere(
-      (element) => element.userId == target.userId,
-      orElse: () => null,
-    );
+      if (noProfile || forceRefresh) {
+        if (_cachedProfilesInfo.length == _kMaxProfilesCacheSize) {
+          _cachedProfilesInfo.removeLast();
+        }
 
-    final noProfile = profile == null;
+        profile = await _client.getProfileInfo(target.userId);
 
-    if (noProfile || forceRefresh) {
-      if (_cachedProfilesInfo.length == _kMaxProfilesCacheSize) {
-        _cachedProfilesInfo.removeLast();
+        if (!noProfile) {
+          _cachedProfilesInfo.add(profile);
+        }
       }
-
-      profile = await _client.getProfileInfo(target.userId);
-
-      if (!noProfile) {
-        _cachedProfilesInfo.add(profile);
-      }
+      return profile!;
     }
-
-    return profile;
   }
 
   /// Updates picture for currently logged account

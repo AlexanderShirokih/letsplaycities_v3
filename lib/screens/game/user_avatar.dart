@@ -13,7 +13,7 @@ class UserAvatar extends StatelessWidget with NetworkAvatarBuildingMixin {
   final User _user;
   final CrossAxisAlignment alignment;
 
-  UserAvatar({@required User user, Key key})
+  UserAvatar({required User user, Key? key})
       : alignment = _getAlignmentByPosition(user.position),
         _user = user,
         super(key: key);
@@ -28,7 +28,8 @@ class UserAvatar extends StatelessWidget with NetworkAvatarBuildingMixin {
           children: [
             _AvatarBorderAnimator(
               user: _user,
-              isActive: snapshot.hasData && snapshot.data.nextUser == _user,
+              isActive:
+                  snapshot.hasData && snapshot.requireData.nextUser == _user,
               borderColor: Theme.of(context).primaryColor,
             ),
             SizedBox(height: 4.0),
@@ -49,10 +50,10 @@ class _AvatarBorderAnimator extends StatefulWidget {
   final Color borderColor;
 
   const _AvatarBorderAnimator({
-    Key key,
-    @required this.user,
-    @required this.isActive,
-    @required this.borderColor,
+    Key? key,
+    required this.user,
+    required this.isActive,
+    required this.borderColor,
   }) : super(key: key);
 
   @override
@@ -61,8 +62,8 @@ class _AvatarBorderAnimator extends StatefulWidget {
 
 class __AvatarBorderAnimatorState extends State<_AvatarBorderAnimator>
     with TickerProviderStateMixin {
-  AnimationController _controller;
-  Animation<Color> animation;
+  late AnimationController _controller;
+  late Animation<Color?> animation;
 
   @override
   void initState() {
@@ -84,7 +85,7 @@ class __AvatarBorderAnimatorState extends State<_AvatarBorderAnimator>
 
   @override
   void dispose() {
-    _controller?.dispose();
+    _controller.dispose();
     super.dispose();
   }
 
@@ -95,7 +96,7 @@ class __AvatarBorderAnimatorState extends State<_AvatarBorderAnimator>
       decoration: ShapeDecoration(
         shape: StadiumBorder(
           side: BorderSide(
-            color: widget.isActive ? animation.value : Colors.white,
+            color: widget.isActive ? animation.value! : Colors.white,
             width: 5.0,
           ),
         ),
@@ -130,7 +131,7 @@ ImageProvider _getImageProviderByPictureSource(PictureSource source) {
   }
 
   if (source is NetworkPictureSource && source.pictureURL != null) {
-    return NetworkImage(source.pictureURL);
+    return NetworkImage(source.pictureURL!);
   }
 
   // PlaceholderImageSource

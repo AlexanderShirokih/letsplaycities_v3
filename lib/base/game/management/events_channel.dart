@@ -17,9 +17,7 @@ abstract class AbstractEventChannel {
 class ProcessingEventChannel extends AbstractEventChannel {
   final List<EventHandler> processors;
 
-  ProcessingEventChannel(this.processors)
-      : assert(processors != null),
-        assert(processors.isNotEmpty);
+  ProcessingEventChannel(this.processors) : assert(processors.isNotEmpty);
 
   @override
   Stream<GameEvent> sendEvent(GameEvent event) =>

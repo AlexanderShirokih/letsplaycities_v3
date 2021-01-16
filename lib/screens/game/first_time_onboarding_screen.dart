@@ -10,12 +10,10 @@ class FirstTimeOnBoardingScreen extends StatefulWidget {
   final GameConfig gameConfig;
 
   const FirstTimeOnBoardingScreen({
-    @required this.strings,
-    @required this.duration,
-    @required this.gameConfig,
-  })  : assert(strings != null),
-        assert(duration != null),
-        assert(gameConfig != null);
+    required this.strings,
+    required this.duration,
+    required this.gameConfig,
+  });
 
   @override
   _FirstTimeOnBoardingScreenState createState() =>
@@ -28,9 +26,9 @@ class _FirstTimeOnBoardingScreenState extends State<FirstTimeOnBoardingScreen>
   final Duration _duration;
   final GameConfig _gameConfig;
 
-  AnimationController _controller;
-  Animation<double> _fadeAnimation;
-  Animation<double> _scaleAnimation;
+  late AnimationController _controller;
+  late Animation<double> _fadeAnimation;
+  late Animation<double> _scaleAnimation;
 
   int _currentTextId = 0;
 
@@ -89,7 +87,7 @@ class _FirstTimeOnBoardingScreenState extends State<FirstTimeOnBoardingScreen>
                 overflow: TextOverflow.fade,
                 style: Theme.of(context)
                     .textTheme
-                    .headline3
+                    .headline3!
                     .copyWith(fontWeight: FontWeight.w800),
                 textDirection: TextDirection.ltr,
               ),

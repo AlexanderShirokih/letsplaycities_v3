@@ -12,13 +12,12 @@ class SearchAppBar extends StatefulWidget implements PreferredSizeWidget {
   final List<Widget> actions;
 
   SearchAppBar({
-    this.title,
-    this.searchHint,
-    this.actions,
-    @required this.onSearchTextChanged,
-    Key key,
-  })  : assert(onSearchTextChanged != null),
-        preferredSize = Size.fromHeight(kToolbarHeight),
+    required this.title,
+    required this.searchHint,
+    required this.actions,
+    required this.onSearchTextChanged,
+    Key? key,
+  })  : preferredSize = Size.fromHeight(kToolbarHeight),
         super(key: key);
 
   @override

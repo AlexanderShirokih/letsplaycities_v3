@@ -20,7 +20,7 @@ class AvatarLoadingState extends AvatarState {
 /// State used when some actions is done
 class AvatarDoneState extends AvatarState {
   final bool updateRequired;
-  final String error;
+  final String? error;
 
   const AvatarDoneState([this.updateRequired = false, this.error]);
 

@@ -46,16 +46,14 @@ class DatabaseChecker extends TypedEventHandler<RawWordEvent> {
 
     do {
       var checkingResult = await _dictionary.checkCity(word);
-      if (checkingResult != null) {
-        switch (checkingResult) {
-          case CityResult.OK:
-            return Accepted(word, owner);
-          case CityResult.CITY_NOT_FOUND:
-            word = word.replaceAll(' ', '-');
-            break;
-          case CityResult.ALREADY_USED:
-            return AlreadyUsed(word);
-        }
+      switch (checkingResult) {
+        case CityResult.OK:
+          return Accepted(word, owner);
+        case CityResult.CITY_NOT_FOUND:
+          word = word.replaceAll(' ', '-');
+          break;
+        case CityResult.ALREADY_USED:
+          return AlreadyUsed(word);
       }
     } while (--attempts > 0);
 

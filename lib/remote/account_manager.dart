@@ -5,7 +5,7 @@ import 'package:lets_play_cities/remote/auth.dart';
 /// Manages remote accounts
 abstract class AccountManager {
   /// Returns last signed in account or `null` if user is not signed in
-  Future<RemoteAccount> getLastSignedInAccount();
+  Future<RemoteAccount?> getLastSignedInAccount();
 
   /// Runs sign in authorization sequence
   Future<RemoteAccount> signUp(RemoteSignUpData signInData);
@@ -15,7 +15,7 @@ abstract class AccountManager {
 
   const AccountManager();
 
-  static AccountManager _cached;
+  static AccountManager? _cached;
 
   factory AccountManager.fromPreferences(GamePreferences prefs) {
     return (_cached ??= AccountManagerImpl(prefs));

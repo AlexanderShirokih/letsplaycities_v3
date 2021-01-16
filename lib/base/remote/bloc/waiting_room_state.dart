@@ -27,12 +27,12 @@ class WaitingRoomConnectingState extends WaitingRoomState {
 /// State used when user waits for available opponents in random pair mode
 class WaitingForOpponentsState extends WaitingRoomState {
   /// Target opponent to play with. Null for random pair mode
-  final BaseProfileInfo target;
+  final BaseProfileInfo? target;
 
   const WaitingForOpponentsState(this.target);
 
   @override
-  List<Object> get props => [target];
+  List<Object> get props => [target ?? ''];
 }
 
 /// State used to tell negative invitation result.
@@ -40,9 +40,7 @@ class WaitingRoomInvitationNegativeResult extends WaitingRoomState {
   final InviteResultType result;
   final BaseProfileInfo target;
 
-  const WaitingRoomInvitationNegativeResult(this.result, this.target)
-      : assert(result != null),
-        assert(target != null);
+  const WaitingRoomInvitationNegativeResult(this.result, this.target);
 
   @override
   List<Object> get props => [result, target];
@@ -50,12 +48,12 @@ class WaitingRoomInvitationNegativeResult extends WaitingRoomState {
 
 /// Used when user authorization was failed
 class WaitingRoomAuthorizationFailed extends WaitingRoomState {
-  final String description;
+  final String? description;
 
   const WaitingRoomAuthorizationFailed(this.description);
 
   @override
-  List<Object> get props => [description];
+  List<Object?> get props => [description];
 }
 
 /// Used when user authorization was failed
@@ -71,7 +69,7 @@ class StartGameState extends WaitingRoomState {
   /// Ready to start network game config
   final GameConfig config;
 
-  const StartGameState(this.config) : assert(config != null);
+  const StartGameState(this.config);
 
   @override
   List<Object> get props => [config];

@@ -6,7 +6,7 @@ import 'package:test/test.dart';
 
 void main() {
   group('ExclusionsServiceImpl()', () {
-    ExclusionsService exclusion;
+    late ExclusionsService exclusion;
 
     setUp(() {
       exclusion = ExclusionsServiceImpl(

@@ -108,7 +108,7 @@ class _CityInputFieldState extends State<_CityInputField> {
 
 /// Used to enter chat messages
 class _ChatMessageInputField extends StatefulWidget {
-  const _ChatMessageInputField({Key key}) : super(key: key);
+  const _ChatMessageInputField({Key? key}) : super(key: key);
 
   @override
   __ChatMessageInputFieldState createState() => __ChatMessageInputFieldState();

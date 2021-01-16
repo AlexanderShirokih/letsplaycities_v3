@@ -1,12 +1,11 @@
 import 'package:equatable/equatable.dart';
-import 'package:meta/meta.dart';
 
 /// Base class for all outgoing socket messages
 abstract class OutgoingMessage extends Equatable {
   const OutgoingMessage();
 
   @override
-  List<Object> get props => [];
+  List<Object?> get props => [];
 }
 
 /// Startup message used to authorize user on WS server.
@@ -33,12 +32,12 @@ class LogInMessage extends OutgoingMessage {
   final String hash;
 
   const LogInMessage({
-    @required this.clientBuild,
-    @required this.clientVersion,
-    @required this.canReceiveMessages,
-    @required this.firebaseToken,
-    @required this.uid,
-    @required this.hash,
+    required this.clientBuild,
+    required this.clientVersion,
+    required this.canReceiveMessages,
+    required this.firebaseToken,
+    required this.uid,
+    required this.hash,
   });
 
   @override
@@ -61,15 +60,15 @@ class PlayMessage extends OutgoingMessage {
   final PlayMode mode;
 
   /// Opponent ID. used in [PlayMode.FRIEND] mode
-  final int oppUid;
+  final int? oppUid;
 
   const PlayMessage({
-    @required this.mode,
-    @required this.oppUid,
-  }) : assert(mode != null);
+    required this.mode,
+    required this.oppUid,
+  });
 
   @override
-  List<Object> get props => [mode, oppUid];
+  List<Object?> get props => [mode, oppUid];
 }
 
 /// Used to send users word to server
@@ -77,7 +76,7 @@ class OutgoingWordMessage extends OutgoingMessage {
   /// Word to be checked
   final String word;
 
-  const OutgoingWordMessage({@required this.word});
+  const OutgoingWordMessage({required this.word});
 }
 
 /// Used to send users message to server
@@ -85,7 +84,7 @@ class OutgoingChatMessage extends OutgoingMessage {
   /// Message to be sent
   final String msg;
 
-  const OutgoingChatMessage({@required this.msg});
+  const OutgoingChatMessage({required this.msg});
 }
 
 enum InvitationResult { accept, decline }
@@ -99,8 +98,8 @@ class InvitationResultMessage extends OutgoingMessage {
   final int oppId;
 
   const InvitationResultMessage({
-    @required this.result,
-    @required this.oppId,
+    required this.result,
+    required this.oppId,
   });
 
   @override

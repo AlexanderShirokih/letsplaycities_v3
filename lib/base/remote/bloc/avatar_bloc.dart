@@ -2,6 +2,8 @@ import 'dart:async';
 
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
+
+// ignore: import_of_legacy_library_into_null_safe
 import 'package:image_picker/image_picker.dart';
 import 'package:lets_play_cities/remote/api_repository.dart';
 
@@ -14,9 +16,7 @@ class AvatarBloc extends Bloc<AvatarEvent, AvatarState> {
   final picker = ImagePicker();
   final ApiRepository _apiRepository;
 
-  AvatarBloc(this._apiRepository)
-      : assert(_apiRepository != null),
-        super(AvatarInitial());
+  AvatarBloc(this._apiRepository) : super(AvatarInitial());
 
   @override
   Stream<AvatarState> mapEventToState(
@@ -36,7 +36,7 @@ class AvatarBloc extends Bloc<AvatarEvent, AvatarState> {
   }
 
   Stream<AvatarState> getImage(ImageSource source) async* {
-    final pickedFile = await picker.getImage(source: source);
+    final PickedFile? pickedFile = await picker.getImage(source: source);
 
     if (pickedFile != null) {
       yield AvatarLoadingState();

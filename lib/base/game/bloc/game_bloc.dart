@@ -28,10 +28,10 @@ part 'game_states.dart';
 class GameBloc extends Bloc<GameStateEvent, GameLifecycleState> {
   final GamePreferences _prefs;
   final LocalizationService _localizations;
+  final DictionaryUpdater _dictionaryUpdater;
   final GameConfig _gameConfig;
 
-  OnUserInputAccepted onUserInputAccepted;
-  DictionaryUpdater _dictionaryUpdater;
+  OnUserInputAccepted? onUserInputAccepted;
 
   @override
   Future<void> close() async {
@@ -42,18 +42,15 @@ class GameBloc extends Bloc<GameStateEvent, GameLifecycleState> {
   }
 
   GameBloc({
-    @required LocalizationService localizations,
-    @required GamePreferences prefs,
-    @required GameConfig gameConfig,
-  })  : assert(prefs != null),
-        assert(gameConfig != null),
-        assert(localizations != null),
-        _prefs = prefs,
+    required LocalizationService localizations,
+    required GamePreferences prefs,
+    required GameConfig gameConfig,
+  })   : _prefs = prefs,
         _localizations = localizations,
         _gameConfig = gameConfig,
+        _dictionaryUpdater = DictionaryUpdater(prefs, getDio()),
         super(InitialState()) {
     add(const GameEventBeginDataLoading());
-    _dictionaryUpdater = DictionaryUpdater(_prefs, getDio());
   }
 
   @override
@@ -85,7 +82,7 @@ class GameBloc extends Bloc<GameStateEvent, GameLifecycleState> {
       yield* _checkForUpdates();
     }
 
-    yield DataLoadingState.empty();
+    yield DataLoadingState();
 
     final scoreController = ScoreController.fromPrefs(_prefs);
     final dictionary = await DictionaryFactory().createDictionary();
@@ -94,7 +91,7 @@ class GameBloc extends Bloc<GameStateEvent, GameLifecycleState> {
             _localizations.exclusionDescriptions)
         .createExclusions();
 
-    yield DataLoadingState.forData(
+    yield GotDataState(
       DictionaryDecorator(
         dictionary,
         _prefs,
@@ -107,8 +104,8 @@ class GameBloc extends Bloc<GameStateEvent, GameLifecycleState> {
   }
 
   Stream<GameLifecycleState> _runGame() async* {
-    if (!(state is DataLoadingState)) throw ('Invalid state: $state!');
-    final dataState = state as DataLoadingState;
+    if (!(state is GotDataState)) throw ('Invalid state: $state!');
+    final dataState = state as GotDataState;
 
     final repository = GameSessionRepository(
       GameSessionFactory.createForGameMode(
@@ -117,7 +114,7 @@ class GameBloc extends Bloc<GameStateEvent, GameLifecycleState> {
         exclusions: dataState.exclusions,
         dictionary: dataState.dictionary,
         scoreController: dataState.scoreController,
-        onUserInputAccepted: () => onUserInputAccepted(),
+        onUserInputAccepted: () => onUserInputAccepted?.call(),
       ),
     );
 
@@ -164,7 +161,7 @@ class GameBloc extends Bloc<GameStateEvent, GameLifecycleState> {
       final gameState = state as GameState;
       final firstChar = findLastSuitableChar(
           gameState.gameSessionRepository.lastAcceptedWord);
-      final word = await gameState.dictionary
+      final word = await (gameState.dictionary as DictionaryDecorator)
           .getRandomWord(firstChar.isEmpty ? 'а' : firstChar);
       if (word.isNotEmpty) gameState.gameSessionRepository.sendInputWord(word);
     }

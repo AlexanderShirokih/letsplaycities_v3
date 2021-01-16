@@ -4,7 +4,7 @@ description: Letsplaycities Flutter Project
 version: 1.0.0+1
 
 environment:
-  sdk: ">=2.8.0 <3.0.0"
+  sdk: ">=2.12.0-0 <3.0.0"
 
 dependencies:
   flutter:
@@ -13,16 +13,16 @@ dependencies:
   dio: ^3.0.10
   meta: ^1.1.7
   image: ^2.1.19
-  equatable: ^1.2.3
-  url_launcher: ^5.7.2
-  package_info: ^0.4.1
-  flutter_bloc: ^6.0.1
-  audioplayers: ^0.16.1
-  path_provider: ^1.6.14
-  image_picker: ^0.6.7+17
+  equatable: ^2.0.0-nullsafety.1
+  url_launcher: ^6.0.0-nullsafety.4
+  package_info: ^0.4.3+2
+  flutter_bloc: ^7.0.0-nullsafety.0
+  audioplayers: ^0.17.2
+  path_provider: ^1.6.27
+  image_picker: ^0.6.7+21
   web_socket_channel: ^1.1.0
-  shared_preferences: ^0.5.10
-  font_awesome_flutter: ^8.8.1
+  shared_preferences: ^0.5.12+4
+  font_awesome_flutter: ^9.0.0-nullsafety
 
 dev_dependencies:
   flutter_test:

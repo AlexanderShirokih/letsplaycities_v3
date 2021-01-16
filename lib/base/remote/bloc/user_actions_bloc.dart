@@ -13,9 +13,7 @@ part 'user_actions_state.dart';
 class UserActionsBloc extends Bloc<UserActionsEvent, UserActionsState> {
   final ApiRepository _apiRepository;
 
-  UserActionsBloc(this._apiRepository)
-      : assert(_apiRepository != null),
-        super(UserActionsInitial());
+  UserActionsBloc(this._apiRepository) : super(UserActionsInitial());
 
   @override
   Stream<UserActionsState> mapEventToState(UserActionsEvent event) async* {
@@ -24,9 +22,11 @@ class UserActionsBloc extends Bloc<UserActionsEvent, UserActionsState> {
       return;
     }
 
-    yield* _doActionsSafely(
-      event is UserActionConfirmedEvent ? event.sourceEvent : event,
-    );
+    if (event is UserActionConfirmedEvent) {
+      yield* _doActionsSafely(event.sourceEvent);
+    } else {
+      throw 'Bad state: event "$event" is unsupported!';
+    }
   }
 
   Stream<UserActionsState> _doActionsSafely(UserEvent sourceEvent) {

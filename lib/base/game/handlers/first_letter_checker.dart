@@ -6,15 +6,15 @@ import 'package:lets_play_cities/base/game/handlers.dart';
 /// with last char of the last accepted word.
 /// Last chars should be updated by passing [OnFirstCharChanged] to event queue.
 class FirstLetterChecker extends EventHandler {
-  String _firstChar;
+  late String _firstChar;
 
   @override
   Stream<GameEvent> process(GameEvent event) async* {
     if (event is OnFirstCharChanged) _firstChar = event.firstChar;
 
     if (!(event is RawWordEvent) ||
-        (event as RawWordEvent).owner.isTrusted ||
-        _checkFirstLetterMatches((event as RawWordEvent).word)) {
+        event.owner.isTrusted ||
+        _checkFirstLetterMatches(event.word)) {
       yield event;
       return;
     }

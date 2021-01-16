@@ -1,8 +1,6 @@
 import 'dart:async';
 import 'dart:math';
 
-import 'package:meta/meta.dart';
-
 import 'package:lets_play_cities/base/game/combo.dart';
 
 /// Manages user combos
@@ -17,8 +15,7 @@ class ComboSystem {
 
   final _controller = StreamController<Map<ComboType, int>>();
 
-  ComboSystem({@required this.canUseQuickTime})
-      : assert(canUseQuickTime != null);
+  ComboSystem({required this.canUseQuickTime});
 
   /// Returns stream emitting events every time when combos changed
   Stream<Map<ComboType, int>> get eventStream => _controller.stream;

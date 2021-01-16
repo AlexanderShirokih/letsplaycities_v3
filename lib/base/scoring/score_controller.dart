@@ -57,7 +57,8 @@ class ScoreController {
       G_FRQ_CITIES,
       word,
       (_) => 1,
-      (old, current) => old.clone(value: old.value + current.value));
+      (old, current) =>
+          old.clone(value: old.value ?? 0 + (current.value ?? 0)));
 
   void _updateCombos(Map<int, int> activeCombos) =>
       activeCombos.entries.forEach((MapEntry<int, int> combo) =>
@@ -70,7 +71,7 @@ class ScoreController {
     PairedScoringField<String, int> Function(
       PairedScoringField<String, int> prev,
       PairedScoringField<String, int> curr,
-    )
+    )?
         onMerge,
   ) {
     // Recalculate list
@@ -80,10 +81,10 @@ class ScoreController {
                 .where((field) => field.hasValue() && field.key != V_EMPTY_S)
                 .toList() +
             [PairedScoringField<String, int>('', word, defaultValue(word))])
-        .distinctBy((field) => field.key, onDuplicate: onMerge)
+        .distinctBy((field) => field.key ?? '', onDuplicate: onMerge)
         .take(10)
         .toList(growable: false)
-          ..sort((a, b) => b.value.compareTo(a.value));
+          ..sort((a, b) => b.value?.compareTo(a.value ?? 0) ?? 0);
 
     // Update references
     _allGroups[group].child = newList
@@ -101,9 +102,8 @@ class ScoreController {
       case ScoringType.BY_SCORE:
         return word.length;
       case ScoringType.BY_TIME:
-        final dt = ((40000 - moveTime) / 2000);
+        final dt = ((40000 - moveTime) ~/ 2000);
         return 2 + dt > 0 ? dt : 0;
     }
-    throw ('Bad state');
   }
 }

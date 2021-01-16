@@ -1,3 +1,4 @@
+import 'package:equatable/equatable.dart';
 import 'package:lets_play_cities/base/data.dart';
 import 'package:lets_play_cities/base/users.dart';
 
@@ -14,14 +15,14 @@ abstract class GameItem {
 /// Info containing data about [city], [position] on the screen,
 /// [countryCode] of cities country in database and current [status]
 /// of the city (waiting for confirmation, error, accepted).
-class CityInfo extends GameItem {
+class CityInfo extends GameItem with EquatableMixin {
   final String city;
   final CityStatus status;
   final int countryCode;
 
   CityInfo({
-    User owner,
-    this.city,
+    required User owner,
+    required this.city,
     this.status = CityStatus.WAITING,
     this.countryCode = 0,
   }) : super(owner);
@@ -30,28 +31,27 @@ class CityInfo extends GameItem {
   int get hashCode => city.hashCode;
 
   @override
-  bool operator ==(Object o) =>
-      o is CityInfo &&
-      city == o.city &&
-      status == o.status &&
-      countryCode == o.countryCode;
-
-  @override
   bool hasTheSameBaseData(GameItem o) =>
       o is CityInfo && owner == o.owner && city == o.city;
+
+  @override
+  List<Object?> get props => [city, status, countryCode];
 }
 
 /// Info containing data about [message].
-class MessageInfo extends GameItem {
+class MessageInfo extends GameItem with EquatableMixin {
   final String message;
 
-  MessageInfo({this.message, User owner}) : super(owner);
+  MessageInfo({
+    required this.message,
+    required User owner,
+  }) : super(owner);
 
   @override
   int get hashCode => message.hashCode;
 
   @override
-  bool operator ==(Object o) => o is MessageInfo && message == o.message;
+  List<Object?> get props => [message];
 
   @override
   bool hasTheSameBaseData(GameItem o) =>

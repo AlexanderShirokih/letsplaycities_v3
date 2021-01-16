@@ -12,8 +12,7 @@ class UserActionsInitial extends UserActionsState {
 class UserActionConfirmationState extends UserActionsState {
   final UserEvent sourceEvent;
 
-  const UserActionConfirmationState(this.sourceEvent)
-      : assert(sourceEvent != null);
+  const UserActionConfirmationState(this.sourceEvent);
 
   @override
   List<Object> get props => [sourceEvent];
@@ -26,7 +25,7 @@ class UserProcessingActionState extends UserActionsState {
 
 /// State used to signal en error
 class UserActionErrorState extends UserActionsState {
-  final String error;
+  final Object error;
   final StackTrace stackTrace;
 
   const UserActionErrorState(this.error, this.stackTrace);

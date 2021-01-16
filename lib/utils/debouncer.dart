@@ -5,14 +5,14 @@ import 'dart:async';
 class Debouncer {
   final Duration delay;
   int _lastTime;
-  Timer _timer;
+  Timer? _timer;
 
-  Debouncer(this.delay, {Duration offset})
+  Debouncer(this.delay, {Duration? offset})
       : _lastTime = DateTime.now().millisecondsSinceEpoch +
             (offset?.inMilliseconds ?? 0);
 
   /// Runs [runnable] at most once per [delay]
-  void run(Function runnable) {
+  void run(void Function() runnable) {
     _timer?.cancel();
 
     final current = DateTime.now().millisecondsSinceEpoch;

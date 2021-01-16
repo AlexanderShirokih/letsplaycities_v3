@@ -8,7 +8,7 @@ import 'package:lets_play_cities/remote/remote_player.dart';
 class NetworkInterceptor extends EventHandler {
   final RemoteGameClient _gameClient;
 
-  NetworkInterceptor(this._gameClient) : assert(_gameClient != null);
+  NetworkInterceptor(this._gameClient);
 
   @override
   Stream<GameEvent> process(GameEvent event) async* {

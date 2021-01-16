@@ -1,25 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
-
 import 'package:lets_play_cities/screens/common/utils.dart';
 
 typedef ConfirmationCallback = void Function(bool isOk);
-typedef OnOkCallback = void Function();
 
 /// Creates confirmation dialog which can show title(optional), message(requires)
 /// and has two buttons(yes, no).
 /// To handle only yes event you should pass [onOk] callback.
 /// To handle both yes and no events pass [callback].
 /// Returns future also containing selected result.
-/// May contain null if user pressed outside the dialog.
-Future<bool> showConfirmationDialog(
+/// May return `null` if user pressed outside the dialog.
+Future<bool?> showConfirmationDialog(
   BuildContext context, {
-  String title,
-  @required String message,
-  OnOkCallback onOk,
-  ConfirmationCallback callback,
+  String? title,
+  required String message,
+  VoidCallback? onOk,
+  ConfirmationCallback? callback,
 }) =>
-    showDialog(
+    showDialog<bool>(
       context: context,
       builder: (BuildContext context) => buildWithLocalization(
         context,
@@ -54,7 +52,7 @@ Future<bool> showConfirmationDialog(
 /// Shows single choice dialog that can show list of items and cancel button.
 /// When user taps on item according index will returned.
 /// If no items was selected `null` will be emitted.
-Future<int> showSingleChoiceDialog(BuildContext context, String title,
+Future<int?> showSingleChoiceDialog(BuildContext context, String title,
         List<String> choices, int currentChoice) =>
     showDialog(
         context: context,
@@ -89,17 +87,19 @@ class _SingleChoiceDialogState extends State<SingleChoiceDialog> {
           mainAxisSize: MainAxisSize.min,
           children: Iterable.generate(_choicesList.length, (i) => i)
               .map(
-                (int index) => RadioListTile(
+                (int index) => RadioListTile<int>(
                   title: Text(_choicesList[index]),
                   value: index,
                   groupValue: _selectedItemId,
                   onChanged: (newValue) {
-                    setState(() {
-                      _selectedItemId = newValue;
-                    });
-                    Future.microtask(
-                            () => Future.delayed(Duration(milliseconds: 300)))
-                        .then((_) => Navigator.of(context).pop(newValue));
+                    if (newValue != null) {
+                      setState(() {
+                        _selectedItemId = newValue;
+                      });
+                      Future.microtask(
+                              () => Future.delayed(Duration(milliseconds: 300)))
+                          .then((_) => Navigator.of(context).pop(newValue));
+                    }
                   },
                 ),
               )

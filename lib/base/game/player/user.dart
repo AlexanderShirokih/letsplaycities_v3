@@ -1,11 +1,9 @@
 import 'dart:async';
 
-import 'package:meta/meta.dart';
-
-import 'package:lets_play_cities/remote/auth.dart';
 import 'package:lets_play_cities/base/data.dart';
 import 'package:lets_play_cities/base/game/combo.dart';
 import 'package:lets_play_cities/base/game/player/surrender_exception.dart';
+import 'package:lets_play_cities/remote/auth.dart';
 
 /// Base class that keeps users data and defines user behaviour.
 /// [playerData] is a users data model class
@@ -20,12 +18,10 @@ abstract class User {
   int _score = 0;
 
   User({
-    @required this.accountInfo,
-    @required this.comboSystem,
-    @required this.isTrusted,
-  })  : assert(accountInfo != null),
-        assert(isTrusted != null),
-        assert(comboSystem != null);
+    required this.accountInfo,
+    required this.comboSystem,
+    required this.isTrusted,
+  });
 
   /// Current user position
   Position position = Position.UNKNOWN;

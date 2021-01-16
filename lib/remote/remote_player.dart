@@ -15,8 +15,7 @@ class RemotePlayer extends User {
       _remoteGameClient.disconnect().then((_) => super.close());
 
   RemotePlayer(AdvancedAccountInfo accountInfo, this._remoteGameClient)
-      : assert(_remoteGameClient != null),
-        super(
+      : super(
           comboSystem: ComboSystem(canUseQuickTime: true),
           accountInfo: accountInfo,
           isTrusted: true,

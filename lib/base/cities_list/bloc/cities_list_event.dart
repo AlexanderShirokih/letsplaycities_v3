@@ -18,7 +18,10 @@ class CitiesListFilteringEvent extends CitiesListEvent {
   final String nameFilter;
   final CountryListFilter countryFilter;
 
-  const CitiesListFilteringEvent({this.nameFilter, this.countryFilter});
+  const CitiesListFilteringEvent({
+    required this.nameFilter,
+    required this.countryFilter,
+  });
 
   @override
   List<Object> get props => [nameFilter, countryFilter];

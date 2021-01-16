@@ -1,7 +1,6 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-
 import 'package:lets_play_cities/screens/common/utils.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -39,7 +38,7 @@ class CitiesListAboutScreen extends StatelessWidget {
                   Text.rich(
                       TextSpan(text: l10n.citiesListAbout['tail'], children: [
                     TextSpan(
-                      style: Theme.of(context).textTheme.bodyText2.copyWith(
+                      style: Theme.of(context).textTheme.bodyText2!.copyWith(
                             color: Theme.of(context).primaryColor,
                           ),
                       text: l10n.citiesListAbout['support_email'],

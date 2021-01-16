@@ -44,7 +44,7 @@ abstract class LocalizationService {
   Map<String, dynamic> get firstTimeOnBoarding;
 
   /// [OnlineGameMasterScreen] localizations
-  Map<String, dynamic> get online => null;
+  Map<String, dynamic> get online;
 
   /// Miscellaneous localizations
   Map<String, dynamic> get misc;

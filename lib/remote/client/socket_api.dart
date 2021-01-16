@@ -1,5 +1,5 @@
-import 'package:lets_play_cities/remote/exceptions.dart';
 import 'package:lets_play_cities/remote/client/base_socket_connector.dart';
+import 'package:lets_play_cities/remote/exceptions.dart';
 import 'package:lets_play_cities/remote/model/incoming_models.dart';
 import 'package:lets_play_cities/remote/model/outgoing_models.dart';
 
@@ -21,9 +21,7 @@ class SocketApi {
   final AbstractSocketConnector _connector;
   final MessageConverter _converter;
 
-  const SocketApi(this._connector, this._converter)
-      : assert(_connector != null),
-        assert(_converter != null);
+  const SocketApi(this._connector, this._converter);
 
   /// Initiates connection with WebSocket server
   void connect() => _connector.connect();
@@ -38,7 +36,7 @@ class SocketApi {
           case SocketMessageType.connected:
             return ConnectedMessage();
           case SocketMessageType.data:
-            return _converter.decode(event.data);
+            return _converter.decode(event.data!);
           case SocketMessageType.closed:
             return DisconnectedMessage();
           default:

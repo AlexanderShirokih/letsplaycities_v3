@@ -1,6 +1,8 @@
 import 'dart:async';
 
+// ignore: import_of_legacy_library_into_null_safe
 import 'package:audioplayers/audio_cache.dart';
+
 import 'package:flutter/widgets.dart';
 
 /// Plays sound from assets [assetSoundPath] when [windowStream] event emits
@@ -9,9 +11,7 @@ class SoundPlayer extends StatefulWidget {
   final String assetSoundPath;
   final Stream<dynamic> windowStream;
 
-  SoundPlayer({@required this.assetSoundPath, @required this.windowStream})
-      : assert(assetSoundPath != null),
-        assert(windowStream != null);
+  SoundPlayer({required this.assetSoundPath, required this.windowStream});
 
   @override
   _SoundPlayerState createState() =>
@@ -23,7 +23,7 @@ class _SoundPlayerState extends State<SoundPlayer> {
   final String _assetSoundPath;
   final Stream<dynamic> _windowStream;
 
-  StreamSubscription _subscription;
+  late StreamSubscription _subscription;
 
   _SoundPlayerState(this._cache, this._assetSoundPath, this._windowStream);
 

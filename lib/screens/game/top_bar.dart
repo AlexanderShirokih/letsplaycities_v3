@@ -100,7 +100,7 @@ class _ActionButtons extends StatelessWidget {
                     .getTimerTicks(),
                 builder: (context, snapshot) {
                   return Text(
-                    snapshot.hasData ? snapshot.data : '',
+                    snapshot.hasData ? snapshot.requireData : '',
                     style: Theme.of(context).textTheme.headline6,
                   );
                 }),
@@ -109,7 +109,7 @@ class _ActionButtons extends StatelessWidget {
       );
 
   Widget _createActionButton(BuildContext context, IconData faIconData,
-          {String confirmationMessageKey, @required Function onConfirmed}) =>
+      {String? confirmationMessageKey, required VoidCallback onConfirmed}) =>
       Container(
         width: 56.0,
         height: 56.0,

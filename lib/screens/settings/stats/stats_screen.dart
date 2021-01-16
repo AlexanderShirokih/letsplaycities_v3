@@ -64,7 +64,7 @@ class _StatisticsList extends StatelessWidget {
                   ),
                   if (group.main.asString() != null)
                     Text(
-                      group.main.asString(),
+                      group.main.asString() ?? '...',
                       style: Theme.of(context).textTheme.headline6,
                     )
                 ],

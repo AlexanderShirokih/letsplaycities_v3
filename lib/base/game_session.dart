@@ -1,16 +1,15 @@
 import 'dart:async';
-import 'package:meta/meta.dart';
-import 'package:pedantic/pedantic.dart';
 
 import 'package:lets_play_cities/base/data.dart';
-import 'package:lets_play_cities/base/game/game_result.dart';
-import 'package:lets_play_cities/base/scoring.dart';
-import 'package:lets_play_cities/base/users.dart';
 import 'package:lets_play_cities/base/game/game_mode.dart';
+import 'package:lets_play_cities/base/game/game_result.dart';
 import 'package:lets_play_cities/base/game/management.dart';
 import 'package:lets_play_cities/base/game/player/surrender_exception.dart';
-import 'package:lets_play_cities/utils/string_utils.dart';
+import 'package:lets_play_cities/base/scoring.dart';
+import 'package:lets_play_cities/base/users.dart';
 import 'package:lets_play_cities/utils/stream_utils.dart';
+import 'package:lets_play_cities/utils/string_utils.dart';
+import 'package:pedantic/pedantic.dart';
 
 class GameSession {
   /// Game participants
@@ -47,16 +46,13 @@ class GameSession {
       .cast<WordCheckingResult>();
 
   GameSession({
-    @required this.mode,
-    @required this.usersList,
-    @required this.eventChannel,
-    @required this.scoringType,
-    @required this.timeLimit,
-    Stream<GameEvent> Function(GameSession) externalEvents,
-  })  : assert(usersList != null),
-        assert(scoringType != null),
-        assert(eventChannel != null),
-        assert(timeLimit != null) {
+    required this.mode,
+    required this.usersList,
+    required this.eventChannel,
+    required this.scoringType,
+    required this.timeLimit,
+    Stream<GameEvent> Function(GameSession)? externalEvents,
+  }) {
     if (externalEvents != null) {
       unawaited(externalEvents(this)
           .asyncMap((event) => _sendServiceEvent(event))
@@ -110,7 +106,7 @@ class GameSession {
   /// Runs game processing loop
   /// When the game finishes returns [GameResult]
   Future<GameResult> runMoves() async {
-    GameEvent event;
+    GameEvent? event;
     await for (event in _runMoves()) {
       _inputEvents.sink.add(event);
     }

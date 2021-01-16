@@ -1,14 +1,13 @@
 import 'package:equatable/equatable.dart';
 import 'package:lets_play_cities/base/data/word_result.dart';
 import 'package:lets_play_cities/remote/models.dart';
-import 'package:meta/meta.dart';
 
 /// Base class for all messages received from server
 abstract class IncomingMessage extends Equatable {
   const IncomingMessage();
 
   @override
-  List<Object> get props => [];
+  List<Object?> get props => [];
 }
 
 /// Indicates that client was connected to server
@@ -22,7 +21,7 @@ class LoggedInMessage extends IncomingMessage {
   /// Contains latest actual version of client application
   final int newerBuild;
 
-  const LoggedInMessage({@required this.newerBuild});
+  const LoggedInMessage({required this.newerBuild});
 
   @override
   List<Object> get props => [newerBuild];
@@ -31,12 +30,12 @@ class LoggedInMessage extends IncomingMessage {
 /// First message if user was forbidden.
 class BannedMessage extends IncomingMessage {
   /// Ban reason
-  final String banReason;
+  final String? banReason;
 
-  const BannedMessage({@required this.banReason});
+  const BannedMessage({this.banReason});
 
   @override
-  List<Object> get props => [banReason];
+  List<Object?> get props => [banReason];
 }
 
 /// Indicates that the battle has started
@@ -51,9 +50,9 @@ class JoinMessage extends IncomingMessage {
   final ProfileInfo opponent;
 
   const JoinMessage({
-    @required this.canReceiveMessages,
-    @required this.youStarter,
-    @required this.opponent,
+    required this.canReceiveMessages,
+    required this.youStarter,
+    required this.opponent,
   });
 
   @override
@@ -72,9 +71,9 @@ class WordMessage extends IncomingMessage {
   final int ownerId;
 
   const WordMessage({
-    @required this.result,
-    @required this.word,
-    @required this.ownerId,
+    required this.result,
+    required this.word,
+    required this.ownerId,
   });
 
   @override
@@ -87,8 +86,8 @@ class ChatMessage extends IncomingMessage {
   final int ownerId;
 
   const ChatMessage({
-    @required this.message,
-    @required this.ownerId,
+    required this.message,
+    required this.ownerId,
   });
 
   @override
@@ -116,20 +115,20 @@ enum InviteResultType {
 /// Response from users invitation request
 class InvitationResponseMessage extends IncomingMessage {
   /// Target opponent login (may be `null`)
-  final String login;
+  final String? login;
 
   /// Target opponent ID (may be `null`)
-  final int oppId;
+  final int? oppId;
 
   /// Request type
   final InviteResultType result;
 
   const InvitationResponseMessage({
-    @required this.login,
-    @required this.oppId,
-    @required this.result,
+    required this.login,
+    required this.oppId,
+    required this.result,
   });
 
   @override
-  List<Object> get props => [login, oppId, result];
+  List<Object?> get props => [login, oppId, result];
 }

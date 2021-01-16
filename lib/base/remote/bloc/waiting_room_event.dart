@@ -8,12 +8,12 @@ abstract class WaitingRoomEvent extends Equatable {
 /// Starts connection sequence
 class ConnectEvent extends WaitingRoomEvent {
   /// Optional invitation target
-  final BaseProfileInfo target;
+  final BaseProfileInfo? target;
 
   const ConnectEvent([this.target]);
 
   @override
-  List<Object> get props => [target];
+  List<Object> get props => [target ?? ''];
 }
 
 /// Event that used to cancel connection
@@ -34,12 +34,12 @@ class OnConnectionFailedEvent extends WaitingRoomEvent {
 
 /// Used internally to start awaiting for game request
 class PlayEvent extends WaitingRoomEvent {
-  final BaseProfileInfo opponent;
+  final BaseProfileInfo? opponent;
 
   const PlayEvent(this.opponent);
 
   @override
-  List<Object> get props => [opponent];
+  List<Object> get props => [opponent ?? ''];
 }
 
 /// Used internally to signal negative invitation result
@@ -47,9 +47,7 @@ class InvitationNegativeResult extends WaitingRoomEvent {
   final InviteResultType result;
   final BaseProfileInfo target;
 
-  const InvitationNegativeResult(this.result, this.target)
-      : assert(result != null),
-        assert(target != null);
+  const InvitationNegativeResult(this.result, this.target);
 
   @override
   List<Object> get props => [result, target];
@@ -59,7 +57,7 @@ class InvitationNegativeResult extends WaitingRoomEvent {
 class StartGameEvent extends WaitingRoomEvent {
   final GameConfig config;
 
-  const StartGameEvent(this.config) : assert(config != null);
+  const StartGameEvent(this.config);
 
   @override
   List<Object> get props => [config];

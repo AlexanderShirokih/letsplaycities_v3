@@ -100,7 +100,7 @@ class _SettingsItemsListState extends State<_SettingsItemsList> {
               trailing: item.isChecked == null
                   ? null
                   : Switch(
-                      value: item.isChecked,
+                      value: item.isChecked!,
                       onChanged: (_) => _onItemClicked(item),
                     ),
               onTap: () => _onItemClicked(item),
@@ -120,7 +120,7 @@ abstract class _SettingsItem {
 
   _SettingsItem(this.title);
 
-  bool get isChecked;
+  bool? get isChecked;
 
   String get subtitle;
 
@@ -129,10 +129,10 @@ abstract class _SettingsItem {
 
 typedef ScreenSelector = Widget Function();
 
-// When clicked navigates to specifies destination
+// When item is clicked then navigates to the specified destination
 class _NavigationItem extends _SettingsItem {
   final String _subtitle;
-  final ScreenSelector _selector;
+  final ScreenSelector? _selector;
 
   _NavigationItem(String title, this._subtitle, this._selector) : super(title);
 
@@ -140,13 +140,13 @@ class _NavigationItem extends _SettingsItem {
   Future<void> onClicked(BuildContext context) {
     if (_selector != null) {
       Navigator.of(context)
-          .push(MaterialPageRoute(builder: (_) => _selector()));
+          .push(MaterialPageRoute(builder: (_) => _selector!.call()));
     }
     return Future.value();
   }
 
   @override
-  bool get isChecked => null;
+  bool? get isChecked => null;
 
   @override
   String get subtitle => _subtitle;
@@ -159,9 +159,8 @@ class _ToggleItem extends _SettingsItem {
   bool _isChecked;
 
   _ToggleItem(String title, this._stateNames, bool initialState,
-      {@required this.onSet})
+      {required this.onSet})
       : _isChecked = initialState,
-        assert(onSet != null),
         super(title);
 
   @override
@@ -185,13 +184,12 @@ class _SingleChoiceItem extends _SettingsItem {
   Function(int) onSet;
 
   _SingleChoiceItem(String title, this._choiceItems, this._currentChoice,
-      {bool useRadio, @required this.onSet})
+      {bool? useRadio, required this.onSet})
       : _useRadio = useRadio ?? false,
-        assert(onSet != null),
         super(title);
 
   @override
-  bool get isChecked => _useRadio ? _currentChoice != 0 : null;
+  bool? get isChecked => _useRadio ? _currentChoice != 0 : null;
 
   @override
   Future<void> onClicked(BuildContext context) =>

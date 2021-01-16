@@ -25,8 +25,13 @@ class CheckingForUpdatesState extends GameLifecycleState {
 /// The state used when tge game loads exclusions list and dictionary
 /// to be able to start [GameState]
 class DataLoadingState extends GameLifecycleState {
+  const DataLoadingState();
+}
+
+/// The state used when data is ready
+class GotDataState extends GameLifecycleState {
   /// Instance of loaded dictionary
-  final DictionaryService dictionary;
+  final DictionaryDecorator dictionary;
 
   /// Instance of loaded exclusions
   final ExclusionsService exclusions;
@@ -34,29 +39,18 @@ class DataLoadingState extends GameLifecycleState {
   /// Instance of class that handles scores and defines winner
   final ScoreController scoreController;
 
-  /// Creates [DataLoadingState] without any loaded data
-  const DataLoadingState.empty()
-      : dictionary = null,
-        exclusions = null,
-        scoreController = null;
-
   /// Creates [DataLoadingState] containing loaded data
-  const DataLoadingState.forData(
+  const GotDataState(
     this.dictionary,
     this.exclusions,
     this.scoreController,
-  )   : assert(dictionary != null),
-        assert(exclusions != null),
-        assert(scoreController != null);
-
-  /// `true` when the state contains loaded data
-  bool get isLoaded => dictionary != null && exclusions != null;
+  );
 }
 
 /// The state used during the game.
 /// Starts after [DataLoadingState]
 class GameState extends GameLifecycleState {
-  final DictionaryDecorator dictionary;
+  final DictionaryService dictionary;
   final ScoreController scoreController;
   final GameSessionRepository gameSessionRepository;
 

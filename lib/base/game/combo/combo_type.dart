@@ -19,6 +19,5 @@ extension ComboTypeMinSize on ComboType {
       case ComboType.DIFFERENT_COUNTRIES:
         return 6;
     }
-    throw ('Bad state!');
   }
 }

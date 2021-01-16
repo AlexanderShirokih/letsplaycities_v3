@@ -11,7 +11,6 @@ import 'package:lets_play_cities/remote/model/incoming_models.dart';
 import 'package:pedantic/pedantic.dart';
 
 part 'waiting_room_event.dart';
-
 part 'waiting_room_state.dart';
 
 /// BLoC used to create game connection
@@ -20,17 +19,15 @@ class WaitingRoomBloc extends Bloc<WaitingRoomEvent, WaitingRoomState> {
   final Credential _ownerCredentials;
 
   WaitingRoomBloc(this._gameClient, this._ownerCredentials,
-      [BaseProfileInfo invitationTarget])
-      : assert(_gameClient != null),
-        assert(_ownerCredentials != null),
-        super(WaitingRoomInitial()) {
+      [BaseProfileInfo? invitationTarget])
+      : super(WaitingRoomInitial()) {
     if (invitationTarget != null) {
       add(ConnectEvent(invitationTarget));
     }
   }
 
   @override
-  Future<Function> close() {
+  Future<void> close() {
     return _gameClient.disconnect().whenComplete(() => super.close());
   }
 
@@ -62,7 +59,7 @@ class WaitingRoomBloc extends Bloc<WaitingRoomEvent, WaitingRoomState> {
     }
   }
 
-  Stream<WaitingRoomState> _startConnection(BaseProfileInfo target) async* {
+  Stream<WaitingRoomState> _startConnection(BaseProfileInfo? target) async* {
     yield WaitingRoomConnectingState(ConnectionStage.awaitingConnection);
     await _gameClient.connect();
 
@@ -84,7 +81,7 @@ class WaitingRoomBloc extends Bloc<WaitingRoomEvent, WaitingRoomState> {
     await _gameClient.disconnect();
   }
 
-  Stream<WaitingRoomState> _play(BaseProfileInfo opponent) async* {
+  Stream<WaitingRoomState> _play(BaseProfileInfo? opponent) async* {
     yield WaitingForOpponentsState(opponent);
 
     final result =
@@ -96,7 +93,7 @@ class WaitingRoomBloc extends Bloc<WaitingRoomEvent, WaitingRoomState> {
       } else {
         final invResult = result as InvitationResponseMessage;
         add(CancelEvent());
-        add(InvitationNegativeResult(invResult.result, opponent));
+        add(InvitationNegativeResult(invResult.result, opponent!));
       }
     }).catchError((error, stack) {
       if (state is! WaitingRoomInitial) {

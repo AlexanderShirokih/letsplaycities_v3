@@ -76,7 +76,7 @@ class GameResultsScreen extends StatelessWidget {
                             .toString(),
                         style: Theme.of(context)
                             .textTheme
-                            .headline3
+                            .headline3!
                             .copyWith(fontWeight: FontWeight.bold),
                       ),
                       const SizedBox(height: 4.0),
@@ -176,14 +176,14 @@ class GameResultsScreen extends StatelessWidget {
                 l10n.gameResults['score'].toString().toUpperCase(),
                 style: Theme.of(context)
                     .accentTextTheme
-                    .headline5
+                    .headline5!
                     .copyWith(fontWeight: FontWeight.w400),
               ),
               Text(
                 _gameResult.owner.score.toString(),
                 style: Theme.of(context)
                     .accentTextTheme
-                    .headline5
+                    .headline5!
                     .copyWith(fontWeight: FontWeight.w900),
               )
             ],
@@ -242,7 +242,7 @@ class GameResultsScreen extends StatelessWidget {
                         children: [
                           FaIcon(
                             FontAwesomeIcons.externalLinkAlt,
-                            color: Theme.of(context).textTheme.caption.color,
+                            color: Theme.of(context).textTheme.caption!.color,
                             size: 14.0,
                           ),
                           const SizedBox(width: 6.0),
@@ -270,8 +270,9 @@ class GameResultsScreen extends StatelessWidget {
   }
 
   Iterable<RemotePlayer> _getRemoteOpponents() {
-    return _gameConfig.usersList.all
-        .where((user) => user != _gameResult.owner && user is RemotePlayer)
-        .cast<RemotePlayer>();
+    return _gameConfig.usersListOverride?.all
+            .where((user) => user != _gameResult.owner && user is RemotePlayer)
+            .cast<RemotePlayer>() ??
+        <RemotePlayer>[];
   }
 }

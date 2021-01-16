@@ -1,8 +1,13 @@
 import 'dart:convert';
 
+// ignore: import_of_legacy_library_into_null_safe
 import 'package:crypto/crypto.dart' as crypto;
+
+// ignore: import_of_legacy_library_into_null_safe
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
+
+// ignore: import_of_legacy_library_into_null_safe
 import 'package:http_parser/http_parser.dart' as http_parser;
 import 'package:lets_play_cities/remote/auth.dart';
 import 'package:lets_play_cities/remote/client/api_client.dart';
@@ -14,8 +19,7 @@ class RemoteLpsApiClient extends LpsApiClient {
   final Dio _httpClient;
   final Credential _credential;
 
-  const RemoteLpsApiClient(this._httpClient, this._credential)
-      : assert(_httpClient != null);
+  const RemoteLpsApiClient(this._httpClient, this._credential);
 
   @override
   Future<RemoteSignUpResponse> signUp(RemoteSignUpData data) async {
@@ -44,7 +48,7 @@ class RemoteLpsApiClient extends LpsApiClient {
       .then((list) => list.map((e) => FriendInfo.fromJson(e)).toList());
 
   @override
-  Future<List<HistoryInfo>> getHistoryList([int targetId]) =>
+  Future<List<HistoryInfo>> getHistoryList([int? targetId]) =>
       _fetchList('history', targetId)
           .then((list) => list.map((e) => HistoryInfo.fromJson(e)).toList());
 
@@ -52,9 +56,9 @@ class RemoteLpsApiClient extends LpsApiClient {
   Future<List<BlackListItemInfo>> getBanList() => _fetchList('blacklist')
       .then((list) => list.map((e) => BlackListItemInfo.fromJson(e)).toList());
 
-  Future<List<dynamic>> _fetchList(String urlPostfix, [int targetId]) async {
-    final isOwner = _credential.userId == targetId;
+  Future<List<dynamic>> _fetchList(String urlPostfix, [int? targetId]) async {
     _requireCredential();
+    final isOwner = _credential.userId == targetId;
 
     return await _decodeJson(
       () => _httpClient.get(
@@ -115,7 +119,7 @@ class RemoteLpsApiClient extends LpsApiClient {
   }
 
   @override
-  Future<ProfileInfo> getProfileInfo(int targetId) async {
+  Future<ProfileInfo> getProfileInfo(int? targetId) async {
     _requireCredential();
 
     targetId ??= _credential.userId;
@@ -172,8 +176,8 @@ class RemoteLpsApiClient extends LpsApiClient {
   }
 
   void _requireCredential() {
-    if (_credential == null) {
-      throw ArgumentError.notNull('credential');
+    if (_credential.userId == 0 && _credential.accessToken.isEmpty) {
+      throw 'Not empty credential required';
     }
   }
 
@@ -238,16 +242,16 @@ class RemoteSignUpResponse {
   final AuthType authType;
 
   RemoteSignUpResponse({
-    @required this.userId,
-    @required this.login,
-    @required this.accessToken,
-    @required this.pictureHash,
-    @required this.role,
-    @required this.authType,
+    required this.userId,
+    required this.login,
+    required this.accessToken,
+    required this.pictureHash,
+    required this.role,
+    required this.authType,
   });
 
   factory RemoteSignUpResponse.fromMap(dynamic data) => RemoteSignUpResponse(
-        userId: int.tryParse(data['userId']),
+        userId: int.parse(data['userId']),
         login: data['name'],
         accessToken: data['accHash'],
         pictureHash: data['picHash'],
@@ -274,22 +278,30 @@ extension UserRoleExtension on Role {
 /// Request for authentication on the remote game server
 class RemoteSignUpData {
   /// User name
-  String login;
+  final String login;
 
   /// Social network type
-  AuthType authType;
+  final AuthType authType;
 
   /// Firebase token
-  String firebaseToken;
+  final String firebaseToken;
 
   /// Social network access token
-  String accessToken;
+  final String accessToken;
 
   /// Social network user ID
-  String snUID;
+  final String snUID;
 
   /// Protocol version
   static const version = 5;
+
+  RemoteSignUpData({
+    required this.login,
+    required this.authType,
+    required this.firebaseToken,
+    required this.accessToken,
+    required this.snUID,
+  });
 
   dynamic toMap() => {
         'version': version,
