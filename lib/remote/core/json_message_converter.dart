@@ -3,16 +3,17 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:lets_play_cities/base/data/word_result.dart';
 import 'package:lets_play_cities/remote/exceptions.dart';
-import 'package:lets_play_cities/remote/model/incoming_models.dart';
-import 'package:lets_play_cities/remote/model/outgoing_models.dart';
+import 'package:lets_play_cities/remote/model/server_messages.dart';
+import 'package:lets_play_cities/remote/model/client_messages.dart';
 import 'package:lets_play_cities/remote/client/socket_api.dart';
 
 import '../model/profile_info.dart';
 import '../model/utils.dart';
 
-class JsonMessageConverter implements MessageConverter {
+class JsonMessageConverter
+    implements MessageConverter<ServerMessage, ClientMessage> {
   @override
-  IncomingMessage decode(String data) {
+  ServerMessage decode(String data) {
     Map<String, dynamic> jsonMessage = jsonDecode(data);
     final action = jsonMessage['action'];
     if (action == null) {
@@ -68,9 +69,9 @@ class JsonMessageConverter implements MessageConverter {
   }
 
   @override
-  String encode(OutgoingMessage message) => jsonEncode(_encodeToJson(message));
+  String encode(ClientMessage message) => jsonEncode(_encodeToJson(message));
 
-  Map<String, dynamic> _encodeToJson(OutgoingMessage message) {
+  Map<String, dynamic> _encodeToJson(ClientMessage message) {
     if (message is LogInMessage) {
       return {
         'action': 'login',

@@ -12,8 +12,8 @@ import 'package:lets_play_cities/remote/auth.dart';
 import 'package:lets_play_cities/remote/client/socket_api.dart';
 import 'package:lets_play_cities/remote/exceptions.dart';
 import 'package:lets_play_cities/remote/handlers/network_interceptor.dart';
-import 'package:lets_play_cities/remote/model/incoming_models.dart';
-import 'package:lets_play_cities/remote/model/outgoing_models.dart';
+import 'package:lets_play_cities/remote/model/server_messages.dart';
+import 'package:lets_play_cities/remote/model/client_messages.dart';
 import 'package:lets_play_cities/remote/remote_player.dart';
 
 /// Describes rules and order of sending mess

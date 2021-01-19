@@ -3,21 +3,21 @@ import 'package:lets_play_cities/base/data/word_result.dart';
 import 'package:lets_play_cities/remote/models.dart';
 
 /// Base class for all messages received from server
-abstract class IncomingMessage extends Equatable {
-  const IncomingMessage();
+abstract class ServerMessage extends Equatable {
+  const ServerMessage();
 
   @override
   List<Object?> get props => [];
 }
 
 /// Indicates that client was connected to server
-class ConnectedMessage extends IncomingMessage {}
+class ConnectedMessage extends ServerMessage {}
 
 /// Indicates that connection between client and server has stopped.
-class DisconnectedMessage extends IncomingMessage {}
+class DisconnectedMessage extends ServerMessage {}
 
 /// First message after successful connection.
-class LoggedInMessage extends IncomingMessage {
+class LoggedInMessage extends ServerMessage {
   /// Contains latest actual version of client application
   final int newerBuild;
 
@@ -28,7 +28,7 @@ class LoggedInMessage extends IncomingMessage {
 }
 
 /// First message if user was forbidden.
-class BannedMessage extends IncomingMessage {
+class BannedMessage extends ServerMessage {
   /// Ban reason
   final String? banReason;
 
@@ -39,7 +39,7 @@ class BannedMessage extends IncomingMessage {
 }
 
 /// Indicates that the battle has started
-class JoinMessage extends IncomingMessage {
+class JoinMessage extends ServerMessage {
   /// `true` if opponent wants to receive messages from user.
   final bool canReceiveMessages;
 
@@ -60,7 +60,7 @@ class JoinMessage extends IncomingMessage {
 }
 
 /// Indicates an word validation result or input work from another opponents
-class WordMessage extends IncomingMessage {
+class WordMessage extends ServerMessage {
   /// Word type (validation result or incoming word)
   final WordResult result;
 
@@ -81,7 +81,7 @@ class WordMessage extends IncomingMessage {
 }
 
 /// Describes message received from another user
-class ChatMessage extends IncomingMessage {
+class ChatMessage extends ServerMessage {
   final String message;
   final int ownerId;
 
@@ -95,7 +95,7 @@ class ChatMessage extends IncomingMessage {
 }
 
 /// Indicates that move time has gone
-class TimeoutMessage extends IncomingMessage {}
+class TimeoutMessage extends ServerMessage {}
 
 /// Friend mod request result types
 enum InviteResultType {
@@ -113,7 +113,7 @@ enum InviteResultType {
 }
 
 /// Response from users invitation request
-class InvitationResponseMessage extends IncomingMessage {
+class InvitationResponseMessage extends ServerMessage {
   /// Target opponent login (may be `null`)
   final String? login;
 

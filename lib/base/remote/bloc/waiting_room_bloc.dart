@@ -7,7 +7,7 @@ import 'package:lets_play_cities/remote/account.dart';
 import 'package:lets_play_cities/remote/auth.dart';
 import 'package:lets_play_cities/remote/client/remote_game_client.dart';
 import 'package:lets_play_cities/remote/exceptions.dart';
-import 'package:lets_play_cities/remote/model/incoming_models.dart';
+import 'package:lets_play_cities/remote/model/server_messages.dart';
 import 'package:pedantic/pedantic.dart';
 
 part 'waiting_room_event.dart';

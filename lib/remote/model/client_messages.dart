@@ -1,15 +1,15 @@
 import 'package:equatable/equatable.dart';
 
 /// Base class for all outgoing socket messages
-abstract class OutgoingMessage extends Equatable {
-  const OutgoingMessage();
+abstract class ClientMessage extends Equatable {
+  const ClientMessage();
 
   @override
   List<Object?> get props => [];
 }
 
 /// Startup message used to authorize user on WS server.
-class LogInMessage extends OutgoingMessage {
+class LogInMessage extends ClientMessage {
   /// Actual protocol version
   final int version = 5;
 
@@ -55,7 +55,7 @@ class LogInMessage extends OutgoingMessage {
 enum PlayMode { RANDOM_PAIR, FRIEND }
 
 /// Indicates request for beginning a new game.
-class PlayMessage extends OutgoingMessage {
+class PlayMessage extends ClientMessage {
   /// Requesting game mode
   final PlayMode mode;
 
@@ -72,7 +72,7 @@ class PlayMessage extends OutgoingMessage {
 }
 
 /// Used to send users word to server
-class OutgoingWordMessage extends OutgoingMessage {
+class OutgoingWordMessage extends ClientMessage {
   /// Word to be checked
   final String word;
 
@@ -80,7 +80,7 @@ class OutgoingWordMessage extends OutgoingMessage {
 }
 
 /// Used to send users message to server
-class OutgoingChatMessage extends OutgoingMessage {
+class OutgoingChatMessage extends ClientMessage {
   /// Message to be sent
   final String msg;
 
@@ -90,7 +90,7 @@ class OutgoingChatMessage extends OutgoingMessage {
 enum InvitationResult { accept, decline }
 
 /// Result decision on input request
-class InvitationResultMessage extends OutgoingMessage {
+class InvitationResultMessage extends ClientMessage {
   /// Users decision
   final InvitationResult result;
 

@@ -1,18 +1,17 @@
 import 'package:lets_play_cities/remote/client/base_socket_connector.dart';
 import 'package:lets_play_cities/remote/exceptions.dart';
-import 'package:lets_play_cities/remote/model/incoming_models.dart';
-import 'package:lets_play_cities/remote/model/outgoing_models.dart';
+import 'package:lets_play_cities/remote/model/server_messages.dart';
+import 'package:lets_play_cities/remote/model/client_messages.dart';
 
 /// Message encoder/decoder.
-/// Converts raw string message to [IncomingMessage] and
-/// [OutgoingMessage] models back to string
-abstract class MessageConverter {
-  /// Decodes string data to [IncomingMessage] instance.
+/// Converts raw string message to models back to string
+abstract class MessageConverter<I, O> {
+  /// Decodes string data to [ServerMessage] instance.
   /// Throws [UnknownMessageException] if message cannot be decoded
-  IncomingMessage decode(String data);
+  I decode(String data);
 
   /// Encodes [message] to string.
-  String encode(OutgoingMessage message);
+  String encode(O message);
 }
 
 /// Combines transport-level [AbstractSocketConnector] and [MessageConverter]
@@ -31,7 +30,7 @@ class SocketApi {
 
   /// Returns stream emitting all incoming messages
   /// Throws [UnknownMessageException] if message cannot be decoded by any reasons
-  Stream<IncomingMessage> get messages => _connector.messageStream.map((event) {
+  Stream<ServerMessage> get messages => _connector.messageStream.map((event) {
         switch (event.type) {
           case SocketMessageType.connected:
             return ConnectedMessage();
@@ -45,7 +44,7 @@ class SocketApi {
       });
 
   /// Sends encoded message to socket connection
-  void sendMessage(OutgoingMessage message) {
+  void sendMessage(ClientMessage message) {
     _connector.sendData(_converter.encode(message));
   }
 }
