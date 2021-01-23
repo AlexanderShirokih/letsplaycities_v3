@@ -1,4 +1,4 @@
-package ru.aleshi.lets_play_cities;
+package ru.aleshi.letsplaycities;
 
 import android.content.Intent;
 import android.content.SharedPreferences;

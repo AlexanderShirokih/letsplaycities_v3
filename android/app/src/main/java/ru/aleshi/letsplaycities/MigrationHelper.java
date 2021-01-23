@@ -1,4 +1,4 @@
-package ru.aleshi.lets_play_cities;
+package ru.aleshi.letsplaycities;
 
 import android.annotation.SuppressLint;
 import android.content.SharedPreferences;
