@@ -98,16 +98,18 @@ class ConnectionErrorView extends StatelessWidget {
               ),
               Padding(
                 padding: const EdgeInsets.symmetric(vertical: 24.0),
-                child: RaisedButton.icon(
+                child: ElevatedButton.icon(
+                  style: ElevatedButton.styleFrom(
+                    primary: Theme.of(context).primaryColor,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12.0),
+                    ),
+                  ),
                   icon: FaIcon(FontAwesomeIcons.sync),
-                  color: Theme.of(context).primaryColor,
                   label: Padding(
                     padding: const EdgeInsets.all(12.0),
                     child: buildWithLocalization(
                         context, (l10n) => Text(l10n.online['reload'])),
-                  ),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12.0),
                   ),
                   onPressed: onReload,
                 ),

@@ -11,6 +11,12 @@ class LoginInitial extends LoginState {
   List<Object> get props => [];
 }
 
+/// Used while user picture updates
+class LoginAuthUpdateAvatarState extends LoginState {
+  @override
+  List<Object> get props => [];
+}
+
 /// State used while authentication process running
 class LoginAuthenticatingState extends LoginState {
   @override
@@ -21,4 +27,14 @@ class LoginAuthenticatingState extends LoginState {
 class LoginAuthCompletedState extends LoginState {
   @override
   List<Object> get props => [];
+}
+
+/// State used when authorization was failed
+class LoginAuthErrorState extends LoginState {
+  final AuthorizationException exception;
+
+  LoginAuthErrorState(this.exception);
+
+  @override
+  List<Object> get props => [exception];
 }

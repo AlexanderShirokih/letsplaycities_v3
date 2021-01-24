@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:lets_play_cities/remote/firebase/firebase_service.dart';
 import 'package:lets_play_cities/remote/remote_module.dart';
 
 import 'package:lets_play_cities/themes/theme.dart' as theme;
@@ -63,7 +64,7 @@ class LetsPlayCitiesApp extends StatelessWidget {
                   ),
                 )
               : _showWaitForDataWidget(
-                  snap, 'Fatal error: cannot load localizations!');
+                  snap, 'Fatal error: cannot load root dependencies!');
         },
         future: _initWithMigrations(),
       );
@@ -81,10 +82,17 @@ class LetsPlayCitiesApp extends StatelessWidget {
     await rootBundle.loadString('assets/cert/lps.pem').then((pem) {
       HttpOverrides.global = MyHttpOverrides(pem);
     });
+
+    await _initFeatures();
+
     return _InitialData(
       localizations: await LocalizationsFactory().createDefaultLocalizations(),
       preferences:
           SharedPreferencesGamePrefs(await SharedPreferences.getInstance()),
     );
+  }
+
+  Future _initFeatures() async {
+    await FirebaseServices.instance.configure();
   }
 }

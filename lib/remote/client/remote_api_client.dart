@@ -12,6 +12,7 @@ import 'package:http_parser/http_parser.dart' as http_parser;
 import 'package:lets_play_cities/remote/auth.dart';
 import 'package:lets_play_cities/remote/client/api_client.dart';
 import 'package:lets_play_cities/remote/exceptions.dart';
+import 'package:lets_play_cities/remote/model/auth_type.dart';
 import 'package:lets_play_cities/remote/models.dart';
 
 /// Remote server REST-api client

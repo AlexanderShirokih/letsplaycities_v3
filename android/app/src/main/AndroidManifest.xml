@@ -10,7 +10,6 @@
     </queries>
 
     <uses-sdk
-        android:minSdkVersion="21"
         tools:overrideLibrary="xyz.luan.audioplayers" />
 
     <uses-permission android:name="android.permission.INTERNET" />

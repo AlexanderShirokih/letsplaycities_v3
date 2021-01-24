@@ -7,7 +7,7 @@ abstract class AccountManager {
   /// Returns last signed in account or `null` if user is not signed in
   Future<RemoteAccount?> getLastSignedInAccount();
 
-  /// Runs sign in authorization sequence
+  /// Runs sign up authorization sequence
   Future<RemoteAccount> signUp(RemoteSignUpData signInData);
 
   /// Signs out from the currently logged account

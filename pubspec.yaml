@@ -1,7 +1,7 @@
 name: lets_play_cities
-description: Letsplaycities Flutter Project
+description: Lets Play Cities Game
 
-version: 1.0.0+1
+version: 3.0.0
 
 environment:
   sdk: ">=2.12.0-0 <3.0.0"
@@ -23,6 +23,10 @@ dependencies:
   web_socket_channel: ^1.1.0
   shared_preferences: ^0.5.12+4
   font_awesome_flutter: ^9.0.0-nullsafety
+
+  firebase_core: ^0.7.0
+  firebase_crashlytics: ^0.4.0+1
+  firebase_messaging: ^8.0.0-dev.14
 
 dev_dependencies:
   flutter_test:

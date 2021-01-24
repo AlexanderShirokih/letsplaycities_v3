@@ -21,7 +21,7 @@ class CitiesListScreen extends StatelessWidget {
   Widget build(BuildContext context) => buildWithLocalization(
         context,
         (l10n) => BlocBuilder<CitiesListBloc, CitiesListState>(
-          value: _citiesListBloc,
+          bloc: _citiesListBloc,
           builder: (ctx, state) => Scaffold(
             appBar: SearchAppBar(
               title: l10n.citiesList['title'],
@@ -59,7 +59,7 @@ class CitiesListScreen extends StatelessWidget {
                     children: [
                       Container(
                         width: double.infinity,
-                        child: RaisedButton(
+                        child: ElevatedButton(
                             onPressed: () => Navigator.push(
                                   context,
                                   MaterialPageRoute(

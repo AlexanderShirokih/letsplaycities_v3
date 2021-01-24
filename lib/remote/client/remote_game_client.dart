@@ -16,7 +16,7 @@ import 'package:lets_play_cities/remote/model/server_messages.dart';
 import 'package:lets_play_cities/remote/model/client_messages.dart';
 import 'package:lets_play_cities/remote/remote_player.dart';
 
-/// Describes rules and order of sending mess
+/// Describes rules and order of sending messages
 class RemoteGameClient {
   final RemoteAccount account;
   final SocketApi socketApi;

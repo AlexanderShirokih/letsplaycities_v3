@@ -21,7 +21,7 @@ class AvatarChooserView extends StatelessWidget {
   Widget build(BuildContext context) {
     return SafeArea(
       child: BlocConsumer<AvatarBloc, AvatarState>(
-        value: _avatarBloc,
+        bloc: _avatarBloc,
         builder: (context, state) {
           if (state is AvatarLoadingState) {
             return Container(

@@ -14,8 +14,9 @@ class CustomMaterialButton extends StatelessWidget {
   CustomMaterialButton(this._text, [this._icon, this._onTap]);
 
   @override
-  Widget build(BuildContext context) => RaisedButton(
-        color: Theme.of(context).primaryColor,
+  Widget build(BuildContext context) => ElevatedButton(
+        style:
+            ElevatedButton.styleFrom(primary: Theme.of(context).primaryColor),
         child: Padding(
           padding: const EdgeInsets.symmetric(vertical: 12.0),
           child: Row(
@@ -122,16 +123,18 @@ Widget createStyledMaterialButton(
   String text,
   VoidCallback onPressed,
 ) =>
-    RaisedButton.icon(
-      elevation: 6.0,
-      color: Theme.of(context).primaryColor,
+    ElevatedButton.icon(
+      style: ElevatedButton.styleFrom(
+        elevation: 6.0,
+        primary: Theme.of(context).primaryColor,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12.0),
+        ),
+      ),
       icon: icon,
       label: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Text(text),
-      ),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12.0),
       ),
       onPressed: onPressed,
     );

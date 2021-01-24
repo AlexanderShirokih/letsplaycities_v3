@@ -3,7 +3,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:lets_play_cities/base/preferences.dart';
 import 'package:lets_play_cities/base/remote/bloc/login_bloc.dart';
-import 'package:lets_play_cities/remote/model/profile_info.dart';
+import 'package:lets_play_cities/remote/auth.dart';
+import 'package:lets_play_cities/remote/firebase/firebase_service.dart';
+import 'package:lets_play_cities/remote/social/social_networks_service.dart';
 
 class LoginScreen extends StatefulWidget {
   final GamePreferences preferences;
@@ -45,7 +47,11 @@ class _LoginScreenState extends State<LoginScreen> {
         shadowColor: Colors.transparent,
       ),
       body: BlocProvider.value(
-        value: LoginBloc(widget.preferences),
+        value: LoginBloc(
+          widget.preferences,
+          FirebaseServices.instance,
+          NativeBridgeSocialNetworksService(),
+        ),
         child: BlocConsumer<LoginBloc, LoginState>(
           builder: (context, state) => Container(
             color: Theme.of(context).primaryColorLight,
@@ -87,9 +93,11 @@ class _LoginScreenState extends State<LoginScreen> {
                               'Используйте вход через социальные сети чтобы не потерять свой аккаунт'),
                           Padding(
                             padding: const EdgeInsets.fromLTRB(0, 18, 18, 0),
-                            child: RaisedButton(
-                              color: Theme.of(context).primaryColor,
-                              elevation: 6.0,
+                            child: ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                primary: Theme.of(context).primaryColor,
+                                elevation: 6.0,
+                              ),
                               child: Padding(
                                 padding: const EdgeInsets.all(10.0),
                                 child: Text('Войти'),
@@ -151,6 +159,10 @@ class _LoginScreenState extends State<LoginScreen> {
           listener: (context, state) {
             if (state is LoginAuthCompletedState) {
               widget.onLoggedIn();
+            } else if (state is LoginAuthErrorState) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text('Не удалось войти через соц.сеть')),
+              );
             }
           },
         ),
@@ -159,6 +171,6 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   void _runSocialSignUp(BuildContext context, AuthType authType) {
-    context.watch<LoginBloc>().add(LoginSocialEvent(authType));
+    context.read<LoginBloc>().add(LoginSocialEvent(authType));
   }
 }

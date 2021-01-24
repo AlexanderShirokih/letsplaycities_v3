@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-
 // ignore: import_of_legacy_library_into_null_safe
 import 'package:intl/intl.dart';
 import 'package:lets_play_cities/base/preferences.dart';
@@ -274,7 +273,7 @@ class _OnlineProfileViewState extends State<OnlineProfileView>
     final userActionsBloc = UserActionsBloc(context.watch<ApiRepository>());
 
     yield BlocConsumer<UserActionsBloc, UserActionsState>(
-      value: userActionsBloc,
+      bloc: userActionsBloc,
       builder: (context, state) {
         if (state is UserActionErrorState) {
           return showError(context, state.error);
@@ -368,11 +367,13 @@ class _OnlineProfileViewState extends State<OnlineProfileView>
         title: Text(label),
       );
 
-  Widget _createButton(String label, VoidCallback? onPressed) => RaisedButton(
-        padding: const EdgeInsets.symmetric(horizontal: 18.0, vertical: 18.0),
-        shape: _createRoundedBorder(),
+  Widget _createButton(String label, VoidCallback? onPressed) => ElevatedButton(
+        style: ElevatedButton.styleFrom(
+          padding: const EdgeInsets.symmetric(horizontal: 18.0, vertical: 18.0),
+          shape: _createRoundedBorder(),
+          primary: Theme.of(context).primaryColor,
+        ),
         onPressed: onPressed,
-        color: Theme.of(context).primaryColor,
         child: Text(label),
       );
 
@@ -475,7 +476,7 @@ class _OnlineProfileViewState extends State<OnlineProfileView>
     }
   }
 
-  ShapeBorder _createRoundedBorder() => RoundedRectangleBorder(
+  RoundedRectangleBorder _createRoundedBorder() => RoundedRectangleBorder(
       borderRadius: BorderRadius.circular(12.0), side: BorderSide.none);
 
   Iterable<Widget> _showRole(LocalizationService l10n, ProfileInfo data) sync* {

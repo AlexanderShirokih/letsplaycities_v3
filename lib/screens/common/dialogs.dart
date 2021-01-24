@@ -25,14 +25,14 @@ Future<bool?> showConfirmationDialog(
           title: title == null ? null : Text(title),
           content: Text(message),
           actions: [
-            FlatButton(
+            TextButton(
               onPressed: () {
                 Navigator.of(context).pop(false);
                 callback?.call(false);
               },
               child: Text(l10n.no.toUpperCase()),
             ),
-            FlatButton(
+            TextButton(
               onPressed: () {
                 Navigator.of(context).pop(true);
                 if (onOk != null) {
@@ -106,7 +106,7 @@ class _SingleChoiceDialogState extends State<SingleChoiceDialog> {
               .toList(),
         ),
         actions: [
-          FlatButton(
+          TextButton(
             onPressed: () => Navigator.of(context).pop(),
             child: buildWithLocalization(
                 context, (l10n) => Text(l10n.cancel.toUpperCase())),
