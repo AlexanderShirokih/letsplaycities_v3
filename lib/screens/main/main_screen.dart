@@ -28,10 +28,12 @@ class MainScreen extends StatelessWidget {
               child: SizedBox(
                 width: 54.0,
                 height: 54.0,
-                child: RaisedButton(
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    primary: Theme.of(context).primaryColor,
+                  ),
                   onPressed: () => Navigator.of(context).push(
                       MaterialPageRoute(builder: (_) => SettingsScreen())),
-                  color: Theme.of(context).primaryColor,
                   child: Icon(Icons.settings),
                 ),
               ),

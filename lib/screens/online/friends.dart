@@ -116,8 +116,10 @@ class OnlineFriendsScreen extends StatelessWidget
                 ? Text(l10n.online['my_request'])
                 : Align(
                     alignment: Alignment.bottomLeft,
-                    child: FlatButton(
-                      padding: EdgeInsets.zero,
+                    child: TextButton(
+                      style: TextButton.styleFrom(
+                        padding: EdgeInsets.zero,
+                      ),
                       onPressed: () => context.watch<UserActionsBloc>().add(
                           UserEvent(data, UserUserAction.acceptRequest,
                               confirmationMessage:

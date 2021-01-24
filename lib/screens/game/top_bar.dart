@@ -109,13 +109,18 @@ class _ActionButtons extends StatelessWidget {
       );
 
   Widget _createActionButton(BuildContext context, IconData faIconData,
-      {String? confirmationMessageKey, required VoidCallback onConfirmed}) =>
+          {String? confirmationMessageKey,
+          required VoidCallback onConfirmed}) =>
       Container(
         width: 56.0,
         height: 56.0,
-        child: RaisedButton(
-          color: Theme.of(context).primaryColor,
-          padding: const EdgeInsets.all(10.0),
+        child: ElevatedButton(
+          style: ElevatedButton.styleFrom(
+            primary: Theme.of(context).primaryColor,
+            padding: const EdgeInsets.all(10.0),
+            shape: StadiumBorder(
+                side: BorderSide(color: Colors.white, width: 3.0)),
+          ),
           onPressed: () => confirmationMessageKey == null
               ? onConfirmed()
               : showConfirmationDialog(
@@ -126,8 +131,6 @@ class _ActionButtons extends StatelessWidget {
                   onOk: onConfirmed,
                 ),
           child: FaIcon(faIconData, color: Colors.white),
-          shape:
-              StadiumBorder(side: BorderSide(color: Colors.white, width: 3.0)),
         ),
       );
 }

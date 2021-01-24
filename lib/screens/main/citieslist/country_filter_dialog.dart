@@ -75,11 +75,11 @@ class _CountryFilterDialogState extends State<CountryFilterDialog> {
             ],
           ),
           actions: [
-            FlatButton(
+            TextButton(
               onPressed: () => Navigator.of(context).pop(null),
               child: Text(l10n.cancel.toUpperCase()),
             ),
-            FlatButton(
+            TextButton(
               onPressed: () => Navigator.of(context).pop(
                 CountryListFilter(
                     _countries

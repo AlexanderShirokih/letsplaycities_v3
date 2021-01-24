@@ -34,7 +34,7 @@ class ErrorHandlerView extends StatelessWidget {
                     ],
                   ),
                 ),
-                RaisedButton(
+                ElevatedButton(
                   onPressed: () => Navigator.maybePop(context),
                   child: Text(
                       context.watch<LocalizationService>().back.toUpperCase()),

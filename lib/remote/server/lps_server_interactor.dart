@@ -1,7 +1,7 @@
 import 'package:lets_play_cities/base/preferences.dart';
 import 'package:lets_play_cities/remote/exceptions.dart';
+import 'package:lets_play_cities/remote/auth.dart';
 import 'package:lets_play_cities/remote/model/client_messages.dart';
-import 'package:lets_play_cities/remote/model/profile_info.dart';
 import 'package:lets_play_cities/remote/model/server_messages.dart';
 import 'package:lets_play_cities/remote/server/connection_transformer.dart';
 

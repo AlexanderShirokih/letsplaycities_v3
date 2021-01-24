@@ -14,6 +14,7 @@ import 'package:lets_play_cities/remote/core/json_message_converter.dart';
 import 'package:lets_play_cities/remote/client/remote_game_client.dart';
 import 'package:lets_play_cities/remote/client/socket_api.dart';
 import 'package:lets_play_cities/remote/client/web_socket_connector.dart';
+import 'package:lets_play_cities/remote/firebase/firebase_service.dart';
 import 'package:lets_play_cities/remote/model/server_messages.dart';
 import 'package:lets_play_cities/remote/models.dart';
 import 'package:lets_play_cities/screens/common/common_widgets.dart';
@@ -59,7 +60,7 @@ class GameWaitingRoomScreen extends StatelessWidget {
           value: WaitingRoomBloc(
             RemoteGameClient(
               account: account.requireData!,
-              firebaseToken: Future.value(null),
+              firebaseToken: FirebaseServices.instance.getToken(),
               preferences: context.watch<GamePreferences>(),
               socketApi: SocketApi(
                 WebSocketConnector(AppConfig.remoteWebSocketURL),
@@ -403,14 +404,16 @@ Widget _createBackButton(BuildContext context) => createStyledMaterialButton(
       () => Navigator.of(context).pop(),
     );
 
-Widget _createCancelButton(BuildContext context) => RaisedButton(
-      color: Theme.of(context).primaryColor,
+Widget _createCancelButton(BuildContext context) => ElevatedButton(
+      style: ElevatedButton.styleFrom(
+        primary: Theme.of(context).primaryColor,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12.0),
+        ),
+      ),
       child: Padding(
         padding: const EdgeInsets.all(12.0),
         child: buildWithLocalization(context, (l10n) => Text(l10n.cancel)),
-      ),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12.0),
       ),
       onPressed: () => context.read<WaitingRoomBloc>().add(CancelEvent()),
     );
