@@ -1,6 +1,8 @@
 import 'dart:collection';
 import 'dart:typed_data';
 
+// ignore: import_of_legacy_library_into_null_safe
+import 'package:dio/dio.dart';
 import 'package:lets_play_cities/base/remote/bloc/avatar_resize_mixin.dart';
 import 'package:lets_play_cities/remote/auth.dart';
 import 'package:lets_play_cities/remote/client/api_client.dart';
@@ -9,6 +11,7 @@ import 'package:lets_play_cities/remote/model/friend_info.dart';
 import 'package:lets_play_cities/remote/model/friend_request_type.dart';
 import 'package:lets_play_cities/remote/model/history_info.dart';
 import 'package:lets_play_cities/remote/model/profile_info.dart';
+import 'package:lets_play_cities/remote/remote_module.dart';
 import 'package:meta/meta.dart';
 
 class _TargetedList<T> {
@@ -154,8 +157,14 @@ class ApiRepository with AvatarResizeMixin {
     }
   }
 
-  Future<void> updatePictureFromURL(String pictureURL) async {
-    // TODO:
+  /// First fetches picture from [pictureURL] and updates picture on server
+  Future<void> updatePictureFromURL(String pictureURL) {
+    final picture = getDio().get(
+      pictureURL,
+      options: Options(responseType: ResponseType.bytes),
+    );
+
+    return updatePicture(picture.then((resp) => resp.data));
   }
 
   /// Updates picture for currently logged account
@@ -163,8 +172,6 @@ class ApiRepository with AvatarResizeMixin {
     final thumbnail = await createThumbnail(await imageData);
     await _client.updatePicture(thumbnail, 'image/png');
   }
-
-
 
   /// Removes user picture from currently logged account
   Future<void> removePicture() => _client.removePicture();

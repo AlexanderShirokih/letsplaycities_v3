@@ -23,6 +23,15 @@ extension AuthTypeExtension on AuthType {
 
   String get fullName => describeEnum(this);
 
+  static AuthType fromShortString(String s) {
+    for (final type in AuthType.values) {
+      if (type.name == s) {
+        return type;
+      }
+    }
+    throw 'Unknown value "$s"!';
+  }
+
   static AuthType fromString(String s) {
     for (final type in AuthType.values) {
       if (type.fullName == s) {

@@ -27,11 +27,19 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
         super(LoginInitial());
 
   @override
+  void onError(Object error, StackTrace stackTrace) {
+    add(LoginAuthErrorEvent(error));
+    super.onError(error, stackTrace);
+  }
+
+  @override
   Stream<LoginState> mapEventToState(LoginEvent event) async* {
     if (event is LoginNativeEvent) {
       yield* _handleNativeLogin(event.login);
     } else if (event is LoginSocialEvent) {
       yield* _handleSocialLogin(event.authType);
+    } else if (event is LoginAuthErrorEvent) {
+      yield LoginErrorState(event.error);
     }
   }
 
@@ -54,6 +62,7 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
 
     try {
       final result = await _socialNetworksService.login(authType);
+
       final request = RemoteSignUpData(
         login: result.login,
         authType: result.authType,

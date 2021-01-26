@@ -24,3 +24,13 @@ class LoginSocialEvent extends LoginEvent {
   @override
   List<Object> get props => [authType];
 }
+
+/// A class used to signal that some unexpected error happens
+class LoginAuthErrorEvent extends LoginEvent {
+  final Object error;
+
+  const LoginAuthErrorEvent(this.error);
+
+  @override
+  List<Object> get props => [error];
+}

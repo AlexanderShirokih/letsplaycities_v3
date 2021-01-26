@@ -29,6 +29,16 @@ class LoginAuthCompletedState extends LoginState {
   List<Object> get props => [];
 }
 
+/// State used when unknown error happens
+class LoginErrorState extends LoginState {
+  final Object error;
+
+  LoginErrorState(this.error);
+
+  @override
+  List<Object> get props => [error];
+}
+
 /// State used when authorization was failed
 class LoginAuthErrorState extends LoginState {
   final AuthorizationException exception;

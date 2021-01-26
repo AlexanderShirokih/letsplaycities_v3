@@ -2,11 +2,9 @@ import 'dart:convert';
 
 // ignore: import_of_legacy_library_into_null_safe
 import 'package:crypto/crypto.dart' as crypto;
-
 // ignore: import_of_legacy_library_into_null_safe
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
-
 // ignore: import_of_legacy_library_into_null_safe
 import 'package:http_parser/http_parser.dart' as http_parser;
 import 'package:lets_play_cities/remote/auth.dart';
@@ -25,22 +23,28 @@ class RemoteLpsApiClient extends LpsApiClient {
   @override
   Future<RemoteSignUpResponse> signUp(RemoteSignUpData data) async {
     var responseBody = json.encode(data.toMap());
-    final response = await _httpClient.post('/user/', data: responseBody);
-
-    if (response.statusCode != 200) {
-      throw AuthorizationException.fromStatus(
-          response.statusMessage, response.statusCode);
-    }
 
     try {
-      final decoded = json.decode(response.data);
+      final response = await _httpClient.post('/user/', data: responseBody);
+
+      if (response.statusCode != 200) {
+        throw AuthorizationException.fromStatus(
+            response.statusMessage, response.statusCode);
+      }
+
+      final Map<String, dynamic> decoded = response.data;
+
       if (decoded['error'] != null) {
         throw decoded['error'];
       }
 
       return RemoteSignUpResponse.fromMap(decoded['data']);
-    } catch (e) {
-      throw FetchingException('Response error. \n$e', response.request.uri);
+    } on DioError catch (e) {
+      if (e.type == DioErrorType.RESPONSE) {
+        throw AuthorizationException('Message: ${e.message}');
+      } else {
+        throw FetchingException('Response error.', e.request.uri);
+      }
     }
   }
 
@@ -252,7 +256,7 @@ class RemoteSignUpResponse {
   });
 
   factory RemoteSignUpResponse.fromMap(dynamic data) => RemoteSignUpResponse(
-        userId: int.parse(data['userId']),
+        userId: data['userId'],
         login: data['name'],
         accessToken: data['accHash'],
         pictureHash: data['picHash'],
@@ -307,7 +311,7 @@ class RemoteSignUpData {
   dynamic toMap() => {
         'version': version,
         'login': login,
-        'authType': authType.name,
+        'authType': authType.fullName,
         'firebaseToken': firebaseToken,
         'accToken': accessToken,
         'snUID': snUID
