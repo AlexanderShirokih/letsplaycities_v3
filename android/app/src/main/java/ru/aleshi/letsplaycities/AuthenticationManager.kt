@@ -37,7 +37,7 @@ class AuthenticationManager(binaryMessenger: BinaryMessenger, activity: Activity
         }
     }
 
-    private val initializedNetworks = mutableMapOf<ServiceType, ISocialNetwork>()
+    private val initializedNetworks = mutableMapOf<ServiceType, ISocialNetworkService>()
 
     // Starts authentication sequence
     private suspend fun authenticate(activity: Activity, service: ServiceType): SocialAccountData {
@@ -56,15 +56,16 @@ class AuthenticationManager(binaryMessenger: BinaryMessenger, activity: Activity
      */
     fun handleActivityResult(requestCode: Int, resultCode: Int, data: Intent?): Boolean {
         for (socialNetwork in initializedNetworks.values) {
-            val result = socialNetwork.handleResult(requestCode, resultCode, data)
+            val result = socialNetwork.handleActitityResult(requestCode, resultCode, data)
             if (result) return result
         }
         return false
     }
 
-    private fun getSocialNetworkByType(service: ServiceType): ISocialNetwork {
+    private fun getSocialNetworkByType(service: ServiceType): ISocialNetworkService {
         return when (service) {
-            ServiceType.Vkontakte -> VKontakte()
+            ServiceType.Vkontakte -> VKontakteService()
+            ServiceType.Odnoklassniki -> OdnoklassnikiService()
         }
     }
 }

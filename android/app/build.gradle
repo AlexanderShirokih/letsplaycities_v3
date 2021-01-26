@@ -64,10 +64,10 @@ dependencies {
     implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.4.2'
 
     implementation 'com.vk:androidsdk:2.6.0'
+    implementation 'ru.ok:odnoklassniki-android-sdk:2.1.8'
     implementation 'com.google.firebase:firebase-messaging:21.0.1'
 }
 
 flutter {
-
     source '../..'
 }

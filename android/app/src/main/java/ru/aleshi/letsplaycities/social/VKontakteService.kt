@@ -17,7 +17,7 @@ import kotlin.coroutines.suspendCoroutine
 /**
  * Provides VKontakte authorization
  */
-class VKontakte : ISocialNetwork {
+class VKontakteService : ISocialNetworkService {
 
     internal class VKUser(json: JSONObject) {
         val id: Int = json.optInt("id", 0)
@@ -52,7 +52,7 @@ class VKontakte : ISocialNetwork {
 
     override fun onLogout() = VK.logout()
 
-    override fun handleResult(requestCode: Int, resultCode: Int, data: Intent?): Boolean {
+    override fun handleActitityResult(requestCode: Int, resultCode: Int, data: Intent?): Boolean {
         return VK.onActivityResult(requestCode, resultCode, data, object : VKAuthCallback {
             override fun onLogin(token: VKAccessToken) {
                 completer!!.complete(token)

@@ -229,20 +229,22 @@ class _OnlineProfileViewState extends State<OnlineProfileView>
               child: buildAvatar(data, 60.0),
             ),
           ),
-          Padding(
-            padding: const EdgeInsets.only(left: 28.0, top: 8.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  data.login,
-                  style: Theme.of(context).textTheme.headline6,
-                  overflow: TextOverflow.fade,
-                ),
-                const SizedBox(height: 12.0),
-                _showOnlineStatus(isOwner, l10n, data),
-                ..._showRole(l10n, data),
-              ],
+          Flexible(
+            child: Padding(
+              padding: const EdgeInsets.only(left: 28.0, top: 8.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    data.login,
+                    style: Theme.of(context).textTheme.headline6,
+                    overflow: TextOverflow.clip,
+                  ),
+                  const SizedBox(height: 12.0),
+                  _showOnlineStatus(isOwner, l10n, data),
+                  ..._showRole(l10n, data),
+                ],
+              ),
             ),
           ),
         ],

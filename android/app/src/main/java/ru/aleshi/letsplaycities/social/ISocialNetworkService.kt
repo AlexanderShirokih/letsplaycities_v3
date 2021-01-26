@@ -6,7 +6,7 @@ import android.content.Intent
 /**
  * Interface for implementing social network providers
  */
-interface ISocialNetwork {
+interface ISocialNetworkService {
     /**
      * Called to start authorization sequence from current activity
      *
@@ -25,7 +25,7 @@ interface ISocialNetwork {
      *
      * @return `null` if activity result cannot be accepted by the social network
      */
-    fun handleResult(
+    fun handleActitityResult(
             requestCode: Int,
             resultCode: Int,
             data: Intent?
