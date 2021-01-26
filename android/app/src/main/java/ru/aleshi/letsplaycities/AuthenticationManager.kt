@@ -1,7 +1,10 @@
 package ru.aleshi.letsplaycities
 
+import android.annotation.SuppressLint
 import android.app.Activity
+import android.content.Context
 import android.content.Intent
+import android.provider.Settings
 import io.flutter.plugin.common.BinaryMessenger
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
@@ -18,23 +21,33 @@ class AuthenticationManager(binaryMessenger: BinaryMessenger, activity: Activity
 
     init {
         MethodChannel(binaryMessenger, authorizationChannel).setMethodCallHandler { call: MethodCall, result: MethodChannel.Result ->
-            if ("login" == call.method) {
-                val type = ServiceType.fromString(call.argument("authType")!!)
+            when (call.method) {
+                "login" -> {
+                    val type = ServiceType.fromString(call.argument("authType")!!)
 
-                scope.launch {
-                    try {
-                        val socialAccountData = authenticate(activity, type)
-                        result.success(socialAccountData.encodeToMap())
-                    } catch (ex: AuthorizationException) {
-                        result.error(
-                                ex.errorCode.toString(),
-                                ex.description,
-                                ex.stackTraceToString(),
-                        )
+                    scope.launch {
+                        try {
+                            val socialAccountData = authenticate(activity, type)
+                            result.success(socialAccountData.encodeToMap())
+                        } catch (ex: AuthorizationException) {
+                            result.error(
+                                    ex.errorCode.toString(),
+                                    ex.description,
+                                    ex.stackTraceToString(),
+                            )
+                        }
                     }
+                }
+                "getDeviceId" -> {
+                    result.success(getDeviceId(activity))
                 }
             }
         }
+    }
+
+    @SuppressLint("HardwareIds")
+    private fun getDeviceId(context: Context): String {
+        return Settings.Secure.getString(context.contentResolver, Settings.Secure.ANDROID_ID)
     }
 
     private val initializedNetworks = mutableMapOf<ServiceType, ISocialNetworkService>()

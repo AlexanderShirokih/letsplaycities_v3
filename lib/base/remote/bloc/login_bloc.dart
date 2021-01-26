@@ -46,15 +46,19 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
   Stream<LoginState> _handleNativeLogin(String login) async* {
     yield LoginAuthenticatingState();
 
-    _preferences.lastNativeLogin = login;
-    if (login == 'test') {
-      // TODO: Remove test code
-      await _preferences.setCurrentCredentials(
-          Credential(userId: 30955, accessToken: "i'mapass"));
-      yield LoginAuthCompletedState();
-      return;
-    }
-    // TODO: Handle native login
+    final request = RemoteSignUpData(
+      login: login,
+      authType: AuthType.Native,
+      firebaseToken: await _firebaseServices.getToken(),
+      accessToken: 'native_access',
+      snUID: await _socialNetworksService.getDeviceId(),
+    );
+
+    final remoteAccount = await _accountManager.signUp(request);
+
+    _preferences.lastNativeLogin = remoteAccount.name;
+
+    yield LoginAuthCompletedState();
   }
 
   Stream<LoginState> _handleSocialLogin(AuthType authType) async* {

@@ -9,7 +9,7 @@ import 'package:lets_play_cities/screens/common/drafting_screen.dart';
 class LocalMultiplayerScreen extends StatelessWidget {
   /// Crates navigation route to show [LocalMultiplayerScreen]
   static Route createNavigationRoute(BuildContext context) => MaterialPageRoute(
-        builder: (_) => DraftingScreen(),//LocalMultiplayerScreen(),
+        builder: (_) => DraftingScreen(), //LocalMultiplayerScreen(),
       );
 
   @override

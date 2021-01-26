@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/services.dart';
 import 'package:lets_play_cities/remote/exceptions.dart';
 import 'package:lets_play_cities/remote/model/auth_type.dart';
@@ -10,6 +12,9 @@ abstract class SocialNetworksService {
   /// [AuthorizationException]
   /// error if authorization was cancelled or some error happened
   Future<SocialNetworkData> login(AuthType networkType);
+
+  /// Returns static identifier for this device.
+  Future<String> getDeviceId();
 }
 
 /// [SocialNetworksService] implementation that uses native channels
@@ -27,6 +32,19 @@ class NativeBridgeSocialNetworksService implements SocialNetworksService {
       return SocialNetworkData.fromJson(result!);
     } on PlatformException catch (e) {
       throw AuthorizationException('${e.code}: ${e.message}');
+    }
+  }
+
+  @override
+  Future<String> getDeviceId() async {
+    try {
+      return await _authenticationChannel.invokeMethod('getDeviceId');
+    } on PlatformException {
+      if (!Platform.isLinux) {
+        return 'linuz-test';
+      } else {
+        rethrow;
+      }
     }
   }
 }
