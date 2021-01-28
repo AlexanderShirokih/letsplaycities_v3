@@ -22,19 +22,25 @@ class UserAvatar extends StatelessWidget with NetworkAvatarBuildingMixin {
   Widget build(BuildContext rootContext) => StreamBuilder<OnUserSwitchedEvent>(
         stream:
             rootContext.watch<GameServiceEventsRepository>().getUserSwitches(),
-        builder: (context, snapshot) => Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: alignment,
-          children: [
-            _AvatarBorderAnimator(
-              user: _user,
-              isActive:
-                  snapshot.hasData && snapshot.requireData.nextUser == _user,
-              borderColor: Theme.of(context).primaryColor,
-            ),
-            SizedBox(height: 4.0),
-            Text(_user.info),
-          ],
+        builder: (context, snapshot) => Container(
+          width: 80.0,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: alignment,
+            children: [
+              _AvatarBorderAnimator(
+                user: _user,
+                isActive:
+                    snapshot.hasData && snapshot.requireData.nextUser == _user,
+                borderColor: Theme.of(context).primaryColor,
+              ),
+              SizedBox(height: 4.0),
+              Text(
+                _user.info,
+                overflow: TextOverflow.fade,
+              ),
+            ],
+          ),
         ),
       );
 

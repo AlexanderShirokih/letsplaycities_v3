@@ -17,8 +17,12 @@ class UserActionsBloc extends Bloc<UserActionsEvent, UserActionsState> {
 
   @override
   Stream<UserActionsState> mapEventToState(UserActionsEvent event) async* {
-    if (event is UserEvent && event.undoable) {
-      yield UserActionConfirmationState(event);
+    if (event is UserEvent) {
+      if (event.undoable) {
+        yield UserActionConfirmationState(event);
+      } else {
+        yield* _doActionsSafely(event);
+      }
       return;
     }
 
