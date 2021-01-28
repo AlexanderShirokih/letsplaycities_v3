@@ -1,4 +1,3 @@
-import 'dart:collection';
 import 'dart:typed_data';
 
 // ignore: import_of_legacy_library_into_null_safe
@@ -12,6 +11,7 @@ import 'package:lets_play_cities/remote/model/friend_request_type.dart';
 import 'package:lets_play_cities/remote/model/history_info.dart';
 import 'package:lets_play_cities/remote/model/profile_info.dart';
 import 'package:lets_play_cities/remote/remote_module.dart';
+import 'package:lets_play_cities/utils/cache_list.dart';
 import 'package:meta/meta.dart';
 
 class _TargetedList<T> {
@@ -36,10 +36,10 @@ class ApiRepository with AvatarResizeMixin {
   static const _kMaxProfilesCacheSize = 12;
 
   final LpsApiClient _client;
-  final Queue<ProfileInfo> _cachedProfilesInfo =
-      ListQueue(_kMaxProfilesCacheSize);
-  final Queue<_TargetedList<HistoryInfo>> _cachedHistoriesInfo =
-      ListQueue(_kMaxProfilesCacheSize);
+  final CacheList<ProfileInfo> _cachedProfilesInfo =
+      CacheList(_kMaxProfilesCacheSize);
+  final CacheList<_TargetedList<HistoryInfo>> _cachedHistoriesInfo =
+      CacheList(_kMaxProfilesCacheSize);
 
   List<BlackListItemInfo>? _cachedBanList;
   List<FriendInfo>? _cachedFriendsList;
@@ -78,34 +78,27 @@ class ApiRepository with AvatarResizeMixin {
   /// Sends new friendship request
   Future sendNewFriendshipRequest(BaseProfileInfo target) => _client
       .sendFriendRequest(target.userId, FriendRequestType.SEND)
-      .then((_) => _cachedProfilesInfo.remove(target));
+      .then((_) => _cachedProfilesInfo.remove(target as ProfileInfo));
 
   /// Gets user battle history.
   /// Network request will used only first time or when [forceRefresh] is `true`
   /// in all the other cases cached instance of history list will be used.
   Future<List<HistoryInfo>> getHistoryList(
       bool forceRefresh, BaseProfileInfo target) async {
-    var noHistory = true;
-    _TargetedList<HistoryInfo> battleHistory;
-    try {
-      battleHistory = _cachedHistoriesInfo
-          .singleWhere((element) => element.targetId == target.userId);
-      noHistory = false;
-    } finally {
-      if (noHistory || forceRefresh) {
-        if (_cachedHistoriesInfo.length == _kMaxProfilesCacheSize) {
-          _cachedHistoriesInfo.removeLast();
-        }
-        battleHistory = _TargetedList(
-          target.userId,
-          await _client.getHistoryList(target.userId),
-        );
+    final predicate = (_TargetedList<HistoryInfo> element) =>
+        element.targetId == target.userId;
 
-        if (!noHistory) {
-          _cachedHistoriesInfo.add(battleHistory);
-        }
-      }
+    if (forceRefresh) {
+      _cachedHistoriesInfo.removeWhere(predicate);
     }
+
+    var battleHistory = await _cachedHistoriesInfo.getOrFetch(
+        predicate,
+        () async => _TargetedList(
+              target.userId,
+              await _client.getHistoryList(target.userId),
+            ));
+
     return battleHistory.data;
   }
 
@@ -129,32 +122,20 @@ class ApiRepository with AvatarResizeMixin {
 
   /// Fetches information about user profile
   /// If [target] is passed profile info about that user will be fetched.
-  /// If [target] is null info about current user will be fetched
+  /// If [target] is `null` info about current user will be fetched
   /// Network request will used either on first time or when [forceRefresh] is
   /// `true` in all the other cases cached instance of profile info list will
   /// be used.
   Future<ProfileInfo> getProfileInfo(
       BaseProfileInfo target, bool forceRefresh) async {
-    ProfileInfo? profile;
-    try {
-      profile = _cachedProfilesInfo
-          .firstWhere((element) => element.userId == target.userId);
-    } finally {
-      final noProfile = profile == null;
+    final predicate = (element) => element.userId == target.userId;
 
-      if (noProfile || forceRefresh) {
-        if (_cachedProfilesInfo.length == _kMaxProfilesCacheSize) {
-          _cachedProfilesInfo.removeLast();
-        }
-
-        profile = await _client.getProfileInfo(target.userId);
-
-        if (!noProfile) {
-          _cachedProfilesInfo.add(profile);
-        }
-      }
-      return profile!;
+    if (forceRefresh) {
+      _cachedProfilesInfo.removeWhere(predicate);
     }
+
+    return await _cachedProfilesInfo.getOrFetch(
+        predicate, () => _client.getProfileInfo(target.userId));
   }
 
   /// First fetches picture from [pictureURL] and updates picture on server
