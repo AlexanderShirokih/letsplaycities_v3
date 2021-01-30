@@ -1,4 +1,4 @@
-# lets_play_cities
+# Let's Play Cities
 
-This project is a Flutter port of my Android game "Сыграем в города"
+This project is a next generation of my android game "Let's Play Cities"
 <https://github.com/AlexanderShirokih/letsplaycities2_android>
