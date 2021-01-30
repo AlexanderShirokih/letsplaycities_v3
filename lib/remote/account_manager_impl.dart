@@ -23,12 +23,9 @@ class AccountManagerImpl extends AccountManager {
 
     if (credentials == null) return null;
 
-    final client = _createClient(credentials);
-
     return _fetchedAccount.fetch(() async {
       final profile = await GetIt.instance
-          .get<ApiRepositoryProvider>()
-          .getApiRepository(client)
+          .get<ApiRepository>(param1: credentials)
           .getProfileInfo(
               BaseProfileInfo(userId: credentials.userId, login: ''), true);
 
@@ -39,7 +36,6 @@ class AccountManagerImpl extends AccountManager {
         name: profile.login,
         canReceiveMessages: _preferences.onlineChatEnabled,
         pictureUri: profile.pictureUrl,
-        client: client,
       );
     });
   }
@@ -61,7 +57,6 @@ class AccountManagerImpl extends AccountManager {
       name: response.login,
       pictureUri: getPictureUrlOrNull(response.userId, response.pictureHash),
       canReceiveMessages: _preferences.onlineChatEnabled,
-      client: _createClient(credential),
       role: response.role,
       authType: response.authType,
     );

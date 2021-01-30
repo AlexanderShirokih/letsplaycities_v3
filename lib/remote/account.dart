@@ -5,7 +5,6 @@ import 'package:get_it/get_it.dart';
 import 'package:lets_play_cities/base/data.dart';
 import 'package:lets_play_cities/remote/api_repository.dart';
 import 'package:lets_play_cities/remote/auth.dart';
-import 'package:lets_play_cities/remote/client/api_client.dart';
 
 /// Contains user credentials, which is the result of server authorization.
 class Credential extends Equatable {
@@ -90,9 +89,6 @@ class RemoteAccount extends ClientAccountInfo with EquatableMixin {
   /// Account origin
   final AuthType authType;
 
-  /// Client instance for fetching API request from using this account credentials
-  final LpsApiClient client;
-
   RemoteAccount({
     required this.credential,
     required this.name,
@@ -100,7 +96,6 @@ class RemoteAccount extends ClientAccountInfo with EquatableMixin {
     required this.role,
     required this.authType,
     required String? pictureUri,
-    required this.client,
   }) : picture = NetworkPictureSource(pictureUri);
 
   @override
@@ -124,5 +119,5 @@ class RemoteAccount extends ClientAccountInfo with EquatableMixin {
 
   /// Creates [ApiRepository] for this account
   ApiRepository getApiRepository() =>
-      GetIt.instance.get<ApiRepositoryProvider>().getApiRepository(client);
+      GetIt.instance.get<ApiRepository>(param1: credential);
 }

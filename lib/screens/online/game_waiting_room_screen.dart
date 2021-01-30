@@ -7,15 +7,15 @@ import 'package:get_it/get_it.dart';
 import 'package:lets_play_cities/app_config.dart';
 import 'package:lets_play_cities/base/preferences.dart';
 import 'package:lets_play_cities/base/remote/bloc/waiting_room_bloc.dart';
+import 'package:lets_play_cities/data/models/friend_game_request.dart';
 import 'package:lets_play_cities/l18n/localization_service.dart';
 import 'package:lets_play_cities/remote/account.dart';
 import 'package:lets_play_cities/remote/account_manager.dart';
-import 'package:lets_play_cities/remote/api_repository.dart';
 import 'package:lets_play_cities/remote/client/remote_game_client.dart';
 import 'package:lets_play_cities/remote/client/socket_api.dart';
 import 'package:lets_play_cities/remote/client/web_socket_connector.dart';
 import 'package:lets_play_cities/remote/core/json_message_converter.dart';
-import 'package:lets_play_cities/remote/firebase/firebase_service.dart';
+import 'package:lets_play_cities/remote/model/cloud_messaging_service.dart';
 import 'package:lets_play_cities/remote/model/server_messages.dart';
 import 'package:lets_play_cities/remote/models.dart';
 import 'package:lets_play_cities/screens/common/common_widgets.dart';
@@ -24,54 +24,63 @@ import 'package:lets_play_cities/screens/game/game_screen.dart';
 import 'package:lets_play_cities/screens/online/network_avatar_building_mixin.dart';
 import 'package:lets_play_cities/utils/string_utils.dart';
 
+/// Screen used to start the
 class GameWaitingRoomScreenStandalone extends StatelessWidget {
-  /// If present, invitation will send to the [target] user
-  final BaseProfileInfo target;
+  /// If present, invitation or joining result will send to the
+  /// [FriendGameRequest.target] user
+  final FriendGameRequest request;
 
-  const GameWaitingRoomScreenStandalone(this.target);
+  const GameWaitingRoomScreenStandalone(this.request);
 
   @override
   Widget build(BuildContext context) => Scaffold(
         appBar: AppBar(),
-        body: GameWaitingRoomScreen(target: target),
+        body: GameWaitingRoomScreen(request: request),
       );
 }
 
 /// Initial screen where user resides until game starts
 class GameWaitingRoomScreen extends StatelessWidget {
-  /// If present, invitation will send to the [target] user
-  final BaseProfileInfo? target;
+  /// If present, invitation or joining result will send to the
+  /// [FriendGameRequest.target] user
+  final FriendGameRequest? request;
 
   const GameWaitingRoomScreen({
     Key? key,
-    this.target,
+    this.request,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
+    final getIt = GetIt.instance;
+
     return FutureBuilder<RemoteAccount?>(
-      future: context.watch<AccountManager>().getLastSignedInAccount(),
+      future: getIt.get<AccountManager>().getLastSignedInAccount(),
       builder: (context, account) {
+        final l10n = getIt.get<LocalizationService>();
         if (!account.hasData) {
-          return buildWithLocalization(
-              context, (l10n) => LoadingView(l10n.online['fetching_profile']));
+          return LoadingView(l10n.online['fetching_profile']);
+        }
+
+        final waitingBloc = WaitingRoomBloc(
+          RemoteGameClient(
+            account: account.requireData!,
+            firebaseToken: getIt.get<CloudMessagingService>().getUserToken(),
+            preferences: getIt.get<GamePreferences>(),
+            socketApi: SocketApi(
+              WebSocketConnector(getIt.get<AppConfig>().remoteWebSocketURL),
+              JsonMessageConverter(),
+            ),
+          ),
+          account.requireData!.credential,
+        );
+
+        if (request != null) {
+          waitingBloc.add(NewGameRequestEvent(request));
         }
 
         return BlocProvider.value(
-          value: WaitingRoomBloc(
-            RemoteGameClient(
-              account: account.requireData!,
-              firebaseToken: FirebaseServices.instance.getUserToken(),
-              preferences: context.watch<GamePreferences>(),
-              socketApi: SocketApi(
-                WebSocketConnector(
-                    GetIt.instance.get<AppConfig>().remoteWebSocketURL),
-                JsonMessageConverter(),
-              ),
-            ),
-            account.requireData!.credential,
-            target,
-          ),
+          value: waitingBloc,
           child: BlocConsumer<WaitingRoomBloc, WaitingRoomState>(
             builder: (context, state) {
               if (state is WaitingRoomInitial) {
@@ -79,7 +88,7 @@ class GameWaitingRoomScreen extends StatelessWidget {
               } else if (state is WaitingRoomConnectingState) {
                 return _WaitingForConnectionView(state.connectionStage);
               } else if (state is WaitingForOpponentsState) {
-                return _WaitingForOpponentsView(target: state.target);
+                return _WaitingForOpponentsView(request: state.request);
               } else if (state is WaitingRoomAuthorizationFailed) {
                 return _TextWithBigIconView(
                   icon: FaIcon(FontAwesomeIcons.userAltSlash),
@@ -113,10 +122,9 @@ class GameWaitingRoomScreen extends StatelessWidget {
                   MaterialPageRoute(
                     builder: (_) => MultiRepositoryProvider(
                       providers: [
+                        RepositoryProvider.value(value: state.apiRepository),
                         RepositoryProvider.value(
-                            value: context.read<ApiRepository>()),
-                        RepositoryProvider.value(
-                            value: context.read<AccountManager>()),
+                            value: GetIt.instance.get<AccountManager>()),
                       ],
                       child: GameScreen(state.config),
                     ),
@@ -265,10 +273,10 @@ class _WaitingForOpponentsView extends StatefulWidget {
     FontAwesomeIcons.diceSix,
   ];
 
-  /// Used in invitation mode. In random mode mode will be `null`.
-  final BaseProfileInfo? target;
+  /// Used in friend game mode. In random mode mode will be `null`.
+  final FriendGameRequest? request;
 
-  const _WaitingForOpponentsView({Key? key, this.target}) : super(key: key);
+  const _WaitingForOpponentsView({Key? key, this.request}) : super(key: key);
 
   @override
   __WaitingForOpponentsViewState createState() {
@@ -327,25 +335,25 @@ class __WaitingForOpponentsViewState extends State<_WaitingForOpponentsView>
                 ),
               ),
             ),
-            if (widget.target != null)
+            if (widget.request != null)
               Padding(
                 padding: const EdgeInsets.all(12.0),
-                child: buildAvatar(widget.target!),
+                child: buildAvatar(widget.request!.target),
               ),
             buildWithLocalization(
               context,
               (l10n) => Text(
-                widget.target == null
+                widget.request == null
                     ? l10n.online['awaiting_for_opp']
                     : (l10n.online['awaiting_for_invite'] as String)
-                        .format([widget.target!.login]),
+                        .format([widget.request!.target.login]),
                 textAlign: TextAlign.center,
                 style: Theme.of(context).textTheme.headline6,
               ),
             ),
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 64.0),
-              child: widget.target != null
+              child: widget.request != null
                   ? _createBackButton(context)
                   : _createCancelButton(context),
             )
@@ -427,5 +435,5 @@ Widget _createConnectButton(BuildContext context) => createStyledMaterialButton(
         context,
         (l10n) => l10n.online['connect'],
       ),
-      () => context.read<WaitingRoomBloc>().add(ConnectEvent()),
+      () => context.read<WaitingRoomBloc>().add(NewGameRequestEvent()),
     );

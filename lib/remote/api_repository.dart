@@ -12,7 +12,6 @@ import 'package:lets_play_cities/remote/model/friend_request_type.dart';
 import 'package:lets_play_cities/remote/model/history_info.dart';
 import 'package:lets_play_cities/remote/model/profile_info.dart';
 import 'package:lets_play_cities/utils/cache_list.dart';
-import 'package:meta/meta.dart';
 
 class _TargetedList<T> {
   final int targetId;
@@ -21,50 +20,48 @@ class _TargetedList<T> {
   const _TargetedList(this.targetId, this.data);
 }
 
-/// Factory for creating API repositories
-class ApiRepositoryProvider {
-  final Map<LpsApiClient, ApiRepository> _cache = {};
+class ApiRepositoryCacheHolder {
+  static const _kMaxProfilesCacheSize = 12;
 
-  ApiRepository getApiRepository(LpsApiClient lpsApiClient) {
-    return _cache.putIfAbsent(
-        lpsApiClient, () => ApiRepository._(lpsApiClient));
-  }
+  final CacheList<ProfileInfo> cachedProfilesInfo =
+      CacheList(_kMaxProfilesCacheSize);
+  final CacheList<_TargetedList<HistoryInfo>> cachedHistoriesInfo =
+      CacheList(_kMaxProfilesCacheSize);
+
+  List<BlackListItemInfo>? cachedBanList;
+  List<FriendInfo>? cachedFriendsList;
 }
 
 /// Repository class wrapping [LpsApiClient]
 class ApiRepository with AvatarResizeMixin {
-  static const _kMaxProfilesCacheSize = 12;
-
   final LpsApiClient _client;
-  final CacheList<ProfileInfo> _cachedProfilesInfo =
-      CacheList(_kMaxProfilesCacheSize);
-  final CacheList<_TargetedList<HistoryInfo>> _cachedHistoriesInfo =
-      CacheList(_kMaxProfilesCacheSize);
 
-  List<BlackListItemInfo>? _cachedBanList;
-  List<FriendInfo>? _cachedFriendsList;
+  final ApiRepositoryCacheHolder _cache;
 
-  @protected
-  ApiRepository._(this._client);
+  ApiRepository(this._client, this._cache);
 
   /// Gets user friends list.
   /// Network request will used only first time or when [forceRefresh] is `true`
   /// in all the other cases cached instance of friends list will be used.
   Future<List<FriendInfo>> getFriendsList(bool forceRefresh) async {
-    if (_cachedFriendsList == null || forceRefresh) {
-      _cachedFriendsList = await _client.getFriendsList();
+    if (_cache.cachedFriendsList == null || forceRefresh) {
+      _cache.cachedFriendsList = await _client.getFriendsList();
     }
-    return _cachedFriendsList!;
+    return _cache.cachedFriendsList!;
   }
 
   void _invalidateFriendsList() {
-    _cachedFriendsList = null;
+    _cache.cachedFriendsList = null;
   }
 
   /// Deletes friend from friend list.
   Future deleteFriend(BaseProfileInfo friend) => _client
       .deleteFriend(friend.userId)
-      .then((_) => _cachedFriendsList?.remove(friend));
+      .then((_) => _cache.cachedFriendsList?.remove(friend));
+
+  /// Sends negative result to the game request sent by [requester]
+  Future<void> declineGameRequest(BaseProfileInfo requester) =>
+      _client.declineGameRequest(requester.userId);
 
   /// Accepts or denies input friendship request from user [friendId]
   Future sendFriendRequestAcceptance(BaseProfileInfo friend, bool isAccepted) =>
@@ -78,7 +75,7 @@ class ApiRepository with AvatarResizeMixin {
   /// Sends new friendship request
   Future sendNewFriendshipRequest(BaseProfileInfo target) => _client
       .sendFriendRequest(target.userId, FriendRequestType.SEND)
-      .then((_) => _cachedProfilesInfo.remove(target as ProfileInfo));
+      .then((_) => _cache.cachedProfilesInfo.remove(target as ProfileInfo));
 
   /// Gets user battle history.
   /// Network request will used only first time or when [forceRefresh] is `true`
@@ -89,10 +86,10 @@ class ApiRepository with AvatarResizeMixin {
         element.targetId == target.userId;
 
     if (forceRefresh) {
-      _cachedHistoriesInfo.removeWhere(predicate);
+      _cache.cachedHistoriesInfo.removeWhere(predicate);
     }
 
-    var battleHistory = await _cachedHistoriesInfo.getOrFetch(
+    var battleHistory = await _cache.cachedHistoriesInfo.getOrFetch(
         predicate,
         () async => _TargetedList(
               target.userId,
@@ -106,10 +103,10 @@ class ApiRepository with AvatarResizeMixin {
   /// Network request will used only first time or when [forceRefresh] is `true`
   /// in all the other cases cached instance of blocked users list will be used.
   Future<List<BlackListItemInfo>> getBanlist(bool forceRefresh) async {
-    if (_cachedBanList == null || forceRefresh) {
-      _cachedBanList = await _client.getBanList();
+    if (_cache.cachedBanList == null || forceRefresh) {
+      _cache.cachedBanList = await _client.getBanList();
     }
-    return _cachedBanList!;
+    return _cache.cachedBanList!;
   }
 
   /// Removes a user with [user] from players ban list
@@ -131,11 +128,11 @@ class ApiRepository with AvatarResizeMixin {
     final predicate = (element) => element.userId == target.userId;
 
     if (forceRefresh) {
-      _cachedProfilesInfo.removeWhere(predicate);
+      _cache.cachedProfilesInfo.removeWhere(predicate);
     }
 
-    return await _cachedProfilesInfo.getOrFetch(
-        predicate, () => _client.getProfileInfo(target.userId));
+    return await _cache.cachedProfilesInfo
+        .getOrFetch(predicate, () => _client.getProfileInfo(target.userId));
   }
 
   /// First fetches picture from [pictureURL] and updates picture on server

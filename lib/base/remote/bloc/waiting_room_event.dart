@@ -6,14 +6,14 @@ abstract class WaitingRoomEvent extends Equatable {
 }
 
 /// Starts connection sequence
-class ConnectEvent extends WaitingRoomEvent {
-  /// Optional invitation target
-  final BaseProfileInfo? target;
+class NewGameRequestEvent extends WaitingRoomEvent {
+  /// Optional friend-mode request
+  final FriendGameRequest? request;
 
-  const ConnectEvent([this.target]);
+  const NewGameRequestEvent([this.request]);
 
   @override
-  List<Object> get props => [target ?? ''];
+  List<Object?> get props => [request];
 }
 
 /// Event that used to cancel connection
@@ -33,13 +33,13 @@ class OnConnectionFailedEvent extends WaitingRoomEvent {
 }
 
 /// Used internally to start awaiting for game request
-class PlayEvent extends WaitingRoomEvent {
-  final BaseProfileInfo? opponent;
+class WaitForOpponentsEvent extends WaitingRoomEvent {
+  final FriendGameRequest? request;
 
-  const PlayEvent(this.opponent);
+  const WaitForOpponentsEvent(this.request);
 
   @override
-  List<Object> get props => [opponent ?? ''];
+  List<Object?> get props => [request];
 }
 
 /// Used internally to signal negative invitation result

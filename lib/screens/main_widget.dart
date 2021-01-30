@@ -72,13 +72,8 @@ class LetsPlayCitiesApp extends StatelessWidget {
                 builder: (ctx) => GameRequestView(request: request),
               );
             },
-            child: MainScreen(),
+            child: SafeArea(child: MainScreen()),
           ),
-        ),
-        floatingActionButton: FloatingActionButton(
-          onPressed: () {
-            GetIt.instance.get<CloudMessagingService>().addTestEvent();
-          },
         ),
       );
 

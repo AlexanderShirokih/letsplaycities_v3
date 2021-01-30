@@ -6,6 +6,7 @@ import 'package:get_it/get_it.dart';
 import 'package:intl/intl.dart';
 import 'package:lets_play_cities/base/remote/bloc/user_actions_bloc.dart';
 import 'package:lets_play_cities/l18n/localization_service.dart';
+import 'package:lets_play_cities/data/models/friend_game_request.dart';
 import 'package:lets_play_cities/remote/auth.dart';
 import 'package:lets_play_cities/screens/common/common_widgets.dart';
 import 'package:lets_play_cities/screens/common/error_handler_widget.dart';
@@ -458,7 +459,12 @@ class _OnlineProfileViewState extends State<OnlineProfileView>
                           MaterialPageRoute(
                             builder: (_) => RepositoryProvider.value(
                               value: context.read<AccountManager>(),
-                              child: GameWaitingRoomScreenStandalone(data),
+                              child: GameWaitingRoomScreenStandalone(
+                                FriendGameRequest(
+                                  mode: FriendGameRequestType.invite,
+                                  target: data,
+                                ),
+                              ),
                             ),
                           ),
                         ),

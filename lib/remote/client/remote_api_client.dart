@@ -124,6 +124,17 @@ class RemoteLpsApiClient extends LpsApiClient {
   }
 
   @override
+  Future<void> declineGameRequest(int requesterId) async {
+    _requireCredential();
+    await _requireOK(
+      () => _httpClient.put(
+        '/user/request/$requesterId/DENY',
+        options: Options(headers: _credential.asAuthorizationHeader()),
+      ),
+    );
+  }
+
+  @override
   Future<ProfileInfo> getProfileInfo(int? targetId) async {
     _requireCredential();
 

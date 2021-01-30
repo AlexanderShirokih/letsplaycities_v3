@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:get_it/get_it.dart';
 import 'package:lets_play_cities/base/game/bloc/game_bloc.dart';
 import 'package:lets_play_cities/base/game/bloc/service_events_bloc.dart';
 import 'package:lets_play_cities/base/game/game_config.dart';
@@ -29,7 +30,7 @@ class GameScreen extends StatelessWidget {
   /// Creates new instance of [GameScreen] and wraps it with [MaterialPageRoute]
   static MaterialPageRoute createGameScreenRoute(GameConfig gameConfig) =>
       MaterialPageRoute(builder: (context) {
-        final isFirstTime = context.watch<GamePreferences>().isFirstLaunch;
+        final isFirstTime = GetIt.instance.get<GamePreferences>().isFirstLaunch;
         if (isFirstTime && gameConfig.gameMode.isLocal()) {
           return buildWithLocalization(
             context,

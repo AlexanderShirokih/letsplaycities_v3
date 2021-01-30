@@ -8,12 +8,13 @@ import 'package:lets_play_cities/base/game_session.dart';
 import 'package:lets_play_cities/base/platform/app_version.dart';
 import 'package:lets_play_cities/base/preferences.dart';
 import 'package:lets_play_cities/base/users.dart';
+import 'package:lets_play_cities/data/models/friend_game_request.dart';
 import 'package:lets_play_cities/remote/auth.dart';
 import 'package:lets_play_cities/remote/client/socket_api.dart';
 import 'package:lets_play_cities/remote/exceptions.dart';
 import 'package:lets_play_cities/remote/handlers/network_interceptor.dart';
-import 'package:lets_play_cities/remote/model/server_messages.dart';
 import 'package:lets_play_cities/remote/model/client_messages.dart';
+import 'package:lets_play_cities/remote/model/server_messages.dart';
 import 'package:lets_play_cities/remote/remote_player.dart';
 
 /// Describes rules and order of sending messages
@@ -39,8 +40,8 @@ class RemoteGameClient {
         .firstWhere((element) => element is ConnectedMessage);
   }
 
-  /// Does the authorization sequence
-  /// Throws [AuthorizationException] if user cannot be authorized on server
+  /// Does the authorization sequence.
+  /// Throws [AuthorizationException] if user cannot be authorized on server.
   /// Throws any other kinds of [RemoteException] if some error happens
   Future<void> logIn(Credential credential) async {
     final fbToken = await firebaseToken;
@@ -108,15 +109,27 @@ class RemoteGameClient {
         additionalEventHandlers: [NetworkInterceptor(this)]);
   }
 
-  /// Sends invitation to [opponent]. Opponent should be in users friend list.
+  /// Sends friend-mode [request] (when request is [FriendGameRequestType.invite])
+  /// or positive result to input request (when request is [FriendGameRequestType.join]).
+  /// Opponent should be in users friend list.
   /// Returns either [GameConfig] when opponent accepts the game
   /// or [InvitationResponseMessage] if opponent declines the request or
   /// it is unreachable.
-  Future<dynamic> invite(BaseProfileInfo opponent) async {
-    socketApi.sendMessage(PlayMessage(
-      mode: PlayMode.FRIEND,
-      oppUid: opponent.userId,
-    ));
+  Future<dynamic> invite(FriendGameRequest request) async {
+    switch (request.mode) {
+      case FriendGameRequestType.invite:
+        socketApi.sendMessage(PlayMessage(
+          mode: PlayMode.FRIEND,
+          oppUid: request.target.userId,
+        ));
+        break;
+      case FriendGameRequestType.join:
+        socketApi.sendMessage(InvitationResultMessage(
+          result: InvitationResult.accept,
+          oppId: request.target.userId,
+        ));
+        break;
+    }
 
     final response = await socketApi.messages.firstWhere(
         (element) =>

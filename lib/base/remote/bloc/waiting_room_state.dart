@@ -26,13 +26,13 @@ class WaitingRoomConnectingState extends WaitingRoomState {
 
 /// State used when user waits for available opponents in random pair mode
 class WaitingForOpponentsState extends WaitingRoomState {
-  /// Target opponent to play with. Null for random pair mode
-  final BaseProfileInfo? target;
+  /// Target opponent to play with. `null` for random pair mode
+  final FriendGameRequest? request;
 
-  const WaitingForOpponentsState(this.target);
+  const WaitingForOpponentsState(this.request);
 
   @override
-  List<Object> get props => [target ?? ''];
+  List<Object?> get props => [request];
 }
 
 /// State used to tell negative invitation result.
@@ -69,8 +69,11 @@ class StartGameState extends WaitingRoomState {
   /// Ready to start network game config
   final GameConfig config;
 
-  const StartGameState(this.config);
+  /// [ApiRepository] instance for logged user
+  final ApiRepository apiRepository;
+
+  const StartGameState(this.config, this.apiRepository);
 
   @override
-  List<Object> get props => [config];
+  List<Object> get props => [config, apiRepository];
 }

@@ -36,6 +36,12 @@ class AuthorizationException extends RemoteException {
       AuthorizationException('Status: $responseCode ($reasonPhrase)');
 }
 
+/// Used when the user is logged in, but the request is intended for another account
+class WrongAccountException extends RemoteException {
+  const WrongAccountException()
+      : super('User logged in another account then intended');
+}
+
 /// Used when error happens during REST API fetch requests
 class FetchingException extends RemoteException {
   final Uri uri;

@@ -2,6 +2,7 @@ import 'dart:io';
 
 // ignore: import_of_legacy_library_into_null_safe
 import 'package:dio/dio.dart';
+// ignore: import_of_legacy_library_into_null_safe
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/services.dart';
 import 'package:get_it/get_it.dart';
@@ -48,6 +49,7 @@ void injectRootDependencies({required String serverHost}) {
             return newOverrides;
           }));
 
+  // DIO client
   getIt.registerLazySingleton<Dio>(() => _createDio());
 
   // Account manager
@@ -76,6 +78,9 @@ void injectRootDependencies({required String serverHost}) {
     dependsOn: [FirebaseApp],
   );
 
+  /// Api Repository Cache
+  getIt.registerSingleton<ApiRepositoryCacheHolder>(ApiRepositoryCacheHolder());
+
   // LPS API Client
   getIt.registerFactoryParam<LpsApiClient, Credential, void>(
     (credential, _) => RemoteLpsApiClient(
@@ -84,7 +89,9 @@ void injectRootDependencies({required String serverHost}) {
     ),
   );
 
-  getIt.registerSingleton<ApiRepositoryProvider>(ApiRepositoryProvider());
+  /// Api Repository
+  getIt.registerFactoryParam<ApiRepository, Credential, void>((credential, _) =>
+      ApiRepository(getIt.get(param1: credential), getIt.get()));
 }
 
 /// Returns DIO client instance

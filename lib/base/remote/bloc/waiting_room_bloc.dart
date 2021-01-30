@@ -2,7 +2,9 @@ import 'dart:async';
 
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
+import 'package:get_it/get_it.dart';
 import 'package:lets_play_cities/base/game/game_config.dart';
+import 'package:lets_play_cities/data/models/friend_game_request.dart';
 import 'package:lets_play_cities/remote/account.dart';
 import 'package:lets_play_cities/remote/auth.dart';
 import 'package:lets_play_cities/remote/client/remote_game_client.dart';
@@ -18,13 +20,8 @@ class WaitingRoomBloc extends Bloc<WaitingRoomEvent, WaitingRoomState> {
   final RemoteGameClient _gameClient;
   final Credential _ownerCredentials;
 
-  WaitingRoomBloc(this._gameClient, this._ownerCredentials,
-      [BaseProfileInfo? invitationTarget])
-      : super(WaitingRoomInitial()) {
-    if (invitationTarget != null) {
-      add(ConnectEvent(invitationTarget));
-    }
-  }
+  WaitingRoomBloc(this._gameClient, this._ownerCredentials)
+      : super(WaitingRoomInitial());
 
   @override
   Future<void> close() {
@@ -43,23 +40,27 @@ class WaitingRoomBloc extends Bloc<WaitingRoomEvent, WaitingRoomState> {
 
   @override
   Stream<WaitingRoomState> mapEventToState(WaitingRoomEvent event) async* {
-    if (event is ConnectEvent) {
-      yield* _startConnection(event.target);
+    if (event is NewGameRequestEvent) {
+      yield* _startConnection(event.request);
     } else if (event is CancelEvent) {
       yield* _stopConnection();
     } else if (event is OnConnectionFailedEvent) {
       yield WaitingRoomConnectionError();
-    } else if (event is PlayEvent) {
-      yield* _play(event.opponent);
+    } else if (event is WaitForOpponentsEvent) {
+      yield* _play(event.request);
     } else if (event is StartGameEvent) {
-      yield StartGameState(event.config);
+      final apiRepository =
+          GetIt.instance.get<ApiRepository>(param1: _ownerCredentials);
+
+      yield StartGameState(event.config, apiRepository);
+
       yield WaitingRoomInitial();
     } else if (event is InvitationNegativeResult) {
       yield WaitingRoomInvitationNegativeResult(event.result, event.target);
     }
   }
 
-  Stream<WaitingRoomState> _startConnection(BaseProfileInfo? target) async* {
+  Stream<WaitingRoomState> _startConnection(FriendGameRequest? request) async* {
     yield WaitingRoomConnectingState(ConnectionStage.awaitingConnection);
     await _gameClient.connect();
 
@@ -73,7 +74,7 @@ class WaitingRoomBloc extends Bloc<WaitingRoomEvent, WaitingRoomState> {
     }
     yield WaitingRoomConnectingState(ConnectionStage.done);
 
-    add(PlayEvent(target));
+    add(WaitForOpponentsEvent(request));
   }
 
   Stream<WaitingRoomState> _stopConnection() async* {
@@ -81,11 +82,11 @@ class WaitingRoomBloc extends Bloc<WaitingRoomEvent, WaitingRoomState> {
     await _gameClient.disconnect();
   }
 
-  Stream<WaitingRoomState> _play(BaseProfileInfo? opponent) async* {
-    yield WaitingForOpponentsState(opponent);
+  Stream<WaitingRoomState> _play(FriendGameRequest? request) async* {
+    yield WaitingForOpponentsState(request);
 
     final result =
-        opponent == null ? _gameClient.play() : _gameClient.invite(opponent);
+        request == null ? _gameClient.play() : _gameClient.invite(request);
 
     unawaited(result.then((result) {
       if (result is GameConfig) {
@@ -93,7 +94,7 @@ class WaitingRoomBloc extends Bloc<WaitingRoomEvent, WaitingRoomState> {
       } else {
         final invResult = result as InvitationResponseMessage;
         add(CancelEvent());
-        add(InvitationNegativeResult(invResult.result, opponent!));
+        add(InvitationNegativeResult(invResult.result, request!.target));
       }
     }).catchError((error, stack) {
       if (state is! WaitingRoomInitial) {

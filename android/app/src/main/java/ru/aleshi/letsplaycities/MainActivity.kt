@@ -6,6 +6,7 @@ import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
+import ru.aleshi.letsplaycities.gameservices.GameServices
 
 /**
  * Android application entry point.
@@ -14,6 +15,7 @@ import io.flutter.plugin.common.MethodChannel
 class MainActivity : FlutterActivity() {
 
     private var authenticationManager: AuthenticationManager? = null
+    private var gameServices: GameServices? = null
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         val result = authenticationManager?.handleActivityResult(requestCode, resultCode, data)
@@ -45,6 +47,7 @@ class MainActivity : FlutterActivity() {
         }
 
         authenticationManager = AuthenticationManager(messenger, this, lifecycleScope)
+        gameServices = GameServices(messenger, this, lifecycleScope)
     }
 
     private fun runMigrations() {

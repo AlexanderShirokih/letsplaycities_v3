@@ -36,6 +36,9 @@ abstract class LpsApiClient {
   /// Adds a user with [userId] to players ban list
   Future addToBanlist(int userId);
 
+  /// Sends negative result to the game request sent by [requesterId]
+  Future<void> declineGameRequest(int requesterId);
+
   /// Fetches information about user profile
   /// If [targetId] is passed profile info about that user will be fetched.
   /// If [targetId] is null info about current user will be fetched

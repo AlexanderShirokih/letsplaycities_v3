@@ -9,6 +9,7 @@ import 'package:get_it/get_it.dart';
 import 'package:lets_play_cities/remote/model/cloud_messages.dart';
 import 'package:lets_play_cities/remote/model/cloud_messaging_service.dart';
 import 'package:lets_play_cities/utils/error_logger.dart';
+import 'package:rxdart/subjects.dart';
 
 /// Provides FCM message handling logic
 class FirebaseServices implements CloudMessagingService {
@@ -23,8 +24,7 @@ class FirebaseServices implements CloudMessagingService {
 
   FirebaseMessaging? _firebaseMessaging;
 
-  final StreamController<IncomingCloudMessage> _inputMessages =
-      StreamController.broadcast();
+  final _inputMessages = BehaviorSubject<IncomingCloudMessage>();
 
   @override
   Stream<IncomingCloudMessage> get messages => _inputMessages.stream;
@@ -77,11 +77,5 @@ class FirebaseServices implements CloudMessagingService {
     } else {
       _logger.log('Got remote message, but action is null!');
     }
-  }
-
-  // TODO: REMOVE AFTER TESTS
-  @override
-  void addTestEvent() {
-    _inputMessages.add(GameRequest('Stepik Depic 3000!', 12341, 14476));
   }
 }
