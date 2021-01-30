@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:get_it/get_it.dart';
 import 'package:lets_play_cities/app_config.dart';
 import 'package:lets_play_cities/base/preferences.dart';
 import 'package:lets_play_cities/base/remote/bloc/waiting_room_bloc.dart';
@@ -10,10 +11,10 @@ import 'package:lets_play_cities/l18n/localization_service.dart';
 import 'package:lets_play_cities/remote/account.dart';
 import 'package:lets_play_cities/remote/account_manager.dart';
 import 'package:lets_play_cities/remote/api_repository.dart';
-import 'package:lets_play_cities/remote/core/json_message_converter.dart';
 import 'package:lets_play_cities/remote/client/remote_game_client.dart';
 import 'package:lets_play_cities/remote/client/socket_api.dart';
 import 'package:lets_play_cities/remote/client/web_socket_connector.dart';
+import 'package:lets_play_cities/remote/core/json_message_converter.dart';
 import 'package:lets_play_cities/remote/firebase/firebase_service.dart';
 import 'package:lets_play_cities/remote/model/server_messages.dart';
 import 'package:lets_play_cities/remote/models.dart';
@@ -60,10 +61,11 @@ class GameWaitingRoomScreen extends StatelessWidget {
           value: WaitingRoomBloc(
             RemoteGameClient(
               account: account.requireData!,
-              firebaseToken: FirebaseServices.instance.getToken(),
+              firebaseToken: FirebaseServices.instance.getUserToken(),
               preferences: context.watch<GamePreferences>(),
               socketApi: SocketApi(
-                WebSocketConnector(AppConfig.remoteWebSocketURL),
+                WebSocketConnector(
+                    GetIt.instance.get<AppConfig>().remoteWebSocketURL),
                 JsonMessageConverter(),
               ),
             ),

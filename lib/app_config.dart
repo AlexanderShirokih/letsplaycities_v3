@@ -1,5 +1,13 @@
+/// Defines global app constants, like remote server URL
 class AppConfig {
-  static const String remoteHost = '194.87.111.204';
-  static const String remotePublicApiURL = 'https://$remoteHost:8443';
-  static const String remoteWebSocketURL = 'wss://$remoteHost:8443/game';
+  /// Server URL for REST API requests
+  final String remotePublicApiURL;
+
+  /// Server URL for game WebSocket
+  final String remoteWebSocketURL;
+
+  AppConfig._(this.remotePublicApiURL, this.remoteWebSocketURL);
+
+  factory AppConfig.forHost(String host) =>
+      AppConfig._('https://$host:8443', 'wss://$host:8443/game');
 }

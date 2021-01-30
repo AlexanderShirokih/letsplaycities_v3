@@ -1,9 +1,9 @@
 import 'package:async/async.dart';
+import 'package:get_it/get_it.dart';
 import 'package:lets_play_cities/base/preferences.dart';
 import 'package:lets_play_cities/remote/auth.dart';
 import 'package:lets_play_cities/remote/client/remote_api_client.dart';
 import 'package:lets_play_cities/remote/model/utils.dart';
-import 'package:lets_play_cities/remote/remote_module.dart';
 
 import 'account.dart';
 import 'account_manager.dart';
@@ -26,7 +26,8 @@ class AccountManagerImpl extends AccountManager {
     final client = _createClient(credentials);
 
     return _fetchedAccount.fetch(() async {
-      final profile = await getApiRepositoryProvider()
+      final profile = await GetIt.instance
+          .get<ApiRepositoryProvider>()
           .getApiRepository(client)
           .getProfileInfo(
               BaseProfileInfo(userId: credentials.userId, login: ''), true);
@@ -71,8 +72,6 @@ class AccountManagerImpl extends AccountManager {
       .setCurrentCredentials(null)
       .then((_) => _fetchedAccount.invalidate());
 
-  LpsApiClient _createClient(Credential credential) => RemoteLpsApiClient(
-        getDio(),
-        credential,
-      );
+  LpsApiClient _createClient(Credential credential) =>
+      GetIt.instance.get(param1: credential);
 }

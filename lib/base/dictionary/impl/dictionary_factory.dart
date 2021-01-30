@@ -77,7 +77,7 @@ class DictionaryFactory {
       _loadDescriptor(isInternal, '$dbPath.meta')
           .then(jsonDecode)
           .then((data) => _fromJson(data, dbPath, isInternal))
-          .catchError((e) => null,
+          .catchError((e) {},
               test: (e) => e
                   is FileSystemException); // File not exists or some parsing error
 
@@ -159,11 +159,16 @@ class _InternalDescriptor extends _DictionaryDescriptor
         },
       );
 
-  Future<_Dictionary> _parse() => _internalFile
-      .readAsBytes()
-      .then((bytes) => bytes.buffer.asByteData())
-      .then((byteData) => parseDictionary(byteData, version))
-      .catchError((_) => _internalFile.delete().then((_) => null));
+  Future<_Dictionary> _parse() async {
+    try {
+      final bytes = await _internalFile.readAsBytes();
+      final byteData = bytes.buffer.asByteData();
+      return await parseDictionary(byteData, version);
+    } catch (e) {
+      await _internalFile.delete();
+      rethrow;
+    }
+  }
 
   @override
   int get order => 1;

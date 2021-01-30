@@ -4,7 +4,6 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:lets_play_cities/base/preferences.dart';
 import 'package:lets_play_cities/base/remote/bloc/login_bloc.dart';
 import 'package:lets_play_cities/remote/auth.dart';
-import 'package:lets_play_cities/remote/firebase/firebase_service.dart';
 import 'package:lets_play_cities/remote/social/social_networks_service.dart';
 import 'package:lets_play_cities/screens/common/common_widgets.dart';
 
@@ -49,8 +48,6 @@ class _LoginScreenState extends State<LoginScreen> {
       ),
       body: BlocProvider.value(
         value: LoginBloc(
-          widget.preferences,
-          FirebaseServices.instance,
           NativeBridgeSocialNetworksService(),
         ),
         child: BlocConsumer<LoginBloc, LoginState>(

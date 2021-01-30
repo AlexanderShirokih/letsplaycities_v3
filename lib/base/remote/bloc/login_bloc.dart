@@ -2,10 +2,11 @@ import 'dart:async';
 
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
+import 'package:get_it/get_it.dart';
 import 'package:lets_play_cities/base/preferences.dart';
 import 'package:lets_play_cities/remote/auth.dart';
 import 'package:lets_play_cities/remote/exceptions.dart';
-import 'package:lets_play_cities/remote/firebase/firebase_service.dart';
+import 'package:lets_play_cities/remote/model/cloud_messaging_service.dart';
 import 'package:lets_play_cities/remote/social/social_networks_service.dart';
 
 part 'login_event.dart';
@@ -16,14 +17,14 @@ part 'login_state.dart';
 class LoginBloc extends Bloc<LoginEvent, LoginState> {
   final GamePreferences _preferences;
   final AccountManager _accountManager;
-  final FirebaseServices _firebaseServices;
+  final CloudMessagingService _cloudServices;
   final SocialNetworksService _socialNetworksService;
 
   LoginBloc(
-    this._preferences,
-    this._firebaseServices,
     this._socialNetworksService,
-  )   : _accountManager = AccountManager.fromPreferences(_preferences),
+  )   : _accountManager = GetIt.instance.get<AccountManager>(),
+        _preferences = GetIt.instance.get<GamePreferences>(),
+        _cloudServices = GetIt.instance.get<CloudMessagingService>(),
         super(LoginInitial());
 
   @override
@@ -49,7 +50,7 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
     final request = RemoteSignUpData(
       login: login,
       authType: AuthType.Native,
-      firebaseToken: await _firebaseServices.getToken(),
+      firebaseToken: await _cloudServices.getUserToken(),
       accessToken: 'native_access',
       snUID: await _socialNetworksService.getDeviceId(),
     );
@@ -70,7 +71,7 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
       final request = RemoteSignUpData(
         login: result.login,
         authType: result.authType,
-        firebaseToken: await _firebaseServices.getToken(),
+        firebaseToken: await _cloudServices.getUserToken(),
         accessToken: result.accessToken,
         snUID: result.snUID,
       );

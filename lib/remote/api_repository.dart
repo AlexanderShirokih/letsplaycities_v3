@@ -2,6 +2,7 @@ import 'dart:typed_data';
 
 // ignore: import_of_legacy_library_into_null_safe
 import 'package:dio/dio.dart';
+import 'package:get_it/get_it.dart';
 import 'package:lets_play_cities/base/remote/bloc/avatar_resize_mixin.dart';
 import 'package:lets_play_cities/remote/auth.dart';
 import 'package:lets_play_cities/remote/client/api_client.dart';
@@ -10,7 +11,6 @@ import 'package:lets_play_cities/remote/model/friend_info.dart';
 import 'package:lets_play_cities/remote/model/friend_request_type.dart';
 import 'package:lets_play_cities/remote/model/history_info.dart';
 import 'package:lets_play_cities/remote/model/profile_info.dart';
-import 'package:lets_play_cities/remote/remote_module.dart';
 import 'package:lets_play_cities/utils/cache_list.dart';
 import 'package:meta/meta.dart';
 
@@ -126,8 +126,8 @@ class ApiRepository with AvatarResizeMixin {
   /// Network request will used either on first time or when [forceRefresh] is
   /// `true` in all the other cases cached instance of profile info list will
   /// be used.
-  Future<ProfileInfo> getProfileInfo(
-      BaseProfileInfo target, bool forceRefresh) async {
+  Future<ProfileInfo> getProfileInfo(BaseProfileInfo target,
+      [bool forceRefresh = false]) async {
     final predicate = (element) => element.userId == target.userId;
 
     if (forceRefresh) {
@@ -140,10 +140,10 @@ class ApiRepository with AvatarResizeMixin {
 
   /// First fetches picture from [pictureURL] and updates picture on server
   Future<void> updatePictureFromURL(String pictureURL) {
-    final picture = getDio().get(
-      pictureURL,
-      options: Options(responseType: ResponseType.bytes),
-    );
+    final picture = GetIt.instance.get<Dio>().get(
+          pictureURL,
+          options: Options(responseType: ResponseType.bytes),
+        );
 
     return updatePicture(picture.then((resp) => resp.data));
   }

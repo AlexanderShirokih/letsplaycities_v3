@@ -4,7 +4,7 @@ import 'dart:io';
 
 // ignore: import_of_legacy_library_into_null_safe
 import 'package:dio/dio.dart';
-
+import 'package:get_it/get_it.dart';
 import 'package:lets_play_cities/base/dictionary/impl/dictionary_factory.dart';
 import 'package:lets_play_cities/base/preferences.dart';
 
@@ -31,7 +31,9 @@ class DictionaryUpdater {
   final GamePreferences _prefs;
   final Dio _http;
 
-  DictionaryUpdater(this._prefs, this._http);
+  DictionaryUpdater()
+      : _prefs = GetIt.instance.get<GamePreferences>(),
+        _http = GetIt.instance.get<Dio>();
 
   /// Checks for database updates on game server and downloads it.
   /// If updates disabled or not available no events will be emmited.

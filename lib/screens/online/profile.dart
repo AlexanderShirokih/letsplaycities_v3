@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:get_it/get_it.dart';
 // ignore: import_of_legacy_library_into_null_safe
 import 'package:intl/intl.dart';
-import 'package:lets_play_cities/base/preferences.dart';
 import 'package:lets_play_cities/base/remote/bloc/user_actions_bloc.dart';
 import 'package:lets_play_cities/l18n/localization_service.dart';
 import 'package:lets_play_cities/remote/auth.dart';
@@ -36,7 +36,7 @@ class _OnlineProfileViewStandaloneState
   @override
   Widget build(BuildContext context) {
     return RepositoryProvider<AccountManager>.value(
-      value: AccountManager.fromPreferences(context.watch<GamePreferences>()),
+      value: GetIt.instance.get<AccountManager>(),
       child: Builder(
         builder: (ctx) {
           return FutureBuilder<RemoteAccount?>(

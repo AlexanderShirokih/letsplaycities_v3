@@ -46,7 +46,6 @@ class GameScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final prefs = context.watch<GamePreferences>();
     return buildWithLocalization(
       context,
       (l10n) => Scaffold(
@@ -60,10 +59,7 @@ class GameScreen extends StatelessWidget {
               createBackground(context),
               SizedBox.expand(
                 child: BlocProvider(
-                  create: (_) => GameBloc(
-                      prefs: prefs,
-                      gameConfig: gameConfig,
-                      localizations: l10n),
+                  create: (_) => GameBloc(gameConfig: gameConfig),
                   child: Builder(
                     builder: (context) =>
                         BlocConsumer<GameBloc, GameLifecycleState>(

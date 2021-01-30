@@ -39,6 +39,12 @@ class MappedLocalizationsService extends LocalizationService {
   String get apply => _data['apply'];
 
   @override
+  String get accept => _data['accept'];
+
+  @override
+  String get decline => _data['decline'];
+
+  @override
   String get delete => _data['delete'];
 
   @override

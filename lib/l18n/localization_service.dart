@@ -20,6 +20,10 @@ abstract class LocalizationService {
 
   String get apply;
 
+  String get accept;
+
+  String get decline;
+
   String get delete;
 
   /// [GameScreen] localizations

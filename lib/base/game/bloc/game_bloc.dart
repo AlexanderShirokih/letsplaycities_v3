@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:get_it/get_it.dart';
 import 'package:lets_play_cities/base/dictionary.dart';
 import 'package:lets_play_cities/base/dictionary/impl/country_list_loader_factory.dart';
 import 'package:lets_play_cities/base/dictionary/impl/dictionary_factory.dart';
@@ -12,7 +13,6 @@ import 'package:lets_play_cities/base/preferences.dart';
 import 'package:lets_play_cities/base/repositories/game_session_repo.dart';
 import 'package:lets_play_cities/base/scoring.dart';
 import 'package:lets_play_cities/l18n/localization_service.dart';
-import 'package:lets_play_cities/remote/remote_module.dart';
 import 'package:lets_play_cities/utils/string_utils.dart';
 import 'package:meta/meta.dart';
 import 'package:pedantic/pedantic.dart';
@@ -22,7 +22,6 @@ import '../game_mode.dart';
 import '../game_session_factory.dart';
 
 part 'game_events.dart';
-
 part 'game_states.dart';
 
 class GameBloc extends Bloc<GameStateEvent, GameLifecycleState> {
@@ -42,13 +41,11 @@ class GameBloc extends Bloc<GameStateEvent, GameLifecycleState> {
   }
 
   GameBloc({
-    required LocalizationService localizations,
-    required GamePreferences prefs,
     required GameConfig gameConfig,
-  })   : _prefs = prefs,
-        _localizations = localizations,
+  })   : _prefs = GetIt.instance.get<GamePreferences>(),
+        _localizations = GetIt.instance.get<LocalizationService>(),
         _gameConfig = gameConfig,
-        _dictionaryUpdater = DictionaryUpdater(prefs, getDio()),
+        _dictionaryUpdater = DictionaryUpdater(),
         super(InitialState()) {
     add(const GameEventBeginDataLoading());
   }
