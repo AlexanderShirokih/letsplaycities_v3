@@ -42,7 +42,8 @@ public class MigrationHelper {
                 getDictionaryUpdatePeriod(old.getInt("dic_upd", 0)),
                 old.getBoolean("first_launch", true),
                 old.getInt("user_id", 0),
-                old.getString("acc_hash", "")
+                old.getString("acc_hash", ""),
+                old.getString("last_login", "")
         );
     }
 
@@ -162,6 +163,7 @@ public class MigrationHelper {
                 .putLong("flutter.lastDictionaryCheckDate", gamePrefs.lastDictionaryCheckDate)
                 .putString("flutter.scoringData", gamePrefs.scoringData)
                 .putString("flutter.uhash", gamePrefs.accessHash)
+                .putString("flutter.lastNativeLogin", gamePrefs.lastNativeLogin)
                 .commit(); // Flush to storage immediately
     }
 
@@ -240,6 +242,9 @@ public class MigrationHelper {
         /// User access hash. May be `null` if there is no users logged currently.
         final String accessHash;
 
+        /// Last user name used in native authorization
+        final String lastNativeLogin;
+
         private GamePreferences(
                 int wordsDifficulty,
                 boolean correctionEnabled,
@@ -252,7 +257,8 @@ public class MigrationHelper {
                 int dictionaryUpdatePeriod,
                 boolean isFirstLaunch,
                 int userId,
-                String accessHash
+                String accessHash,
+                String lastNativeLogin
         ) {
             this.wordsDifficulty = wordsDifficulty;
             this.correctionEnabled = correctionEnabled;
@@ -266,6 +272,7 @@ public class MigrationHelper {
             this.isFirstLaunch = isFirstLaunch;
             this.userId = userId;
             this.accessHash = accessHash;
+            this.lastNativeLogin = lastNativeLogin;
         }
     }
 }

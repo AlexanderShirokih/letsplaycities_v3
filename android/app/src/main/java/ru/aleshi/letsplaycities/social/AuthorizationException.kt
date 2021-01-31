@@ -11,6 +11,11 @@ const val CANCELLED_BY_USER = 2
 const val AUTH_FAILED = 1
 
 /**
+ * Another error that should be shown to user
+ */
+const val ANOTHER_ERROR = 3
+
+/**
  * Signals the authorization error
  */
 class AuthorizationException(

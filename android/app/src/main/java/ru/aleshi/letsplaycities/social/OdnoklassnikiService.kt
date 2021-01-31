@@ -25,18 +25,25 @@ class OdnoklassnikiService : ISocialNetworkService {
     private var odnoklassniki: Odnoklassniki? = null
     private var completer: CompletableDeferred<String>? = null
 
-    override suspend fun onLogin(activity: Activity): SocialAccountData {
-        if (odnoklassniki == null) {
-            odnoklassniki = Odnoklassniki.createInstance(
+    private fun getOk(activity: Activity): Odnoklassniki {
+        odnoklassniki = if (Odnoklassniki.hasInstance()) {
+            Odnoklassniki.of(activity)
+        } else {
+            Odnoklassniki.createInstance(
                     activity,
                     "1267998976",
                     "CBACCFJMEBABABABA"
             )
         }
+        return odnoklassniki!!
+    }
+
+    override suspend fun onLogin(activity: Activity): SocialAccountData {
+        val odnoklassniki = getOk(activity)
 
         completer = CompletableDeferred()
 
-        odnoklassniki!!.requestAuthorization(
+        odnoklassniki.requestAuthorization(
                 activity,
                 REDIRECT_URI,
                 OkAuthType.ANY,
@@ -49,11 +56,11 @@ class OdnoklassnikiService : ISocialNetworkService {
         return getAccountInfo(accessToken)
     }
 
-    override fun onLogout() {
-        odnoklassniki?.clearTokens()
+    override suspend fun onLogout(activity: Activity) {
+        getOk(activity).clearTokens()
     }
 
-    override fun handleActitityResult(requestCode: Int, resultCode: Int, data: Intent?): Boolean {
+    override fun handleActivityResult(requestCode: Int, resultCode: Int, data: Intent?): Boolean {
         val ok = odnoklassniki ?: return false
 
         if (ok.isActivityRequestOAuth(requestCode)) {

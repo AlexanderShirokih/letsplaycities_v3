@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- app_id -->
+    <string name="games_app_id" translatable="false">725939428380</string>
+    <!-- package_name -->
+    <string name="package_name" translatable="false">ru.aleshi.letsplaycities</string>
+    <!-- achievement Все понятно 15 -->
+    <string name="ach_write_15c" translatable="false">CgkInLjyqpAVEAIQBQ</string>
+    <!-- achievement Помощь извне -->
+    <string name="ach_tips_3" translatable="false">CgkInLjyqpAVEAIQBw</string>
+    <!-- achievement Дружба -->
+    <string name="ach_friend_1" translatable="false">CgkInLjyqpAVEAIQDA</string>
+    <!-- achievement Сыграть в сложном режиме -->
+    <string name="ach_hard_mode" translatable="false">CgkInLjyqpAVEAIQAw</string>
+    <!-- achievement Первая тысяча -->
+    <string name="ach_score_1000" translatable="false">CgkInLjyqpAVEAIQDw</string>
+    <!-- achievement Написать 80 городов -->
+    <string name="ach_write_80c" translatable="false">CgkInLjyqpAVEAIQCg</string>
+    <!-- achievement Социальный -->
+    <string name="ach_social" translatable="false">CgkInLjyqpAVEAIQBA</string>
+    <!-- achievement Реновация -->
+    <string name="ach_theme" translatable="false">CgkInLjyqpAVEAIQCQ</string>
+    <!-- achievement Эрудит -->
+    <string name="ach_30c_in_game" translatable="false">CgkInLjyqpAVEAIQDQ</string>
+    <!-- achievement В онлайне -->
+    <string name="ach_online_3_times" translatable="false">CgkInLjyqpAVEAIQBg</string>
+    <!-- achievement Помощь извне 30 -->
+    <string name="ach_tips_30" translatable="false">CgkInLjyqpAVEAIQCA</string>
+    <!-- achievement Рекорд 5000 -->
+    <string name="ach_score_5000" translatable="false">CgkInLjyqpAVEAIQEA</string>
+    <!-- achievement Написать 500 городов -->
+    <string name="ach_write_500c" translatable="false">CgkInLjyqpAVEAIQCw</string>
+    <!-- achievement Мегамозг -->
+    <string name="ach_100c_in_game" translatable="false">CgkInLjyqpAVEAIQDg</string>
+    <!-- achievement Супер рекорд -->
+    <string name="ach_score_25000" translatable="false">CgkInLjyqpAVEAIQEQ</string>
+    <!-- leaderboard Рейтинг очков -->
+    <string name="score_leaderboard" translatable="false">CgkInLjyqpAVEAIQAQ</string>
+</resources>

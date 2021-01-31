@@ -3,7 +3,6 @@ import 'dart:convert';
 import 'package:lets_play_cities/base/dictionary.dart';
 import 'package:lets_play_cities/base/scoring.dart';
 import 'package:lets_play_cities/remote/account.dart';
-
 // ignore: import_of_legacy_library_into_null_safe
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -168,7 +167,6 @@ class SharedPreferencesGamePrefs extends GamePreferences {
     return Credential(userId: userId, accessToken: uhash);
   }
 
-  // TODO: Implement migration
   @override
   String get lastNativeLogin => _prefs.getString('lastNativeLogin');
 

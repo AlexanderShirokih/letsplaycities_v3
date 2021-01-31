@@ -50,9 +50,9 @@ class VKontakteService : ISocialNetworkService {
         return createAccountData(token)
     }
 
-    override fun onLogout() = VK.logout()
+    override suspend fun onLogout(activity: Activity) = VK.logout()
 
-    override fun handleActitityResult(requestCode: Int, resultCode: Int, data: Intent?): Boolean {
+    override fun handleActivityResult(requestCode: Int, resultCode: Int, data: Intent?): Boolean {
         return VK.onActivityResult(requestCode, resultCode, data, object : VKAuthCallback {
             override fun onLogin(token: VKAccessToken) {
                 completer!!.complete(token)

@@ -2,7 +2,6 @@ package ru.aleshi.letsplaycities
 
 import android.content.Intent
 import androidx.lifecycle.lifecycleScope
-import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
@@ -12,7 +11,7 @@ import ru.aleshi.letsplaycities.gameservices.GameServices
  * Android application entry point.
  * Responsible for launch flutter engine and run platform-specific plugins
  */
-class MainActivity : FlutterActivity() {
+class MainActivity : BaseAsyncActivity() {
 
     private var authenticationManager: AuthenticationManager? = null
     private var gameServices: GameServices? = null

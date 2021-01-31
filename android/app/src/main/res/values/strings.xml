@@ -7,4 +7,7 @@
     <string name="facebook_app_id">1023004964531266</string>
     <string name="fb_login_protocol_scheme">fb1023004964531266</string>
 
+    <string name="no_play_services">Возможно у вас не установлены Сервисы Google Play</string>
+    <string name="no_game_services">Для авторизации установите приложении Play Игры</string>
+    <string name="not_all_requested_data_received">Не удалось получить все данные для авторизации! Попробуйте снова</string>
 </resources>

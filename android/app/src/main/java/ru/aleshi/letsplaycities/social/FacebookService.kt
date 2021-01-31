@@ -73,11 +73,11 @@ class FacebookService : ISocialNetworkService {
         )
     }
 
-    override fun onLogout() {
+    override suspend fun onLogout(activity: Activity) {
         LoginManager.getInstance()!!.logOut()
     }
 
-    override fun handleActitityResult(requestCode: Int, resultCode: Int, data: Intent?): Boolean {
+    override fun handleActivityResult(requestCode: Int, resultCode: Int, data: Intent?): Boolean {
         return callbackManager?.onActivityResult(requestCode, resultCode, data) ?: false
     }
 

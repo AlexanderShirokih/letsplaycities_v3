@@ -4,7 +4,7 @@ package ru.aleshi.letsplaycities.social
  * Describes available social authorization services
  */
 enum class ServiceType(val socialNetworkName: String) {
-    Vkontakte("vk"), Odnoklassniki("ok"), Facebook("fb");
+    Vkontakte("vk"), Odnoklassniki("ok"), Facebook("fb"), Google("gl");
 
     companion object {
         @JvmStatic

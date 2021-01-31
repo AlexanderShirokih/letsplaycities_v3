@@ -13,6 +13,9 @@ abstract class SocialNetworksService {
   /// error if authorization was cancelled or some error happened
   Future<SocialNetworkData> login(AuthType networkType);
 
+  /// Starts logout process for previously logged in social network.
+  Future<void> logout(AuthType networkType);
+
   /// Returns static identifier for this device.
   Future<String> getDeviceId();
 }
@@ -33,6 +36,12 @@ class NativeBridgeSocialNetworksService implements SocialNetworksService {
     } on PlatformException catch (e) {
       throw AuthorizationException('${e.code}: ${e.message}');
     }
+  }
+
+  @override
+  Future<void> logout(AuthType networkType) {
+    return _authenticationChannel.invokeMapMethod<String, dynamic>(
+        'logout', {'authType': networkType.name});
   }
 
   @override

@@ -17,15 +17,17 @@ interface ISocialNetworkService {
 
     /**
      * Logs out currently logged user
+     *
+     * @param activity current activity
      */
-    fun onLogout()
+    suspend fun onLogout(activity: Activity)
 
     /**
      * Handles authorization result
      *
      * @return `null` if activity result cannot be accepted by the social network
      */
-    fun handleActitityResult(
+    fun handleActivityResult(
             requestCode: Int,
             resultCode: Int,
             data: Intent?

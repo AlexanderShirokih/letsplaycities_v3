@@ -2,6 +2,7 @@ import 'dart:io';
 
 // ignore: import_of_legacy_library_into_null_safe
 import 'package:dio/dio.dart';
+
 // ignore: import_of_legacy_library_into_null_safe
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/services.dart';
@@ -21,6 +22,7 @@ import 'package:lets_play_cities/remote/http_overrides.dart';
 import 'package:lets_play_cities/remote/model/cloud_messaging_service.dart';
 import 'package:lets_play_cities/utils/crashlytics_error_logger.dart';
 import 'package:lets_play_cities/utils/error_logger.dart';
+
 // ignore: import_of_legacy_library_into_null_safe
 import 'package:shared_preferences/shared_preferences.dart';
 
