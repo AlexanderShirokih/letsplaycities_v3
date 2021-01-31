@@ -49,11 +49,19 @@ android {
             keyPassword = testPass
             keyAlias project.properties['lps_alias'] as String
         }
+
+        release {
+            def testPass = file(project.properties["store_pass_release"] as String).text
+            storeFile file(project.properties["store_file_release"] as String)
+            storePassword = testPass
+            keyPassword = project.properties["lps_alias_pass_release"] as String
+            keyAlias project.properties['lps_alias_release'] as String
+        }
     }
 
     buildTypes {
         release {
-            signingConfig signingConfigs.default_test
+            signingConfig signingConfigs.release
         }
     }
 }
