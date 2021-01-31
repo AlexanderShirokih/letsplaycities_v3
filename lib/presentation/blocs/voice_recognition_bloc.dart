@@ -56,8 +56,6 @@ class VoiceRecognitionBloc
     if (state is VoiceRecognitionListening || mode == _ActionMode.stop) {
       final shouldStopAutostart = mode != _ActionMode.stop;
 
-      print("shouldStop=${shouldStopAutostart}");
-
       if (shouldStopAutostart) {
         _autoStart = false;
         // Stops listening

@@ -28,7 +28,7 @@ dependencies:
   shared_preferences: ^0.5.12+4
   flutter_stream_listener: ^1.0.0
   font_awesome_flutter: ^9.0.0-nullsafety
-
+  firebase_admob: ^0.11.0+1
   firebase_core: ^0.7.0
   firebase_crashlytics: ^0.4.0+1
   firebase_messaging: ^8.0.0-dev.14

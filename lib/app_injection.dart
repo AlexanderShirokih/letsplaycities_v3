@@ -3,11 +3,15 @@ import 'dart:io';
 // ignore: import_of_legacy_library_into_null_safe
 import 'package:dio/dio.dart';
 // ignore: import_of_legacy_library_into_null_safe
+import 'package:firebase_admob/firebase_admob.dart';
+// ignore: import_of_legacy_library_into_null_safe
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/services.dart';
 import 'package:get_it/get_it.dart';
 import 'package:lets_play_cities/app_config.dart';
 import 'package:lets_play_cities/base/achievements/achievements_service.dart';
+// ignore: import_of_legacy_library_into_null_safe
+import 'package:lets_play_cities/base/ads/advertising_helper.dart';
 import 'package:lets_play_cities/base/preferences.dart';
 import 'package:lets_play_cities/base/stt/voice_recognition_service.dart';
 import 'package:lets_play_cities/base/stt/voice_recognition_service_impl.dart';
@@ -105,6 +109,20 @@ void injectRootDependencies({required String serverHost}) {
   /// Voice recognition provider
   getIt.registerSingleton<VoiceRecognitionService>(
       VoiceRecognitionServiceImpl());
+
+  /// Admob
+  getIt.registerSingletonAsync<FirebaseAdMob>(() async {
+    final instance = FirebaseAdMob.instance;
+    final result = await instance.initialize(
+        appId: 'ca-app-pub-1936321025389344~3764122915');
+    if (!result) {
+      getIt.get<ErrorLogger>().log('AdMob initialization failed!');
+    }
+    return instance;
+  });
+
+  /// Ad manager
+  getIt.registerSingleton<AdManager>(AdManager());
 }
 
 /// Returns DIO client instance

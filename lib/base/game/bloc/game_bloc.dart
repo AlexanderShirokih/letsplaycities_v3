@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get_it/get_it.dart';
+import 'package:lets_play_cities/base/ads/advertising_helper.dart';
 import 'package:lets_play_cities/base/dictionary.dart';
 import 'package:lets_play_cities/base/dictionary/impl/country_list_loader_factory.dart';
 import 'package:lets_play_cities/base/dictionary/impl/dictionary_factory.dart';
@@ -29,6 +30,7 @@ class GameBloc extends Bloc<GameStateEvent, GameLifecycleState> {
   final LocalizationService _localizations;
   final DictionaryUpdater _dictionaryUpdater;
   final GameConfig _gameConfig;
+  final AdManager _adManager;
 
   OnUserInputAccepted? onUserInputAccepted;
   OnUserMoveBegins? onUserMoveBegins;
@@ -47,7 +49,25 @@ class GameBloc extends Bloc<GameStateEvent, GameLifecycleState> {
         _localizations = GetIt.instance.get<LocalizationService>(),
         _gameConfig = gameConfig,
         _dictionaryUpdater = DictionaryUpdater(),
+        _adManager = GetIt.instance.get<AdManager>(),
         super(InitialState()) {
+    _adManager.setUpAds(() {
+      if (state is GameState) {
+        final gameState = state as GameState;
+
+        final firstChar = findLastSuitableChar(
+            gameState.gameSessionRepository.lastAcceptedWord);
+
+        (gameState.dictionary as DictionaryDecorator)
+            .getRandomWord(firstChar.isEmpty ? 'а' : firstChar)
+            .then((word) {
+          if (word.isNotEmpty) {
+            gameState.gameSessionRepository.sendInputWord(word);
+          }
+        });
+      }
+    });
+
     add(const GameEventBeginDataLoading());
   }
 
@@ -155,13 +175,6 @@ class GameBloc extends Bloc<GameStateEvent, GameLifecycleState> {
   }
 
   Future<void> _showHelp() async {
-    if (state is GameState) {
-      final gameState = state as GameState;
-      final firstChar = findLastSuitableChar(
-          gameState.gameSessionRepository.lastAcceptedWord);
-      final word = await (gameState.dictionary as DictionaryDecorator)
-          .getRandomWord(firstChar.isEmpty ? 'а' : firstChar);
-      if (word.isNotEmpty) gameState.gameSessionRepository.sendInputWord(word);
-    }
+    await _adManager.showRewarded();
   }
 }
