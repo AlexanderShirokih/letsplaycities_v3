@@ -1,14 +1,17 @@
 import 'package:lets_play_cities/base/data.dart';
-import 'package:lets_play_cities/base/scoring.dart';
 import 'package:lets_play_cities/base/dictionary.dart';
 import 'package:lets_play_cities/base/game/combo.dart';
-import 'package:lets_play_cities/base/game/management.dart';
 import 'package:lets_play_cities/base/game/handlers.dart';
+import 'package:lets_play_cities/base/game/management.dart';
 import 'package:lets_play_cities/base/game/player/player.dart';
+import 'package:lets_play_cities/base/scoring.dart';
 
-/// User as callback hook to notify UI that word is accepted and input fields
+/// Callback hook used to notify UI that word is accepted and input fields
 /// can be cleared.
 typedef OnUserInputAccepted = void Function();
+
+/// Callback hook used to notify UI that *player* move begins
+typedef OnUserMoveBegins = void Function();
 
 /// Intercepts [Accepted] words, commits them to the database
 /// and attaches country codes.
@@ -20,14 +23,28 @@ class Endpoint extends EventHandler {
 
   final OnUserInputAccepted _onUserInputAccepted;
 
+  final OnUserMoveBegins _onUserMoveBegins;
+
   late DateTime _currentUserStartTime;
 
-  Endpoint(this._dictionaryService, this._onUserInputAccepted,
-      this._scoreController);
+  Endpoint(
+    this._dictionaryService,
+    this._onUserInputAccepted,
+    this._onUserMoveBegins,
+    this._scoreController,
+  );
 
   @override
   Stream<GameEvent> process(GameEvent event) async* {
-    if (event is OnFirstCharChanged) _currentUserStartTime = DateTime.now();
+    if (event is OnFirstCharChanged) {
+      _currentUserStartTime = DateTime.now();
+    }
+
+    if (event is OnUserSwitchedEvent) {
+      if (event.nextUser is Player) {
+        _onUserMoveBegins();
+      }
+    }
 
     if (event is Accepted) {
       _dictionaryService.markUsed(event.word);

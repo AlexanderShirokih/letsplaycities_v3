@@ -38,7 +38,7 @@ class CustomMaterialButton extends StatelessWidget {
 /// Creates button with icon and ripple effect
 class MaterialIconButton extends StatelessWidget {
   final IconData iconData;
-  final VoidCallback onPressed;
+  final VoidCallback? onPressed;
 
   const MaterialIconButton(this.iconData, {required this.onPressed});
 

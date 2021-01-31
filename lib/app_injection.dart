@@ -9,6 +9,8 @@ import 'package:get_it/get_it.dart';
 import 'package:lets_play_cities/app_config.dart';
 import 'package:lets_play_cities/base/achievements/achievements_service.dart';
 import 'package:lets_play_cities/base/preferences.dart';
+import 'package:lets_play_cities/base/stt/voice_recognition_service.dart';
+import 'package:lets_play_cities/base/stt/voice_recognition_service_impl.dart';
 import 'package:lets_play_cities/l18n/localization_service.dart';
 import 'package:lets_play_cities/l18n/localizations_factory.dart';
 import 'package:lets_play_cities/remote/account.dart';
@@ -95,9 +97,14 @@ void injectRootDependencies({required String serverHost}) {
   getIt.registerFactoryParam<ApiRepository, Credential, void>((credential, _) =>
       ApiRepository(getIt.get(param1: credential), getIt.get()));
 
+  /// Google Game Services as [AchievementsService]
   getIt.registerLazySingleton<AchievementsService>(() {
     return GoogleServicesAchievementService();
   });
+
+  /// Voice recognition provider
+  getIt.registerSingleton<VoiceRecognitionService>(
+      VoiceRecognitionServiceImpl());
 }
 
 /// Returns DIO client instance

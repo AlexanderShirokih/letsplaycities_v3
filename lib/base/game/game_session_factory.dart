@@ -19,6 +19,7 @@ class GameSessionFactory {
     required DictionaryService dictionary,
     required ScoreController scoreController,
     required void Function() onUserInputAccepted,
+    required void Function() onUserMoveBegins,
   }) {
     final mode = config.gameMode;
 
@@ -35,7 +36,12 @@ class GameSessionFactory {
       ExclusionsChecker(exclusions),
       DatabaseChecker(dictionary),
       ...(config.additionalEventHandlers ?? <EventHandler>[]),
-      Endpoint(dictionary, onUserInputAccepted, scoreController),
+      Endpoint(
+        dictionary,
+        onUserInputAccepted,
+        onUserMoveBegins,
+        scoreController,
+      ),
     ];
 
     return GameSession(

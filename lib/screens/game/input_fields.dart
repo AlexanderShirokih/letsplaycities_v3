@@ -5,6 +5,7 @@ import 'package:lets_play_cities/base/game/bloc/game_bloc.dart';
 import 'package:lets_play_cities/base/game/bloc/service_events_bloc.dart';
 import 'package:lets_play_cities/base/repos.dart';
 import 'package:lets_play_cities/screens/common/common_widgets.dart';
+import 'package:lets_play_cities/screens/game/voice_recognition_view.dart';
 
 class InputFieldsGroup extends StatelessWidget {
   @override
@@ -43,10 +44,12 @@ class _CityInputField extends StatefulWidget {
 
 class _CityInputFieldState extends State<_CityInputField> {
   final InputMatcherCallback _onPressed;
+  final GameSessionRepository _repository;
   final inputController = TextEditingController();
 
   _CityInputFieldState(GameSessionRepository repository, GameBloc bloc)
-      : _onPressed = repository.sendInputWord {
+      : _onPressed = repository.sendInputWord,
+        _repository = repository {
     // Register callback hook to be able to clear input when the word is accepted.
     bloc.onUserInputAccepted = _onClear;
   }
@@ -68,11 +71,8 @@ class _CityInputFieldState extends State<_CityInputField> {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            MaterialIconButton(
-              Icons.keyboard_voice,
-              onPressed: () {
-                // TODO: Implement voice helper
-              },
+            VoiceRecognitionButton(
+              onWords: _repository.sendInputWord,
             ),
             Expanded(
               child: Padding(

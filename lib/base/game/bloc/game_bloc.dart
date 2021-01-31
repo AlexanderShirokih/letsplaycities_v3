@@ -31,6 +31,7 @@ class GameBloc extends Bloc<GameStateEvent, GameLifecycleState> {
   final GameConfig _gameConfig;
 
   OnUserInputAccepted? onUserInputAccepted;
+  OnUserMoveBegins? onUserMoveBegins;
 
   @override
   Future<void> close() async {
@@ -106,13 +107,13 @@ class GameBloc extends Bloc<GameStateEvent, GameLifecycleState> {
 
     final repository = GameSessionRepository(
       GameSessionFactory.createForGameMode(
-        config: _gameConfig,
-        preferences: _prefs,
-        exclusions: dataState.exclusions,
-        dictionary: dataState.dictionary,
-        scoreController: dataState.scoreController,
-        onUserInputAccepted: () => onUserInputAccepted?.call(),
-      ),
+          config: _gameConfig,
+          preferences: _prefs,
+          exclusions: dataState.exclusions,
+          dictionary: dataState.dictionary,
+          scoreController: dataState.scoreController,
+          onUserInputAccepted: () => onUserInputAccepted?.call(),
+          onUserMoveBegins: () => onUserMoveBegins?.call()),
     );
 
     yield GameState(
