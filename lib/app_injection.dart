@@ -2,12 +2,12 @@ import 'dart:io';
 
 // ignore: import_of_legacy_library_into_null_safe
 import 'package:dio/dio.dart';
-
 // ignore: import_of_legacy_library_into_null_safe
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/services.dart';
 import 'package:get_it/get_it.dart';
 import 'package:lets_play_cities/app_config.dart';
+import 'package:lets_play_cities/base/achievements/achievements_service.dart';
 import 'package:lets_play_cities/base/preferences.dart';
 import 'package:lets_play_cities/l18n/localization_service.dart';
 import 'package:lets_play_cities/l18n/localizations_factory.dart';
@@ -18,11 +18,11 @@ import 'package:lets_play_cities/remote/api_repository.dart';
 import 'package:lets_play_cities/remote/client/api_client.dart';
 import 'package:lets_play_cities/remote/client/remote_api_client.dart';
 import 'package:lets_play_cities/remote/firebase/firebase_service.dart';
+import 'package:lets_play_cities/remote/google_services_achievements.dart';
 import 'package:lets_play_cities/remote/http_overrides.dart';
 import 'package:lets_play_cities/remote/model/cloud_messaging_service.dart';
 import 'package:lets_play_cities/utils/crashlytics_error_logger.dart';
 import 'package:lets_play_cities/utils/error_logger.dart';
-
 // ignore: import_of_legacy_library_into_null_safe
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -94,6 +94,10 @@ void injectRootDependencies({required String serverHost}) {
   /// Api Repository
   getIt.registerFactoryParam<ApiRepository, Credential, void>((credential, _) =>
       ApiRepository(getIt.get(param1: credential), getIt.get()));
+
+  getIt.registerLazySingleton<AchievementsService>(() {
+    return GoogleServicesAchievementService();
+  });
 }
 
 /// Returns DIO client instance

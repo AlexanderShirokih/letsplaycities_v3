@@ -1,10 +1,15 @@
 import 'dart:async';
 
+import 'package:get_it/get_it.dart';
+import 'package:lets_play_cities/base/achievements/achievements.dart';
+import 'package:lets_play_cities/base/achievements/achievements_service.dart';
 import 'package:lets_play_cities/base/data.dart';
+import 'package:lets_play_cities/base/dictionary.dart';
 import 'package:lets_play_cities/base/game/game_mode.dart';
 import 'package:lets_play_cities/base/game/game_result.dart';
 import 'package:lets_play_cities/base/game/management.dart';
 import 'package:lets_play_cities/base/game/player/surrender_exception.dart';
+import 'package:lets_play_cities/base/preferences.dart';
 import 'package:lets_play_cities/base/scoring.dart';
 import 'package:lets_play_cities/base/users.dart';
 import 'package:lets_play_cities/utils/stream_utils.dart';
@@ -66,6 +71,7 @@ class GameSession {
       usersList.getUserByPosition(position);
 
   String _lastAcceptedWord = '';
+  int _playerMovesInGame = 0;
 
   /// Last accepted word
   String get lastAcceptedWord => _lastAcceptedWord;
@@ -116,6 +122,10 @@ class GameSession {
       if (event.endType == MoveFinishType.Completed) {
         throw ('This move type should not finish the game!');
       }
+
+      // Update achievements
+      await _updateAchievements();
+
       return GameResultChecker(
         users: usersList,
         owner: usersList.all.whereType<Player>().first,
@@ -174,6 +184,8 @@ class GameSession {
       await for (final event in results) {
         yield event;
         if (event is Accepted) {
+          if (event.owner is Player) _playerMovesInGame++;
+
           _lastAcceptedWord = event.word;
           usersList.switchToNext();
           yield OnMoveFinished(MoveFinishType.Completed, currentUser);
@@ -198,5 +210,51 @@ class GameSession {
     _gameRunning = false;
     await usersList.close();
     await _serviceEvents.close();
+  }
+
+  // Checks for achievements type when game ends
+  Future<void> _updateAchievements() async {
+    final achievementService = GetIt.instance.get<AchievementsService>();
+
+    final playerScore = usersList.all.whereType<Player>().first.score;
+
+    final nonEmptyScore = playerScore > 0;
+
+    if (nonEmptyScore) {
+      await achievementService.unlockAchievement(
+          Achievement.write15Cities, _playerMovesInGame);
+      await achievementService.unlockAchievement(
+          Achievement.write80Cities, _playerMovesInGame);
+      await achievementService.unlockAchievement(
+          Achievement.write500Cities, _playerMovesInGame);
+      await achievementService.unlockAchievement(
+          Achievement.reachScore1000Pts, playerScore);
+      await achievementService.unlockAchievement(
+          Achievement.reachScore5000Pts, playerScore);
+      await achievementService.unlockAchievement(
+          Achievement.reachScore25000Pts, playerScore);
+
+      if (_playerMovesInGame >= 50) {
+        await achievementService
+            .unlockAchievement(Achievement.write50CitiesInGame);
+      }
+      if (_playerMovesInGame >= 100) {
+        await achievementService
+            .unlockAchievement(Achievement.write100CitiesInGame);
+      }
+
+      final difficulty = GetIt.instance.get<GamePreferences>().wordsDifficulty;
+
+      if (difficulty == Difficulty.HARD) {
+        await achievementService.unlockAchievement(Achievement.playInHardMode);
+      }
+      if (mode == GameMode.Network) {
+        await achievementService
+            .unlockAchievement(Achievement.playOnline3Times);
+      }
+      if (mode != GameMode.PlayerVsPlayer) {
+        await achievementService.submitScore(playerScore);
+      }
+    }
   }
 }

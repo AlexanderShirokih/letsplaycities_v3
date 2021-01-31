@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:get_it/get_it.dart';
+import 'package:lets_play_cities/base/achievements/achievements_service.dart';
 import 'package:lets_play_cities/base/game/game_config.dart';
 import 'package:lets_play_cities/base/game/game_mode.dart';
 import 'package:lets_play_cities/screens/common/common_widgets.dart';
@@ -149,13 +151,18 @@ class _AnimatedMainButtonsState extends State<AnimatedMainButtons>
         children: [
           CustomMaterialButton('Играть', Icon(Icons.play_arrow),
               () => _setPrimaryButtonsVisibility(false)),
-          CustomMaterialButton('Достижения', FaIcon(FontAwesomeIcons.medal),
-              () {
-            // TODO: Implement achievements service
-          }),
-          CustomMaterialButton('Рейтинги', Icon(Icons.trending_up), () {
-            // TODO: Implement ratings service
-          }),
+          CustomMaterialButton(
+              'Достижения',
+              FaIcon(FontAwesomeIcons.medal),
+              () => GetIt.instance
+                  .get<AchievementsService>()
+                  .showAchievementsScreen()),
+          CustomMaterialButton(
+              'Рейтинги',
+              Icon(Icons.trending_up),
+              () => GetIt.instance
+                  .get<AchievementsService>()
+                  .showLeaderboardScreen()),
           CustomMaterialButton(
               'Города',
               Icon(Icons.apartment),

@@ -14,9 +14,6 @@ class ScoreController {
   final ScoringType _scoringType;
   final OnUpdateScoringData _onUpdate;
 
-//TODO: will be used later in achievements service:
-// int _playerMovesInGame = 0;
-
   ScoreController(this._allGroups, this._scoringType, this._onUpdate);
 
   factory ScoreController.fromPrefs(GamePreferences prefs) => ScoreController(
@@ -36,8 +33,6 @@ class ScoreController {
   Future<void> onMoveFinished(User user, String word, int moveTimeInMs,
       Map<int, int> activeCombos) async {
     _allGroups[G_ONLINE][F_TIME].asIntField().add(moveTimeInMs ~/ 1000);
-
-//    if (user is Player) _playerMovesInGame++;
 
     user.increaseScore(_getPoints(word, moveTimeInMs));
 
