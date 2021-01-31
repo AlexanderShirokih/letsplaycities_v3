@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-
 import 'package:lets_play_cities/base/dictionary.dart';
 import 'package:lets_play_cities/base/preferences.dart';
 import 'package:lets_play_cities/base/scoring.dart';
@@ -37,7 +36,7 @@ class _SettingsItemsList extends StatefulWidget {
   @override
   _SettingsItemsListState createState() => _SettingsItemsListState(
         [
-          _NavigationItem(_titles[0], 'Unimplemented', null),
+          _NavigationItem(_titles[0], 'Пока недоступно в бета версии :(', null),
           _SingleChoiceItem(
             _titles[1],
             (_settings['difficulty'] as List<dynamic>).cast<String>(),

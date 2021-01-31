@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <string name="app_name">Сыграем в Горолда</string>
+    <string name="app_name">Сыграем в Города</string>
     <string name="share_with">Поделиться с помощью</string>
     <integer name="com_vk_sdk_AppId">6613684</integer>
     <string name="facebook_app_id">1023004964531266</string>
