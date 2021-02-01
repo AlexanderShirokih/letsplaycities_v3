@@ -20,6 +20,8 @@ class LetsPlayCitiesApp extends StatelessWidget {
   Widget build(BuildContext context) => FutureBuilder<void>(
         future: _initWithMigrations(),
         builder: (context, snap) {
+          print(
+              'HERE WE GO!: hasData=${snap.hasData}, hasError=${snap.hasError}');
           return snap.hasData
               ? MultiRepositoryProvider(
                   providers: [
@@ -38,20 +40,20 @@ class LetsPlayCitiesApp extends StatelessWidget {
                     ),
                     builder: (_, snap) {
                       return snap.hasData
-                        ? RepositoryProvider.value(
-                            value: snap.requireData,
-                            child: MaterialApp(
-                              theme: ThemeData(
-                                primarySwatch: Colors.orange,
-                                accentColor: Colors.blue[900],
-                                visualDensity:
-                                    VisualDensity.adaptivePlatformDensity,
+                          ? RepositoryProvider.value(
+                              value: snap.requireData,
+                              child: MaterialApp(
+                                theme: ThemeData(
+                                  primarySwatch: Colors.orange,
+                                  accentColor: Colors.blue[900],
+                                  visualDensity:
+                                      VisualDensity.adaptivePlatformDensity,
+                                ),
+                                home: _buildAppHome(),
                               ),
-                              home: _buildAppHome(),
-                            ),
-                          )
-                        : _showWaitForDataWidget(
-                            snap, 'Fatal error: cannot load theme!');
+                            )
+                          : _showWaitForDataWidget(
+                              snap, 'Fatal error: cannot load theme!');
                     },
                   ),
                 )
@@ -81,13 +83,10 @@ class LetsPlayCitiesApp extends StatelessWidget {
 
   Widget _showWaitForDataWidget(AsyncSnapshot snap, String errText) {
     return Center(
-        child: (snap.hasError
-            ? Text(errText, textDirection: TextDirection.ltr)
-            : Container(
-                width: 40.0,
-                height: 40.0,
-                color: Colors.red,
-              )));
+      child: (snap.hasError
+          ? Text(errText, textDirection: TextDirection.ltr)
+          : CircularProgressIndicator()),
+    );
   }
 
   Future<bool> _initWithMigrations() async {
