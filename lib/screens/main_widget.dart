@@ -36,7 +36,8 @@ class LetsPlayCitiesApp extends StatelessWidget {
                         backgroundImage: 'assets/images/backgrounds/bg_geo.png',
                       ),
                     ),
-                    builder: (_, snap) => snap.hasData
+                    builder: (_, snap) {
+                      return snap.hasData
                         ? RepositoryProvider.value(
                             value: snap.requireData,
                             child: MaterialApp(
@@ -50,7 +51,8 @@ class LetsPlayCitiesApp extends StatelessWidget {
                             ),
                           )
                         : _showWaitForDataWidget(
-                            snap, 'Fatal error: cannot load theme!'),
+                            snap, 'Fatal error: cannot load theme!');
+                    },
                   ),
                 )
               : _showWaitForDataWidget(
@@ -77,12 +79,22 @@ class LetsPlayCitiesApp extends StatelessWidget {
         ),
       );
 
-  Widget _showWaitForDataWidget(AsyncSnapshot snap, String errText) => Center(
-      child: (snap.hasError
-          ? Text(errText, textDirection: TextDirection.ltr)
-          : CircularProgressIndicator()));
+  Widget _showWaitForDataWidget(AsyncSnapshot snap, String errText) {
+    return Center(
+        child: (snap.hasError
+            ? Text(errText, textDirection: TextDirection.ltr)
+            : Container(
+                width: 40.0,
+                height: 40.0,
+                color: Colors.red,
+              )));
+  }
 
-  Future<void> _initWithMigrations() => SharedPreferencesMigration()
-      .migrateSharedPreferencesIfNeeded()
-      .then((value) => GetIt.instance.allReady());
+  Future<bool> _initWithMigrations() async {
+    await SharedPreferencesMigration().migrateSharedPreferencesIfNeeded();
+
+    await GetIt.instance.allReady();
+
+    return true;
+  }
 }
