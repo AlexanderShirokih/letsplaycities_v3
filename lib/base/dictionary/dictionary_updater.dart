@@ -7,6 +7,7 @@ import 'package:dio/dio.dart';
 import 'package:get_it/get_it.dart';
 import 'package:lets_play_cities/base/dictionary/impl/dictionary_factory.dart';
 import 'package:lets_play_cities/base/preferences.dart';
+import 'package:lets_play_cities/remote/exceptions.dart';
 
 /// Describes dictionary update period constants
 enum DictionaryUpdatePeriod { NEVER, THREE_HOURS, DAILY }
@@ -52,7 +53,7 @@ class DictionaryUpdater {
 
     return _fetchUpdates().handleError(
       (_) {}, // Eat SocketExceptions
-      test: (error) => error is SocketException,
+      test: (error) => error is RemoteException,
     );
   }
 
@@ -67,6 +68,7 @@ class DictionaryUpdater {
 
     // Download database and emit downloading percents
     final databaseFile = await DictionaryFactory.internalDatabaseFile;
+
     yield* _loadDictionaryData(databaseFile, latestVersion).distinct();
 
     final isDatabaseExists = await databaseFile.exists();
@@ -83,27 +85,31 @@ class DictionaryUpdater {
   }
 
   Stream<int> _loadDictionaryData(File output, int latestVersion) async* {
-    final response = await _http.get(
-      '/data-$latestVersion.db2',
-      options: Options(responseType: ResponseType.stream),
-    );
-
-    final total =
-        int.parse(response.headers.value(Headers.contentLengthHeader));
-
-    var done = 0;
-
-    final sink = await output.create().then((file) => file.openWrite());
-
     try {
-      await for (final List<int> portion in response.data.stream) {
-        done += portion.length;
-        sink.add(portion);
-        yield (done / total * 100).round();
+      final response = await _http.get(
+        '/data-$latestVersion.db2',
+        options: Options(responseType: ResponseType.stream),
+      );
+
+      final total =
+          int.parse(response.headers.value(Headers.contentLengthHeader));
+
+      var done = 0;
+
+      final sink = await output.create().then((file) => file.openWrite());
+
+      try {
+        await for (final List<int> portion in response.data.stream) {
+          done += portion.length;
+          sink.add(portion);
+          yield (done / total * 100).round();
+        }
+      } finally {
+        await sink.close();
+        await sink.done;
       }
-    } finally {
-      await sink.close();
-      await sink.done;
+    } catch (e) {
+      throw RemoteException('Database downloading failed: $e');
     }
   }
 
@@ -112,13 +118,19 @@ class DictionaryUpdater {
   }
 
   Future<int> _fetchLatestDictionaryVersion() async {
-    final response = await _http.get('/update');
+    try {
+      final response = await _http.get('/update');
 
-    if (response.statusCode == 200) {
-      final resp = jsonDecode(response.data);
-      return resp['dictionary']['version'] as int;
+      if (response.statusCode == 200) {
+        return response.data['dictionary']['version'] as int;
+      }
+    } on DioError catch (e) {
+      throw FetchingException(
+        'Dictionary version fetch error: ${e.error}',
+        e.request.uri,
+      );
     }
 
-    throw ('Update fetching failed. Status code: ${response.statusCode}');
+    throw RemoteException('Update fetching failed!');
   }
 }
