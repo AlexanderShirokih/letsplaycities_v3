@@ -13,12 +13,12 @@ if (flutterRoot == null) {
 
 def flutterVersionCode = localProperties.getProperty('flutter.versionCode')
 if (flutterVersionCode == null) {
-    flutterVersionCode = '3002'
+    flutterVersionCode = '3003'
 }
 
 def flutterVersionName = localProperties.getProperty('flutter.versionName')
 if (flutterVersionName == null) {
-    flutterVersionName = '3.0.0-beta1'
+    flutterVersionName = '3.0.0-beta2'
 }
 
 apply plugin: 'com.android.application'
