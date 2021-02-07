@@ -11,6 +11,12 @@ abstract class GamePreferences {
   /// Words difficulty level.
   Difficulty get wordsDifficulty;
 
+  /// Current theme name
+  String? get theme;
+
+  // Sets the current theme
+  set theme(String? themeName);
+
   set wordsDifficulty(Difficulty d);
 
   /// `true` when words spelling correction is enabled.
@@ -168,10 +174,18 @@ class SharedPreferencesGamePrefs extends GamePreferences {
   }
 
   @override
-  String get lastNativeLogin => _prefs.getString('lastNativeLogin');
+  String get lastNativeLogin => _prefs.getString('lastNativeLogin') ?? '';
 
   @override
   set lastNativeLogin(String newLogin) {
     _prefs.setString('lastNativeLogin', newLogin);
+  }
+
+  @override
+  String? get theme => _prefs.getString('theme');
+
+  @override
+  set theme(String? themeName) {
+    _prefs.setString('theme', themeName);
   }
 }

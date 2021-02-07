@@ -4,7 +4,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lets_play_cities/base/game/bloc/game_bloc.dart';
 import 'package:lets_play_cities/base/game/bloc/service_events_bloc.dart';
 import 'package:lets_play_cities/base/repos.dart';
-import 'package:lets_play_cities/screens/common/common_widgets.dart';
 import 'package:lets_play_cities/screens/game/voice_recognition_view.dart';
 
 class InputFieldsGroup extends StatelessWidget {
@@ -67,34 +66,34 @@ class _CityInputFieldState extends State<_CityInputField> {
   @override
   Widget build(BuildContext context) => Container(
         margin: const EdgeInsets.all(8.0),
-        color: Colors.white,
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            VoiceRecognitionButton(
+        child: TextField(
+          autofocus: true,
+          onSubmitted: _onSubmit,
+          textAlignVertical: TextAlignVertical.center,
+          controller: inputController,
+          textCapitalization: TextCapitalization.words,
+          decoration: InputDecoration(
+            filled: true,
+            fillColor: Theme.of(context).cardColor,
+            contentPadding: EdgeInsets.symmetric(
+              vertical: 2.0,
+              horizontal: 8.0,
+            ),
+            prefixIcon: VoiceRecognitionButton(
               onWords: _repository.sendInputWord,
             ),
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 4.0),
-                child: TextField(
-                  onSubmitted: _onSubmit,
-                  controller: inputController,
-                  cursorColor: Theme.of(context).primaryColor,
-                  textCapitalization: TextCapitalization.words,
-                  decoration: const InputDecoration(border: InputBorder.none),
-                  inputFormatters: [
-                    FilteringTextInputFormatter.allow(
-                      RegExp("^[А-я-.' ]+\$"),
-                    )
-                  ],
-                ),
-              ),
-            ),
-            MaterialIconButton(
-              Icons.add_circle_outline,
+            suffixIcon: IconButton(
+              icon: Icon(Icons.add_circle_outline),
               onPressed: () => _onSubmit(inputController.text),
             ),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(16.0),
+            ),
+          ),
+          inputFormatters: [
+            FilteringTextInputFormatter.allow(
+              RegExp("^[А-я-.' ]+\$"),
+            )
           ],
         ),
       );
@@ -136,30 +135,25 @@ class __ChatMessageInputFieldState extends State<_ChatMessageInputField> {
   @override
   Widget build(BuildContext context) => Container(
         margin: const EdgeInsets.all(8.0),
-        color: Colors.white,
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(12.0, 0.0, 4.0, 0.0),
-                child: TextField(
-                  onSubmitted: (text) => _onSubmit(context, text),
-                  controller: inputController,
-                  cursorColor: Theme.of(context).primaryColor,
-                  textCapitalization: TextCapitalization.words,
-                  decoration: const InputDecoration(
-                    border: InputBorder.none,
-                    hintText: 'Сообщение',
-                  ),
-                ),
-              ),
+        child: TextField(
+          onSubmitted: (text) => _onSubmit(context, text),
+          controller: inputController,
+          textCapitalization: TextCapitalization.words,
+          textAlignVertical: TextAlignVertical.center,
+          decoration: InputDecoration(
+            contentPadding: EdgeInsets.symmetric(
+              vertical: 2.0,
+              horizontal: 12.0,
             ),
-            MaterialIconButton(
-              Icons.send,
+            suffixIcon: IconButton(
+              icon: Icon(Icons.send),
               onPressed: () => _onSubmit(context, inputController.text),
             ),
-          ],
+            hintText: 'Сообщение',
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(16.0),
+            ),
+          ),
         ),
       );
 }

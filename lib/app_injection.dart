@@ -15,6 +15,8 @@ import 'package:lets_play_cities/base/ads/advertising_helper.dart';
 import 'package:lets_play_cities/base/preferences.dart';
 import 'package:lets_play_cities/base/stt/voice_recognition_service.dart';
 import 'package:lets_play_cities/base/stt/voice_recognition_service_impl.dart';
+import 'package:lets_play_cities/base/themes/theme_manager.dart';
+import 'package:lets_play_cities/base/themes/theme_manager_impl.dart';
 import 'package:lets_play_cities/l18n/localization_service.dart';
 import 'package:lets_play_cities/l18n/localizations_factory.dart';
 import 'package:lets_play_cities/remote/account.dart';
@@ -48,6 +50,12 @@ void injectRootDependencies({required String serverHost}) {
   // Localization service
   getIt.registerSingletonAsync<LocalizationService>(
       () => LocalizationsFactory().createDefaultLocalizations());
+
+  // Theme manager
+  getIt.registerSingletonWithDependencies<ThemeManager>(
+    () => ThemeManagerImpl(getIt.get<GamePreferences>()),
+    dependsOn: [GamePreferences],
+  );
 
   // Global HTTP Overrides Used by HTTP Clients
   getIt.registerSingletonAsync<HttpOverrides>(

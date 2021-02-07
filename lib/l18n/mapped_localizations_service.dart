@@ -73,4 +73,7 @@ class MappedLocalizationsService extends LocalizationService {
 
   @override
   Map<String, dynamic> get misc => _data['misc'];
+
+  @override
+  Map<String, dynamic> get themes => _data['themes'];
 }

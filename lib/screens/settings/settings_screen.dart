@@ -6,6 +6,7 @@ import 'package:lets_play_cities/base/scoring.dart';
 import 'package:lets_play_cities/screens/common/dialogs.dart';
 import 'package:lets_play_cities/screens/common/utils.dart';
 import 'package:lets_play_cities/screens/settings/stats/stats_screen.dart';
+import 'package:lets_play_cities/screens/settings/theme_manager_screen.dart';
 
 class SettingsScreen extends StatelessWidget {
   @override
@@ -16,27 +17,32 @@ class SettingsScreen extends StatelessWidget {
             title: Text(l10n.settings['settings']),
           ),
           body: _SettingsItemsList(
-              l10n.settings, context.watch<GamePreferences>()),
+            l10n.settings,
+            (l10n.themes['theme_names'] as Map<String, dynamic>)
+                .cast<String, String>(),
+            context.watch<GamePreferences>(),
+          ),
         ),
       );
 }
 
 class _SettingsItemsList extends StatefulWidget {
   final Map<String, dynamic> _settings;
+  final Map<String, String> _themes;
   final List<String> _titles;
   final List<String> _onOff;
   final GamePreferences _prefs;
 
-  _SettingsItemsList(this._settings, this._prefs)
+  _SettingsItemsList(this._settings, this._themes, this._prefs)
       : _titles =
             (_settings['settings_item_titles'] as List<dynamic>).cast<String>(),
         _onOff = (_settings['on_off'] as List<dynamic>).cast<String>();
 
-  // TODO: Implement another screens: ThemeSelectorScreen
   @override
   _SettingsItemsListState createState() => _SettingsItemsListState(
         [
-          _NavigationItem(_titles[0], 'Пока недоступно в бета версии :(', null),
+          _NavigationItem(_titles[0], _themes[_prefs.theme] ?? 'Не выбрано',
+              () => ThemeManagerScreen()),
           _SingleChoiceItem(
             _titles[1],
             (_settings['difficulty'] as List<dynamic>).cast<String>(),
@@ -131,17 +137,14 @@ typedef ScreenSelector = Widget Function();
 // When item is clicked then navigates to the specified destination
 class _NavigationItem extends _SettingsItem {
   final String _subtitle;
-  final ScreenSelector? _selector;
+  final ScreenSelector _selector;
 
   _NavigationItem(String title, this._subtitle, this._selector) : super(title);
 
   @override
   Future<void> onClicked(BuildContext context) {
-    if (_selector != null) {
-      Navigator.of(context)
-          .push(MaterialPageRoute(builder: (_) => _selector!.call()));
-    }
-    return Future.value();
+    return Navigator.of(context)
+        .push(MaterialPageRoute(builder: (_) => _selector()));
   }
 
   @override

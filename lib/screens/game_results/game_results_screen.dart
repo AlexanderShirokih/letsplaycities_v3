@@ -1,7 +1,6 @@
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:lets_play_cities/base/game/game_config.dart';
 import 'package:lets_play_cities/base/game/game_mode.dart';
@@ -11,11 +10,11 @@ import 'package:lets_play_cities/l18n/localization_service.dart';
 import 'package:lets_play_cities/platform/share.dart';
 import 'package:lets_play_cities/remote/account.dart';
 import 'package:lets_play_cities/remote/remote_player.dart';
+import 'package:lets_play_cities/screens/common/common_widgets.dart';
 import 'package:lets_play_cities/screens/common/utils.dart';
 import 'package:lets_play_cities/screens/game/game_screen.dart';
 import 'package:lets_play_cities/screens/game/user_avatar.dart';
 import 'package:lets_play_cities/screens/online/profile.dart';
-import 'package:lets_play_cities/themes/theme.dart' as theme;
 import 'package:lets_play_cities/utils/string_utils.dart';
 
 /// Shows when the game ends
@@ -35,12 +34,7 @@ class GameResultsScreen extends StatelessWidget {
           context,
           (l10n) => Stack(
             children: [
-              Positioned.fill(
-                child: Image.asset(
-                  context.watch<theme.Theme>().backgroundImage,
-                  fit: BoxFit.cover,
-                ),
-              ),
+              createBackground(context),
               Positioned.fill(
                 child: BackdropFilter(
                   filter: ImageFilter.blur(

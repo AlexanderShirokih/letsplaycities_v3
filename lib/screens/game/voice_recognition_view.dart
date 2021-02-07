@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lets_play_cities/base/game/bloc/game_bloc.dart';
 import 'package:lets_play_cities/presentation/blocs/voice_recognition_bloc.dart';
-import 'package:lets_play_cities/screens/common/common_widgets.dart';
 
 /// Button used to recognize text from speech
 /// Requires [GameBloc] to be injected in widget tree
@@ -35,12 +34,12 @@ class VoiceRecognitionButton extends StatelessWidget {
           return AvatarGlow(
             animate: isListening,
             endRadius: 24.0,
-            glowColor: Theme.of(context).primaryColor,
+            glowColor: Theme.of(context).accentColor,
             duration: const Duration(milliseconds: 1500),
             repeatPauseDuration: const Duration(milliseconds: 100),
             repeat: true,
-            child: MaterialIconButton(
-              Icons.mic,
+            child: IconButton(
+              icon: Icon(Icons.mic),
               onPressed: isReady
                   ? () => context
                       .read<VoiceRecognitionBloc>()

@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lets_play_cities/base/data.dart';
 import 'package:lets_play_cities/base/game/game_item.dart';
 import 'package:lets_play_cities/base/repositories/game_session_repo.dart';
+import 'package:lets_play_cities/base/themes/theme.dart' as themes;
 import 'package:lets_play_cities/screens/common/utils.dart';
 import 'package:lets_play_cities/utils/string_utils.dart';
 
@@ -20,7 +21,7 @@ class CitiesList extends StatelessWidget {
             reverse: true,
             children: state.hasData
                 ? state.requireData.reversed
-                    .map((e) => _GameItemListTile(e))
+                    .map((e) => GameItemListTile(e))
                     .toList(growable: false)
                 : [],
           ),
@@ -28,10 +29,10 @@ class CitiesList extends StatelessWidget {
       );
 }
 
-class _GameItemListTile extends StatelessWidget {
+class GameItemListTile extends StatelessWidget {
   final GameItem _gameItem;
 
-  _GameItemListTile(this._gameItem);
+  GameItemListTile(this._gameItem);
 
   @override
   Widget build(BuildContext context) => ListTile(
@@ -44,7 +45,7 @@ class _GameItemListTile extends StatelessWidget {
             Container(
               padding: EdgeInsets.fromLTRB(8.0, 8.0, 14.0, 8.0),
               margin: EdgeInsets.zero,
-              decoration: _buildDecoration(),
+              decoration: _buildDecoration(context),
               child: Row(
                 children: [
                   if (_gameItem is CityInfo) _buildIcon(_gameItem as CityInfo),
@@ -70,22 +71,19 @@ class _GameItemListTile extends StatelessWidget {
     }
   }
 
-  BoxDecoration _buildDecoration() {
-    const kFillColor = Color(0xFFFFD2AE);
-    const kBorderColor = Color(0xFFE9B77B);
-    const kMessageMe = Color(0xFFAEF1B0);
-    const kMessageOther = Color(0xFFAFB7F4);
+  BoxDecoration _buildDecoration(BuildContext context) {
+    final theme = context.watch<themes.Theme>();
 
     return BoxDecoration(
       color: (_gameItem is CityInfo)
-          ? kFillColor
+          ? theme.fillColor
           : (_gameItem.owner.position == Position.LEFT
-              ? kMessageOther
-              : kMessageMe),
+              ? theme.messageOther
+              : theme.messageMe),
       borderRadius: BorderRadius.circular(8.0),
       border: Border.all(
         width: 1.0,
-        color: kBorderColor,
+        color: theme.borderColor,
         style: _gameItem is CityInfo ? BorderStyle.solid : BorderStyle.none,
       ),
     );
