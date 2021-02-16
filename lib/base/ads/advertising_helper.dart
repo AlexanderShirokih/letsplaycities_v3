@@ -5,9 +5,32 @@ import 'package:flutter/services.dart';
 
 // TODO: Load banner!
 
-class AdManager {
+abstract class AdManager {
+  void setUpAds(void Function() onAdShown);
+
+  Future<void> showRewarded();
+}
+
+/// Stub implementation for testing purposes (used in desktop version)
+class StubAdManager implements AdManager {
+  void Function() callback;
+
+  @override
+  void setUpAds(void Function() onAdShown) {
+    callback = onAdShown;
+  }
+
+  @override
+  Future<void> showRewarded() async {
+    callback?.call();
+  }
+}
+
+/// Firebase Ad implementation
+class FirebaseAdManager implements AdManager {
   static const _rewardedAdId = 'ca-app-pub-1936321025389344/2624259268';
 
+  @override
   void setUpAds(void Function() onAdShown) {
     loadRewarded();
 
@@ -24,6 +47,7 @@ class AdManager {
     RewardedVideoAd.instance.listener = adListener;
   }
 
+  @override
   Future<void> showRewarded() async {
     try {
       return RewardedVideoAd.instance.show();

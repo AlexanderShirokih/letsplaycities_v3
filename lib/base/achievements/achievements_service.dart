@@ -19,3 +19,27 @@ abstract class AchievementsService {
   /// Shows screen with global score leaderboard
   Future<void> showLeaderboardScreen();
 }
+
+/// Stub implementation used in debugging purposes on desktop
+class StubAchievementsService implements AchievementsService {
+  @override
+  Future<void> showAchievementsScreen() {
+    return Future.value();
+  }
+
+  @override
+  Future<void> showLeaderboardScreen() {
+    return Future.value();
+  }
+
+  @override
+  Future<void> submitScore(int score) {
+    return Future.value();
+  }
+
+  @override
+  Future<void> unlockAchievement(Achievement achievement,
+      [int incrementCount = 1]) {
+    return Future.value();
+  }
+}
