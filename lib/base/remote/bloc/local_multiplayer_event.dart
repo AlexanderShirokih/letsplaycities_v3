@@ -13,10 +13,12 @@ class LocalMultiplayerCreate extends LocalMultiplayerEvent {
   List<Object> get props => [];
 }
 
-/// Triggers connection to running server
+/// Tries to connect to chosen server address
 class LocalMultiplayerConnect extends LocalMultiplayerEvent {
-  const LocalMultiplayerConnect();
+  final RemoteHost selectedHost;
+
+  const LocalMultiplayerConnect(this.selectedHost);
 
   @override
-  List<Object> get props => [];
+  List<Object> get props => [selectedHost];
 }

@@ -12,13 +12,13 @@ dependencies:
 
   get_it: ^6.0.0-nullsafety.2
   dio: ^3.0.10
-  meta: ^1.1.7
+  meta: ^1.3.0-nullsafety.6
   image: ^2.1.19
   rxdart: ^0.26.0-nullsafety.1
-  equatable: ^2.0.0-nullsafety.1
-  url_launcher: ^6.0.0-nullsafety.4
+  equatable: ^2.0.0-nullsafety.2
+  url_launcher: ^6.0.0-nullsafety.6
   package_info: ^0.4.3+2
-  flutter_bloc: ^7.0.0-nullsafety.0
+  flutter_bloc: ^7.0.0-nullsafety.1
   audioplayers: ^0.17.2
   path_provider: ^1.6.27
   avatar_glow: ^1.2.0
@@ -37,8 +37,9 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
 
-  pedantic: ^1.9.0
-  test: ^1.15.3
+  mockito: ^4.1.4
+  pedantic: ^1.10.0-nullsafety.3
+  test: ^1.16.0-nullsafety.17
 
 # The following section is specific to Flutter.
 flutter:

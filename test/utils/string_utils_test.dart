@@ -1,3 +1,5 @@
+// @dart=2.9
+
 import 'package:test/test.dart';
 import 'package:lets_play_cities/utils/string_utils.dart';
 

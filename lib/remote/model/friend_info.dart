@@ -27,7 +27,7 @@ class FriendInfo extends BaseProfileInfo {
         );
 
   @override
-  List<Object> get props => [...super.props, userId, login, accepted];
+  List<Object?> get props => [...super.props, userId, login, accepted];
 
   /// Creates copy of this object with ability to customize some fields values
   FriendInfo copy({bool? accepted}) => FriendInfo._(

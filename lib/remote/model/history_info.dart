@@ -37,7 +37,7 @@ class HistoryInfo extends BaseProfileInfo {
         );
 
   @override
-  List<Object> get props => [
+  List<Object?> get props => [
         ...super.props,
         isFriend,
         duration,

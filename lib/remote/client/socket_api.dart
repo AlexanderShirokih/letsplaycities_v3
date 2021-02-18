@@ -1,18 +1,8 @@
 import 'package:lets_play_cities/remote/client/base_socket_connector.dart';
 import 'package:lets_play_cities/remote/exceptions.dart';
-import 'package:lets_play_cities/remote/model/server_messages.dart';
 import 'package:lets_play_cities/remote/model/client_messages.dart';
-
-/// Message encoder/decoder.
-/// Converts raw string message to models back to string
-abstract class MessageConverter<I, O> {
-  /// Decodes string data to [ServerMessage] instance.
-  /// Throws [UnknownMessageException] if message cannot be decoded
-  I decode(String data);
-
-  /// Encodes [message] to string.
-  String encode(O message);
-}
+import 'package:lets_play_cities/remote/model/server_messages.dart';
+import 'package:lets_play_cities/remote/server/connection_transformer.dart';
 
 /// Combines transport-level [AbstractSocketConnector] and [MessageConverter]
 /// to be able to speak with socket using high-level messages

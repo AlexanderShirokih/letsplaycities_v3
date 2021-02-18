@@ -67,12 +67,18 @@ extension BanStatusExt on BanStatus {
   /// Converts string representation of this enum to enum constant
   static BanStatus fromString(String s) =>
       BanStatus.values.singleWhere((element) => describeEnum(element) == s);
+
+  /// Converts enum value to string representation
+  String asString() => describeEnum(this);
 }
 
 extension FriendshipStatusExt on FriendshipStatus {
   /// Converts string representation of this enum to enum constant
   static FriendshipStatus fromString(String s) => FriendshipStatus.values
       .singleWhere((element) => describeEnum(element) == s);
+
+  /// Converts enum value to string representation
+  String asString() => describeEnum(this);
 }
 
 /// A data class containing base user info
@@ -93,7 +99,7 @@ class BaseProfileInfo extends Equatable {
   });
 
   @override
-  List<Object> get props => [userId, login];
+  List<Object?> get props => [userId, login, pictureUrl];
 }
 
 /// A data class describing information about user
@@ -143,7 +149,7 @@ class ProfileInfo extends BaseProfileInfo {
         );
 
   @override
-  List<Object> get props => [
+  List<Object?> get props => [
         ...super.props,
         role,
         lastVisitDate,

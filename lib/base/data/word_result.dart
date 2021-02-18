@@ -1,3 +1,5 @@
+import 'package:flutter/foundation.dart';
+
 /// The result of word processing
 enum WordResult {
   /// Input word from another player received from the server
@@ -42,4 +44,6 @@ extension WordResultExtensions on WordResult {
         throw 'Unknown enum value: $s';
     }
   }
+
+  String asString() => describeEnum(this);
 }

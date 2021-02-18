@@ -1,3 +1,5 @@
+// @dart=2.9
+
 import 'package:lets_play_cities/base/dictionary.dart';
 import 'package:lets_play_cities/base/dictionary/country_entity.dart';
 import 'package:lets_play_cities/base/dictionary/impl/exclusions_impl.dart';
@@ -6,7 +8,7 @@ import 'package:test/test.dart';
 
 void main() {
   group('ExclusionsServiceImpl()', () {
-    late ExclusionsService exclusion;
+    ExclusionsService exclusion;
 
     setUp(() {
       exclusion = ExclusionsServiceImpl(

@@ -28,9 +28,9 @@ import 'package:lets_play_cities/utils/string_utils.dart';
 class GameWaitingRoomScreenStandalone extends StatelessWidget {
   /// If present, invitation or joining result will send to the
   /// [FriendGameRequest.target] user
-  final FriendGameRequest request;
+  final FriendGameRequest? request;
 
-  const GameWaitingRoomScreenStandalone(this.request);
+  const GameWaitingRoomScreenStandalone([this.request]);
 
   @override
   Widget build(BuildContext context) => Scaffold(
@@ -57,7 +57,7 @@ class GameWaitingRoomScreen extends StatelessWidget {
     return FutureBuilder<RemoteAccount?>(
       future: getIt.get<AccountManager>().getLastSignedInAccount(),
       builder: (context, account) {
-        final l10n = getIt.get<LocalizationService>();
+        final l10n = getIt<LocalizationService>();
         if (!account.hasData) {
           return LoadingView(l10n.online['fetching_profile']);
         }
@@ -65,10 +65,10 @@ class GameWaitingRoomScreen extends StatelessWidget {
         final waitingBloc = WaitingRoomBloc(
           RemoteGameClient(
             account: account.requireData!,
-            firebaseToken: getIt.get<CloudMessagingService>().getUserToken(),
-            preferences: getIt.get<GamePreferences>(),
+            firebaseToken: getIt<CloudMessagingService>().getUserToken(),
+            preferences: getIt<GamePreferences>(),
             socketApi: SocketApi(
-              WebSocketConnector(getIt.get<AppConfig>().remoteWebSocketURL),
+              WebSocketConnector(getIt<AppConfig>().remoteWebSocketURL),
               JsonMessageConverter(),
             ),
           ),

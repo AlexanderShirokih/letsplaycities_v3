@@ -47,6 +47,8 @@ class MainActivity : BaseAsyncActivity() {
 
         authenticationManager = AuthenticationManager(messenger, this, lifecycleScope)
         gameServices = GameServices(messenger, this, lifecycleScope)
+
+        NetworkManager(messenger, this)
     }
 
     private fun runMigrations() {

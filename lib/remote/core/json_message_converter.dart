@@ -3,10 +3,10 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:lets_play_cities/base/data/word_result.dart';
 import 'package:lets_play_cities/remote/auth.dart';
-import 'package:lets_play_cities/remote/client/socket_api.dart';
 import 'package:lets_play_cities/remote/exceptions.dart';
 import 'package:lets_play_cities/remote/model/client_messages.dart';
 import 'package:lets_play_cities/remote/model/server_messages.dart';
+import 'package:lets_play_cities/remote/server/connection_transformer.dart';
 
 import '../model/utils.dart';
 

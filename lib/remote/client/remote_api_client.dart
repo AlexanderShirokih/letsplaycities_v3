@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 
 // ignore: import_of_legacy_library_into_null_safe
 import 'package:crypto/crypto.dart' as crypto;
@@ -30,6 +31,11 @@ class RemoteLpsApiClient extends LpsApiClient {
       if (response.statusCode != 200) {
         throw AuthorizationException.fromStatus(
             response.statusMessage, response.statusCode);
+      }
+
+      if (!(response.data is Map<String, dynamic>)) {
+        throw RemoteException(
+            '${HttpHeaders.contentTypeHeader}: ${ContentType.json.value} expected');
       }
 
       final Map<String, dynamic> decoded = response.data;
@@ -274,6 +280,15 @@ class RemoteSignUpResponse {
         role: UserRoleExtension.fromString(data['state']),
         authType: AuthTypeExtension.fromString(data['authType']),
       );
+
+  Map<String, dynamic> toMap() => {
+        'userId': userId,
+        'name': login,
+        'accHash': accessToken,
+        'picHash': pictureHash,
+        'state': role.name,
+        'authType': authType.fullName,
+      };
 }
 
 extension UserRoleExtension on Role {
@@ -287,6 +302,17 @@ extension UserRoleExtension on Role {
         return Role.admin;
       default:
         throw ('Unknown UserRole: $s');
+    }
+  }
+
+  String get name {
+    switch (this) {
+      case Role.banned:
+        return 'banned';
+      case Role.regular:
+        return 'ready';
+      case Role.admin:
+        return 'admin';
     }
   }
 }
@@ -327,4 +353,13 @@ class RemoteSignUpData {
         'accToken': accessToken,
         'snUID': snUID
       };
+
+  factory RemoteSignUpData.fromMap(Map<String, dynamic> json) =>
+      RemoteSignUpData(
+        authType: AuthTypeExtension.fromString(json['authType']),
+        login: json['login'],
+        accessToken: json['accToken'],
+        firebaseToken: json['firebaseToken'],
+        snUID: json['snUID'],
+      );
 }

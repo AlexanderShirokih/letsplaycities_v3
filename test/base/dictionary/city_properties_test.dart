@@ -1,4 +1,5 @@
-import 'package:flutter_test/flutter_test.dart' show throwsAssertionError;
+// @dart=2.9
+
 import 'package:lets_play_cities/base/dictionary/city_properties.dart';
 import 'package:test/test.dart';
 
@@ -50,7 +51,7 @@ void main() {
       test('difficulty throws out of range', () {
         [-1, 3].forEach((d) {
           expect(() => CityProperties(difficulty: d, countryCode: 1),
-              throwsAssertionError);
+              throwsA(isA<AssertionError>()));
         });
       });
 

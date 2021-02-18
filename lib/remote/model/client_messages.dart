@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import 'package:flutter/foundation.dart';
 
 /// Base class for all outgoing socket messages
 abstract class ClientMessage extends Equatable {
@@ -53,6 +54,11 @@ class LogInMessage extends ClientMessage {
 
 /// Game modes. Random pair game or playing with friend
 enum PlayMode { RANDOM_PAIR, FRIEND }
+
+extension PlayModeExtensions on PlayMode {
+  static PlayMode fromString(String mode) =>
+      PlayMode.values.firstWhere((item) => describeEnum(item) == mode);
+}
 
 /// Indicates request for beginning a new game.
 class PlayMessage extends ClientMessage {

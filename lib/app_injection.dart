@@ -29,6 +29,13 @@ import 'package:lets_play_cities/remote/firebase/firebase_service.dart';
 import 'package:lets_play_cities/remote/google_services_achievements.dart';
 import 'package:lets_play_cities/remote/http_overrides.dart';
 import 'package:lets_play_cities/remote/model/cloud_messaging_service.dart';
+import 'package:lets_play_cities/remote/server/local_account_manager.dart';
+import 'package:lets_play_cities/remote/server/local_game_server.dart';
+import 'package:lets_play_cities/remote/server/routes/routes.dart';
+import 'package:lets_play_cities/remote/server/server_connection.dart';
+import 'package:lets_play_cities/remote/server/server_game_controller.dart';
+import 'package:lets_play_cities/remote/server/usecases.dart';
+import 'package:lets_play_cities/remote/server/user_lookup_repository.dart';
 import 'package:lets_play_cities/utils/crashlytics_error_logger.dart';
 import 'package:lets_play_cities/utils/error_logger.dart';
 // ignore: import_of_legacy_library_into_null_safe
@@ -57,16 +64,23 @@ void injectRootDependencies({required String serverHost}) {
     dependsOn: [GamePreferences],
   );
 
+  // PEM Certificate
+  getIt.registerSingletonAsync(
+    () => rootBundle.loadString('assets/cert/lps.pem'),
+    instanceName: 'lpsPemCertificate',
+  );
+
   // Global HTTP Overrides Used by HTTP Clients
   getIt.registerSingletonAsync<HttpOverrides>(
-      () => rootBundle.loadString('assets/cert/lps.pem').then((pem) {
-            final newOverrides = MyHttpOverrides(pem);
-            HttpOverrides.global = newOverrides;
-            return newOverrides;
-          }));
+    () => getIt.getAsync<String>(instanceName: 'lpsPemCertificate').then((pem) {
+      final newOverrides = MyHttpOverrides(pem);
+      HttpOverrides.global = newOverrides;
+      return newOverrides;
+    }),
+  );
 
   // DIO client
-  getIt.registerLazySingleton<Dio>(() => _createDio());
+  getIt.registerLazySingleton<Dio>(() => _createDio(getIt.get()));
 
   // Account manager
   getIt.registerSingletonWithDependencies<AccountManager>(
@@ -74,24 +88,41 @@ void injectRootDependencies({required String serverHost}) {
     dependsOn: [GamePreferences],
   );
 
+  // Local account manager
+  getIt.registerFactoryParam<AccountManager, AppConfig, void>(
+    (config, _) => LocalAccountManager(
+      getIt.get<GamePreferences>(),
+      RemoteLpsApiClient(
+        _createDio(config!),
+        Credential.empty(),
+      ),
+    ),
+    instanceName: 'local',
+  );
+
   // FirebaseApp should be initialized before used in dependent modules
-  getIt.registerSingletonAsync<FirebaseApp>(() => Firebase.initializeApp());
+  if (!Platform.isLinux) {
+    getIt.registerSingletonAsync<FirebaseApp>(() => Firebase.initializeApp());
+  }
 
   // Error logger
   getIt.registerSingletonWithDependencies<ErrorLogger>(
-    () => CrashlyticsErrorLogger(),
-    dependsOn: [FirebaseApp],
+    () => Platform.isLinux ? SimpleErrorLogger() : CrashlyticsErrorLogger(),
+    dependsOn: [if (!Platform.isLinux) FirebaseApp],
   );
 
   // Cloud messaging service
   getIt.registerSingletonAsync<CloudMessagingService>(
     () async {
+      if (Platform.isLinux) {
+        return StubCloudMessagingService();
+      }
       final instance = FirebaseServices.instance;
       await instance.configure();
 
       return instance;
     },
-    dependsOn: [FirebaseApp],
+    dependsOn: [if (!Platform.isLinux) FirebaseApp],
   );
 
   /// Api Repository Cache
@@ -111,32 +142,75 @@ void injectRootDependencies({required String serverHost}) {
 
   /// Google Game Services as [AchievementsService]
   getIt.registerLazySingleton<AchievementsService>(() {
-    return GoogleServicesAchievementService();
+    return Platform.isLinux
+        ? StubAchievementsService()
+        : GoogleServicesAchievementService();
   });
 
   /// Voice recognition provider
   getIt.registerSingleton<VoiceRecognitionService>(
-      VoiceRecognitionServiceImpl());
+    Platform.isLinux
+        ? StubVoiceRecognitionService()
+        : VoiceRecognitionServiceImpl(),
+  );
 
-  /// Admob
-  getIt.registerSingletonAsync<FirebaseAdMob>(() async {
-    final instance = FirebaseAdMob.instance;
-    final result = await instance.initialize(
-        appId: 'ca-app-pub-1936321025389344~3764122915');
-    if (!result) {
-      getIt.get<ErrorLogger>().log('AdMob initialization failed!');
-    }
-    return instance;
-  });
+  if (!Platform.isLinux) {
+    getIt.registerSingletonAsync<FirebaseAdMob>(() async {
+      final instance = FirebaseAdMob.instance;
+      final result = await instance.initialize(
+          appId: 'ca-app-pub-1936321025389344~3764122915');
+      if (!result) {
+        getIt.get<ErrorLogger>().log('AdMob initialization failed!');
+      }
+      return instance;
+    });
+  }
+
+  /// [AppConfig] used in local multiplayer mode
+  getIt.registerSingleton<AppConfig>(
+    AppConfig.forHost('localhost', isSecure: false, port: 8988),
+    instanceName: 'local',
+  );
 
   /// Ad manager
-  getIt.registerSingleton<AdManager>(AdManager());
+  getIt.registerSingleton<AdManager>(
+    Platform.isLinux ? StubAdManager() : FirebaseAdManager(),
+  );
+
+  // UserLookupRepository for keeping authorized users
+  // Its better to keep this instance scoped in [LocalMultiplayerScreen]
+  getIt.registerSingleton<UserLookupRepository>(UserLookupRepositoryImpl());
+
+  /// RequestDispatcher for local game server
+  /// [UserLookupRepository] should be injected in target scope
+  getIt.registerFactory<RequestDispatcher>(
+    () => RequestDispatcher.buildRequestDispatcher(
+      SignUpUserUsecase(GetProfileInfoFromSignUpData()),
+      getIt.get(),
+    ),
+  );
+
+  /// Local game server
+  /// [UserLookupRepository] should be injected in target scope
+  getIt.registerFactory<LocalGameServer>(
+    () => LocalGameServerImpl(
+      WebSocketServerConnection(
+        getIt.get(instanceName: 'local'),
+        getIt.get(),
+      ),
+      getIt.get(),
+    ),
+  );
+
+  getIt.registerFactory<ServerGameController>(
+    () => ServerGameControllerImpl(getIt.get(), getIt.get()),
+  );
 }
 
 /// Returns DIO client instance
-Dio _createDio() => Dio(
+Dio _createDio(AppConfig appConfig) => Dio(
       BaseOptions(
-        baseUrl: GetIt.instance.get<AppConfig>().remotePublicApiURL,
+        baseUrl: appConfig.remotePublicApiURL,
         connectTimeout: 8000,
         receiveTimeout: 5000,
       ),

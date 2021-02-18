@@ -1,13 +1,44 @@
 /// Defines global app constants, like remote server URL
 class AppConfig {
   /// Server URL for REST API requests
-  final String remotePublicApiURL;
+  String get remotePublicApiURL =>
+      (isSecure ? 'https' : 'http') + '://$host:$port';
 
   /// Server URL for game WebSocket
-  final String remoteWebSocketURL;
+  String get remoteWebSocketURL =>
+      (isSecure ? 'wss' : 'ws') + '://$host:$port/game';
 
-  AppConfig._(this.remotePublicApiURL, this.remoteWebSocketURL);
+  /// `true` is server uses HTTPS or WSS connection, `false` is HTTP or WS
+  final bool isSecure;
 
-  factory AppConfig.forHost(String host) =>
-      AppConfig._('https://$host:8443', 'wss://$host:8443/game');
+  /// Server host
+  final String host;
+
+  /// Server port
+  final int port;
+
+  AppConfig._(
+    this.host,
+    this.port,
+    this.isSecure,
+  );
+
+  factory AppConfig.forHost(
+    String host, {
+    int port = 8443,
+    bool isSecure = true,
+  }) =>
+      AppConfig._(host, port, isSecure);
+
+  /// Creates a deep copy with overriding parameters
+  AppConfig copy({
+    String? host,
+    int? port,
+    bool? isSecure,
+  }) =>
+      AppConfig._(
+        host ?? this.host,
+        port ?? this.port,
+        isSecure ?? this.isSecure,
+      );
 }

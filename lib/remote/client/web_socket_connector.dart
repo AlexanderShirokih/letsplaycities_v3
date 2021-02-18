@@ -1,9 +1,9 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:async/async.dart';
 import 'package:lets_play_cities/remote/client/base_socket_connector.dart';
 import 'package:lets_play_cities/remote/exceptions.dart';
+import 'package:rxdart/rxdart.dart';
 // ignore: import_of_legacy_library_into_null_safe
 import 'package:web_socket_channel/io.dart';
 
@@ -29,10 +29,11 @@ class WebSocketConnector implements AbstractSocketConnector {
 
     WebSocket.connect(_uri).then((webSocket) {
       _channel = IOWebSocketChannel(webSocket);
-      _workStreamDone = _streamController!.addStream(StreamGroup.merge([
+      final stream = _channel!.stream.asBroadcastStream();
+
+      _workStreamDone = _streamController!.addStream(Rx.concat([
         Stream.value(SocketMessage(SocketMessageType.connected)),
-        _channel!.stream
-            .map((event) => SocketMessage(SocketMessageType.data, event)),
+        stream.map((event) => SocketMessage(SocketMessageType.data, event)),
         Stream.value(SocketMessage(SocketMessageType.closed)),
       ]));
     }).catchError((error, stackTrace) {
