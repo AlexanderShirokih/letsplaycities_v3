@@ -43,7 +43,7 @@ class GameItemListTile extends StatelessWidget {
               : MainAxisAlignment.end,
           children: [
             Container(
-              padding: EdgeInsets.fromLTRB(8.0, 8.0, 14.0, 8.0),
+              padding: EdgeInsets.fromLTRB(10.0, 10.0, 16.0, 10.0),
               margin: EdgeInsets.zero,
               decoration: _buildDecoration(context),
               child: Row(
@@ -90,12 +90,13 @@ class GameItemListTile extends StatelessWidget {
   }
 
   Widget _buildText(BuildContext context) {
-    const kForegroundSpanColor = Color(0xFF0000FF);
-
+    final theme = context.watch<themes.Theme>();
     if (_gameItem is CityInfo) {
-      final textStyle =
-          Theme.of(context).textTheme.bodyText1!.copyWith(fontSize: 16);
-      final spanTextStyle = textStyle.copyWith(color: kForegroundSpanColor);
+      final textStyle = Theme.of(context)
+          .textTheme
+          .bodyText1!
+          .copyWith(fontSize: 18, fontWeight: FontWeight.w600);
+      final spanTextStyle = textStyle.copyWith(color: theme.wordSpanColor);
       return RichText(text: _buildCitySpans(textStyle, spanTextStyle));
     }
     return Text((_gameItem as MessageInfo).message);

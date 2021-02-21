@@ -28,6 +28,7 @@ class ThemeManagerImpl implements ThemeManager {
       borderColor: Colors.black12,
       messageMe: Colors.black45,
       messageOther: Colors.black45,
+      wordSpanColor: Colors.white,
     ),
     theme.Theme(
       name: 'green',

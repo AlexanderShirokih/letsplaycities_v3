@@ -22,6 +22,7 @@ class Theme extends Equatable {
   final Color borderColor;
   final Color messageMe;
   final Color messageOther;
+  final Color wordSpanColor;
 
   const Theme({
     required this.name,
@@ -31,6 +32,7 @@ class Theme extends Equatable {
     required this.borderColor,
     required this.messageMe,
     required this.messageOther,
+    this.wordSpanColor = const Color(0xFF0000FF),
     this.backgroundImage,
     this.isDark = false,
   });
