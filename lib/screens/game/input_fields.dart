@@ -141,6 +141,8 @@ class __ChatMessageInputFieldState extends State<_ChatMessageInputField> {
           textCapitalization: TextCapitalization.words,
           textAlignVertical: TextAlignVertical.center,
           decoration: InputDecoration(
+            filled: true,
+            fillColor: Theme.of(context).cardColor,
             contentPadding: EdgeInsets.symmetric(
               vertical: 2.0,
               horizontal: 12.0,

@@ -1,6 +1,5 @@
 import 'package:equatable/equatable.dart';
 import 'package:flutter/foundation.dart';
-import 'package:get_it/get_it.dart';
 import 'package:lets_play_cities/app_config.dart';
 import 'package:lets_play_cities/remote/model/utils.dart';
 
@@ -136,7 +135,7 @@ class ProfileInfo extends BaseProfileInfo {
           pictureUrl: pictureUrl,
         );
 
-  ProfileInfo.fromJson(Map<String, dynamic> data)
+  ProfileInfo.fromJson(AppConfig appConfig, Map<String, dynamic> data)
       : this(
           login: data['login'],
           userId: data['userId'],
@@ -148,7 +147,7 @@ class ProfileInfo extends BaseProfileInfo {
           lastVisitDate:
               DateTime.fromMillisecondsSinceEpoch(data['lastVisitDate']),
           pictureUrl: getPictureUrlOrNull(
-              GetIt.instance<AppConfig>(), data['userId'], data['pictureHash']),
+              appConfig, data['userId'], data['pictureHash']),
         );
 
   @override

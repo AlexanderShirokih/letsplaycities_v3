@@ -1,9 +1,9 @@
 //@dart=2.9
 
 import 'package:lets_play_cities/base/preferences.dart';
+import 'package:lets_play_cities/domain/usecases.dart';
 import 'package:lets_play_cities/remote/account_manager.dart';
 import 'package:lets_play_cities/remote/auth.dart';
-import 'package:lets_play_cities/remote/client/api_client.dart';
 import 'package:lets_play_cities/remote/exceptions.dart';
 import 'package:lets_play_cities/remote/server/local_account_manager.dart';
 import 'package:mockito/mockito.dart';
@@ -13,7 +13,8 @@ class _MockGamePreferences extends Mock implements GamePreferences {}
 
 class _MockRemoteSignUpData extends Mock implements RemoteSignUpData {}
 
-class _MockApiClient extends Mock implements LpsApiClient {}
+class _MockSignUp extends Mock
+    implements SingleAsyncUseCase<RemoteSignUpData, RemoteSignUpResponse> {}
 
 class _MockAccountManager extends Mock implements AccountManager {}
 
@@ -22,17 +23,17 @@ void main() {
   RemoteSignUpData signUpData;
   GamePreferences gamePreferences;
   AccountManager mainAccountManager;
-  LpsApiClient apiClient;
+  SingleAsyncUseCase<RemoteSignUpData, RemoteSignUpResponse> signUp;
 
   setUp(() {
-    apiClient = _MockApiClient();
+    signUp = _MockSignUp();
     signUpData = _MockRemoteSignUpData();
     gamePreferences = _MockGamePreferences();
     mainAccountManager = _MockAccountManager();
     accountManager = LocalAccountManager(
       mainAccountManager,
       gamePreferences,
-      apiClient,
+      signUp,
     );
 
     when(mainAccountManager.getLastSignedInAccount())
@@ -52,7 +53,7 @@ void main() {
   });
 
   test('Uses main account manager if it returns non null value', () async {
-    when(apiClient.signUp(any)).thenAnswer((inv) {
+    when(signUp.execute(any)).thenAnswer((inv) {
       final signUpData = inv.positionalArguments[0] as RemoteSignUpData;
       return Future.value(
         RemoteSignUpResponse(
@@ -81,7 +82,7 @@ void main() {
     final result = await accountManager.getLastSignedInAccount();
 
     verify(mainAccountManager.getLastSignedInAccount()).called(1);
-    verify(apiClient.signUp(any)).called(1);
+    verify(signUp.execute(any)).called(1);
 
     expect(result.credential.accessToken, equals('native_access'));
     expect(result.credential.userId, equals(1234));
@@ -100,13 +101,13 @@ void main() {
       pictureHash: '',
     );
 
-    when(apiClient.signUp(any)).thenAnswer((_) => Future.value(response));
+    when(signUp.execute(any)).thenAnswer((_) => Future.value(response));
     when(gamePreferences.onlineChatEnabled).thenReturn(true);
     when(gamePreferences.lastNativeLogin).thenReturn('test');
 
     final result = await accountManager.getLastSignedInAccount();
 
-    verify(apiClient.signUp(any)).called(1);
+    verify(signUp.execute(any)).called(1);
 
     expect(result.credential.accessToken, equals(response.accessToken));
     expect(result.credential.userId, equals(response.userId));

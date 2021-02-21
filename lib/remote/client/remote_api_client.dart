@@ -1,6 +1,3 @@
-import 'dart:convert';
-import 'dart:io';
-
 // ignore: import_of_legacy_library_into_null_safe
 import 'package:crypto/crypto.dart' as crypto;
 // ignore: import_of_legacy_library_into_null_safe
@@ -8,51 +5,29 @@ import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 // ignore: import_of_legacy_library_into_null_safe
 import 'package:http_parser/http_parser.dart' as http_parser;
+import 'package:lets_play_cities/app_config.dart';
 import 'package:lets_play_cities/remote/auth.dart';
 import 'package:lets_play_cities/remote/client/api_client.dart';
 import 'package:lets_play_cities/remote/exceptions.dart';
 import 'package:lets_play_cities/remote/model/auth_type.dart';
 import 'package:lets_play_cities/remote/models.dart';
+import 'package:lets_play_cities/remote/usecase/signup_user.dart';
 
 /// Remote server REST-api client
 class RemoteLpsApiClient extends LpsApiClient {
   final Dio _httpClient;
+  final AppConfig _globalAppConfig;
   final Credential _credential;
 
-  const RemoteLpsApiClient(this._httpClient, this._credential);
+  const RemoteLpsApiClient(
+    this._globalAppConfig,
+    this._httpClient,
+    this._credential,
+  );
 
   @override
-  Future<RemoteSignUpResponse> signUp(RemoteSignUpData data) async {
-    var responseBody = json.encode(data.toMap());
-
-    try {
-      final response = await _httpClient.post('/user/', data: responseBody);
-
-      if (response.statusCode != 200) {
-        throw AuthorizationException.fromStatus(
-            response.statusMessage, response.statusCode);
-      }
-
-      if (!(response.data is Map<String, dynamic>)) {
-        throw RemoteException(
-            '${HttpHeaders.contentTypeHeader}: ${ContentType.json.value} expected');
-      }
-
-      final Map<String, dynamic> decoded = response.data;
-
-      if (decoded['error'] != null) {
-        throw decoded['error'];
-      }
-
-      return RemoteSignUpResponse.fromMap(decoded['data']);
-    } on DioError catch (e) {
-      if (e.type == DioErrorType.RESPONSE) {
-        throw AuthorizationException('Message: ${e.message}');
-      } else {
-        throw FetchingException('Response error.', e.request.uri);
-      }
-    }
-  }
+  Future<RemoteSignUpResponse> signUp(RemoteSignUpData data) =>
+      SignUpUser(_httpClient).execute(data);
 
   @override
   Future<List<FriendInfo>> getFriendsList() => _fetchList('friend')
@@ -147,6 +122,7 @@ class RemoteLpsApiClient extends LpsApiClient {
     targetId ??= _credential.userId;
 
     return ProfileInfo.fromJson(
+      _globalAppConfig,
       await _decodeJson(
         () => _httpClient.get(
           '/user/$targetId',

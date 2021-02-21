@@ -26,6 +26,9 @@ class GameSession {
   /// Current scoring type mode
   final ScoringType scoringType;
 
+  /// Game scoring service
+  final ScoreController scoreController;
+
   /// An event channel for passing events to handlers
   final AbstractEventChannel eventChannel;
 
@@ -56,12 +59,15 @@ class GameSession {
     required this.eventChannel,
     required this.scoringType,
     required this.timeLimit,
+    required this.scoreController,
     Stream<GameEvent> Function(GameSession)? externalEvents,
   }) {
     if (externalEvents != null) {
-      unawaited(externalEvents(this)
-          .asyncMap((event) => _sendServiceEvent(event))
-          .drain());
+      unawaited(externalEvents(this).asyncMap((event) async {
+        if (_gameRunning) {
+          await _sendServiceEvent(event);
+        }
+      }).drain());
     }
   }
 
@@ -91,9 +97,7 @@ class GameSession {
 
   /// Sends service event to _serviceEvents pipe
   Future _sendServiceEvent(GameEvent event) async {
-    if (_gameRunning) {
-      await _serviceEvents.addStream(eventChannel.sendEvent(event));
-    }
+    await _serviceEvents.addStream(eventChannel.sendEvent(event));
   }
 
   /// Finishes the current game and surrenders the player
@@ -128,13 +132,18 @@ class GameSession {
       // Update achievements
       await _updateAchievements();
 
-      return GameResultChecker(
+      final gameResults = GameResultChecker(
         users: usersList,
         owner: usersList.all.whereType<Player>().first,
         scoringType: scoringType,
         finishType: event.endType,
         finishRequester: event.finishRequester,
       ).getGameResults();
+
+      scoreController.onGameFinished(gameResults);
+      scoreController.commit();
+
+      return gameResults;
     }
 
     throw ('Game has finished without ending with [OnMoveFinished] event');
@@ -251,11 +260,11 @@ class GameSession {
       if (difficulty == Difficulty.HARD) {
         await achievementService.unlockAchievement(Achievement.playInHardMode);
       }
-      if (mode == GameMode.Network) {
+      if (mode == GameMode.network) {
         await achievementService
             .unlockAchievement(Achievement.playOnline3Times);
       }
-      if (mode != GameMode.PlayerVsPlayer) {
+      if (mode != GameMode.playerVsPlayer) {
         await achievementService.submitScore(playerScore);
       }
     }

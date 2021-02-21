@@ -24,15 +24,11 @@ class GameConfig {
   /// Additional stream with [GameEvent]s
   final Stream<GameEvent> Function(GameSession)? externalEventSource;
 
-  /// `true` is the game running from local game server
-  final bool isLocalhost;
-
   const GameConfig({
     required this.gameMode,
     this.timeLimitOverride,
     this.usersListOverride,
     this.additionalEventHandlers,
     this.externalEventSource,
-    this.isLocalhost = true,
   });
 }

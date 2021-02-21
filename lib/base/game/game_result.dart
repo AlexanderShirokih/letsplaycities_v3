@@ -1,3 +1,4 @@
+import 'package:equatable/equatable.dart';
 import 'package:lets_play_cities/base/game/management.dart';
 import 'package:lets_play_cities/base/scoring.dart';
 import 'package:lets_play_cities/base/users.dart';
@@ -72,7 +73,7 @@ enum MatchResult {
 }
 
 /// Contains game result relative to owner
-class GameResult {
+class GameResult extends Equatable {
   /// Game main actor (relative to user's perspective)
   final User owner;
 
@@ -95,4 +96,13 @@ class GameResult {
     required this.hasScore,
     required this.finishRequester,
   });
+
+  @override
+  List<Object?> get props => [
+        owner,
+        matchResult,
+        finishType,
+        hasScore,
+        finishRequester,
+      ];
 }

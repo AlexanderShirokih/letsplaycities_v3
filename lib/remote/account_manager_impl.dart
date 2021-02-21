@@ -12,12 +12,12 @@ import 'client/api_client.dart';
 
 class AccountManagerImpl extends AccountManager {
   final GamePreferences _preferences;
-  final AppConfig _appConfig;
+  final AppConfig _globalAppConfig;
 
   final AsyncCache<RemoteAccount> _fetchedAccount =
       AsyncCache(const Duration(minutes: 5));
 
-  AccountManagerImpl(this._preferences, this._appConfig);
+  AccountManagerImpl(this._preferences, this._globalAppConfig);
 
   @override
   Future<RemoteAccount?> getLastSignedInAccount() async {
@@ -27,7 +27,7 @@ class AccountManagerImpl extends AccountManager {
 
     return _fetchedAccount.fetch(() async {
       final profile = await GetIt.instance
-          .get<ApiRepository>(param1: credentials, param2: _appConfig)
+          .get<ApiRepository>(param1: credentials, param2: _globalAppConfig)
           .getProfileInfo(
               BaseProfileInfo(userId: credentials.userId, login: ''), true);
 
@@ -58,7 +58,7 @@ class AccountManagerImpl extends AccountManager {
       credential: credential,
       name: response.login,
       pictureUri: getPictureUrlOrNull(
-          _appConfig, response.userId, response.pictureHash),
+          _globalAppConfig, response.userId, response.pictureHash),
       canReceiveMessages: _preferences.onlineChatEnabled,
       role: response.role,
       authType: response.authType,

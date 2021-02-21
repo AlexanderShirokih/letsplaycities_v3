@@ -60,9 +60,9 @@ class UsersList {
   factory UsersList.forGameMode(
       GameMode gameMode, DictionaryDecorator dictionaryService) {
     switch (gameMode) {
-      case GameMode.PlayerVsAndroid:
+      case GameMode.playerVsAndroid:
         return _buildPvAList(dictionaryService);
-      case GameMode.PlayerVsPlayer:
+      case GameMode.playerVsPlayer:
         return _buildPvPList();
       default:
         throw ('Unsupported game mode!');

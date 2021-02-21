@@ -15,26 +15,23 @@ import 'cities_list_about_screen.dart';
 
 /// Screen that shows a list of all database cities
 class CitiesListScreen extends StatelessWidget {
-  final _citiesListBloc = CitiesListBloc();
-
   @override
   Widget build(BuildContext context) => buildWithLocalization(
         context,
-        (l10n) => BlocBuilder<CitiesListBloc, CitiesListState>(
-          bloc: _citiesListBloc,
-          builder: (ctx, state) => Scaffold(
-            appBar: SearchAppBar(
-              title: l10n.citiesList['title'],
-              searchHint: l10n.citiesList['enter_city'],
-              actions: [_createFilterButton(ctx)],
-              onSearchTextChanged: (text) => _citiesListBloc.add(
-                CitiesListFilteringEvent(
-                  nameFilter: text.toLowerCase(),
-                  countryFilter: CountryListFilter.empty(),
-                ),
+        (l10n) => BlocProvider(
+          create: (_) => CitiesListBloc(),
+          child: BlocBuilder<CitiesListBloc, CitiesListState>(
+            builder: (ctx, state) => Scaffold(
+              appBar: SearchAppBar(
+                title: l10n.citiesList['title'],
+                searchHint: l10n.citiesList['enter_city'],
+                actions: [_createFilterButton(ctx)],
+                onSearchTextChanged: (text) => ctx.read<CitiesListBloc>().add(
+                      CitiesListUpdateNameFilter(text.toLowerCase()),
+                    ),
               ),
+              body: _buildBody(l10n, state),
             ),
-            body: _buildBody(l10n, state),
           ),
         ),
       );
@@ -83,30 +80,32 @@ class CitiesListScreen extends StatelessWidget {
             '${entry.cityName.toTitleCase()} (${data.countryList.firstWhere((county) => county.countryCode == entry.countryCode, orElse: () => CountryEntity(missingCountryText, 0, false)).name})',
           ));
 
-  Widget _createFilterButton(BuildContext context) => IconButton(
-        icon: Icon(Icons.filter_list),
-        onPressed: () {
-          if (!(_citiesListBloc.state is CitiesListDataState)) return;
-          final dataState = _citiesListBloc.state as CitiesListDataState;
+  Widget _createFilterButton(BuildContext context) {
+    final bloc = context.watch<CitiesListBloc>();
+    return IconButton(
+      icon: Icon(Icons.filter_list),
+      onPressed: () {
+        if (!(bloc.state is CitiesListDataState)) return;
+        final dataState = bloc.state as CitiesListDataState;
 
-          showDialog<CountryListFilter>(
-            context: context,
-            builder: (_) => CountryFilterDialog(
-              dataState.countryList,
-              (dataState is CitiesListFilteredDataState)
-                  ? (dataState.filter.countryFilter.isAllPresent
-                      ? null
-                      : dataState.filter.countryFilter.allowedCountryCodes)
-                  : null,
-            ),
-          ).then((countryFilter) {
-            if (countryFilter != null) {
-              _citiesListBloc.add(
-                CitiesListFilteringEvent(
-                    countryFilter: countryFilter, nameFilter: ''),
-              );
-            }
-          });
-        },
-      );
+        showDialog<CountryListFilter>(
+          context: context,
+          builder: (_) => CountryFilterDialog(
+            dataState.countryList,
+            (dataState is CitiesListFilteredDataState)
+                ? (dataState.filter.countryFilter.isAllPresent
+                    ? null
+                    : dataState.filter.countryFilter.allowedCountryCodes)
+                : null,
+          ),
+        ).then((countryFilter) {
+          if (countryFilter != null) {
+            bloc.add(
+              CitiesListUpdateCountryFilterEvent(countryFilter),
+            );
+          }
+        });
+      },
+    );
+  }
 }

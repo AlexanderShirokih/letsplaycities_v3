@@ -1,12 +1,12 @@
 import 'dart:async';
 
 import 'package:lets_play_cities/base/data.dart';
-import 'package:lets_play_cities/base/repos.dart';
-import 'package:lets_play_cities/base/users.dart';
-import 'package:lets_play_cities/base/game_session.dart';
 import 'package:lets_play_cities/base/game/game_mode.dart';
 import 'package:lets_play_cities/base/game/game_result.dart';
 import 'package:lets_play_cities/base/game/management.dart';
+import 'package:lets_play_cities/base/game_session.dart';
+import 'package:lets_play_cities/base/repos.dart';
+import 'package:lets_play_cities/base/users.dart';
 import 'package:lets_play_cities/utils/debouncer.dart';
 
 class GameSessionRepository {
@@ -21,11 +21,11 @@ class GameSessionRepository {
       _session.wordCheckingResults;
 
   /// `true` if this game mode supports players help
-  bool get helpAvailable => _session.mode == GameMode.PlayerVsAndroid;
+  bool get helpAvailable => _session.mode == GameMode.playerVsAndroid;
 
   /// `true` if this game mode supports messaging
   bool get messagingAvailable =>
-      _session.mode == GameMode.Network &&
+      _session.mode == GameMode.network &&
       _session.usersList.all.every((user) => user.isMessagesAllowed);
 
   /// Returns latest accepted word

@@ -13,16 +13,21 @@ class CitiesListBeginDataLoadingEvent extends CitiesListEvent {
   const CitiesListBeginDataLoadingEvent();
 }
 
-/// Event emitted when user wants to filter cities list
-class CitiesListFilteringEvent extends CitiesListEvent {
+class CitiesListUpdateNameFilter extends CitiesListEvent {
   final String nameFilter;
-  final CountryListFilter countryFilter;
 
-  const CitiesListFilteringEvent({
-    required this.nameFilter,
-    required this.countryFilter,
-  });
+  const CitiesListUpdateNameFilter(this.nameFilter);
 
   @override
-  List<Object> get props => [nameFilter, countryFilter];
+  List<Object> get props => [nameFilter];
+}
+
+/// Event emitted when user wants to filter cities list
+class CitiesListUpdateCountryFilterEvent extends CitiesListEvent {
+  final CountryListFilter countryFilter;
+
+  const CitiesListUpdateCountryFilterEvent(this.countryFilter);
+
+  @override
+  List<Object> get props => [countryFilter];
 }

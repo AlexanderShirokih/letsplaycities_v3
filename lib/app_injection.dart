@@ -2,10 +2,12 @@ import 'dart:io';
 
 // ignore: import_of_legacy_library_into_null_safe
 import 'package:dio/dio.dart';
+import 'package:equatable/equatable.dart';
 // ignore: import_of_legacy_library_into_null_safe
 import 'package:firebase_admob/firebase_admob.dart';
 // ignore: import_of_legacy_library_into_null_safe
 import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:get_it/get_it.dart';
 import 'package:lets_play_cities/app_config.dart';
@@ -37,6 +39,7 @@ import 'package:lets_play_cities/remote/server/server_connection.dart';
 import 'package:lets_play_cities/remote/server/server_game_controller.dart';
 import 'package:lets_play_cities/remote/server/usecases.dart';
 import 'package:lets_play_cities/remote/server/user_lookup_repository.dart';
+import 'package:lets_play_cities/remote/usecase/signup_user.dart';
 import 'package:lets_play_cities/utils/crashlytics_error_logger.dart';
 import 'package:lets_play_cities/utils/error_logger.dart';
 // ignore: import_of_legacy_library_into_null_safe
@@ -47,6 +50,10 @@ import 'base/platform/device_name.dart';
 /// Registers root app dependencies. Should be called before
 /// all app initializations
 void injectRootDependencies({required String serverHost}) {
+  if (kDebugMode) {
+    EquatableConfig.stringify = true;
+  }
+
   // Root app dependencies injection point
   final getIt = GetIt.instance;
 
@@ -114,13 +121,10 @@ void injectRootDependencies({required String serverHost}) {
 
   // Local account manager
   getIt.registerFactoryParam<AccountManager, AppConfig, void>(
-    (config, _) => LocalAccountManager(
+    (localConfig, _) => LocalAccountManager(
       getIt.get<AccountManager>(),
       getIt.get<GamePreferences>(),
-      RemoteLpsApiClient(
-        _createDio(config!),
-        Credential.empty(),
-      ),
+      SignUpUser(_createDio(localConfig!)),
     ),
     instanceName: 'local',
   );
@@ -155,10 +159,13 @@ void injectRootDependencies({required String serverHost}) {
 
   // LPS API Client
   getIt.registerFactoryParam<LpsApiClient, Credential, AppConfig>(
-    (credential, appConfig) => RemoteLpsApiClient(
-      getIt.get(param1: appConfig),
-      credential!,
-    ),
+    (credential, appConfig) {
+      return RemoteLpsApiClient(
+        getIt.get(instanceName: 'api'),
+        getIt.get(param1: appConfig),
+        credential!,
+      );
+    },
   );
 
   /// Api Repository

@@ -1,3 +1,4 @@
+import 'package:equatable/equatable.dart';
 import 'package:get_it/get_it.dart';
 import 'package:lets_play_cities/app_config.dart';
 import 'package:lets_play_cities/base/data/word_result.dart';
@@ -104,9 +105,9 @@ class RemoteGameClient {
         : <User>[opponentPlayer, owningPlayer];
 
     final isLocalhost = !GetIt.instance<AppConfig>().isSecure;
+
     return GameConfig(
-        isLocalhost: isLocalhost,
-        gameMode: GameMode.Network,
+        gameMode: isLocalhost ? GameMode.multiplayer : GameMode.network,
         usersListOverride: UsersList(users),
         timeLimitOverride: 92,
         externalEventSource: _translateServiceEvents,
@@ -193,6 +194,7 @@ class RemoteGameClient {
   }
 
   Stream<GameEvent> _translateServiceEvents(GameSession session) async* {
+    EquatableConfig.stringify = true;
     await for (final message in socketApi.messages) {
       if (message is ChatMessage) {
         final user = session.usersList.all

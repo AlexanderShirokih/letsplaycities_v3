@@ -175,9 +175,9 @@ class _AnimatedMainButtonsState extends State<AnimatedMainButtons>
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           CustomMaterialButton('Игрок против андроида', Icon(Icons.android),
-              () => _runGameScreen(context, GameMode.PlayerVsAndroid)),
+              () => _runGameScreen(context, GameMode.playerVsAndroid)),
           CustomMaterialButton('Игрок против игрока', Icon(Icons.person),
-              () => _runGameScreen(context, GameMode.PlayerVsPlayer)),
+              () => _runGameScreen(context, GameMode.playerVsPlayer)),
           CustomMaterialButton(
               'Онлайн', Icon(Icons.language), () => _runOnlineScreen(context)),
           CustomMaterialButton('Мультиплеер', Icon(Icons.wifi),

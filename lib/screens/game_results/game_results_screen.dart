@@ -143,7 +143,7 @@ class GameResultsScreen extends StatelessWidget {
                         onPressed: () => _gameConfig.gameMode.isLocal
                             ? Navigator.pushReplacement(context,
                                 GameScreen.createGameScreenRoute(_gameConfig))
-                            : (_gameConfig.isLocalhost
+                            : (_gameConfig.gameMode == GameMode.multiplayer
                                 ? Navigator.popUntil(
                                     context,
                                     (route) =>
@@ -216,12 +216,11 @@ class GameResultsScreen extends StatelessWidget {
   }
 
   Iterable<Widget> _buildRemoteOpponentsNavigator(BuildContext context) sync* {
+    if (_gameConfig.gameMode != GameMode.network) return;
+
     var opponents = _getRemoteOpponents();
 
     if (opponents.isEmpty) return;
-
-    if (_gameConfig.isLocalhost) return;
-
     yield Row(
       mainAxisSize: MainAxisSize.max,
       children: [

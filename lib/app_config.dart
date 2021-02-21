@@ -1,5 +1,7 @@
+import 'package:equatable/equatable.dart';
+
 /// Defines global app constants, like remote server URL
-class AppConfig {
+class AppConfig extends Equatable {
   /// Server URL for REST API requests
   String get remotePublicApiURL =>
       (isSecure ? 'https' : 'http') + '://$host:$port';
@@ -22,6 +24,9 @@ class AppConfig {
     this.port,
     this.isSecure,
   );
+
+  @override
+  List<Object> get props => [host, port, isSecure];
 
   factory AppConfig.forHost(
     String host, {

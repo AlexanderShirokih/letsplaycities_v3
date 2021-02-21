@@ -1,18 +1,19 @@
 import 'package:lets_play_cities/base/data.dart';
 import 'package:lets_play_cities/base/preferences.dart';
+import 'package:lets_play_cities/domain/usecases.dart';
 import 'package:lets_play_cities/remote/auth.dart';
-import 'package:lets_play_cities/remote/client/api_client.dart';
 import 'package:lets_play_cities/remote/exceptions.dart';
 
 class LocalAccountManager implements AccountManager {
-  final AccountManager _mainAccountManager;
   final GamePreferences _preferences;
-  final LpsApiClient _lpsApiClient;
+  final AccountManager _mainAccountManager;
+  final SingleAsyncUseCase<RemoteSignUpData, RemoteSignUpResponse>
+      _signUpUseCase;
 
   LocalAccountManager(
     this._mainAccountManager,
     this._preferences,
-    this._lpsApiClient,
+    this._signUpUseCase,
   );
 
   @override
@@ -45,7 +46,7 @@ class LocalAccountManager implements AccountManager {
       );
     }
 
-    final response = await _lpsApiClient.signUp(signUpData);
+    final response = await _signUpUseCase.execute(signUpData);
 
     return RemoteAccount(
       credential: Credential(

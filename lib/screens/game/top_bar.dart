@@ -36,6 +36,7 @@ class TopBar extends StatelessWidget {
                       UserAvatar(user: rightUser),
                     ],
                   ),
+                  const SizedBox(height: 4.0),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [

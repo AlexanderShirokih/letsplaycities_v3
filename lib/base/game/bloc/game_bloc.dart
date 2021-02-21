@@ -103,7 +103,8 @@ class GameBloc extends Bloc<GameStateEvent, GameLifecycleState> {
 
     yield DataLoadingState();
 
-    final scoreController = ScoreController.fromPrefs(_prefs);
+    final scoreController =
+        ScoreController.fromPrefs(_prefs, _gameConfig.gameMode);
     final dictionary = await DictionaryFactory().createDictionary();
     final exclusions = await ExclusionsFactory(
             CountryListLoaderServiceFactory().createCountryList(),

@@ -1,7 +1,8 @@
 /// Game modes
-enum GameMode { PlayerVsAndroid, PlayerVsPlayer, Network }
+enum GameMode { playerVsAndroid, playerVsPlayer, multiplayer, network }
 
 extension GameModeParams on GameMode {
   /// Returns `true` if this game mode is local (is not remote)
-  bool get isLocal => this != GameMode.Network;
+  bool get isLocal =>
+      this == GameMode.playerVsAndroid || this == GameMode.playerVsPlayer;
 }

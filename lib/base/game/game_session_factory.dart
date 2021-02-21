@@ -47,6 +47,7 @@ class GameSessionFactory {
     return GameSession(
       mode: mode,
       usersList: usersList,
+      scoreController: scoreController,
       scoringType: preferences.scoringType,
       eventChannel: ProcessingEventChannel(gameProcessorsStack),
       timeLimit: config.timeLimitOverride ?? preferences.timeLimit,

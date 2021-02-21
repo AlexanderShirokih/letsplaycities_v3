@@ -61,7 +61,7 @@ class Endpoint extends EventHandler {
       comboSystem.addCity(
           CityComboInfo.fromMoveParams(deltaTime, event.word, countryCode));
 
-      await _scoreController.onMoveFinished(
+      _scoreController.onMoveFinished(
         event.owner,
         event.word,
         deltaTime,

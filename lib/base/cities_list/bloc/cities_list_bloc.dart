@@ -10,7 +10,6 @@ import 'package:lets_play_cities/base/dictionary/impl/dictionary_factory.dart';
 import 'package:meta/meta.dart';
 
 part 'cities_list_event.dart';
-
 part 'cities_list_state.dart';
 
 /// BLoC for managing cities list
@@ -23,8 +22,13 @@ class CitiesListBloc extends Bloc<CitiesListEvent, CitiesListState> {
   Stream<CitiesListState> mapEventToState(
     CitiesListEvent event,
   ) async* {
-    if (event is CitiesListBeginDataLoadingEvent) yield* _loadData();
-    if (event is CitiesListFilteringEvent) yield* _filterData(event);
+    if (event is CitiesListBeginDataLoadingEvent) {
+      yield* _loadData();
+    } else if (event is CitiesListUpdateNameFilter) {
+      yield* _filterData(nameFilter: event.nameFilter);
+    } else if (event is CitiesListUpdateCountryFilterEvent) {
+      yield* _filterData(countryFilter: event.countryFilter);
+    }
   }
 
   Stream<CitiesListDataState> _loadData() async* {
@@ -43,16 +47,21 @@ class CitiesListBloc extends Bloc<CitiesListEvent, CitiesListState> {
     yield CitiesListAllDataState(await citiesList, await countryList);
   }
 
-  Stream<CitiesListDataState> _filterData(
-      CitiesListFilteringEvent event) async* {
+  Stream<CitiesListDataState> _filterData({
+    String? nameFilter,
+    CountryListFilter? countryFilter,
+  }) async* {
     if (!(state is CitiesListDataState)) return;
 
+    // Update existing filter or create new
     final filter = state is CitiesListFilteredDataState
-        ? (state as CitiesListFilteredDataState).filter.copy(
-            nameFilter: event.nameFilter, countryFilter: event.countryFilter)
+        ? (state as CitiesListFilteredDataState)
+            .filter
+            .copy(nameFilter: nameFilter, countryFilter: countryFilter)
         : CitiesListFilter(
-            nameFilter: event.nameFilter, countryFilter: event.countryFilter);
+            nameFilter: nameFilter ?? '', countryFilter: countryFilter);
 
+    // Keep all-data state
     final original = state is CitiesListFilteredDataState
         ? (state as CitiesListFilteredDataState).originalState
         : state as CitiesListAllDataState;
