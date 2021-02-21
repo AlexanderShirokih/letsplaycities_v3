@@ -2,6 +2,9 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:get_it/get_it.dart';
+// ignore: import_of_legacy_library_into_null_safe
+import 'package:lets_play_cities/base/ads/advertising_helper.dart';
 import 'package:lets_play_cities/base/game/game_config.dart';
 import 'package:lets_play_cities/base/game/game_mode.dart';
 import 'package:lets_play_cities/base/game/game_result.dart';
@@ -35,6 +38,10 @@ class GameResultsScreen extends StatelessWidget {
           (l10n) => Stack(
             children: [
               createBackground(context),
+              FutureBuilder(
+                future: GetIt.instance.get<AdManager>().showInterstitial(),
+                builder: (context, _) => Container(width: 0, height: 0),
+              ),
               Positioned.fill(
                 child: BackdropFilter(
                   filter: ImageFilter.blur(
