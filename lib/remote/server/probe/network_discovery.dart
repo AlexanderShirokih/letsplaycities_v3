@@ -4,7 +4,6 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:get_it/get_it.dart';
-import 'package:lets_play_cities/base/data/app_version.dart';
 import 'package:lets_play_cities/remote/remote_host.dart';
 import 'package:lets_play_cities/utils/error_logger.dart';
 
@@ -145,10 +144,8 @@ class NetworkDiscoveryImpl extends NetworkDiscovery {
       return RemoteHost(
         address: uri.host,
         hostName: data['hostName'] ?? 'Unknown',
-        version: VersionInfo(
-          data['version'] ?? '???',
-          data['build'] ?? 0,
-        ),
+        versionName: data['version'] ?? '???',
+        buildNumber: data['build'] ?? 0,
       );
     } on TimeoutException {
       // Assume server is not running on this address

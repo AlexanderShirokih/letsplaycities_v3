@@ -1,3 +1,5 @@
+import 'package:get_it/get_it.dart';
+import 'package:lets_play_cities/app_config.dart';
 import 'package:lets_play_cities/base/data/word_result.dart';
 import 'package:lets_play_cities/base/game/game_config.dart';
 import 'package:lets_play_cities/base/game/game_mode.dart';
@@ -45,11 +47,11 @@ class RemoteGameClient {
   /// Throws any other kinds of [RemoteException] if some error happens
   Future<void> logIn(Credential credential) async {
     final fbToken = await firebaseToken;
-    final version = await getAppVersion();
+    final version = VersionInfoService.instance;
 
     socketApi.sendMessage(LogInMessage(
-      clientBuild: version.buildNumber,
-      clientVersion: version.version,
+      clientBuild: version.build,
+      clientVersion: version.name,
       canReceiveMessages: preferences.onlineChatEnabled,
       firebaseToken: fbToken,
       uid: credential.userId,
@@ -101,7 +103,9 @@ class RemoteGameClient {
         ? <User>[owningPlayer, opponentPlayer]
         : <User>[opponentPlayer, owningPlayer];
 
+    final isLocalhost = !GetIt.instance<AppConfig>().isSecure;
     return GameConfig(
+        isLocalhost: isLocalhost,
         gameMode: GameMode.Network,
         usersListOverride: UsersList(users),
         timeLimitOverride: 92,

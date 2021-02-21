@@ -82,13 +82,15 @@ class LocalMultiplayerBloc
   Future<LocalMultiplayerStartGame> _startGameForHost(String host) async {
     final getIt = GetIt.instance;
 
-    ///
     final appConfig =
         getIt.get<AppConfig>(instanceName: 'local').copy(host: host);
 
+    final accMgr =
+        getIt.get<AccountManager>(instanceName: 'local', param1: appConfig);
+
     return LocalMultiplayerStartGame(
       appConfig,
-      getIt.get(instanceName: 'local', param1: appConfig),
+      accMgr,
     );
   }
 }

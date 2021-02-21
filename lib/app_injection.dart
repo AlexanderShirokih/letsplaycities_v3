@@ -12,6 +12,7 @@ import 'package:lets_play_cities/app_config.dart';
 import 'package:lets_play_cities/base/achievements/achievements_service.dart';
 // ignore: import_of_legacy_library_into_null_safe
 import 'package:lets_play_cities/base/ads/advertising_helper.dart';
+import 'package:lets_play_cities/base/platform/app_version.dart';
 import 'package:lets_play_cities/base/preferences.dart';
 import 'package:lets_play_cities/base/stt/voice_recognition_service.dart';
 import 'package:lets_play_cities/base/stt/voice_recognition_service_impl.dart';
@@ -41,14 +42,35 @@ import 'package:lets_play_cities/utils/error_logger.dart';
 // ignore: import_of_legacy_library_into_null_safe
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'base/platform/device_name.dart';
+
 /// Registers root app dependencies. Should be called before
 /// all app initializations
 void injectRootDependencies({required String serverHost}) {
-  /// Root app dependencies injection point
+  // Root app dependencies injection point
   final getIt = GetIt.instance;
+
+  // App version service
+  getIt.registerSingletonAsync<VersionInfoService>(
+    () => VersionInfoService.initInstance(),
+  );
+
+  // Device name service
+  getIt.registerSingletonAsync<DeviceNameService>(
+    () => DeviceNameService.initInstance(),
+  );
 
   // Global app config
   getIt.registerSingleton<AppConfig>(AppConfig.forHost(serverHost));
+
+  // [AppConfig] used for API requests
+  getIt.registerSingleton(getIt<AppConfig>(), instanceName: 'api');
+
+  // [AppConfig] used in local multiplayer mode
+  getIt.registerSingleton<AppConfig>(
+    AppConfig.forHost('localhost', isSecure: false, port: 8988),
+    instanceName: 'local',
+  );
 
   // Game preferences
   getIt.registerSingletonAsync<GamePreferences>(() async =>
@@ -80,17 +102,20 @@ void injectRootDependencies({required String serverHost}) {
   );
 
   // DIO client
-  getIt.registerLazySingleton<Dio>(() => _createDio(getIt.get()));
+  getIt.registerFactoryParam<Dio, AppConfig, void>((appConfig, _) {
+    return _createDio(appConfig ?? getIt.get());
+  });
 
   // Account manager
   getIt.registerSingletonWithDependencies<AccountManager>(
-    () => AccountManagerImpl(getIt.get<GamePreferences>()),
+    () => AccountManagerImpl(getIt.get(), getIt.get()),
     dependsOn: [GamePreferences],
   );
 
   // Local account manager
   getIt.registerFactoryParam<AccountManager, AppConfig, void>(
     (config, _) => LocalAccountManager(
+      getIt.get<AccountManager>(),
       getIt.get<GamePreferences>(),
       RemoteLpsApiClient(
         _createDio(config!),
@@ -129,16 +154,17 @@ void injectRootDependencies({required String serverHost}) {
   getIt.registerSingleton<ApiRepositoryCacheHolder>(ApiRepositoryCacheHolder());
 
   // LPS API Client
-  getIt.registerFactoryParam<LpsApiClient, Credential, void>(
-    (credential, _) => RemoteLpsApiClient(
-      getIt.get(),
+  getIt.registerFactoryParam<LpsApiClient, Credential, AppConfig>(
+    (credential, appConfig) => RemoteLpsApiClient(
+      getIt.get(param1: appConfig),
       credential!,
     ),
   );
 
   /// Api Repository
-  getIt.registerFactoryParam<ApiRepository, Credential, void>((credential, _) =>
-      ApiRepository(getIt.get(param1: credential), getIt.get()));
+  getIt.registerFactoryParam<ApiRepository, Credential, AppConfig>(
+      (credential, appConfig) => ApiRepository(
+          getIt.get(param1: credential, param2: appConfig), getIt.get()));
 
   /// Google Game Services as [AchievementsService]
   getIt.registerLazySingleton<AchievementsService>(() {
@@ -166,12 +192,6 @@ void injectRootDependencies({required String serverHost}) {
     });
   }
 
-  /// [AppConfig] used in local multiplayer mode
-  getIt.registerSingleton<AppConfig>(
-    AppConfig.forHost('localhost', isSecure: false, port: 8988),
-    instanceName: 'local',
-  );
-
   /// Ad manager
   getIt.registerSingleton<AdManager>(
     Platform.isLinux ? StubAdManager() : FirebaseAdManager(),
@@ -185,7 +205,11 @@ void injectRootDependencies({required String serverHost}) {
   /// [UserLookupRepository] should be injected in target scope
   getIt.registerFactory<RequestDispatcher>(
     () => RequestDispatcher.buildRequestDispatcher(
-      SignUpUserUsecase(GetProfileInfoFromSignUpData()),
+      SignUpUserUsecase(
+        GetProfileInfoFromSignUpData(
+          getIt.get(instanceName: 'local'),
+        ),
+      ),
       getIt.get(),
     ),
   );

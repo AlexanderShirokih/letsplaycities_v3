@@ -31,7 +31,7 @@ class GameScreen extends StatelessWidget {
   static MaterialPageRoute createGameScreenRoute(GameConfig gameConfig) =>
       MaterialPageRoute(builder: (context) {
         final isFirstTime = GetIt.instance.get<GamePreferences>().isFirstLaunch;
-        if (isFirstTime && gameConfig.gameMode.isLocal()) {
+        if (isFirstTime && gameConfig.gameMode.isLocal) {
           return buildWithLocalization(
             context,
             (l10n) => FirstTimeOnBoardingScreen(

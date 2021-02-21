@@ -87,7 +87,7 @@ class SearchingHostsScreen extends StatelessWidget {
           leading: FaIcon(FontAwesomeIcons.wifi, size: 28.0),
           title: Text(e.hostName),
           subtitle: Text(e.address),
-          trailing: Text(e.version.version),
+          trailing: Text(e.versionName),
           onTap: () => Navigator.pop(context, e),
         ),
       ),

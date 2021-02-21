@@ -133,10 +133,15 @@ class GameResultsScreen extends StatelessWidget {
                       const SizedBox(height: 24.0),
                       FloatingActionButton(
                         heroTag: 'replay',
-                        onPressed: () => _gameConfig.gameMode.isLocal()
+                        onPressed: () => _gameConfig.gameMode.isLocal
                             ? Navigator.pushReplacement(context,
                                 GameScreen.createGameScreenRoute(_gameConfig))
-                            : Navigator.pop(context),
+                            : (_gameConfig.isLocalhost
+                                ? Navigator.popUntil(
+                                    context,
+                                    (route) =>
+                                        route.settings.name == 'multiplayer')
+                                : Navigator.pop(context)),
                         child: Icon(Icons.replay),
                       ),
                     ],
@@ -207,6 +212,8 @@ class GameResultsScreen extends StatelessWidget {
     var opponents = _getRemoteOpponents();
 
     if (opponents.isEmpty) return;
+
+    if (_gameConfig.isLocalhost) return;
 
     yield Row(
       mainAxisSize: MainAxisSize.max,

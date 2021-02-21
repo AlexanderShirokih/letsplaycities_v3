@@ -47,8 +47,8 @@ class _CityCheckingResultBarState extends State<CityCheckingResultBar>
 
   @override
   void dispose() {
-    super.dispose();
     controller.dispose();
+    super.dispose();
   }
 
   @override

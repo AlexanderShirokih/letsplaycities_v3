@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get_it/get_it.dart';
+import 'package:lets_play_cities/app_config.dart';
 import 'package:lets_play_cities/base/remote/bloc/local_multiplayer_bloc.dart';
+import 'package:lets_play_cities/remote/account_manager.dart';
 import 'package:lets_play_cities/remote/remote_host.dart';
 import 'package:lets_play_cities/remote/server/user_lookup_repository.dart';
 import 'package:lets_play_cities/screens/common/common_widgets.dart';
@@ -15,6 +17,7 @@ class LocalMultiplayerScreen extends StatelessWidget {
   /// Crates navigation route to show [LocalMultiplayerScreen]
   static Route createNavigationRoute(BuildContext context) => MaterialPageRoute(
         builder: (_) => LocalMultiplayerScreen(),
+        settings: RouteSettings(name: 'multiplayer'),
       );
 
   @override
@@ -38,9 +41,11 @@ class LocalMultiplayerScreen extends StatelessWidget {
             if (state is LocalMultiplayerStartGame) {
               final getIt = GetIt.instance
                 ..pushNewScope()
-                ..registerSingleton(UserLookupRepositoryImpl())
-                ..registerSingleton(state.configOverrides)
-                ..registerSingleton(state.accountManagerOverrides);
+                ..registerSingleton<AppConfig>(state.configOverrides)
+                ..registerSingleton<AccountManager>(
+                    state.accountManagerOverrides)
+                ..registerSingleton<UserLookupRepository>(
+                    UserLookupRepositoryImpl());
 
               Navigator.push(
                 context,

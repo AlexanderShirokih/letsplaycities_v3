@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
+import 'package:lets_play_cities/app_config.dart';
 import 'package:lets_play_cities/base/data/word_result.dart';
 import 'package:lets_play_cities/remote/auth.dart';
 import 'package:lets_play_cities/remote/exceptions.dart';
@@ -12,6 +13,10 @@ import '../model/utils.dart';
 
 class JsonMessageConverter
     implements MessageConverter<ServerMessage, ClientMessage> {
+  final AppConfig _appConfig;
+
+  JsonMessageConverter(this._appConfig);
+
   @override
   ServerMessage decode(String data) {
     Map<String, dynamic> jsonMessage = jsonDecode(data);
@@ -39,7 +44,7 @@ class JsonMessageConverter
             authType: AuthTypeExtension.fromString(jsonMessage['authType']),
             lastVisitDate: DateTime.now(),
             pictureUrl: getPictureUrlOrNull(
-                jsonMessage['oppUid'], jsonMessage['pictureHash']),
+                _appConfig, jsonMessage['oppUid'], jsonMessage['pictureHash']),
           ),
         );
       case 'word':

@@ -1,5 +1,6 @@
 import 'package:async/async.dart';
 import 'package:get_it/get_it.dart';
+import 'package:lets_play_cities/app_config.dart';
 import 'package:lets_play_cities/base/preferences.dart';
 import 'package:lets_play_cities/remote/auth.dart';
 import 'package:lets_play_cities/remote/client/remote_api_client.dart';
@@ -11,11 +12,12 @@ import 'client/api_client.dart';
 
 class AccountManagerImpl extends AccountManager {
   final GamePreferences _preferences;
+  final AppConfig _appConfig;
 
   final AsyncCache<RemoteAccount> _fetchedAccount =
       AsyncCache(const Duration(minutes: 5));
 
-  AccountManagerImpl(this._preferences);
+  AccountManagerImpl(this._preferences, this._appConfig);
 
   @override
   Future<RemoteAccount?> getLastSignedInAccount() async {
@@ -25,7 +27,7 @@ class AccountManagerImpl extends AccountManager {
 
     return _fetchedAccount.fetch(() async {
       final profile = await GetIt.instance
-          .get<ApiRepository>(param1: credentials)
+          .get<ApiRepository>(param1: credentials, param2: _appConfig)
           .getProfileInfo(
               BaseProfileInfo(userId: credentials.userId, login: ''), true);
 
@@ -55,7 +57,8 @@ class AccountManagerImpl extends AccountManager {
     return RemoteAccount(
       credential: credential,
       name: response.login,
-      pictureUri: getPictureUrlOrNull(response.userId, response.pictureHash),
+      pictureUri: getPictureUrlOrNull(
+          _appConfig, response.userId, response.pictureHash),
       canReceiveMessages: _preferences.onlineChatEnabled,
       role: response.role,
       authType: response.authType,

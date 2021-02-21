@@ -84,7 +84,6 @@ class ServerGameControllerImpl implements ServerGameController {
 
       await player.ready;
       connectedUsers.add(player);
-      print("CONNECTED USER (READY):${profile.login}");
     }
 
     return connectedUsers;

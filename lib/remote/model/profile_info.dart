@@ -1,5 +1,7 @@
 import 'package:equatable/equatable.dart';
 import 'package:flutter/foundation.dart';
+import 'package:get_it/get_it.dart';
+import 'package:lets_play_cities/app_config.dart';
 import 'package:lets_play_cities/remote/model/utils.dart';
 
 import 'auth_type.dart';
@@ -145,7 +147,8 @@ class ProfileInfo extends BaseProfileInfo {
           authType: AuthTypeExtension.fromString(data['authType']),
           lastVisitDate:
               DateTime.fromMillisecondsSinceEpoch(data['lastVisitDate']),
-          pictureUrl: getPictureUrlOrNull(data['userId'], data['pictureHash']),
+          pictureUrl: getPictureUrlOrNull(
+              GetIt.instance<AppConfig>(), data['userId'], data['pictureHash']),
         );
 
   @override

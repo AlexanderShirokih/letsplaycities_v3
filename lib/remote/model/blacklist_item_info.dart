@@ -1,3 +1,5 @@
+import 'package:get_it/get_it.dart';
+import 'package:lets_play_cities/app_config.dart';
 import 'package:lets_play_cities/remote/auth.dart';
 
 import 'utils.dart';
@@ -20,6 +22,7 @@ class BlackListItemInfo extends BaseProfileInfo {
       : this._(
           userId: data['userId'],
           login: data['login'],
-          pictureUrl: getPictureUrlOrNull(data['userId'], data['pictureHash']),
+          pictureUrl: getPictureUrlOrNull(
+              GetIt.instance<AppConfig>(), data['userId'], data['pictureHash']),
         );
 }

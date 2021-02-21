@@ -1,3 +1,5 @@
+import 'package:get_it/get_it.dart';
+import 'package:lets_play_cities/app_config.dart';
 import 'package:lets_play_cities/remote/auth.dart';
 import 'package:lets_play_cities/remote/model/utils.dart';
 
@@ -33,7 +35,8 @@ class HistoryInfo extends BaseProfileInfo {
           duration: data['duration'],
           wordsCount: data['wordsCount'],
           startTime: DateTime.fromMillisecondsSinceEpoch(data['startTime']),
-          pictureUrl: getPictureUrlOrNull(data['userId'], data['pictureHash']),
+          pictureUrl: getPictureUrlOrNull(
+              GetIt.instance<AppConfig>(), data['userId'], data['pictureHash']),
         );
 
   @override

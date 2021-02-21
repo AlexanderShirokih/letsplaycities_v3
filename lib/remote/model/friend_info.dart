@@ -1,3 +1,5 @@
+import 'package:get_it/get_it.dart';
+import 'package:lets_play_cities/app_config.dart';
 import 'package:lets_play_cities/remote/model/profile_info.dart';
 import 'package:lets_play_cities/remote/model/utils.dart';
 
@@ -23,7 +25,8 @@ class FriendInfo extends BaseProfileInfo {
           login: data['login'],
           accepted: data['accepted'],
           sender: data['sender'],
-          pictureUrl: getPictureUrlOrNull(data['userId'], data['pictureHash']),
+          pictureUrl: getPictureUrlOrNull(
+              GetIt.instance<AppConfig>(), data['userId'], data['pictureHash']),
         );
 
   @override

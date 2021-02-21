@@ -69,7 +69,7 @@ class GameWaitingRoomScreen extends StatelessWidget {
             preferences: getIt<GamePreferences>(),
             socketApi: SocketApi(
               WebSocketConnector(getIt<AppConfig>().remoteWebSocketURL),
-              JsonMessageConverter(),
+              JsonMessageConverter(getIt.get<AppConfig>(instanceName: 'api')),
             ),
           ),
           account.requireData!.credential,

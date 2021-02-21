@@ -97,7 +97,7 @@ class GameBloc extends Bloc<GameStateEvent, GameLifecycleState> {
 
   /// Begins game loading sequence
   Stream<GameLifecycleState> _beginLoading() async* {
-    if (_gameConfig.gameMode.isLocal()) {
+    if (_gameConfig.gameMode.isLocal) {
       yield* _checkForUpdates();
     }
 

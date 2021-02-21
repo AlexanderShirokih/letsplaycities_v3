@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:equatable/equatable.dart';
 import 'package:lets_play_cities/base/platform/app_version.dart';
+import 'package:lets_play_cities/base/platform/device_name.dart';
 import 'package:lets_play_cities/domain/usecases.dart';
 import 'package:lets_play_cities/remote/exceptions.dart';
 import 'package:lets_play_cities/remote/model/profile_info.dart';
@@ -80,17 +81,18 @@ class WebSocketRequestHandler implements RequestHandler {
 
 /// Service request used to identify server
 class AckServer implements RequestHandler {
-  // TODO: Fetch device model
   @override
   Future<void> handleRequest(HttpRequest request) async {
-    final versionInfo = await getAppVersion();
+    final versionInfo = VersionInfoService.instance;
+    final deviceInfo = DeviceNameService.instance.deviceName;
+
     return await (request.response
           ..writeln(
             jsonEncode(
               {
-                'hostName': 'HOST!',
-                'version': versionInfo.version,
-                'build': versionInfo.buildNumber,
+                'hostName': deviceInfo,
+                'version': versionInfo.name,
+                'build': versionInfo.build,
               },
             ),
           ))

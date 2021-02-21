@@ -15,17 +15,28 @@ class _MockRemoteSignUpData extends Mock implements RemoteSignUpData {}
 
 class _MockApiClient extends Mock implements LpsApiClient {}
 
+class _MockAccountManager extends Mock implements AccountManager {}
+
 void main() {
   AccountManager accountManager;
   RemoteSignUpData signUpData;
   GamePreferences gamePreferences;
+  AccountManager mainAccountManager;
   LpsApiClient apiClient;
 
   setUp(() {
     apiClient = _MockApiClient();
     signUpData = _MockRemoteSignUpData();
     gamePreferences = _MockGamePreferences();
-    accountManager = LocalAccountManager(gamePreferences, apiClient);
+    mainAccountManager = _MockAccountManager();
+    accountManager = LocalAccountManager(
+      mainAccountManager,
+      gamePreferences,
+      apiClient,
+    );
+
+    when(mainAccountManager.getLastSignedInAccount())
+        .thenAnswer((_) async => null);
   });
 
   test('Sign out completes', () async {
@@ -38,6 +49,45 @@ void main() {
         throwsA(isA<RemoteException>()));
 
     verifyZeroInteractions(signUpData);
+  });
+
+  test('Uses main account manager if it returns non null value', () async {
+    when(apiClient.signUp(any)).thenAnswer((inv) {
+      final signUpData = inv.positionalArguments[0] as RemoteSignUpData;
+      return Future.value(
+        RemoteSignUpResponse(
+          accessToken: signUpData.accessToken,
+          login: signUpData.login,
+          authType: AuthType.Native,
+          role: Role.regular,
+          userId: 1234,
+          pictureHash: '',
+        ),
+      );
+    });
+    when(gamePreferences.onlineChatEnabled).thenReturn(true);
+    when(gamePreferences.lastNativeLogin).thenReturn('test');
+
+    when(mainAccountManager.getLastSignedInAccount())
+        .thenAnswer((_) async => RemoteAccount(
+              credential: Credential(userId: 4321, accessToken: 'tkn'),
+              name: 'test_remote',
+              canReceiveMessages: false,
+              role: Role.regular,
+              authType: AuthType.Native,
+              pictureUri: 'http://test',
+            ));
+
+    final result = await accountManager.getLastSignedInAccount();
+
+    verify(mainAccountManager.getLastSignedInAccount()).called(1);
+    verify(apiClient.signUp(any)).called(1);
+
+    expect(result.credential.accessToken, equals('native_access'));
+    expect(result.credential.userId, equals(1234));
+    expect(result.authType, equals(AuthType.Native));
+    expect(result.name, equals('test_remote'));
+    expect(result.canReceiveMessages, isTrue);
   });
 
   test('getLastSignedInAccount() returns valid data', () async {

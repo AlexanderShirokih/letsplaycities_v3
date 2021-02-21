@@ -90,8 +90,10 @@ class GameSession {
   }
 
   /// Sends service event to _serviceEvents pipe
-  Future _sendServiceEvent(GameEvent event) {
-    return _serviceEvents.addStream(eventChannel.sendEvent(event));
+  Future _sendServiceEvent(GameEvent event) async {
+    if (_gameRunning) {
+      await _serviceEvents.addStream(eventChannel.sendEvent(event));
+    }
   }
 
   /// Finishes the current game and surrenders the player
@@ -208,6 +210,7 @@ class GameSession {
 
   Future cancel() async {
     _gameRunning = false;
+
     await usersList.close();
     await _serviceEvents.close();
   }

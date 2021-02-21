@@ -20,7 +20,7 @@ class NetworkPictureSource extends PictureSource {
   const NetworkPictureSource(this.pictureURL);
 }
 
-/// Describes placeholder image when. Used when no other variants specified.
+/// Describes placeholder image. Used when no other variants specified.
 class PlaceholderPictureSource extends PictureSource {
   const PlaceholderPictureSource();
 }
