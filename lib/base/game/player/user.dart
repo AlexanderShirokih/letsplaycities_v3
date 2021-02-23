@@ -36,7 +36,7 @@ abstract class User {
   String get name => accountInfo.name;
 
   /// Formatted string representation of score and user name
-  String get info => (score == 0) ? name : '$name:$score';
+  String get info => (score == 0) ? name : '$name: $score';
 
   /// Called by system to increase score points.
   /// [points] is amount of points to be increased.

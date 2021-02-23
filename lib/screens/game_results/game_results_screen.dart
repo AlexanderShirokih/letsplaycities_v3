@@ -122,6 +122,17 @@ class GameResultsScreen extends StatelessWidget {
                 ),
               ),
               Align(
+                alignment: Alignment.bottomLeft,
+                child: Padding(
+                  padding: const EdgeInsets.only(left: 16.0, bottom: 24.0),
+                  child: FloatingActionButton(
+                    heroTag: 'back',
+                    onPressed: () => Navigator.pop(context),
+                    child: Icon(Icons.arrow_back),
+                  ),
+                ),
+              ),
+              Align(
                 alignment: Alignment.bottomRight,
                 child: Padding(
                   padding: const EdgeInsets.only(right: 16.0, bottom: 24.0),

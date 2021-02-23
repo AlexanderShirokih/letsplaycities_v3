@@ -43,14 +43,19 @@ class GameItemListTile extends StatelessWidget {
               : MainAxisAlignment.end,
           children: [
             Container(
+              constraints: BoxConstraints(
+                maxWidth: 240.0,
+              ),
               padding: EdgeInsets.fromLTRB(10.0, 10.0, 16.0, 10.0),
               margin: EdgeInsets.zero,
               decoration: _buildDecoration(context),
               child: Row(
+                mainAxisSize: MainAxisSize.min,
                 children: [
-                  if (_gameItem is CityInfo) _buildIcon(_gameItem as CityInfo),
+                  if (_gameItem is CityInfo)
+                    _buildIcon(_gameItem as CityInfo),
                   const SizedBox(width: 8.0),
-                  _buildText(context),
+                  Flexible(child: _buildText(context)),
                 ],
               ),
             ),
@@ -97,7 +102,10 @@ class GameItemListTile extends StatelessWidget {
           .bodyText1!
           .copyWith(fontSize: 18, fontWeight: FontWeight.w600);
       final spanTextStyle = textStyle.copyWith(color: theme.wordSpanColor);
-      return RichText(text: _buildCitySpans(textStyle, spanTextStyle));
+      return RichText(
+        text: _buildCitySpans(textStyle, spanTextStyle),
+        overflow: TextOverflow.clip,
+      );
     }
     return Text((_gameItem as MessageInfo).message);
   }

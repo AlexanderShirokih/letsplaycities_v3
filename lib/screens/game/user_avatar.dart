@@ -35,9 +35,17 @@ class UserAvatar extends StatelessWidget with NetworkAvatarBuildingMixin {
                 borderColor: Theme.of(context).primaryColor,
               ),
               SizedBox(height: 4.0),
-              Text(
-                _user.info,
+              RichText(
+                text: TextSpan(text: '${_user.name}: ', children: [
+                  TextSpan(
+                    text: _user.score.toString(),
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ]),
                 overflow: TextOverflow.fade,
+                softWrap: true,
               ),
             ],
           ),
