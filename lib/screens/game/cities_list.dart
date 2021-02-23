@@ -52,8 +52,7 @@ class GameItemListTile extends StatelessWidget {
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  if (_gameItem is CityInfo)
-                    _buildIcon(_gameItem as CityInfo),
+                  if (_gameItem is CityInfo) _buildIcon(_gameItem as CityInfo),
                   const SizedBox(width: 8.0),
                   Flexible(child: _buildText(context)),
                 ],
