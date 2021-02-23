@@ -36,7 +36,7 @@ class VersionInfoService {
 
       return VersionInfoService._(version, int.parse(buildNumber));
     } on MissingPluginException {
-      return VersionInfoService._('3.0.0-desktop', 3007);
+      return VersionInfoService._('3.0.1-desktop', 3010);
     }
   }
 }
