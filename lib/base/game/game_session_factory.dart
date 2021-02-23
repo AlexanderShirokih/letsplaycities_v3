@@ -1,4 +1,5 @@
 import 'package:lets_play_cities/base/dictionary.dart';
+import 'package:lets_play_cities/base/dictionary/countrycode_overrides.dart';
 import 'package:lets_play_cities/base/game_session.dart';
 import 'package:lets_play_cities/base/preferences.dart';
 import 'package:lets_play_cities/base/scoring.dart';
@@ -17,6 +18,7 @@ class GameSessionFactory {
     required GameConfig config,
     required ExclusionsService exclusions,
     required DictionaryService dictionary,
+    required CountryCodeOverrides codeOverrides,
     required ScoreController scoreController,
     required void Function() onUserInputAccepted,
     required void Function() onUserMoveBegins,
@@ -38,6 +40,7 @@ class GameSessionFactory {
       ...(config.additionalEventHandlers ?? <EventHandler>[]),
       Endpoint(
         dictionary,
+        codeOverrides,
         onUserInputAccepted,
         onUserMoveBegins,
         scoreController,

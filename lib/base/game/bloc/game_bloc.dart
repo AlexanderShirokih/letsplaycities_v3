@@ -6,6 +6,7 @@ import 'package:get_it/get_it.dart';
 // ignore: import_of_legacy_library_into_null_safe
 import 'package:lets_play_cities/base/ads/advertising_helper.dart';
 import 'package:lets_play_cities/base/dictionary.dart';
+import 'package:lets_play_cities/base/dictionary/countrycode_overrides.dart';
 import 'package:lets_play_cities/base/dictionary/impl/country_list_loader_factory.dart';
 import 'package:lets_play_cities/base/dictionary/impl/dictionary_factory.dart';
 import 'package:lets_play_cities/base/dictionary/impl/exclusions_factory.dart';
@@ -30,6 +31,7 @@ class GameBloc extends Bloc<GameStateEvent, GameLifecycleState> {
   final GamePreferences _prefs;
   final LocalizationService _localizations;
   final DictionaryUpdater _dictionaryUpdater;
+  final CountryCodeOverrides _codeOverrides;
   final GameConfig _gameConfig;
   final AdManager _adManager;
 
@@ -48,6 +50,7 @@ class GameBloc extends Bloc<GameStateEvent, GameLifecycleState> {
     required GameConfig gameConfig,
   })   : _prefs = GetIt.instance.get<GamePreferences>(),
         _localizations = GetIt.instance.get<LocalizationService>(),
+        _codeOverrides = GetIt.instance.get<CountryCodeOverrides>(),
         _gameConfig = gameConfig,
         _dictionaryUpdater = DictionaryUpdater(),
         _adManager = GetIt.instance.get<AdManager>(),
@@ -131,6 +134,7 @@ class GameBloc extends Bloc<GameStateEvent, GameLifecycleState> {
       GameSessionFactory.createForGameMode(
           config: _gameConfig,
           preferences: _prefs,
+          codeOverrides: _codeOverrides,
           exclusions: dataState.exclusions,
           dictionary: dataState.dictionary,
           scoreController: dataState.scoreController,

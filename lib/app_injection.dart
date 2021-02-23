@@ -14,6 +14,8 @@ import 'package:lets_play_cities/app_config.dart';
 import 'package:lets_play_cities/base/achievements/achievements_service.dart';
 // ignore: import_of_legacy_library_into_null_safe
 import 'package:lets_play_cities/base/ads/advertising_helper.dart';
+import 'package:lets_play_cities/base/dictionary/countrycode_overrides.dart';
+import 'package:lets_play_cities/base/dictionary/impl/country_code_overrides_builder.dart';
 import 'package:lets_play_cities/base/platform/app_version.dart';
 import 'package:lets_play_cities/base/preferences.dart';
 import 'package:lets_play_cities/base/stt/voice_recognition_service.dart';
@@ -56,6 +58,11 @@ void injectRootDependencies({required String serverHost}) {
 
   // Root app dependencies injection point
   final getIt = GetIt.instance;
+
+  // Country code overrides
+  getIt.registerSingletonAsync<CountryCodeOverrides>(
+    () => CountryCodeOverridesBuilder(Platform.localeName).build(),
+  );
 
   // App version service
   getIt.registerSingletonAsync<VersionInfoService>(
