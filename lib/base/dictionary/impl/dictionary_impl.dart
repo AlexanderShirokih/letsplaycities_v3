@@ -52,22 +52,25 @@ class DictionaryServiceImpl extends DictionaryService {
   }
 
   @override
-  Future<Set<String>> getCorrectionVariants(String city) async {
-    final list = _edits(city);
+  Stream<String> getCorrectionVariants(String city) async* {
+    final list = _edits(city).toList();
 
     final candidates =
         list.where((s) => _canUse(s)).take(3).toList(growable: true);
 
-    if (candidates.isNotEmpty) return candidates.toSet();
+    if (candidates.isNotEmpty) {
+      yield* Stream.fromIterable(candidates);
+      return;
+    }
 
     for (final s in list) {
       for (final w in _edits(s)) {
         if (candidates.length < 4 && _canUse(w) && !candidates.contains(w)) {
           candidates.add(w);
+          yield w;
         }
       }
     }
-    return candidates.toSet();
   }
 
   @override
@@ -81,35 +84,33 @@ class DictionaryServiceImpl extends DictionaryService {
 
   bool _canUse(String s) => s.length > 3 && !(_data[s]?.used ?? true);
 
-  List<String> _edits(String word) {
-    var result = <String>[];
+  Iterable<String> _edits(String word) sync* {
     var f = word[0];
     String s;
     for (var i = 0; i < word.length; ++i) {
       s = word.substring(0, i) + word.substring(i + 1);
-      if (s.isNotEmpty && s[0] == f) result.add(s);
+      if (s.isNotEmpty && s[0] == f) yield s;
     }
     for (var i = 0; i < word.length - 1; ++i) {
       s = word.substring(0, i) +
           word.substring(i + 1, i + 2) +
           word.substring(i, i + 1) +
           word.substring(i + 2);
-      if (s.isNotEmpty && s[0] == f) result.add(s);
+      if (s.isNotEmpty && s[0] == f) yield s;
     }
     for (var i = 0; i < word.length; ++i) {
       for (var c = 'а'.runes.first; c <= 'я'.runes.first; ++c) {
         s = word.substring(0, i) +
             String.fromCharCode(c) +
             word.substring(i + 1);
-        if (s.isNotEmpty && s[0] == f) result.add(s);
+        if (s.isNotEmpty && s[0] == f) yield s;
       }
     }
     for (var i = 0; i <= word.length; ++i) {
       for (var c = 'а'.runes.first; c <= 'я'.runes.first; ++c) {
         s = word.substring(0, i) + String.fromCharCode(c) + word.substring(i);
-        if (s.isNotEmpty && s[0] == f) result.add(s);
+        if (s.isNotEmpty && s[0] == f) yield s;
       }
     }
-    return result;
   }
 }

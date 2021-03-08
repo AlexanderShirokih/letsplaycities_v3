@@ -21,10 +21,10 @@ class DictionaryDecorator extends DictionaryService {
   /// Returns correction variants for [city] or empty list if there are no corrections available
   /// or corrections is disabled in preferences.
   @override
-  Future<Set<String>> getCorrectionVariants(String city) =>
+  Stream<String> getCorrectionVariants(String city) =>
       (_prefs.correctionEnabled)
           ? _dictionaryService.getCorrectionVariants(city)
-          : Future.value({});
+          : Stream.empty();
 
   @override
   Future<CityResult> checkCity(String city) =>

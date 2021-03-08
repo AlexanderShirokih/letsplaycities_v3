@@ -92,8 +92,7 @@ class _CityCheckingResultBarState extends State<CityCheckingResultBar>
   ) =>
       Container(
         padding: EdgeInsets.symmetric(horizontal: 12.0),
-        height: max(corrections.length * 64.0 + 30.0, 100),
-        color: Theme.of(context).secondaryHeaderColor,
+        height: max(corrections.length * 62.0 + 30.0, 100),
         child: Column(
           mainAxisSize: MainAxisSize.max,
           children: [

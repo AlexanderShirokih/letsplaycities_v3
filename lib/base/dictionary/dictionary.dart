@@ -26,7 +26,7 @@ abstract class DictionaryService {
   int getCountryCode(String city);
 
   /// Returns correction variants for [city] or empty list if there are no corrections available.
-  Future<Set<String>> getCorrectionVariants(String city);
+  Stream<String> getCorrectionVariants(String city);
 
   /// Returns all cities in database.
   Map<String, CityProperties> getAll();

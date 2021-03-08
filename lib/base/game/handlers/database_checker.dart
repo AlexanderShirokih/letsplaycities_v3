@@ -1,7 +1,7 @@
 import 'package:lets_play_cities/base/dictionary.dart';
+import 'package:lets_play_cities/base/game/handlers.dart';
 import 'package:lets_play_cities/base/game/management.dart';
 import 'package:lets_play_cities/base/game/player/user.dart';
-import 'package:lets_play_cities/base/game/handlers.dart';
 
 /// Checks the [RawWordEvent]s word for existence in the game dictionary.
 /// Emits:
@@ -22,17 +22,21 @@ class DatabaseChecker extends TypedEventHandler<RawWordEvent> {
     var checkingResult = await _checkInDatabase(event.word, event.owner);
 
     if (checkingResult is NotFound && checkingResult.word.length > 3) {
-      var corrections = await _dictionary.getCorrectionVariants(event.word);
-      switch (corrections.length) {
-        case 0:
-          yield NotFound(event.word);
-          break;
-        case 1:
-          yield Accepted(corrections.first, event.owner);
-          break;
-        default:
-          yield Corrections(corrections);
-          break;
+      var corrections = _dictionary
+          .getCorrectionVariants(event.word)
+          .timeout(Duration(seconds: 3), onTimeout: (sink) => sink.close());
+
+      final allCorrections = <String>{};
+
+      await for (final correction in corrections) {
+        allCorrections.add(correction);
+        yield Corrections(allCorrections);
+      }
+
+      if (allCorrections.isEmpty) {
+        yield NotFound(event.word);
+      } else if (allCorrections.length == 1) {
+        yield Accepted(allCorrections.first, event.owner);
       }
       return;
     }
