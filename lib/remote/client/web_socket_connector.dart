@@ -4,7 +4,6 @@ import 'dart:io';
 import 'package:lets_play_cities/remote/client/base_socket_connector.dart';
 import 'package:lets_play_cities/remote/exceptions.dart';
 import 'package:rxdart/rxdart.dart';
-// ignore: import_of_legacy_library_into_null_safe
 import 'package:web_socket_channel/io.dart';
 
 /// WebSocket implementation of socket commutator

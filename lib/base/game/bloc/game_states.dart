@@ -2,13 +2,16 @@ part of 'game_bloc.dart';
 
 /// Describes states of in the game lifecycle
 @sealed
-abstract class GameLifecycleState {
+abstract class GameLifecycleState extends Equatable {
   const GameLifecycleState();
 }
 
 /// Default state used before game starts.
 class InitialState extends GameLifecycleState {
   const InitialState();
+
+  @override
+  List<Object?> get props => [];
 }
 
 /// Stages for [CheckingForUpdatesState]
@@ -20,12 +23,18 @@ class CheckingForUpdatesState extends GameLifecycleState {
   final int stagePercent;
 
   const CheckingForUpdatesState(this.stage, this.stagePercent);
+
+  @override
+  List<Object?> get props => [stage, stagePercent];
 }
 
 /// The state used when tge game loads exclusions list and dictionary
 /// to be able to start [GameState]
 class DataLoadingState extends GameLifecycleState {
   const DataLoadingState();
+
+  @override
+  List<Object?> get props => [];
 }
 
 /// The state used when data is ready
@@ -45,6 +54,9 @@ class GotDataState extends GameLifecycleState {
     this.exclusions,
     this.scoreController,
   );
+
+  @override
+  List<Object?> get props => [dictionary, exclusions, scoreController];
 }
 
 /// The state used during the game.
@@ -59,6 +71,23 @@ class GameState extends GameLifecycleState {
     this.dictionary,
     this.scoreController,
   );
+
+  @override
+  List<Object?> get props => [
+        gameSessionRepository,
+        dictionary,
+        scoreController,
+      ];
+}
+
+/// Used to show notification snackbar
+class GameNotificationState extends GameLifecycleState {
+  final String message;
+
+  const GameNotificationState(this.message);
+
+  @override
+  List<Object?> get props => [message];
 }
 
 /// Used when the game ends
@@ -67,6 +96,9 @@ class GameResultsState extends GameLifecycleState {
   final GameConfig gameConfig;
 
   const GameResultsState(this.gameResult, this.gameConfig);
+
+  @override
+  List<Object?> get props => [gameResult, gameConfig];
 }
 
 /// Used when some fatal error happens
@@ -75,4 +107,7 @@ class ErrorState extends GameLifecycleState {
   final StackTrace stackTrace;
 
   const ErrorState(this.exception, this.stackTrace);
+
+  @override
+  List<Object?> get props => [exception, stackTrace];
 }

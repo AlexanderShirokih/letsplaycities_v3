@@ -16,6 +16,7 @@ class CustomMaterialButton extends StatelessWidget {
   Widget build(BuildContext context) => ElevatedButton(
         style:
             ElevatedButton.styleFrom(primary: Theme.of(context).primaryColor),
+        onPressed: _onTap,
         child: Padding(
           padding: const EdgeInsets.symmetric(vertical: 12.0),
           child: Row(
@@ -30,7 +31,6 @@ class CustomMaterialButton extends StatelessWidget {
             ],
           ),
         ),
-        onPressed: _onTap,
       );
 }
 

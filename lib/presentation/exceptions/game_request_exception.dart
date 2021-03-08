@@ -24,5 +24,5 @@ class GameRequestException extends BaseException {
   final RequestFailReason failReason;
 
   GameRequestException(this.failReason)
-      : super(message: 'Request failed: ${failReason}');
+      : super(message: 'Request failed: $failReason');
 }

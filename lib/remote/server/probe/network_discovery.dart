@@ -134,8 +134,8 @@ class NetworkDiscoveryImpl extends NetworkDiscovery {
       final message = String.fromCharCodes(await resp.first);
       if (resp.statusCode != 200) {
         // Some error
-        GetIt.instance<ErrorLogger>().log('Server is up on address ${uri}, '
-            'but returns code ${resp.statusCode}. Body: ${message}');
+        GetIt.instance<ErrorLogger>().log('Server is up on address $uri, '
+            'but returns code ${resp.statusCode}. Body: $message');
         return null;
       }
 

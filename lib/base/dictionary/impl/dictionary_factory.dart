@@ -6,7 +6,6 @@ import 'dart:typed_data';
 
 import 'package:flutter/services.dart';
 import 'package:lets_play_cities/base/dictionary.dart';
-// ignore: import_of_legacy_library_into_null_safe
 import 'package:path_provider/path_provider.dart';
 
 import '../../exceptions.dart';
@@ -163,7 +162,7 @@ class _InternalDescriptor extends _DictionaryDescriptor
     try {
       final bytes = await _internalFile.readAsBytes();
       final byteData = bytes.buffer.asByteData();
-      return await parseDictionary(byteData, version);
+      return parseDictionary(byteData, version);
     } catch (e) {
       await _internalFile.delete();
       rethrow;

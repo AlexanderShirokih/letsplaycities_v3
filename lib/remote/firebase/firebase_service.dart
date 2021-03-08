@@ -1,9 +1,6 @@
-// ignore: import_of_legacy_library_into_null_safe
 import 'dart:async';
 
-// ignore: import_of_legacy_library_into_null_safe
 import 'package:firebase_core/firebase_core.dart';
-// ignore: import_of_legacy_library_into_null_safe
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:get_it/get_it.dart';
 import 'package:lets_play_cities/remote/model/cloud_messages.dart';
@@ -38,8 +35,7 @@ class FirebaseServices implements CloudMessagingService {
 
     _firebaseMessaging = FirebaseMessaging.instance;
 
-    var initialMsg =
-        await (_firebaseMessaging!.getInitialMessage()) as RemoteMessage?;
+    var initialMsg = await _firebaseMessaging!.getInitialMessage();
 
     if (initialMsg != null) {
       _handleAction(initialMsg.data);
@@ -55,12 +51,13 @@ class FirebaseServices implements CloudMessagingService {
 
   /// Returns firebase cloud messaging token
   @override
-  Future<String> getUserToken() {
+  Future<String> getUserToken() async {
     if (_firebaseMessaging == null) {
       throw 'Firebase messaging is not initialized!';
     }
 
-    return _firebaseMessaging!.getToken();
+    final token = await _firebaseMessaging!.getToken();
+    return token ?? '';
   }
 
   void _handleAction(Map<String, dynamic> data) {
@@ -72,7 +69,7 @@ class FirebaseServices implements CloudMessagingService {
       if (action == 'fm_request') {
         _instance._inputMessages.add(GameRequest.fromMap(data));
       } else {
-        _logger.log('Received unknown remote action: ${action}');
+        _logger.log('Received unknown remote action: $action');
       }
     } else {
       _logger.log('Got remote message, but action is null!');

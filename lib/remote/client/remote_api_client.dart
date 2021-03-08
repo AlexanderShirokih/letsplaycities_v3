@@ -1,9 +1,6 @@
-// ignore: import_of_legacy_library_into_null_safe
 import 'package:crypto/crypto.dart' as crypto;
-// ignore: import_of_legacy_library_into_null_safe
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
-// ignore: import_of_legacy_library_into_null_safe
 import 'package:http_parser/http_parser.dart' as http_parser;
 import 'package:lets_play_cities/app_config.dart';
 import 'package:lets_play_cities/remote/auth.dart';
@@ -187,22 +184,26 @@ class RemoteLpsApiClient extends LpsApiClient {
 
       if (response.statusCode != 200) {
         throw AuthorizationException.fromStatus(
-            response.statusMessage, response.statusCode);
+            response.statusMessage ?? 'No message', response.statusCode ?? 0);
       }
       return response;
     } on DioError catch (e) {
       var description = 'no description';
 
       try {
-        final mappedData = e.response.data as Map<String, dynamic>;
-        final error = mappedData['error'];
-        if (error != null) {
-          description = error;
+        if (e.response == null) {
+          description = 'No responce!';
+        } else {
+          final mappedData = e.response!.data as Map<String, dynamic>;
+          final error = mappedData['error'];
+          if (error != null) {
+            description = error;
+          }
         }
       } catch (_) {}
 
       throw FetchingException(
-          '${e.message}, error=$description', e.request.uri);
+          '${e.message}, error=$description', e.request!.uri);
     }
   }
 
@@ -215,7 +216,7 @@ class RemoteLpsApiClient extends LpsApiClient {
         return (await response()).data;
       }
     } on DioError catch (e) {
-      throw FetchingException('JSON decoding error. \n$e', e.request.uri);
+      throw FetchingException('JSON decoding error. \n$e', e.request!.uri);
     }
   }
 }

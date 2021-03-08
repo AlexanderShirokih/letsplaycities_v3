@@ -123,15 +123,15 @@ class _LoginScreenState extends State<LoginScreen> {
                             primary: Theme.of(context).primaryColor,
                             elevation: 6.0,
                           ),
-                          child: Padding(
-                            padding: const EdgeInsets.all(10.0),
-                            child: Text('Войти'),
-                          ),
                           onPressed: _hasLogin
                               ? () => context
                                   .read<LoginBloc>()
                                   .add(LoginNativeEvent(_loginController.text))
                               : null,
+                          child: Padding(
+                            padding: const EdgeInsets.all(10.0),
+                            child: Text('Войти'),
+                          ),
                         ),
                       ),
                     ],

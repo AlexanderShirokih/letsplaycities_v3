@@ -61,40 +61,41 @@ mixin BaseListFetchingScreenMixin<T> on StatelessWidget {
               builder: (context, state) {
                 if (state is UserActionListDataState) {
                   return BlocListener<UserActionsBloc, UserActionsState>(
-                      child: RefreshIndicator(
-                        onRefresh: () async {
-                          context
+                    listener: (context, state) {
+                      if (state is UserActionConfirmationState) {
+                        showUndoSnackbar(
+                          context,
+                          state.sourceEvent.confirmationMessage!,
+                          onComplete: () => context
+                              .read<UserActionsBloc>()
+                              .add(state.sourceEvent),
+                          onUndo: () => context
                               .read<UserListActionsBloc>()
-                              .add(UserFetchListEvent(true));
-                        },
-                        child: state.data.isEmpty
-                            ? _showPlaceholder(context)
-                            : _showList(context, state.data as List<T>),
-                      ),
-                      listener: (context, state) {
-                        if (state is UserActionConfirmationState) {
-                          showUndoSnackbar(
-                            context,
-                            state.sourceEvent.confirmationMessage!,
-                            onComplete: () => context
-                                .read<UserActionsBloc>()
-                                .add(state.sourceEvent),
-                            onUndo: () => context
-                                .read<UserListActionsBloc>()
-                                .add(UserFetchListEvent(false)),
+                              .add(UserFetchListEvent(false)),
+                        );
+                      } else if (state is UserActionDoneState) {
+                        final message = state.sourceEvent.confirmationMessage;
+                        if (message != null) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              duration: const Duration(seconds: 3),
+                              content: Text(message),
+                            ),
                           );
-                        } else if (state is UserActionDoneState) {
-                          final message = state.sourceEvent.confirmationMessage;
-                          if (message != null) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                duration: const Duration(seconds: 3),
-                                content: Text(message),
-                              ),
-                            );
-                          }
                         }
-                      });
+                      }
+                    },
+                    child: RefreshIndicator(
+                      onRefresh: () async {
+                        context
+                            .read<UserListActionsBloc>()
+                            .add(UserFetchListEvent(true));
+                      },
+                      child: state.data.isEmpty
+                          ? _showPlaceholder(context)
+                          : _showList(context, state.data as List<T>),
+                    ),
+                  );
                 } else if (state is UserActionErrorState) {
                   return showError(context, state.error);
                 } else {

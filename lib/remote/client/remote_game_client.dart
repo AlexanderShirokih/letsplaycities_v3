@@ -70,7 +70,7 @@ class RemoteGameClient {
           authResult.banReason ?? 'Authorization failed!');
     } else {
       throw UnknownMessageException(
-          'Unexpected message at login sequence: ${authResult}');
+          'Unexpected message at login sequence: $authResult');
     }
   }
 

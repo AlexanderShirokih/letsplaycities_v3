@@ -1,8 +1,6 @@
-// ignore: import_of_legacy_library_into_null_safe
 import 'dart:convert';
 import 'dart:io';
 
-// ignore: import_of_legacy_library_into_null_safe
 import 'package:dio/dio.dart';
 import 'package:lets_play_cities/domain/usecases.dart';
 import 'package:lets_play_cities/remote/auth.dart';
@@ -28,7 +26,9 @@ class SignUpUser
 
       if (response.statusCode != 200) {
         throw AuthorizationException.fromStatus(
-            response.statusMessage, response.statusCode);
+          response.statusMessage ?? 'No status message',
+          response.statusCode ?? 0,
+        );
       }
 
       if (!(response.data is Map<String, dynamic>)) {
@@ -44,10 +44,10 @@ class SignUpUser
 
       return RemoteSignUpResponse.fromMap(decoded['data']);
     } on DioError catch (e) {
-      if (e.type == DioErrorType.RESPONSE) {
+      if (e.type == DioErrorType.response) {
         throw AuthorizationException('Message: ${e.message}');
       } else {
-        throw FetchingException('Response error.', e.request.uri);
+        throw FetchingException('Response error.', e.request!.uri);
       }
     }
   }

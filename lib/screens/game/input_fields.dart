@@ -13,14 +13,14 @@ class InputFieldsGroup extends StatelessWidget {
       builder: (context, state) {
         return AnimatedSwitcher(
           duration: const Duration(seconds: 1),
+          transitionBuilder: (child, animation) => ScaleTransition(
+            scale: animation,
+            child: child,
+          ),
           child: state.isMessageFieldOpened
               ? _ChatMessageInputField()
               : _CityInputField(context.watch<GameSessionRepository>(),
                   context.watch<GameBloc>()),
-          transitionBuilder: (child, animation) => ScaleTransition(
-            child: child,
-            scale: animation,
-          ),
         );
       },
     );

@@ -1,18 +1,13 @@
 import 'dart:io';
 
-// ignore: import_of_legacy_library_into_null_safe
 import 'package:dio/dio.dart';
 import 'package:equatable/equatable.dart';
-// ignore: import_of_legacy_library_into_null_safe
-import 'package:firebase_admob/firebase_admob.dart';
-// ignore: import_of_legacy_library_into_null_safe
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:get_it/get_it.dart';
 import 'package:lets_play_cities/app_config.dart';
 import 'package:lets_play_cities/base/achievements/achievements_service.dart';
-// ignore: import_of_legacy_library_into_null_safe
 import 'package:lets_play_cities/base/ads/advertising_helper.dart';
 import 'package:lets_play_cities/base/dictionary/countrycode_overrides.dart';
 import 'package:lets_play_cities/base/dictionary/impl/country_code_overrides_builder.dart';
@@ -44,14 +39,13 @@ import 'package:lets_play_cities/remote/server/user_lookup_repository.dart';
 import 'package:lets_play_cities/remote/usecase/signup_user.dart';
 import 'package:lets_play_cities/utils/crashlytics_error_logger.dart';
 import 'package:lets_play_cities/utils/error_logger.dart';
-// ignore: import_of_legacy_library_into_null_safe
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'base/platform/device_name.dart';
 
 /// Registers root app dependencies. Should be called before
 /// all app initializations
-void injectRootDependencies({required String serverHost}) {
+Future<void> injectRootDependencies({required String serverHost}) async {
   if (kDebugMode) {
     EquatableConfig.stringify = true;
   }
@@ -194,21 +188,9 @@ void injectRootDependencies({required String serverHost}) {
         : VoiceRecognitionServiceImpl(),
   );
 
-  if (!Platform.isLinux) {
-    getIt.registerSingletonAsync<FirebaseAdMob>(() async {
-      final instance = FirebaseAdMob.instance;
-      final result = await instance.initialize(
-          appId: 'ca-app-pub-1936321025389344~3764122915');
-      if (!result) {
-        getIt.get<ErrorLogger>().log('AdMob initialization failed!');
-      }
-      return instance;
-    });
-  }
-
   /// Ad manager
   getIt.registerSingleton<AdManager>(
-    Platform.isLinux ? StubAdManager() : FirebaseAdManager(),
+    Platform.isLinux ? StubAdManager() : GoogleAdManager(),
   );
 
   // UserLookupRepository for keeping authorized users

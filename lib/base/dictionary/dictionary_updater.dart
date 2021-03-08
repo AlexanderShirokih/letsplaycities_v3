@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
-// ignore: import_of_legacy_library_into_null_safe
 import 'package:dio/dio.dart';
 import 'package:get_it/get_it.dart';
 import 'package:lets_play_cities/base/dictionary/impl/dictionary_factory.dart';
@@ -92,7 +91,7 @@ class DictionaryUpdater {
       );
 
       final total =
-          int.parse(response.headers.value(Headers.contentLengthHeader));
+          int.parse(response.headers.value(Headers.contentLengthHeader) ?? '1');
 
       var done = 0;
 
@@ -127,7 +126,7 @@ class DictionaryUpdater {
     } on DioError catch (e) {
       throw FetchingException(
         'Dictionary version fetch error: ${e.error}',
-        e.request.uri,
+        e.request!.uri,
       );
     }
 

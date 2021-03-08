@@ -1,12 +1,14 @@
 import 'dart:typed_data';
 
 import 'package:flutter/foundation.dart';
-
-// ignore: import_of_legacy_library_into_null_safe
 import 'package:image/image.dart';
 
 List<int> _resizeAndEncode(Uint8List imageData) {
-  var thumbnail = copyResizeCropSquare(decodeImage(imageData), 128);
+  var image = decodeImage(imageData);
+  if (image == null) {
+    throw 'Cannot decode image!';
+  }
+  var thumbnail = copyResizeCropSquare(image, 128);
   return encodePng(thumbnail);
 }
 

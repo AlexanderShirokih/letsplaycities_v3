@@ -1,6 +1,5 @@
 import 'dart:typed_data';
 
-// ignore: import_of_legacy_library_into_null_safe
 import 'package:dio/dio.dart';
 import 'package:get_it/get_it.dart';
 import 'package:lets_play_cities/base/remote/bloc/avatar_resize_mixin.dart';

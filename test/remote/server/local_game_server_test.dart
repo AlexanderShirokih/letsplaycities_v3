@@ -53,7 +53,7 @@ void main() {
     await apiServer.startServer();
     verify(connection.start()).called(1);
 
-    await apiServer.getPlayers();
+    await apiServer.getPlayers().toList();
 
     verify(connection.connect()).called(1);
     verifyNoMoreInteractions(connection);

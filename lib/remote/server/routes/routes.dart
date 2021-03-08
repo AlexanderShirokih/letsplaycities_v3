@@ -163,7 +163,7 @@ class RequestDispatcherImpl implements RequestDispatcher {
     } catch (e) {
       await (request.response
             ..statusCode = HttpStatus.badRequest
-            ..writeln('{"error":"Error: ${e}"}'))
+            ..writeln('{"error":"Error: $e"}'))
           .close();
       rethrow;
     }

@@ -106,7 +106,6 @@ class __AvatarBorderAnimatorState extends State<_AvatarBorderAnimator>
   @override
   Widget build(BuildContext context) {
     return Container(
-      child: buildAvatarForUser(widget.user, 35.0),
       decoration: ShapeDecoration(
         shape: StadiumBorder(
           side: BorderSide(
@@ -115,6 +114,7 @@ class __AvatarBorderAnimatorState extends State<_AvatarBorderAnimator>
           ),
         ),
       ),
+      child: buildAvatarForUser(widget.user, 35.0),
     );
   }
 }

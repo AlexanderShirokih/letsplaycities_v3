@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get_it/get_it.dart';
-// ignore: import_of_legacy_library_into_null_safe
 import 'package:lets_play_cities/base/ads/advertising_helper.dart';
 import 'package:lets_play_cities/base/dictionary.dart';
 import 'package:lets_play_cities/base/dictionary/countrycode_overrides.dart';
@@ -92,7 +91,13 @@ class GameBloc extends Bloc<GameStateEvent, GameLifecycleState> {
     } else if (event is GameEventSurrender) {
       await _surrender();
     } else if (event is GameEventShowHelp) {
-      await _showHelp();
+      final isReady = await _showHelp();
+      if (!isReady) {
+        final savedState = state;
+        yield GameNotificationState(
+            'Подсказка пока не готова. Попробуйте позже');
+        yield savedState;
+      }
     } else {
       throw ('Unexpected event: $event');
     }
@@ -180,7 +185,5 @@ class GameBloc extends Bloc<GameStateEvent, GameLifecycleState> {
     }
   }
 
-  Future<void> _showHelp() async {
-    await _adManager.showRewarded();
-  }
+  Future<bool> _showHelp() => _adManager.showRewarded();
 }

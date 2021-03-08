@@ -173,16 +173,16 @@ class GameRequestView extends StatelessWidget with NetworkAvatarBuildingMixin {
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
                 OutlinedButton(
-                  child: Text(l10n.decline),
                   onPressed: () => context
                       .read<GameRequestBloc>()
                       .add(GameRequestResultEvent(RequestResult.declined)),
+                  child: Text(l10n.decline),
                 ),
                 ElevatedButton(
-                  child: Text(l10n.accept),
                   onPressed: () => context
                       .read<GameRequestBloc>()
                       .add(GameRequestResultEvent(RequestResult.accepted)),
+                  child: Text(l10n.accept),
                 ),
               ],
             ),

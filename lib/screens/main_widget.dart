@@ -13,8 +13,6 @@ import 'package:lets_play_cities/remote/model/cloud_messaging_service.dart';
 import 'package:lets_play_cities/screens/main/main_screen.dart';
 import 'package:lets_play_cities/screens/online/game_request_view.dart';
 
-// ignore: import_of_legacy_library_into_null_safe
-
 /// Application root class
 class LetsPlayCitiesApp extends StatelessWidget {
   @override

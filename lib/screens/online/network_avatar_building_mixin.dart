@@ -29,11 +29,11 @@ mixin NetworkAvatarBuildingMixin {
       CircleAvatar(
         radius: radius,
         key: ObjectKey(profile),
+        backgroundColor: _colors[profile.userId % _colors.length],
         child: Text(
           _getInitials(profile.login),
           style: TextStyle(fontSize: 24.0),
         ),
-        backgroundColor: _colors[profile.userId % _colors.length],
       );
 
   String _getInitials(String login) => login

@@ -3,7 +3,6 @@ import 'dart:convert';
 import 'package:lets_play_cities/base/dictionary.dart';
 import 'package:lets_play_cities/base/scoring.dart';
 import 'package:lets_play_cities/remote/account.dart';
-// ignore: import_of_legacy_library_into_null_safe
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// Represents application preferences
@@ -123,7 +122,7 @@ class SharedPreferencesGamePrefs extends GamePreferences {
   @override
   String get scoringData => _prefs.getString('scoringData') == null
       ? ''
-      : utf8.decode(base64.decode(_prefs.getString('scoringData')));
+      : utf8.decode(base64.decode(_prefs.getString('scoringData')!));
 
   @override
   set scoringData(String s) =>
@@ -163,8 +162,8 @@ class SharedPreferencesGamePrefs extends GamePreferences {
 
   @override
   Credential? get currentCredentials {
-    final int? userId = _prefs.getInt('uid');
-    final String? uhash = _prefs.getString('uhash');
+    final userId = _prefs.getInt('uid');
+    final uhash = _prefs.getString('uhash');
 
     if (userId == null || uhash == null || userId == 0) {
       return null;
@@ -186,6 +185,10 @@ class SharedPreferencesGamePrefs extends GamePreferences {
 
   @override
   set theme(String? themeName) {
-    _prefs.setString('theme', themeName);
+    if (themeName == null) {
+      _prefs.remove('theme');
+    } else {
+      _prefs.setString('theme', themeName);
+    }
   }
 }

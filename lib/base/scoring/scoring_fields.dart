@@ -1,6 +1,4 @@
 import 'package:equatable/equatable.dart';
-
-// ignore: import_of_legacy_library_into_null_safe
 import 'package:intl/intl.dart';
 
 /// Container class for printing both field name(or key) and it's value

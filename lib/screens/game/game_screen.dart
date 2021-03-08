@@ -93,6 +93,12 @@ class GameScreen extends StatelessWidget {
                               ),
                             ),
                           );
+                        } else if (state is GameNotificationState) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(state.message),
+                            ),
+                          );
                         }
                       },
                     ),

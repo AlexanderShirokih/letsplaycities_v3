@@ -48,7 +48,7 @@ class VoiceRecognitionServiceImpl implements VoiceRecognitionService {
       },
       cancelOnError: true,
       partialResults: false,
-      pauseFor: const Duration(seconds: 6),
+      pauseFor: const Duration(seconds: 10),
       localeId: _selectedLocale!.localeId,
     );
   }

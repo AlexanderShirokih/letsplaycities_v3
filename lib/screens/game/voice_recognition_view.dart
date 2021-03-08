@@ -1,4 +1,3 @@
-// ignore: import_of_legacy_library_into_null_safe
 import 'package:avatar_glow/avatar_glow.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -31,22 +30,25 @@ class VoiceRecognitionButton extends StatelessWidget {
           final isListening = state is VoiceRecognitionListening;
           final isReady = isListening || state is VoiceRecognitionReady;
 
-          return AvatarGlow(
-            animate: isListening,
-            endRadius: 24.0,
-            glowColor: Theme.of(context).accentColor,
-            duration: const Duration(milliseconds: 1500),
-            repeatPauseDuration: const Duration(milliseconds: 100),
-            repeat: true,
-            child: IconButton(
-              icon: Icon(Icons.mic),
-              onPressed: isReady
-                  ? () => context
-                      .read<VoiceRecognitionBloc>()
-                      .add(VoiceRecognitionToggle())
-                  : null,
-            ),
-          );
+          Widget buildIconButton() => IconButton(
+                icon: Icon(Icons.mic),
+                onPressed: isReady
+                    ? () => context
+                        .read<VoiceRecognitionBloc>()
+                        .add(VoiceRecognitionToggle())
+                    : null,
+              );
+
+          return isListening
+              ? AvatarGlow(
+                  endRadius: 24.0,
+                  glowColor: Theme.of(context).accentColor,
+                  duration: const Duration(milliseconds: 1500),
+                  repeatPauseDuration: const Duration(milliseconds: 100),
+                  repeat: true,
+                  child: buildIconButton(),
+                )
+              : buildIconButton();
         },
       ),
     );

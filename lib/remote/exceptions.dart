@@ -5,7 +5,7 @@ class RemoteException implements Exception {
   const RemoteException(this.description);
 
   @override
-  String toString() => '${runtimeType}: $description';
+  String toString() => '$runtimeType: $description';
 }
 
 /// Indicates that unknown kind of message was received

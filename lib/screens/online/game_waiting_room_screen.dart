@@ -421,11 +421,11 @@ Widget _createCancelButton(BuildContext context) => ElevatedButton(
           borderRadius: BorderRadius.circular(12.0),
         ),
       ),
+      onPressed: () => context.read<WaitingRoomBloc>().add(CancelEvent()),
       child: Padding(
         padding: const EdgeInsets.all(12.0),
         child: buildWithLocalization(context, (l10n) => Text(l10n.cancel)),
       ),
-      onPressed: () => context.read<WaitingRoomBloc>().add(CancelEvent()),
     );
 
 Widget _createConnectButton(BuildContext context) => createStyledMaterialButton(
