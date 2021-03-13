@@ -10,6 +10,7 @@ import 'package:lets_play_cities/base/dictionary/impl/dictionary_factory.dart';
 import 'package:meta/meta.dart';
 
 part 'cities_list_event.dart';
+
 part 'cities_list_state.dart';
 
 /// BLoC for managing cities list

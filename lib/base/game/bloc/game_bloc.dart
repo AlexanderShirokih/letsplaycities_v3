@@ -24,6 +24,7 @@ import '../game_mode.dart';
 import '../game_session_factory.dart';
 
 part 'game_events.dart';
+
 part 'game_states.dart';
 
 class GameBloc extends Bloc<GameStateEvent, GameLifecycleState> {

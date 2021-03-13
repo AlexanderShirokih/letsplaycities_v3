@@ -6,6 +6,7 @@ import 'package:get_it/get_it.dart';
 import 'package:lets_play_cities/base/stt/voice_recognition_service.dart';
 
 part 'voice_recognition_event.dart';
+
 part 'voice_recognition_state.dart';
 
 enum _ActionMode { start, stop }

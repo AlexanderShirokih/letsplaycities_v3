@@ -1,4 +1,5 @@
 import 'package:flutter/services.dart';
+
 // ignore: import_of_legacy_library_into_null_safe
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 
@@ -59,10 +60,7 @@ class GoogleAdManager implements AdManager {
       request: AdRequest(),
       listener: AdListener(
         onRewardedAdUserEarnedReward: (_, __) => callback(),
-        onAdFailedToLoad: (_, err) {
-          print('FAILED TO LOAD: ${err.message}');
-          _rewardAd.load();
-        },
+        onAdFailedToLoad: (_, err) => _rewardAd.load(),
         onAdClosed: (_) => _rewardAd.load(),
       ),
     );

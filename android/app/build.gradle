@@ -13,12 +13,12 @@ if (flutterRoot == null) {
 
 def flutterVersionCode = localProperties.getProperty('flutter.versionCode')
 if (flutterVersionCode == null) {
-    flutterVersionCode = '3010'
+    flutterVersionCode = '3011'
 }
 
 def flutterVersionName = localProperties.getProperty('flutter.versionName')
 if (flutterVersionName == null) {
-    flutterVersionName = '3.0.1'
+    flutterVersionName = '3.0.1f1'
 }
 
 apply plugin: 'com.android.application'
@@ -74,7 +74,7 @@ dependencies {
     implementation 'com.vk:androidsdk:2.6.0'
     implementation 'ru.ok:odnoklassniki-android-sdk:2.1.8'
     implementation 'com.facebook.android:facebook-login:9.0.0'
-    implementation 'com.google.firebase:firebase-analytics:18.0.1'
+    implementation 'com.google.firebase:firebase-analytics:18.0.2'
     implementation 'com.google.firebase:firebase-messaging:21.0.1'
 
     implementation 'com.google.android.gms:play-services-auth:19.0.0'

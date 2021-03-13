@@ -12,6 +12,7 @@ import 'package:lets_play_cities/utils/error_logger.dart';
 import 'package:pedantic/pedantic.dart';
 
 part 'local_multiplayer_event.dart';
+
 part 'local_multiplayer_state.dart';
 
 /// Bloc for handling local multiplayer connections

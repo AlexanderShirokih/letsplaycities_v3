@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+
 // ignore: import_of_legacy_library_into_null_safe
 import 'package:flutter_stream_listener/flutter_stream_listener.dart';
 import 'package:get_it/get_it.dart';

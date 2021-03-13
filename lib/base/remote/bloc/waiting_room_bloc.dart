@@ -13,6 +13,7 @@ import 'package:lets_play_cities/remote/model/server_messages.dart';
 import 'package:pedantic/pedantic.dart';
 
 part 'waiting_room_event.dart';
+
 part 'waiting_room_state.dart';
 
 /// BLoC used to create game connection
