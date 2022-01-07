@@ -60,9 +60,6 @@ class MappedLocalizationsService extends LocalizationService {
   Map<String, dynamic> get citiesList => _data['cities_list'];
 
   @override
-  Map<String, dynamic> get citiesListAbout => _data['cities_list_about'];
-
-  @override
   Map<String, dynamic> get citiesRequest => _data['cities_request'];
 
   @override

@@ -12,7 +12,6 @@ import 'package:lets_play_cities/screens/main/cites/list/country_filter_dialog.d
 import 'package:lets_play_cities/screens/main/cites/model/city_edit_action.dart';
 import 'package:lets_play_cities/screens/main/cites/requests/city_edit_actions_screen.dart';
 
-import 'cities_list_about_screen.dart';
 import 'widgets/city_list_item.dart';
 
 /// Screen that shows a list of all database cities
@@ -125,14 +124,17 @@ class _CitiesListContentState extends State<_CitiesListContent> {
                   Container(
                     width: double.infinity,
                     child: ElevatedButton(
-                        // TODO: REMOVE
-                        onPressed: () => Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) => CitiesListAboutScreen(),
-                              ),
-                            ),
-                        child: Text(widget.l10n.citiesList['about'])),
+                      // TODO: REMOVE
+                      onPressed: () {
+                        // Navigator.push(
+                        //   context,
+                        //   MaterialPageRoute(
+                        //     builder: (_) => CitiesListAboutScreen(),
+                        //   ),
+                        // );
+                      },
+                      child: Text(widget.l10n.citiesList['about']),
+                    ),
                   ),
                   Divider(thickness: 2.0),
                 ],
