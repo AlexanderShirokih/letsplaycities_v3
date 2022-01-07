@@ -20,6 +20,18 @@ abstract class CitiesListDataState extends CitiesListState {
   List<CountryEntity> get countryList;
 
   const CitiesListDataState();
+
+  CityItem getCityItem(CitiesListEntry entry, String missingCountryText) {
+    final countryEntity = countryList.firstWhere(
+      (county) => county.countryCode == entry.countryCode,
+      orElse: () => CountryEntity(missingCountryText, 0, false),
+    );
+
+    return CityItem(
+      entry.cityName.toTitleCase(),
+      countryEntity,
+    );
+  }
 }
 
 /// State for showing all data (without any filters)

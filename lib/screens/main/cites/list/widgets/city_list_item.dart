@@ -1,16 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:lets_play_cities/base/cities_list/cities_list_entry.dart';
 import 'package:lets_play_cities/screens/common/utils.dart';
-import 'package:lets_play_cities/utils/string_utils.dart';
-
-/// Callback used to provide a country name
-typedef ProvideCountryName = String Function(int countryCode);
+import 'package:lets_play_cities/screens/main/cites/model/city_item.dart';
 
 /// Shows city with its country. Has submenu activated by tap,
 /// that allows to edit the city.
 class CityListItem extends StatelessWidget {
-  final CitiesListEntry cityEntry;
-  final ProvideCountryName provideCountryName;
+  final CityItem cityItem;
   final bool expanded;
   final void Function() onTap;
   final void Function() onEdit;
@@ -22,15 +17,14 @@ class CityListItem extends StatelessWidget {
     required this.onEdit,
     required this.onRemove,
     required this.expanded,
-    required this.cityEntry,
-    required this.provideCountryName,
+    required this.cityItem,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    final countryCode = cityEntry.countryCode;
-    final cityName = cityEntry.cityName.toTitleCase();
-    final countryName = provideCountryName(countryCode);
+    final cityName = cityItem.cityName;
+    final countryName = cityItem.country.name;
+    final countryCode = cityItem.country.countryCode;
 
     final title = '$cityName ($countryName)';
 

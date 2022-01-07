@@ -1,5 +1,7 @@
+import 'package:equatable/equatable.dart';
+
 /// Data class describing country.
-class CountryEntity {
+class CountryEntity extends Equatable {
   /// Country name
   final String name;
 
@@ -14,4 +16,7 @@ class CountryEntity {
     this.countryCode,
     this.hasSiblingCity,
   );
+
+  @override
+  List<Object?> get props => [name, countryCode, hasSiblingCity];
 }

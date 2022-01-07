@@ -11,6 +11,7 @@ import 'package:lets_play_cities/base/achievements/achievements_service.dart';
 import 'package:lets_play_cities/base/ads/advertising_helper.dart';
 import 'package:lets_play_cities/base/dictionary/countrycode_overrides.dart';
 import 'package:lets_play_cities/base/dictionary/impl/country_code_overrides_builder.dart';
+import 'package:lets_play_cities/base/dictionary/impl/dictionary_factory.dart';
 import 'package:lets_play_cities/base/platform/app_version.dart';
 import 'package:lets_play_cities/base/preferences.dart';
 import 'package:lets_play_cities/base/stt/voice_recognition_service.dart';
@@ -41,7 +42,10 @@ import 'package:lets_play_cities/utils/crashlytics_error_logger.dart';
 import 'package:lets_play_cities/utils/error_logger.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'base/dictionary/impl/country_list_loader_factory.dart';
 import 'base/platform/device_name.dart';
+import 'base/repositories/cities/city_repository.dart';
+import 'base/repositories/cities/country_repository.dart';
 
 /// Registers root app dependencies. Should be called before
 /// all app initializations
@@ -224,6 +228,16 @@ Future<void> injectRootDependencies({required String serverHost}) async {
 
   getIt.registerFactory<ServerGameController>(
     () => ServerGameControllerImpl(getIt.get(), getIt.get()),
+  );
+
+  // Cities list
+  getIt.registerFactory<CityRepository>(
+    () => CityRepository(DictionaryFactory()),
+  );
+
+  // Country list
+  getIt.registerFactory<CountryRepository>(
+    () => CountryRepository(CountryListLoaderServiceFactory()),
   );
 }
 

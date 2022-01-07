@@ -6,7 +6,7 @@ import 'package:lets_play_cities/base/game/game_config.dart';
 import 'package:lets_play_cities/base/game/game_mode.dart';
 import 'package:lets_play_cities/screens/common/common_widgets.dart';
 import 'package:lets_play_cities/screens/game/game_screen.dart';
-import 'package:lets_play_cities/screens/main/citieslist/cities_list_screen.dart';
+import 'package:lets_play_cities/screens/main/cites/list/cities_list_screen.dart';
 import 'package:lets_play_cities/screens/multiplayer/local_multiplayer_screen.dart';
 import 'package:lets_play_cities/screens/online/game_master.dart';
 import 'package:lets_play_cities/screens/settings/settings_screen.dart';

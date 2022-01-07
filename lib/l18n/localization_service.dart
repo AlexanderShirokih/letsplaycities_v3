@@ -1,6 +1,7 @@
 import 'package:lets_play_cities/screens/game/first_time_onboarding_screen.dart';
 import 'package:lets_play_cities/screens/game_results/game_results_screen.dart';
-import 'package:lets_play_cities/screens/main/citieslist/cities_list_about_screen.dart';
+import 'package:lets_play_cities/screens/main/cites/requests/city_edit_actions_screen.dart';
+import 'package:lets_play_cities/screens/main/cites/list/cities_list_about_screen.dart';
 import 'package:lets_play_cities/screens/settings/theme_manager_screen.dart';
 
 import 'localizations_keys.dart';
@@ -40,7 +41,11 @@ abstract class LocalizationService {
   Map<String, dynamic> get citiesList;
 
   /// [CitiesListAboutScreen] localizations
+  /// TODO: Remove
   Map<String, dynamic> get citiesListAbout;
+
+  /// [CityEditActionsScreen] localizations
+  Map<String, dynamic> get citiesRequest;
 
   /// [GameResultsScreen] localizations
   Map<String, dynamic> get gameResults;
