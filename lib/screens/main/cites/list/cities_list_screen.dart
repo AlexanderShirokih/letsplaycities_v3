@@ -11,6 +11,7 @@ import 'package:lets_play_cities/screens/common/utils.dart';
 import 'package:lets_play_cities/screens/main/cites/list/country_filter_dialog.dart';
 import 'package:lets_play_cities/screens/main/cites/model/city_edit_action.dart';
 import 'package:lets_play_cities/screens/main/cites/requests/city_edit_actions_screen.dart';
+import 'package:lets_play_cities/screens/main/cites/requests/city_requests_list_screen.dart';
 
 import 'widgets/city_list_item.dart';
 
@@ -124,15 +125,12 @@ class _CitiesListContentState extends State<_CitiesListContent> {
                   Container(
                     width: double.infinity,
                     child: ElevatedButton(
-                      // TODO: REMOVE
-                      onPressed: () {
-                        // Navigator.push(
-                        //   context,
-                        //   MaterialPageRoute(
-                        //     builder: (_) => CitiesListAboutScreen(),
-                        //   ),
-                        // );
-                      },
+                      onPressed: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => CityRequestsListScreen(),
+                        ),
+                      ),
                       child: Text(widget.l10n.citiesList['about']),
                     ),
                   ),
