@@ -1,5 +1,4 @@
 import 'package:flutter/services.dart';
-
 // ignore: import_of_legacy_library_into_null_safe
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 
@@ -45,6 +44,9 @@ class GoogleAdManager implements AdManager {
 
   GoogleAdManager() {
     MobileAds.instance.initialize();
+    MobileAds.instance.updateRequestConfiguration(
+      RequestConfiguration(testDeviceIds: ['2FC7074A00EF0F1A87A07B43024079BA']),
+    );
 
     _interstitialAd = InterstitialAd(
       adUnitId: _interstitialAdId,
