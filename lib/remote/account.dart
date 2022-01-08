@@ -28,12 +28,27 @@ class Credential extends Equatable {
       };
 }
 
-/// Default credentials provider
-class CredentialsProvider {
+abstract class CredentialsProvider {
+  Credential getCredentials();
+}
+
+/// Credentials provider that takes credentials from the instance
+class InstancedCredentialsProvider implements CredentialsProvider {
+  final Credential _credential;
+
+  const InstancedCredentialsProvider(this._credential);
+
+  @override
+  Credential getCredentials() => _credential;
+}
+
+/// Credentials provider that takes credentials from the preferences
+class GamePreferencesCredentialsProvider implements CredentialsProvider {
   final GamePreferences _gamePreferences;
 
-  CredentialsProvider(this._gamePreferences);
+  GamePreferencesCredentialsProvider(this._gamePreferences);
 
+  @override
   Credential getCredentials() {
     return _gamePreferences.currentCredentials ?? Credential.empty();
   }
@@ -129,6 +144,7 @@ class RemoteAccount extends ClientAccountInfo with EquatableMixin {
       );
 
   /// Creates [ApiRepository] for this account
-  ApiRepository getApiRepository() =>
-      GetIt.instance.get<ApiRepository>(param1: credential);
+  ApiRepository getApiRepository() => GetIt.instance.get<ApiRepository>(
+        param1: InstancedCredentialsProvider(credential),
+      );
 }

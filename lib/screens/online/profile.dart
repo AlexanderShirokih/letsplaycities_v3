@@ -4,9 +4,10 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get_it/get_it.dart';
 import 'package:intl/intl.dart';
 import 'package:lets_play_cities/base/remote/bloc/user_actions_bloc.dart';
-import 'package:lets_play_cities/l18n/localization_service.dart';
 import 'package:lets_play_cities/data/models/friend_game_request.dart';
+import 'package:lets_play_cities/l18n/localization_service.dart';
 import 'package:lets_play_cities/remote/auth.dart';
+import 'package:lets_play_cities/remote/exceptions.dart';
 import 'package:lets_play_cities/screens/common/common_widgets.dart';
 import 'package:lets_play_cities/screens/common/error_handler_widget.dart';
 import 'package:lets_play_cities/screens/common/utils.dart';
@@ -43,7 +44,16 @@ class _OnlineProfileViewStandaloneState
             future: ctx.watch<AccountManager>().getLastSignedInAccount(),
             builder: (context, lastSignedInAccount) {
               if (lastSignedInAccount.hasError) {
-                return ConnectionErrorView(onReload: () => setState(() {}));
+                final error = lastSignedInAccount.error;
+
+                if (error is AuthorizationException) {
+                  return ConnectionErrorView(
+                    onReload: () => setState(() {}),
+                    errorMessage: error.description,
+                  );
+                } else {
+                  return ConnectionErrorView(onReload: () => setState(() {}));
+                }
               }
               if (!lastSignedInAccount.hasData) {
                 if (lastSignedInAccount.connectionState ==

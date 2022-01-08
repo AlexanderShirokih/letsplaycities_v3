@@ -41,7 +41,7 @@ class CityApprovedItem {
   final CityRequestEntity? target;
   final String reason;
   final String result;
-  final bool isApproved;
+  final bool? isApproved;
 
   const CityApprovedItem({
     this.source,

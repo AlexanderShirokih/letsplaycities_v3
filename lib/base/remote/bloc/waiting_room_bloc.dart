@@ -72,6 +72,10 @@ class WaitingRoomBloc extends Bloc<WaitingRoomEvent, WaitingRoomState> {
       yield* _stopConnection();
       yield WaitingRoomAuthorizationFailed(e.description);
       return;
+    } on UnknownMessageException catch(e) {
+      yield* _stopConnection();
+      yield WaitingRoomConnectionError();
+      return;
     }
     yield WaitingRoomConnectingState(ConnectionStage.done);
 

@@ -165,7 +165,7 @@ Future<void> injectRootDependencies({required String serverHost}) async {
 
   // Credentials provider
   getIt.registerSingletonWithDependencies<CredentialsProvider>(
-    () => CredentialsProvider(getIt.get<GamePreferences>()),
+    () => GamePreferencesCredentialsProvider(getIt.get<GamePreferences>()),
     dependsOn: [GamePreferences],
   ); // LPS API Client
 
@@ -180,9 +180,12 @@ Future<void> injectRootDependencies({required String serverHost}) async {
   );
 
   /// Api Repository
-  getIt.registerFactoryParam<ApiRepository, Credential, AppConfig>(
-      (credential, appConfig) => ApiRepository(
-          getIt.get(param1: credential, param2: appConfig), getIt.get()));
+  getIt.registerFactoryParam<ApiRepository, CredentialsProvider, AppConfig>(
+    (credentialsProvider, appConfig) => ApiRepository(
+      getIt.get<LpsApiClient>(param1: credentialsProvider, param2: appConfig),
+      getIt.get<ApiRepositoryCacheHolder>(),
+    ),
+  );
 
   /// City requests repository
   getIt.registerFactory<CityRequestsRepository>(

@@ -111,7 +111,7 @@ class CityRequest extends Equatable {
       case 'DECLINED':
         return CityRequestStatus.DECLINED;
       default:
-        return CityRequestStatus.NEW;
+        return CityRequestStatus.UNKNOWN;
     }
   }
 }
@@ -125,4 +125,7 @@ enum CityRequestStatus {
 
   /// Request was declined
   DECLINED,
+
+  /// Request status is unknown
+  UNKNOWN,
 }

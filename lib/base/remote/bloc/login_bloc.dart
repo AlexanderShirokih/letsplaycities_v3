@@ -36,7 +36,10 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
   @override
   Stream<LoginState> mapEventToState(LoginEvent event) async* {
     if (event is LoginNativeEvent) {
-      yield* _handleNativeLogin(event.login);
+      yield* _handleNativeLogin(event.login).map((event) {
+        print("GOT EVENTTTT: $event");
+        return event;
+      });
     } else if (event is LoginSocialEvent) {
       yield* _handleSocialLogin(event.authType);
     } else if (event is LoginAuthErrorEvent) {
@@ -55,11 +58,15 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
       snUID: await _socialNetworksService.getDeviceId(),
     );
 
-    final remoteAccount = await _accountManager.signUp(request);
+    try {
+      final remoteAccount = await _accountManager.signUp(request);
 
-    _preferences.lastNativeLogin = remoteAccount.name;
+      _preferences.lastNativeLogin = remoteAccount.name;
 
-    yield LoginAuthCompletedState();
+      yield LoginAuthCompletedState();
+    } on RemoteException catch (e) {
+      yield LoginErrorState(e);
+    }
   }
 
   Stream<LoginState> _handleSocialLogin(AuthType authType) async* {
