@@ -72,24 +72,30 @@ class _FirstTimeOnBoardingScreenState extends State<FirstTimeOnBoardingScreen>
   @override
   Widget build(BuildContext context) {
     _controller.forward();
-    return Container(
-      color: Theme.of(context).backgroundColor,
-      child: Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: Center(
-          child: FadeTransition(
-            opacity: _fadeAnimation,
-            child: ScaleTransition(
-              scale: _scaleAnimation,
-              child: Text(
-                _strings[_currentTextId],
-                textAlign: TextAlign.center,
-                overflow: TextOverflow.fade,
-                style: Theme.of(context)
-                    .textTheme
-                    .headline3!
-                    .copyWith(fontWeight: FontWeight.w800),
-                textDirection: TextDirection.ltr,
+    return GestureDetector(
+      onTap: () {
+        // Speed up animation
+        _controller.forward(from: 0.99);
+      },
+      child: Container(
+        color: Theme.of(context).backgroundColor,
+        child: Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Center(
+            child: FadeTransition(
+              opacity: _fadeAnimation,
+              child: ScaleTransition(
+                scale: _scaleAnimation,
+                child: Text(
+                  _strings[_currentTextId],
+                  textAlign: TextAlign.center,
+                  overflow: TextOverflow.fade,
+                  style: Theme.of(context)
+                      .textTheme
+                      .headline3!
+                      .copyWith(fontWeight: FontWeight.w800),
+                  textDirection: TextDirection.ltr,
+                ),
               ),
             ),
           ),

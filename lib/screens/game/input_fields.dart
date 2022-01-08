@@ -12,7 +12,7 @@ class InputFieldsGroup extends StatelessWidget {
     return BlocBuilder<ServiceEventsBloc, ServiceEventsState>(
       builder: (context, state) {
         return AnimatedSwitcher(
-          duration: const Duration(seconds: 1),
+          duration: const Duration(milliseconds: 360),
           transitionBuilder: (child, animation) => ScaleTransition(
             scale: animation,
             child: child,
