@@ -93,7 +93,7 @@ class _AnimatedMainButtonsState extends State<AnimatedMainButtons>
   void initState() {
     super.initState();
     _controller = AnimationController(
-      duration: const Duration(seconds: 1),
+      duration: const Duration(milliseconds: 360),
       vsync: this,
     )..addStatusListener((status) {
         if (status == AnimationStatus.forward ||
