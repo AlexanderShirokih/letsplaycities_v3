@@ -4,6 +4,9 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get_it/get_it.dart';
 import 'package:lets_play_cities/base/cities_list/bloc/city_edit_actions_bloc.dart';
 import 'package:lets_play_cities/base/dictionary/country_entity.dart';
+import 'package:lets_play_cities/base/repositories/cities/city_repository.dart';
+import 'package:lets_play_cities/base/repositories/cities/city_requests_repository.dart';
+import 'package:lets_play_cities/base/repositories/cities/country_repository.dart';
 import 'package:lets_play_cities/l18n/localization_service.dart';
 import 'package:lets_play_cities/screens/common/utils.dart';
 import 'package:lets_play_cities/screens/main/cites/list/widgets/add_city_layout.dart';
@@ -88,9 +91,10 @@ class _CityEditActionsScreenState extends State<CityEditActionsScreen> {
         context,
         (l10n) => BlocProvider<CityEditActionsBloc>(
           create: (context) => CityEditActionsBloc(
-            GetIt.instance.get(),
-            GetIt.instance.get(),
-            GetIt.instance.get(),
+            GetIt.instance.get<CityRequestsRepository>(),
+            GetIt.instance.get<CountryRepository>(),
+            GetIt.instance.get<CityRepository>(),
+            GetIt.instance.get<LocalizationService>(),
             widget.city,
           ),
           child: Scaffold(
@@ -105,6 +109,7 @@ class _CityEditActionsScreenState extends State<CityEditActionsScreen> {
                         context
                             .read<CityEditActionsBloc>()
                             .add(CityEditActionSend(
+                              type: _mapType(widget.action),
                               reason: _reasonTextController.text,
                               updatedCityName: _cityNameController.text,
                               updatedCountryCode:
@@ -126,6 +131,27 @@ class _CityEditActionsScreenState extends State<CityEditActionsScreen> {
                           'Город с названием "${state.city}" не найден в базе данных'),
                     ),
                   );
+                } else if (state is CityRequestSendingError) {
+                  final String message;
+                  switch (state.errorType) {
+                    case CityRequestSendingType.Network:
+                      message =
+                          'Произошла какая-то сетевая ошибка. Попробуйте еще раз';
+                      break;
+                    case CityRequestSendingType.NotAuthorized:
+                      message =
+                          'Для того, чтобы отправлять запрос нужно авторизоваться. Вы можете сделать это в профиле';
+                      break;
+                  }
+
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text(message)),
+                  );
+                } else if (state is CityRequestSent) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Заявка отправлена!')),
+                  );
+                  Navigator.pop(context);
                 } else if (state is CityEditActionsData) {
                   setState(() {
                     _currentCountry ??= state.cityItem.country;
@@ -195,6 +221,17 @@ class _CityEditActionsScreenState extends State<CityEditActionsScreen> {
         return 'title_remove';
       case CityEditAction.Add:
         return 'title_add';
+    }
+  }
+
+  CityEditActionType _mapType(CityEditAction action) {
+    switch (action) {
+      case CityEditAction.Edit:
+        return CityEditActionType.Edit;
+      case CityEditAction.Remove:
+        return CityEditActionType.Remove;
+      case CityEditAction.Add:
+        return CityEditActionType.Add;
     }
   }
 }

@@ -266,6 +266,19 @@ class RemoteLpsApiClient extends LpsApiClient {
       return '${e.message}, error=$description';
     }
   }
+
+  @override
+  Future<void> sendCityRequest(SendCityRequest request) async {
+    _requireCredential();
+
+    await _requireOK(
+      () => _httpClient.post(
+        '/cities/edit',
+        options: Options(headers: getCredentials().asAuthorizationHeader()),
+        data: request.toJson(),
+      ),
+    );
+  }
 }
 
 class RemoteSignUpResponse {

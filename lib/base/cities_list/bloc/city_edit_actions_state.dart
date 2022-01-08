@@ -39,3 +39,27 @@ class CityNotFound extends CityEditActionsState {
   @override
   List<Object?> get props => [city];
 }
+
+/// Describes error type
+enum CityRequestSendingType {
+  Network,
+  NotAuthorized,
+}
+
+/// State when used was not authorized
+class CityRequestSendingError extends CityEditActionsState {
+  final CityRequestSendingType errorType;
+
+  const CityRequestSendingError(this.errorType);
+
+  @override
+  List<Object?> get props => [errorType];
+}
+
+/// State used when request is sent
+class CityRequestSent extends CityEditActionsState {
+  const CityRequestSent();
+
+  @override
+  List<Object?> get props => [];
+}

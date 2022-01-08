@@ -1,5 +1,48 @@
 import 'package:equatable/equatable.dart';
 
+/// Request model used to send a new city editing request model
+class SendCityRequest extends Equatable {
+  /// New country code
+  final int? oldCountryCode;
+
+  /// Old country code
+  final int? newCountryCode;
+
+  /// Old city name
+  final String? oldName;
+
+  /// New city name
+  final String? newName;
+
+  /// User's update reason
+  final String reason;
+
+  const SendCityRequest({
+    this.oldCountryCode,
+    this.newCountryCode,
+    this.oldName,
+    this.newName,
+    required this.reason,
+  });
+
+  Map<String, dynamic> toJson() => {
+        'oldCountryCode': oldCountryCode,
+        'newCountryCode': newCountryCode,
+        'oldName': oldName,
+        'newName': newName,
+        'reason': reason,
+      };
+
+  @override
+  List<Object?> get props => [
+        oldCountryCode,
+        newCountryCode,
+        oldName,
+        newName,
+        reason,
+      ];
+}
+
 /// Model, that describes a posted city request
 class CityRequest extends Equatable {
   /// Request ID
