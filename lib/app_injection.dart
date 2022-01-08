@@ -45,6 +45,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'base/dictionary/impl/country_list_loader_factory.dart';
 import 'base/platform/device_name.dart';
 import 'base/repositories/cities/city_repository.dart';
+import 'base/repositories/cities/city_requests_repository.dart';
 import 'base/repositories/cities/country_repository.dart';
 
 /// Registers root app dependencies. Should be called before
@@ -162,13 +163,18 @@ Future<void> injectRootDependencies({required String serverHost}) async {
   /// Api Repository Cache
   getIt.registerSingleton<ApiRepositoryCacheHolder>(ApiRepositoryCacheHolder());
 
-  // LPS API Client
-  getIt.registerFactoryParam<LpsApiClient, Credential, AppConfig>(
-    (credential, appConfig) {
+  // Credentials provider
+  getIt.registerSingletonWithDependencies<CredentialsProvider>(
+    () => CredentialsProvider(getIt.get<GamePreferences>()),
+    dependsOn: [GamePreferences],
+  ); // LPS API Client
+
+  getIt.registerFactoryParam<LpsApiClient, CredentialsProvider, AppConfig>(
+    (credentialProvider, appConfig) {
       return RemoteLpsApiClient(
         getIt.get(instanceName: 'api'),
         getIt.get(param1: appConfig),
-        credential!,
+        getIt.get<CredentialsProvider>(),
       );
     },
   );
@@ -177,6 +183,13 @@ Future<void> injectRootDependencies({required String serverHost}) async {
   getIt.registerFactoryParam<ApiRepository, Credential, AppConfig>(
       (credential, appConfig) => ApiRepository(
           getIt.get(param1: credential, param2: appConfig), getIt.get()));
+
+  /// City requests repository
+  getIt.registerFactory<CityRequestsRepository>(
+    () => CityRequestsRepository(
+      getIt.get<LpsApiClient>(),
+    ),
+  );
 
   /// Google Game Services as [AchievementsService]
   getIt.registerLazySingleton<AchievementsService>(() {

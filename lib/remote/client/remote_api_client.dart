@@ -3,10 +3,10 @@ import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:http_parser/http_parser.dart' as http_parser;
 import 'package:lets_play_cities/app_config.dart';
+import 'package:lets_play_cities/base/cities_list/city_request.dart';
 import 'package:lets_play_cities/remote/auth.dart';
 import 'package:lets_play_cities/remote/client/api_client.dart';
 import 'package:lets_play_cities/remote/exceptions.dart';
-import 'package:lets_play_cities/remote/model/auth_type.dart';
 import 'package:lets_play_cities/remote/models.dart';
 import 'package:lets_play_cities/remote/usecase/signup_user.dart';
 
@@ -14,12 +14,12 @@ import 'package:lets_play_cities/remote/usecase/signup_user.dart';
 class RemoteLpsApiClient extends LpsApiClient {
   final Dio _httpClient;
   final AppConfig _globalAppConfig;
-  final Credential _credential;
+  final CredentialsProvider _credentialsProvider;
 
   const RemoteLpsApiClient(
     this._globalAppConfig,
     this._httpClient,
-    this._credential,
+    this._credentialsProvider,
   );
 
   @override
@@ -39,16 +39,20 @@ class RemoteLpsApiClient extends LpsApiClient {
   Future<List<BlackListItemInfo>> getBanList() => _fetchList('blacklist')
       .then((list) => list.map((e) => BlackListItemInfo.fromJson(e)).toList());
 
+  Credential getCredentials() {
+    return _credentialsProvider.getCredentials();
+  }
+
   Future<List<dynamic>> _fetchList(String urlPostfix, [int? targetId]) async {
     _requireCredential();
-    final isOwner = _credential.userId == targetId;
+    final isOwner = getCredentials().userId == targetId;
 
     return await _decodeJson(
       () => _httpClient.get(
         targetId == null || isOwner
             ? '/$urlPostfix/'
             : '/$urlPostfix/$targetId',
-        options: Options(headers: _credential.asAuthorizationHeader()),
+        options: Options(headers: getCredentials().asAuthorizationHeader()),
       ),
     ) as List<dynamic>;
   }
@@ -60,7 +64,7 @@ class RemoteLpsApiClient extends LpsApiClient {
     await _requireOK(
       () => _httpClient.put(
         '/blacklist/$userId',
-        options: Options(headers: _credential.asAuthorizationHeader()),
+        options: Options(headers: getCredentials().asAuthorizationHeader()),
       ),
     );
   }
@@ -72,7 +76,7 @@ class RemoteLpsApiClient extends LpsApiClient {
     await _requireOK(
       () => _httpClient.delete(
         '/blacklist/$userId',
-        options: Options(headers: _credential.asAuthorizationHeader()),
+        options: Options(headers: getCredentials().asAuthorizationHeader()),
       ),
     );
   }
@@ -84,7 +88,7 @@ class RemoteLpsApiClient extends LpsApiClient {
     await _requireOK(
       () => _httpClient.delete(
         '/friend/$friendId',
-        options: Options(headers: _credential.asAuthorizationHeader()),
+        options: Options(headers: getCredentials().asAuthorizationHeader()),
       ),
     );
   }
@@ -96,7 +100,7 @@ class RemoteLpsApiClient extends LpsApiClient {
     await _requireOK(
       () => _httpClient.put(
         '/friend/request/$friendId/${describeEnum(requestType)}',
-        options: Options(headers: _credential.asAuthorizationHeader()),
+        options: Options(headers: getCredentials().asAuthorizationHeader()),
       ),
     );
   }
@@ -107,7 +111,7 @@ class RemoteLpsApiClient extends LpsApiClient {
     await _requireOK(
       () => _httpClient.put(
         '/user/request/$requesterId/DENY',
-        options: Options(headers: _credential.asAuthorizationHeader()),
+        options: Options(headers: getCredentials().asAuthorizationHeader()),
       ),
     );
   }
@@ -116,14 +120,14 @@ class RemoteLpsApiClient extends LpsApiClient {
   Future<ProfileInfo> getProfileInfo(int? targetId) async {
     _requireCredential();
 
-    targetId ??= _credential.userId;
+    targetId ??= getCredentials().userId;
 
     return ProfileInfo.fromJson(
       _globalAppConfig,
       await _decodeJson(
         () => _httpClient.get(
           '/user/$targetId',
-          options: Options(headers: _credential.asAuthorizationHeader()),
+          options: Options(headers: getCredentials().asAuthorizationHeader()),
         ),
       ),
     );
@@ -135,7 +139,7 @@ class RemoteLpsApiClient extends LpsApiClient {
     await _requireOK(
       () => _httpClient.delete(
         '/user/picture',
-        options: Options(headers: _credential.asAuthorizationHeader()),
+        options: Options(headers: getCredentials().asAuthorizationHeader()),
       ),
     );
   }
@@ -158,10 +162,26 @@ class RemoteLpsApiClient extends LpsApiClient {
     await _requireOK(
       () => _httpClient.post(
         '/user/picture/upload',
-        options: Options(headers: _credential.asAuthorizationHeader()),
+        options: Options(headers: getCredentials().asAuthorizationHeader()),
         data: form,
       ),
     );
+  }
+
+  @override
+  Future<List<CityRequest>> getCityRequests() async {
+    _requireCredential();
+
+    final data = await _decodeJson(
+      () => _httpClient.get(
+        '/cities/edit',
+        options: Options(headers: getCredentials().asAuthorizationHeader()),
+      ),
+    );
+
+    return (data as List<dynamic>)
+        .map((e) => CityRequest.fromJson(e))
+        .toList(growable: false);
   }
 
   String _getHash(List<int> data) {
@@ -171,8 +191,8 @@ class RemoteLpsApiClient extends LpsApiClient {
   }
 
   void _requireCredential() {
-    if (_credential.userId == 0 && _credential.accessToken.isEmpty) {
-      throw 'Not empty credential required';
+    if (getCredentials().userId == 0 && getCredentials().accessToken.isEmpty) {
+      throw NotAuthorizedException();
     }
   }
 
@@ -190,20 +210,27 @@ class RemoteLpsApiClient extends LpsApiClient {
     } on DioError catch (e) {
       var description = 'no description';
 
-      try {
-        if (e.response == null) {
-          description = 'No responce!';
-        } else {
-          final mappedData = e.response!.data as Map<String, dynamic>;
-          final error = mappedData['error'];
-          if (error != null) {
-            description = error;
-          }
+      final response = e.response;
+      if (response == null) {
+        description = 'No response!';
+      } else {
+        if (response.statusCode == 401) {
+          throw AuthorizationException(
+              'У вас нет доступа к получению информации');
         }
-      } catch (_) {}
 
-      throw FetchingException(
-          '${e.message}, error=$description', e.request!.uri);
+        if (response.data is String) {
+          description = response.data;
+        } else if (response.data is Map<String, dynamic>) {
+          final mappedData = response.data as Map<String, dynamic>;
+          final error = mappedData['error'];
+          description = error ?? 'Description is not provided';
+        } else {
+          description = 'Response if empty or invalid';
+        }
+      }
+
+      throw FetchingException(_getDetailedData(e, description), e.request!.uri);
     }
   }
 
@@ -217,6 +244,26 @@ class RemoteLpsApiClient extends LpsApiClient {
       }
     } on DioError catch (e) {
       throw FetchingException('JSON decoding error. \n$e', e.request!.uri);
+    }
+  }
+
+  String _getDetailedData(DioError e, String description) {
+    if (kDebugMode) {
+      final stringBuilder = StringBuffer();
+      stringBuilder.write('Response Status code: ');
+      stringBuilder.writeln(e.response?.statusCode);
+      stringBuilder.write('Response Status message: ');
+      stringBuilder.writeln(e.response?.statusMessage);
+      stringBuilder.write('Request Headers: ');
+      stringBuilder.writeln(e.request?.headers);
+      stringBuilder.write('Request URI: ');
+      stringBuilder.writeln(e.request?.uri);
+      stringBuilder.write('Request QueryParams: ');
+      stringBuilder.writeln(e.request?.queryParameters);
+
+      return stringBuilder.toString();
+    } else {
+      return '${e.message}, error=$description';
     }
   }
 }
@@ -340,3 +387,6 @@ class RemoteSignUpData {
         snUID: json['snUID'],
       );
 }
+
+/// Exception used when user is not authorized
+class NotAuthorizedException implements Exception {}

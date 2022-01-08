@@ -3,7 +3,7 @@ import 'dart:convert';
 import 'package:equatable/equatable.dart';
 import 'package:get_it/get_it.dart';
 import 'package:lets_play_cities/base/data.dart';
-import 'package:lets_play_cities/remote/api_repository.dart';
+import 'package:lets_play_cities/base/preferences.dart';
 import 'package:lets_play_cities/remote/auth.dart';
 
 /// Contains user credentials, which is the result of server authorization.
@@ -26,6 +26,17 @@ class Credential extends Equatable {
         'authorization':
             'Basic ${base64Encode(utf8.encode("$userId:$accessToken"))}'
       };
+}
+
+/// Default credentials provider
+class CredentialsProvider {
+  final GamePreferences _gamePreferences;
+
+  CredentialsProvider(this._gamePreferences);
+
+  Credential getCredentials() {
+    return _gamePreferences.currentCredentials ?? Credential.empty();
+  }
 }
 
 /// Contains authorization data

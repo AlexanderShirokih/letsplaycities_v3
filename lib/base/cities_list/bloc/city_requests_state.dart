@@ -6,12 +6,19 @@ abstract class CityRequestState extends Equatable {
 
 enum CityRequestType { Add, Edit, Remove }
 
-class CityRequestEntity {
+class CityRequestEntity extends Equatable {
   final String city;
   final String countryName;
   final int countryCode;
 
-  const CityRequestEntity(this.city, this.countryName, this.countryCode);
+  const CityRequestEntity({
+    required this.city,
+    required this.countryName,
+    required this.countryCode,
+  });
+
+  @override
+  List<Object?> get props => [city, countryCode, countryName];
 }
 
 class CityPendingItem {
@@ -46,13 +53,15 @@ class CityApprovedItem {
   });
 }
 
-class CityRequestNoData extends CityRequestState {
-  const CityRequestNoData();
+/// State used when city requests is loading
+class CityRequestInitial extends CityRequestState {
+  const CityRequestInitial();
 
   @override
   List<Object?> get props => [];
 }
 
+/// State used when data is ready
 class CityRequestItems extends CityRequestState {
   final List<CityPendingItem> pendingItems;
   final List<CityApprovedItem> approvedItems;
@@ -64,4 +73,22 @@ class CityRequestItems extends CityRequestState {
 
   @override
   List<Object?> get props => [pendingItems, approvedItems];
+}
+
+/// State used when data cannot be loaded
+class CityRequestError extends CityRequestState {
+  final String error;
+
+  const CityRequestError(this.error);
+
+  @override
+  List<Object?> get props => [error];
+}
+
+/// States used when user is not authorized and not able to show the data
+class NotAuthorizedError extends CityRequestState {
+  const NotAuthorizedError();
+
+  @override
+  List<Object?> get props => [];
 }

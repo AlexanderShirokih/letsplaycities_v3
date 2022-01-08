@@ -1,3 +1,4 @@
+import 'package:lets_play_cities/base/cities_list/city_request.dart';
 import 'package:lets_play_cities/remote/client/remote_api_client.dart';
 import 'package:lets_play_cities/remote/model/blacklist_item_info.dart';
 import 'package:lets_play_cities/remote/model/friend_info.dart';
@@ -49,4 +50,7 @@ abstract class LpsApiClient {
 
   /// Removes user picture from currently logged account
   Future removePicture();
+
+  /// Gets a list of city requests
+  Future<List<CityRequest>> getCityRequests();
 }
