@@ -63,10 +63,14 @@ Widget showLoadingWidget(BuildContext context) => Center(
 
 /// Used when remote account is unreachable to display an error message
 class ConnectionErrorView extends StatelessWidget {
+  final String? errorMessage;
   final void Function() onReload;
 
-  const ConnectionErrorView({Key? key, required this.onReload})
-      : super(key: key);
+  const ConnectionErrorView({
+    Key? key,
+    required this.onReload,
+    this.errorMessage,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -92,7 +96,7 @@ class ConnectionErrorView extends StatelessWidget {
               buildWithLocalization(
                 context,
                 (l10n) => Text(
-                  l10n.online['connection_error'],
+                  errorMessage ?? l10n.online['connection_error'],
                   textAlign: TextAlign.center,
                 ),
               ),

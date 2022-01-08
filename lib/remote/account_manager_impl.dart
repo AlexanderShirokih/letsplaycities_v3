@@ -3,11 +3,8 @@ import 'package:get_it/get_it.dart';
 import 'package:lets_play_cities/app_config.dart';
 import 'package:lets_play_cities/base/preferences.dart';
 import 'package:lets_play_cities/remote/auth.dart';
-import 'package:lets_play_cities/remote/client/remote_api_client.dart';
 import 'package:lets_play_cities/remote/model/utils.dart';
 
-import 'account.dart';
-import 'account_manager.dart';
 import 'client/api_client.dart';
 
 class AccountManagerImpl extends AccountManager {
@@ -27,9 +24,14 @@ class AccountManagerImpl extends AccountManager {
 
     return _fetchedAccount.fetch(() async {
       final profile = await GetIt.instance
-          .get<ApiRepository>(param1: credentials, param2: _globalAppConfig)
+          .get<ApiRepository>(
+            param1: InstancedCredentialsProvider(credentials),
+            param2: _globalAppConfig,
+          )
           .getProfileInfo(
-              BaseProfileInfo(userId: credentials.userId, login: ''), true);
+            BaseProfileInfo(userId: credentials.userId, login: ''),
+            true,
+          );
 
       return RemoteAccount(
         credential: credentials,
@@ -65,11 +67,12 @@ class AccountManagerImpl extends AccountManager {
     );
   }
 
+  // TODO: Clear cookies here, when we implement cookies management
   @override
   Future signOut() => _preferences
       .setCurrentCredentials(null)
       .then((_) => _fetchedAccount.invalidate());
 
-  LpsApiClient _createClient(Credential credential) =>
-      GetIt.instance.get(param1: credential);
+  LpsApiClient _createClient(Credential credential) => GetIt.instance
+      .get<LpsApiClient>(param1: InstancedCredentialsProvider(credential));
 }

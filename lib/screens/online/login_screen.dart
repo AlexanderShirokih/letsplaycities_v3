@@ -46,8 +46,8 @@ class _LoginScreenState extends State<LoginScreen> {
         backgroundColor: Theme.of(context).primaryColorLight,
         shadowColor: Colors.transparent,
       ),
-      body: BlocProvider.value(
-        value: LoginBloc(
+      body: BlocProvider(
+        create: (context) => LoginBloc(
           NativeBridgeSocialNetworksService(),
         ),
         child: BlocConsumer<LoginBloc, LoginState>(

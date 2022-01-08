@@ -67,11 +67,26 @@ class CityRequestBloc extends Bloc<CityRequestEvent, CityRequestState> {
         data.where((element) => element.status != CityRequestStatus.NEW);
 
     for (var e in newRequests) {
+      final bool? isApproved;
+
+      switch (e.status) {
+        case CityRequestStatus.APPROVED:
+          isApproved = true;
+          break;
+        case CityRequestStatus.DECLINED:
+          isApproved = false;
+          break;
+        case CityRequestStatus.UNKNOWN:
+        case CityRequestStatus.NEW:
+          isApproved = null;
+          break;
+      }
+
       yield CityApprovedItem(
         type: _getType(e),
         reason: e.reason,
         result: e.verdict ?? '',
-        isApproved: e.status == CityRequestStatus.APPROVED,
+        isApproved: isApproved,
         source: await _mapEntity(e.oldName, e.oldCountryCode),
         target: await _mapEntity(e.newName, e.newCountryCode),
       );

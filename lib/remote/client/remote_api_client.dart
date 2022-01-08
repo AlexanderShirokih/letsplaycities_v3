@@ -216,7 +216,7 @@ class RemoteLpsApiClient extends LpsApiClient {
       } else {
         if (response.statusCode == 401) {
           throw AuthorizationException(
-              'У вас нет доступа к получению информации');
+              'У вас нет доступа к получению информации. Возможно истек срок жизни токенов доступа. Попробуйте очистить данные приложения');
         }
 
         if (response.data is String) {

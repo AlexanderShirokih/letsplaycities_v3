@@ -13,7 +13,6 @@ import 'package:lets_play_cities/remote/model/server_messages.dart';
 import 'package:pedantic/pedantic.dart';
 
 part 'waiting_room_event.dart';
-
 part 'waiting_room_state.dart';
 
 /// BLoC used to create game connection
@@ -50,8 +49,8 @@ class WaitingRoomBloc extends Bloc<WaitingRoomEvent, WaitingRoomState> {
     } else if (event is WaitForOpponentsEvent) {
       yield* _play(event.request);
     } else if (event is StartGameEvent) {
-      final apiRepository =
-          GetIt.instance.get<ApiRepository>(param1: _ownerCredentials);
+      final apiRepository = GetIt.instance.get<ApiRepository>(
+          param1: InstancedCredentialsProvider(_ownerCredentials));
 
       yield StartGameState(event.config, apiRepository);
 
@@ -71,6 +70,10 @@ class WaitingRoomBloc extends Bloc<WaitingRoomEvent, WaitingRoomState> {
     } on AuthorizationException catch (e) {
       yield* _stopConnection();
       yield WaitingRoomAuthorizationFailed(e.description);
+      return;
+    } on UnknownMessageException catch (e) {
+      yield* _stopConnection();
+      yield WaitingRoomConnectionError();
       return;
     }
     yield WaitingRoomConnectingState(ConnectionStage.done);

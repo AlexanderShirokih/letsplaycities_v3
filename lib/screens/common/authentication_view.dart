@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get_it/get_it.dart';
 import 'package:lets_play_cities/base/preferences.dart';
 import 'package:lets_play_cities/remote/auth.dart';
+import 'package:lets_play_cities/remote/exceptions.dart';
 import 'package:lets_play_cities/screens/common/common_widgets.dart';
 import 'package:lets_play_cities/screens/common/utils.dart';
 import 'package:lets_play_cities/screens/online/common_online_widgets.dart';
@@ -32,7 +33,15 @@ class _AuthenticationViewState extends State<AuthenticationView> {
               future: ctx.watch<AccountManager>().getLastSignedInAccount(),
               builder: (context, lastSignedInAccount) {
                 if (lastSignedInAccount.hasError) {
-                  return ConnectionErrorView(onReload: () => setState(() {}));
+                  final error = lastSignedInAccount.error;
+                  if (error is AuthorizationException) {
+                    return ConnectionErrorView(
+                      onReload: () => setState(() {}),
+                      errorMessage: error.description,
+                    );
+                  } else {
+                    return ConnectionErrorView(onReload: () => setState(() {}));
+                  }
                 }
                 if (!lastSignedInAccount.hasData) {
                   if (lastSignedInAccount.connectionState ==
