@@ -5,12 +5,14 @@ import 'package:lets_play_cities/base/repositories/cities/city_requests_reposito
 import 'package:lets_play_cities/base/repositories/cities/country_repository.dart';
 import 'package:lets_play_cities/remote/auth.dart';
 import 'package:lets_play_cities/remote/exceptions.dart';
+import 'package:lets_play_cities/base/bloc/sequential_event_mapping.dart';
 
 part 'city_requests_event.dart';
 
 part 'city_requests_state.dart';
 
-class CityRequestBloc extends Bloc<CityRequestEvent, CityRequestState> {
+class CityRequestBloc extends Bloc<CityRequestEvent, CityRequestState>
+    with SequentialEventMapping<CityRequestEvent, CityRequestState> {
   final CityRequestsRepository _cityRequestsRepository;
   final CountryRepository _countryRepository;
 
@@ -18,11 +20,11 @@ class CityRequestBloc extends Bloc<CityRequestEvent, CityRequestState> {
     this._cityRequestsRepository,
     this._countryRepository,
   ) : super(CityRequestInitial()) {
+    mapEventsSequentially(_mapEventToState);
     add(CityRequestFetchData());
   }
 
-  @override
-  Stream<CityRequestState> mapEventToState(CityRequestEvent event) async* {
+  Stream<CityRequestState> _mapEventToState(CityRequestEvent event) async* {
     if (event is CityRequestFetchData) {
       yield* _loadData();
     }

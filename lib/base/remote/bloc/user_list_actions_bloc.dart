@@ -4,20 +4,22 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lets_play_cities/base/remote/bloc/user_actions_bloc.dart';
 import 'package:lets_play_cities/remote/api_repository.dart';
 import 'package:lets_play_cities/remote/model/profile_info.dart';
+import 'package:lets_play_cities/base/bloc/sequential_event_mapping.dart';
 
 /// BLoC for managing user actions like friends management
-class UserListActionsBloc extends Bloc<UserActionsEvent, UserActionsState> {
+class UserListActionsBloc extends Bloc<UserActionsEvent, UserActionsState>
+    with SequentialEventMapping<UserActionsEvent, UserActionsState> {
   final ApiRepository _apiRepository;
   final UserFetchType fetchType;
   final BaseProfileInfo? target;
 
   UserListActionsBloc(this._apiRepository, this.fetchType, [this.target])
       : super(UserActionsInitial()) {
+    mapEventsSequentially(_mapEventToState);
     add(UserFetchListEvent(false));
   }
 
-  @override
-  Stream<UserActionsState> mapEventToState(UserActionsEvent event) async* {
+  Stream<UserActionsState> _mapEventToState(UserActionsEvent event) async* {
     if (event is UserFetchListEvent) {
       yield* _handleFetchEventSafely(event);
     }
@@ -48,8 +50,6 @@ class UserListActionsBloc extends Bloc<UserActionsEvent, UserActionsState> {
       case UserFetchType.getBanlist:
         data = _apiRepository.getBanlist(event.forceRefresh);
         break;
-      default:
-        throw ('Unknown fetch type! $fetchType');
     }
 
     yield UserActionListDataState(await data);

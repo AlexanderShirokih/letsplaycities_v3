@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:bloc/bloc.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:get_it/get_it.dart';
 import 'package:lets_play_cities/base/preferences.dart';
@@ -8,13 +8,15 @@ import 'package:lets_play_cities/remote/auth.dart';
 import 'package:lets_play_cities/remote/exceptions.dart';
 import 'package:lets_play_cities/remote/model/cloud_messaging_service.dart';
 import 'package:lets_play_cities/remote/social/social_networks_service.dart';
+import 'package:lets_play_cities/base/bloc/sequential_event_mapping.dart';
 
 part 'login_event.dart';
 
 part 'login_state.dart';
 
 /// Handle user sign up events
-class LoginBloc extends Bloc<LoginEvent, LoginState> {
+class LoginBloc extends Bloc<LoginEvent, LoginState>
+    with SequentialEventMapping<LoginEvent, LoginState> {
   final GamePreferences _preferences;
   final AccountManager _accountManager;
   final CloudMessagingService _cloudServices;
@@ -25,7 +27,9 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
   )   : _accountManager = GetIt.instance.get<AccountManager>(),
         _preferences = GetIt.instance.get<GamePreferences>(),
         _cloudServices = GetIt.instance.get<CloudMessagingService>(),
-        super(LoginInitial());
+        super(LoginInitial()) {
+    mapEventsSequentially(_mapEventToState);
+  }
 
   @override
   void onError(Object error, StackTrace stackTrace) {
@@ -33,8 +37,7 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
     super.onError(error, stackTrace);
   }
 
-  @override
-  Stream<LoginState> mapEventToState(LoginEvent event) async* {
+  Stream<LoginState> _mapEventToState(LoginEvent event) async* {
     if (event is LoginNativeEvent) {
       yield* _handleNativeLogin(event.login).map((event) {
         print("GOT EVENTTTT: $event");

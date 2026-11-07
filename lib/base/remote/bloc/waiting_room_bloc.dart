@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:bloc/bloc.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:get_it/get_it.dart';
 import 'package:lets_play_cities/base/game/game_config.dart';
@@ -9,18 +9,21 @@ import 'package:lets_play_cities/remote/auth.dart';
 import 'package:lets_play_cities/remote/client/remote_game_client.dart';
 import 'package:lets_play_cities/remote/exceptions.dart';
 import 'package:lets_play_cities/remote/model/server_messages.dart';
-import 'package:pedantic/pedantic.dart';
+import 'package:lets_play_cities/base/bloc/sequential_event_mapping.dart';
 
 part 'waiting_room_event.dart';
 part 'waiting_room_state.dart';
 
 /// BLoC used to create game connection
-class WaitingRoomBloc extends Bloc<WaitingRoomEvent, WaitingRoomState> {
+class WaitingRoomBloc extends Bloc<WaitingRoomEvent, WaitingRoomState>
+    with SequentialEventMapping<WaitingRoomEvent, WaitingRoomState> {
   final RemoteGameClient _gameClient;
   final Credential _ownerCredentials;
 
   WaitingRoomBloc(this._gameClient, this._ownerCredentials)
-      : super(WaitingRoomInitial());
+      : super(WaitingRoomInitial()) {
+    mapEventsSequentially(_mapEventToState);
+  }
 
   @override
   Future<void> close() {
@@ -37,8 +40,7 @@ class WaitingRoomBloc extends Bloc<WaitingRoomEvent, WaitingRoomState> {
     }
   }
 
-  @override
-  Stream<WaitingRoomState> mapEventToState(WaitingRoomEvent event) async* {
+  Stream<WaitingRoomState> _mapEventToState(WaitingRoomEvent event) async* {
     if (event is NewGameRequestEvent) {
       yield* _startConnection(event.request);
     } else if (event is CancelEvent) {
@@ -70,7 +72,7 @@ class WaitingRoomBloc extends Bloc<WaitingRoomEvent, WaitingRoomState> {
       yield* _stopConnection();
       yield WaitingRoomAuthorizationFailed(e.description);
       return;
-    } on UnknownMessageException catch (e) {
+    } on UnknownMessageException {
       yield* _stopConnection();
       yield WaitingRoomConnectionError();
       return;

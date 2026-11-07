@@ -185,8 +185,10 @@ class _OnlineProfileViewState extends State<OnlineProfileView>
                           onPressed: () => context
                               .read<AccountManager>()
                               .signOut()
-                              .then((_) => Navigator.of(context).pop()),
-                          icon: FaIcon(FontAwesomeIcons.signOutAlt),
+                              .then((_) {
+                            if (context.mounted) Navigator.of(context).pop();
+                          }),
+                          icon: FaIcon(FontAwesomeIcons.rightFromBracket),
                           label: buildWithLocalization(
                             context,
                             (l10n) => Text(l10n.online['sign_out']),
@@ -247,7 +249,7 @@ class _OnlineProfileViewState extends State<OnlineProfileView>
                 children: [
                   Text(
                     data.login,
-                    style: Theme.of(context).textTheme.headline6,
+                    style: Theme.of(context).textTheme.titleLarge,
                     overflow: TextOverflow.clip,
                   ),
                   const SizedBox(height: 12.0),
@@ -272,9 +274,9 @@ class _OnlineProfileViewState extends State<OnlineProfileView>
         alignment: Alignment.center,
         child: Text(
           l10n.online['input_ban'],
-          style: Theme.of(context).textTheme.caption!.copyWith(
+          style: Theme.of(context).textTheme.bodySmall!.copyWith(
                 fontSize: 16.0,
-                color: Theme.of(context).errorColor,
+                color: Theme.of(context).colorScheme.error,
               ),
         ),
       );
@@ -333,7 +335,7 @@ class _OnlineProfileViewState extends State<OnlineProfileView>
       alignment: Alignment.center,
       child: Text(
         'ID ${data.userId}',
-        style: Theme.of(context).textTheme.caption!.copyWith(fontSize: 16.0),
+        style: Theme.of(context).textTheme.bodySmall!.copyWith(fontSize: 16.0),
       ),
     );
     yield const Divider(height: 18.0, thickness: 1.0);
@@ -342,9 +344,9 @@ class _OnlineProfileViewState extends State<OnlineProfileView>
   Iterable<Widget> _buildNavigationBlock(bool isOwner, ProfileInfo data,
       BuildContext context, LocalizationService l10n) sync* {
     if (!isOwner) return;
-    yield _buildNavigationButton(FaIcon(FontAwesomeIcons.userFriends),
+    yield _buildNavigationButton(FaIcon(FontAwesomeIcons.userGroup),
         l10n.online['friends_tab'], () => OnlineFriendsScreen());
-    yield _buildNavigationButton(FaIcon(FontAwesomeIcons.history),
+    yield _buildNavigationButton(FaIcon(FontAwesomeIcons.clockRotateLeft),
         l10n.online['history_tab'], () => OnlineHistoryScreen(target: data));
     yield _buildNavigationButton(FaIcon(FontAwesomeIcons.userSlash),
         l10n.online['blacklist_tab'], () => OnlineBanlistScreen());
@@ -383,7 +385,7 @@ class _OnlineProfileViewState extends State<OnlineProfileView>
         style: ElevatedButton.styleFrom(
           padding: const EdgeInsets.symmetric(horizontal: 18.0, vertical: 18.0),
           shape: _createRoundedBorder(),
-          primary: Theme.of(context).primaryColor,
+          backgroundColor: Theme.of(context).primaryColor,
         ),
         onPressed: onPressed,
         child: Text(label),
@@ -540,7 +542,7 @@ class _OnlineProfileViewState extends State<OnlineProfileView>
             _getDate(l10n, data.lastVisitDate),
             style: Theme.of(context)
                 .textTheme
-                .bodyText2!
+                .bodyMedium!
                 .copyWith(fontStyle: FontStyle.italic),
           );
   }
@@ -552,7 +554,7 @@ class _OnlineProfileViewState extends State<OnlineProfileView>
       padding: const EdgeInsets.all(12.0),
       child: Text(
         l10n.online['battle_history'],
-        style: Theme.of(context).textTheme.headline6,
+        style: Theme.of(context).textTheme.titleLarge,
       ),
     );
     yield OnlineHistoryScreen(target: widget.target, embedded: true);
@@ -623,7 +625,7 @@ class __AcceptOrDeclineButtonState extends State<_AcceptOrDeclineButton> {
                         value: e,
                         child: Text(
                           _values[e],
-                          style: Theme.of(context).textTheme.bodyText1,
+                          style: Theme.of(context).textTheme.bodyLarge,
                         )))
                     .toList(),
             onChanged: (int? newValue) => setState(() {

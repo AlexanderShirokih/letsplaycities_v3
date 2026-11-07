@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lets_play_cities/base/remote/bloc/user_actions_bloc.dart';
 import 'package:lets_play_cities/base/remote/bloc/user_list_actions_bloc.dart';
-import 'package:lets_play_cities/remote/api_repository.dart';
 import 'package:lets_play_cities/remote/auth.dart';
 import 'package:lets_play_cities/screens/common/common_widgets.dart';
 import 'package:lets_play_cities/screens/common/utils.dart';

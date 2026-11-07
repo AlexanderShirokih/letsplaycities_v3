@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get_it/get_it.dart';
 import 'package:lets_play_cities/base/achievements/achievements_service.dart';
@@ -32,7 +33,7 @@ class MainScreen extends StatelessWidget {
                 height: 54.0,
                 child: ElevatedButton(
                   style: ElevatedButton.styleFrom(
-                    primary: Theme.of(context).primaryColor,
+                    backgroundColor: Theme.of(context).primaryColor,
                   ),
                   onPressed: () => Navigator.of(context).push(
                       MaterialPageRoute(builder: (_) => SettingsScreen())),
@@ -125,12 +126,17 @@ class _AnimatedMainButtonsState extends State<AnimatedMainButtons>
 
   @override
   Widget build(BuildContext context) {
-    return WillPopScope(
-      onWillPop: () async {
-        var shouldCloseApp = !_controller.isAnimating &&
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, _) {
+        if (didPop) return;
+        final shouldCloseApp = !_controller.isAnimating &&
             _lastDirection != AnimationStatus.forward;
-        if (!shouldCloseApp) _setPrimaryButtonsVisibility(true);
-        return shouldCloseApp;
+        if (shouldCloseApp) {
+          SystemNavigator.pop();
+        } else {
+          _setPrimaryButtonsVisibility(true);
+        }
       },
       child: Stack(
         children: [

@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lets_play_cities/base/data.dart';
 import 'package:lets_play_cities/base/game/game_item.dart';
@@ -52,7 +51,7 @@ class GameItemListTile extends StatelessWidget {
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  if (_gameItem is CityInfo) _buildIcon(_gameItem as CityInfo),
+                  if (_gameItem is CityInfo) _buildIcon(_gameItem),
                   const SizedBox(width: 8.0),
                   Flexible(child: _buildText(context)),
                 ],
@@ -70,8 +69,6 @@ class GameItemListTile extends StatelessWidget {
         return Icon(Icons.pending_outlined);
       case CityStatus.ERROR:
         return Icon(Icons.error_outline, color: Colors.red);
-      default:
-        throw ('Unknown CityInfo.status');
     }
   }
 
@@ -98,7 +95,7 @@ class GameItemListTile extends StatelessWidget {
     if (_gameItem is CityInfo) {
       final textStyle = Theme.of(context)
           .textTheme
-          .bodyText1!
+          .bodyLarge!
           .copyWith(fontSize: 18, fontWeight: FontWeight.w600);
       final spanTextStyle = textStyle.copyWith(color: theme.wordSpanColor);
       return RichText(

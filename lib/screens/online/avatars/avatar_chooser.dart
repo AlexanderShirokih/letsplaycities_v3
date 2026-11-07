@@ -54,7 +54,7 @@ class AvatarChooserView extends StatelessWidget {
     );
   }
 
-  Widget _buildItem(IconData icon, String title, AvatarEvent event) {
+  Widget _buildItem(FaIconData icon, String title, AvatarEvent event) {
     return ListTile(
       leading: FaIcon(icon),
       title: Text(title),

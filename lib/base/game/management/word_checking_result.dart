@@ -41,7 +41,6 @@ class WordCheckingResult extends GameEvent {
       case WordResult.WRONG_MOVE:
         return Error(WrongMoveException());
       case WordResult.UNKNOWN:
-      default:
         return Error(WordCheckingException('Unknown word result!'));
     }
   }

@@ -1,5 +1,3 @@
-import 'package:flutter/services.dart';
-// ignore: import_of_legacy_library_into_null_safe
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 
 typedef OnRewardedAdShown = void Function();
@@ -39,33 +37,18 @@ class GoogleAdManager implements AdManager {
 
   late OnRewardedAdShown callback;
 
-  late InterstitialAd _interstitialAd;
-  late RewardedAd _rewardAd;
+  InterstitialAd? _interstitialAd;
+  RewardedAd? _rewardAd;
 
   GoogleAdManager() {
-    MobileAds.instance.initialize();
-    MobileAds.instance.updateRequestConfiguration(
-      RequestConfiguration(testDeviceIds: ['2FC7074A00EF0F1A87A07B43024079BA']),
-    );
-
-    _interstitialAd = InterstitialAd(
-      adUnitId: _interstitialAdId,
-      request: AdRequest(),
-      listener: AdListener(
-        onAdClosed: (_) => _interstitialAd.load(),
-        onAdFailedToLoad: (_, __) => _interstitialAd.load(),
-      ),
-    );
-
-    _rewardAd = RewardedAd(
-      adUnitId: _rewardedAdId,
-      request: AdRequest(),
-      listener: AdListener(
-        onRewardedAdUserEarnedReward: (_, __) => callback(),
-        onAdFailedToLoad: (_, err) => _rewardAd.load(),
-        onAdClosed: (_) => _rewardAd.load(),
-      ),
-    );
+    // Request configuration must be set before initialization: calling it while
+    // the SDK initializes deadlocks the Android main thread on WebView setup.
+    MobileAds.instance
+        .updateRequestConfiguration(
+          RequestConfiguration(
+              testDeviceIds: ['2FC7074A00EF0F1A87A07B43024079BA']),
+        )
+        .then((_) => MobileAds.instance.initialize());
   }
 
   @override
@@ -76,30 +59,80 @@ class GoogleAdManager implements AdManager {
   }
 
   Future<void> loadAds() async {
-    try {
-      await _interstitialAd.load();
-      // ignore: empty_catches
-    } on PlatformException {}
-    try {
-      await _rewardAd.load();
-      // ignore: empty_catches
-    } on PlatformException {}
+    _loadInterstitial();
+    _loadRewarded();
+  }
+
+  void _loadInterstitial() {
+    InterstitialAd.load(
+      adUnitId: _interstitialAdId,
+      request: const AdRequest(),
+      adLoadCallback: InterstitialAdLoadCallback(
+        onAdLoaded: (ad) {
+          ad.fullScreenContentCallback = FullScreenContentCallback(
+            onAdDismissedFullScreenContent: (ad) {
+              ad.dispose();
+              _interstitialAd = null;
+              _loadInterstitial();
+            },
+            onAdFailedToShowFullScreenContent: (ad, _) {
+              ad.dispose();
+              _interstitialAd = null;
+              _loadInterstitial();
+            },
+          );
+          _interstitialAd = ad;
+        },
+        onAdFailedToLoad: (_) => _interstitialAd = null,
+      ),
+    );
+  }
+
+  void _loadRewarded() {
+    RewardedAd.load(
+      adUnitId: _rewardedAdId,
+      request: const AdRequest(),
+      rewardedAdLoadCallback: RewardedAdLoadCallback(
+        onAdLoaded: (ad) {
+          ad.fullScreenContentCallback = FullScreenContentCallback(
+            onAdDismissedFullScreenContent: (ad) {
+              ad.dispose();
+              _rewardAd = null;
+              _loadRewarded();
+            },
+            onAdFailedToShowFullScreenContent: (ad, _) {
+              ad.dispose();
+              _rewardAd = null;
+              _loadRewarded();
+            },
+          );
+          _rewardAd = ad;
+        },
+        onAdFailedToLoad: (_) => _rewardAd = null,
+      ),
+    );
   }
 
   @override
   Future<void> showInterstitial() async {
-    await _interstitialAd.show();
+    final ad = _interstitialAd;
+    if (ad == null) {
+      _loadInterstitial();
+      return;
+    }
+    await ad.show();
   }
 
+  /// Shows rewarded ad if loaded. The reward is delivered via [callback],
+  /// so the result is always `false`.
   @override
   Future<bool> showRewarded() async {
-    try {
-      await _rewardAd.show();
-    } on PlatformException catch (e) {
-      if (e.code == 'ad_not_loaded') {
-        await loadAds();
-      }
+    final ad = _rewardAd;
+    if (ad == null) {
+      _loadRewarded();
+      return false;
     }
+    await ad.show(onUserEarnedReward: (_, __) => callback());
     return false;
   }
 }

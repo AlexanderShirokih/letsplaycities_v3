@@ -1,4 +1,3 @@
-import 'dart:typed_data';
 
 import 'package:flutter/foundation.dart';
 import 'package:image/image.dart';
@@ -8,7 +7,7 @@ List<int> _resizeAndEncode(Uint8List imageData) {
   if (image == null) {
     throw 'Cannot decode image!';
   }
-  var thumbnail = copyResizeCropSquare(image, 128);
+  var thumbnail = copyResizeCropSquare(image, size: 128);
   return encodePng(thumbnail);
 }
 

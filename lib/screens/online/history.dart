@@ -41,8 +41,8 @@ class OnlineHistoryScreen extends StatelessWidget
         textAlign: TextAlign.center,
         style: withData<TextStyle, TextTheme>(
           Theme.of(context).textTheme,
-          (textTheme) =>
-              textTheme.headline5!.copyWith(color: textTheme.caption!.color),
+          (textTheme) => textTheme.headlineSmall!
+              .copyWith(color: textTheme.bodySmall!.color),
         ),
       );
 
@@ -62,7 +62,7 @@ class OnlineHistoryScreen extends StatelessWidget
               buildAvatar(data),
               if (data.isFriend)
                 FaIcon(
-                  FontAwesomeIcons.userFriends,
+                  FontAwesomeIcons.userGroup,
                   color: Theme.of(context).primaryColor,
                 ),
             ],
@@ -80,7 +80,7 @@ class OnlineHistoryScreen extends StatelessWidget
         (l10n) => Align(
           alignment: Alignment.centerLeft,
           child: withData<Widget, Color>(
-            Theme.of(context).textTheme.caption!.color!,
+            Theme.of(context).textTheme.bodySmall!.color!,
             (color) => Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [

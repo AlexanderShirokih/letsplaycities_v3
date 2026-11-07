@@ -88,8 +88,8 @@ class _LoginScreenState extends State<LoginScreen> {
             children: [
               Text(
                 'Вход',
-                style: Theme.of(context).textTheme.headline4!.copyWith(
-                    color: Theme.of(context).accentColor,
+                style: Theme.of(context).textTheme.headlineMedium!.copyWith(
+                    color: Theme.of(context).colorScheme.secondary,
                     fontWeight: FontWeight.w600),
               ),
               SizedBox(height: 8.0),
@@ -120,7 +120,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         padding: const EdgeInsets.fromLTRB(0, 18, 18, 0),
                         child: ElevatedButton(
                           style: ElevatedButton.styleFrom(
-                            primary: Theme.of(context).primaryColor,
+                            backgroundColor: Theme.of(context).primaryColor,
                             elevation: 6.0,
                           ),
                           onPressed: _hasLogin
@@ -142,7 +142,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 padding: const EdgeInsets.only(top: 6.0, bottom: 18.0),
                 child: Text(
                   'или войти используя',
-                  style: Theme.of(context).textTheme.bodyText1,
+                  style: Theme.of(context).textTheme.bodyLarge,
                 ),
               ),
               Row(

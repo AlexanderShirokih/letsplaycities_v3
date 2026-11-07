@@ -88,7 +88,7 @@ class _InitialUIView extends StatelessWidget {
               Text(
                 'Для создания соединения вы должны находиться в одной Wi-Fi сети с вашим оппонентом',
                 textAlign: TextAlign.center,
-                style: Theme.of(context).textTheme.headline6,
+                style: Theme.of(context).textTheme.titleLarge,
               ),
               const SizedBox(height: 24.0),
               Column(
@@ -118,7 +118,7 @@ class _InitialUIView extends StatelessWidget {
                           builder: (_) => SearchingHostsScreen(),
                         ),
                       ).then((selectedHost) {
-                        if (selectedHost != null) {
+                        if (selectedHost != null && context.mounted) {
                           context
                               .read<LocalMultiplayerBloc>()
                               .add(LocalMultiplayerConnect(selectedHost));

@@ -51,12 +51,12 @@ class SearchingHostsScreen extends StatelessWidget {
             Expanded(
               child: Text(
                 'Доступные устройства',
-                style: Theme.of(context).textTheme.headline5,
+                style: Theme.of(context).textTheme.headlineSmall,
               ),
             ),
             result.isCompleted
                 ? IconButton(
-                    icon: FaIcon(FontAwesomeIcons.syncAlt),
+                    icon: FaIcon(FontAwesomeIcons.rotate),
                     onPressed: () => context
                         .read<SearchingForHostsBloc>()
                         .add(StartSearchingEvent()),
@@ -72,7 +72,7 @@ class SearchingHostsScreen extends StatelessWidget {
         const SizedBox(height: 12.0),
         Text(
           'Вы должны находиться в одной сети для поиска устройств',
-          style: Theme.of(context).textTheme.caption,
+          style: Theme.of(context).textTheme.bodySmall,
         ),
       ],
     );
@@ -112,8 +112,8 @@ class SearchingHostsScreen extends StatelessWidget {
 
     return Center(
       child: FaIcon(
-        FontAwesomeIcons.search,
-        color: Theme.of(context).textTheme.caption!.color,
+        FontAwesomeIcons.magnifyingGlass,
+        color: Theme.of(context).textTheme.bodySmall!.color,
         size: 80.0,
       ),
     );

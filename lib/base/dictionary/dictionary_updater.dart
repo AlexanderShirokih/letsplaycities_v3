@@ -20,8 +20,6 @@ extension DictionaryUpdatePeriodExt on DictionaryUpdatePeriod {
         return const Duration(hours: 3);
       case DictionaryUpdatePeriod.DAILY:
         return const Duration(days: 1);
-      default:
-        throw ('Bad state!');
     }
   }
 }
@@ -123,10 +121,10 @@ class DictionaryUpdater {
       if (response.statusCode == 200) {
         return response.data['dictionary']['version'] as int;
       }
-    } on DioError catch (e) {
+    } on DioException catch (e) {
       throw FetchingException(
         'Dictionary version fetch error: ${e.error}',
-        e.request!.uri,
+        e.requestOptions.uri,
       );
     }
 

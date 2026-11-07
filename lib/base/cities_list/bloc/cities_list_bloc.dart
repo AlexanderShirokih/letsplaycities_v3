@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:bloc/bloc.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:lets_play_cities/base/cities_list/cities_list_entry.dart';
 import 'package:lets_play_cities/base/cities_list/cities_list_filter.dart';
@@ -10,13 +10,15 @@ import 'package:lets_play_cities/base/repositories/cities/country_repository.dar
 import 'package:lets_play_cities/screens/main/cites/model/city_item.dart';
 import 'package:lets_play_cities/utils/string_utils.dart';
 import 'package:meta/meta.dart';
+import 'package:lets_play_cities/base/bloc/sequential_event_mapping.dart';
 
 part 'cities_list_event.dart';
 
 part 'cities_list_state.dart';
 
 /// BLoC for managing cities list
-class CitiesListBloc extends Bloc<CitiesListEvent, CitiesListState> {
+class CitiesListBloc extends Bloc<CitiesListEvent, CitiesListState>
+    with SequentialEventMapping<CitiesListEvent, CitiesListState> {
   final CityRepository _cityRepository;
   final CountryRepository _countryRepository;
 
@@ -24,11 +26,11 @@ class CitiesListBloc extends Bloc<CitiesListEvent, CitiesListState> {
     this._cityRepository,
     this._countryRepository,
   ) : super(CitiesListInitial()) {
+    mapEventsSequentially(_mapEventToState);
     add(CitiesListBeginDataLoadingEvent());
   }
 
-  @override
-  Stream<CitiesListState> mapEventToState(
+  Stream<CitiesListState> _mapEventToState(
     CitiesListEvent event,
   ) async* {
     if (event is CitiesListBeginDataLoadingEvent) {

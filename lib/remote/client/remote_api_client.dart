@@ -207,7 +207,7 @@ class RemoteLpsApiClient extends LpsApiClient {
             response.statusMessage ?? 'No message', response.statusCode ?? 0);
       }
       return response;
-    } on DioError catch (e) {
+    } on DioException catch (e) {
       var description = 'no description';
 
       final response = e.response;
@@ -230,7 +230,7 @@ class RemoteLpsApiClient extends LpsApiClient {
         }
       }
 
-      throw FetchingException(_getDetailedData(e, description), e.request!.uri);
+      throw FetchingException(_getDetailedData(e, description), e.requestOptions.uri);
     }
   }
 
@@ -242,12 +242,12 @@ class RemoteLpsApiClient extends LpsApiClient {
       } else {
         return (await response()).data;
       }
-    } on DioError catch (e) {
-      throw FetchingException('JSON decoding error. \n$e', e.request!.uri);
+    } on DioException catch (e) {
+      throw FetchingException('JSON decoding error. \n$e', e.requestOptions.uri);
     }
   }
 
-  String _getDetailedData(DioError e, String description) {
+  String _getDetailedData(DioException e, String description) {
     if (kDebugMode) {
       final stringBuilder = StringBuffer();
       stringBuilder.write('Response Status code: ');
@@ -255,11 +255,11 @@ class RemoteLpsApiClient extends LpsApiClient {
       stringBuilder.write('Response Status message: ');
       stringBuilder.writeln(e.response?.statusMessage);
       stringBuilder.write('Request Headers: ');
-      stringBuilder.writeln(e.request?.headers);
+      stringBuilder.writeln(e.requestOptions.headers);
       stringBuilder.write('Request URI: ');
-      stringBuilder.writeln(e.request?.uri);
+      stringBuilder.writeln(e.requestOptions.uri);
       stringBuilder.write('Request QueryParams: ');
-      stringBuilder.writeln(e.request?.queryParameters);
+      stringBuilder.writeln(e.requestOptions.queryParameters);
 
       return stringBuilder.toString();
     } else {

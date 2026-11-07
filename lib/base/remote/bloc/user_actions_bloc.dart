@@ -1,22 +1,25 @@
 import 'dart:async';
 
-import 'package:bloc/bloc.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:equatable/equatable.dart';
 
 import 'package:lets_play_cities/remote/auth.dart';
+import 'package:lets_play_cities/base/bloc/sequential_event_mapping.dart';
 
 part 'user_actions_event.dart';
 
 part 'user_actions_state.dart';
 
 /// BLoC for managing user actions like friends management
-class UserActionsBloc extends Bloc<UserActionsEvent, UserActionsState> {
+class UserActionsBloc extends Bloc<UserActionsEvent, UserActionsState>
+    with SequentialEventMapping<UserActionsEvent, UserActionsState> {
   final ApiRepository _apiRepository;
 
-  UserActionsBloc(this._apiRepository) : super(UserActionsInitial());
+  UserActionsBloc(this._apiRepository) : super(UserActionsInitial()) {
+    mapEventsSequentially(_mapEventToState);
+  }
 
-  @override
-  Stream<UserActionsState> mapEventToState(UserActionsEvent event) async* {
+  Stream<UserActionsState> _mapEventToState(UserActionsEvent event) async* {
     if (event is UserEvent) {
       if (event.undoable) {
         yield UserActionConfirmationState(event);

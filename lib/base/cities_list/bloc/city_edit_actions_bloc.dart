@@ -9,6 +9,7 @@ import 'package:lets_play_cities/remote/auth.dart';
 import 'package:lets_play_cities/remote/exceptions.dart';
 import 'package:lets_play_cities/screens/main/cites/model/city_item.dart';
 import 'package:lets_play_cities/utils/string_utils.dart';
+import 'package:lets_play_cities/base/bloc/sequential_event_mapping.dart';
 
 part 'city_edit_actions_event.dart';
 
@@ -16,7 +17,8 @@ part 'city_edit_actions_state.dart';
 
 /// BLoC for managing city requests (adding new cities, modifying current
 /// cities, removing unnecessary requests)
-class CityEditActionsBloc extends Bloc<CityEditActions, CityEditActionsState> {
+class CityEditActionsBloc extends Bloc<CityEditActions, CityEditActionsState>
+    with SequentialEventMapping<CityEditActions, CityEditActionsState> {
   final CityRequestsRepository _cityRequestsRepository;
   final CountryRepository _countryRepository;
   final CityRepository _cityRepository;
@@ -29,11 +31,11 @@ class CityEditActionsBloc extends Bloc<CityEditActions, CityEditActionsState> {
     this._l10n,
     String? city,
   ) : super(CityEditActionsInitial()) {
+    mapEventsSequentially(_mapEventToState);
     add(CityEditActionFetchData(city));
   }
 
-  @override
-  Stream<CityEditActionsState> mapEventToState(CityEditActions event) async* {
+  Stream<CityEditActionsState> _mapEventToState(CityEditActions event) async* {
     if (event is CityEditActionFetchData) {
       yield* _loadData(event.city);
     } else if (event is CityEditActionSend) {

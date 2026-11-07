@@ -100,7 +100,7 @@ class _CityCheckingResultBarState extends State<CityCheckingResultBar>
               padding: const EdgeInsets.all(6.0),
               child: Text(
                 'Варианты исправления',
-                style: Theme.of(context).textTheme.bodyText2,
+                style: Theme.of(context).textTheme.bodyMedium,
               ),
             ),
             Expanded(

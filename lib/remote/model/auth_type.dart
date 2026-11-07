@@ -16,8 +16,6 @@ extension AuthTypeExtension on AuthType {
         return 'ok';
       case AuthType.Facebook:
         return 'fb';
-      default:
-        throw Exception('Unknown AuthType value: $this');
     }
   }
 

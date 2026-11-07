@@ -9,7 +9,7 @@ import 'package:meta/meta.dart';
 abstract class BaseGameRequestData {}
 
 /// Model that describes new input request
-class GotInputGameRequest extends BaseGameRequestData with EquatableMixin {
+class GotInputGameRequest extends BaseGameRequestData with Equatable {
   final GameRequest rawRequest;
   final ProfileInfo requester;
 
@@ -21,7 +21,7 @@ class GotInputGameRequest extends BaseGameRequestData with EquatableMixin {
 
 /// Models used when request was processed with positive result
 class GameRequestProcessingResult extends BaseGameRequestData
-    with EquatableMixin {
+    with Equatable {
   final FriendGameRequest request;
 
   GameRequestProcessingResult(this.request);

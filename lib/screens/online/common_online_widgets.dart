@@ -18,7 +18,7 @@ Widget showError(BuildContext context, Object error) => buildWithLocalization(
                         Icon(
                           Icons.wifi_off,
                           size: 64.0,
-                          color: Theme.of(context).textTheme.caption!.color,
+                          color: Theme.of(context).textTheme.bodySmall!.color,
                         ),
                         const SizedBox(height: 12),
                         Text(l10n.online['loading_error']),
@@ -27,12 +27,12 @@ Widget showError(BuildContext context, Object error) => buildWithLocalization(
                         FaIcon(
                           FontAwesomeIcons.bug,
                           size: 64.0,
-                          color: Theme.of(context).textTheme.caption!.color,
+                          color: Theme.of(context).textTheme.bodySmall!.color,
                         ),
                         const SizedBox(height: 12),
                         Text(
                           l10n.online['unk_error'],
-                          style: Theme.of(context).textTheme.subtitle2,
+                          style: Theme.of(context).textTheme.titleSmall,
                         ),
                         const SizedBox(height: 6),
                         Text(error.toString(), textAlign: TextAlign.center)
@@ -104,12 +104,12 @@ class ConnectionErrorView extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(vertical: 24.0),
                 child: ElevatedButton.icon(
                   style: ElevatedButton.styleFrom(
-                    primary: Theme.of(context).primaryColor,
+                    backgroundColor: Theme.of(context).primaryColor,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12.0),
                     ),
                   ),
-                  icon: FaIcon(FontAwesomeIcons.sync),
+                  icon: FaIcon(FontAwesomeIcons.arrowsRotate),
                   label: Padding(
                     padding: const EdgeInsets.all(12.0),
                     child: buildWithLocalization(

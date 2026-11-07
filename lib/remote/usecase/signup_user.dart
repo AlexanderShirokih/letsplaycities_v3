@@ -43,11 +43,11 @@ class SignUpUser
       }
 
       return RemoteSignUpResponse.fromMap(decoded['data']);
-    } on DioError catch (e) {
-      if (e.type == DioErrorType.response) {
+    } on DioException catch (e) {
+      if (e.type == DioExceptionType.badResponse) {
         throw AuthorizationException('Message: ${e.message}');
       } else {
-        throw FetchingException('Response error.', e.request!.uri);
+        throw FetchingException('Response error.', e.requestOptions.uri);
       }
     }
   }

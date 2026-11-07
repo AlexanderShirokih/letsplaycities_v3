@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get_it/get_it.dart';
 import 'package:lets_play_cities/base/game/bloc/game_bloc.dart';
@@ -50,11 +49,15 @@ class GameScreen extends StatelessWidget {
     return buildWithLocalization(
       context,
       (l10n) => Scaffold(
-        body: WillPopScope(
-          onWillPop: () async =>
-              (await showConfirmationDialog(context,
-                  message: l10n.game['go_to_menu'])) ??
-              false,
+        body: PopScope(
+          canPop: false,
+          onPopInvokedWithResult: (didPop, _) async {
+            if (didPop) return;
+            final navigator = Navigator.of(context);
+            final shouldPop = await showConfirmationDialog(context,
+                message: l10n.game['go_to_menu']);
+            if (shouldPop == true) navigator.pop();
+          },
           child: Stack(
             children: [
               createBackground(context),
@@ -123,11 +126,14 @@ Widget _buildGameStateLayout(GameState gameState) => RepositoryProvider(
             CitiesList(),
             Container(
               alignment: Alignment.bottomCenter,
-              child: Column(
-                children: [
-                  CityCheckingResultBar(),
-                  InputFieldsGroup(),
-                ],
+              child: SafeArea(
+                top: false,
+                child: Column(
+                  children: [
+                    CityCheckingResultBar(),
+                    InputFieldsGroup(),
+                  ],
+                ),
               ),
             ),
             Builder(

@@ -38,7 +38,8 @@ const F_DIFF_COUNTRY = 'dc';
 const V_EMPTY_S = '--';
 
 /// Describes group of [ScoringField]s that have main field and secondary fields.
-class ScoringGroup with EquatableMixin {
+// ignore: must_be_immutable
+class ScoringGroup with Equatable {
   final ScoringField main;
   List<ScoringField> child;
 

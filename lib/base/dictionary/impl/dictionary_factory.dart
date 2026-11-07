@@ -71,12 +71,12 @@ class DictionaryFactory {
     }
   } // File
 
-  static Future<_DictionaryDescriptor> _parseDescriptor(
+  static Future<_DictionaryDescriptor?> _parseDescriptor(
           String dbPath, bool isInternal) =>
       _loadDescriptor(isInternal, '$dbPath.meta')
           .then(jsonDecode)
-          .then((data) => _fromJson(data, dbPath, isInternal))
-          .catchError((e) {},
+          .then<_DictionaryDescriptor?>((data) => _fromJson(data, dbPath, isInternal))
+          .catchError((e) => null,
               test: (e) => e
                   is FileSystemException); // File not exists or some parsing error
 

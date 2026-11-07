@@ -78,7 +78,8 @@ class _FirstTimeOnBoardingScreenState extends State<FirstTimeOnBoardingScreen>
         _controller.forward(from: 0.99);
       },
       child: Container(
-        color: Theme.of(context).backgroundColor,
+        // ignore: deprecated_member_use
+        color: Theme.of(context).colorScheme.background,
         child: Padding(
           padding: const EdgeInsets.all(8.0),
           child: Center(
@@ -92,7 +93,7 @@ class _FirstTimeOnBoardingScreenState extends State<FirstTimeOnBoardingScreen>
                   overflow: TextOverflow.fade,
                   style: Theme.of(context)
                       .textTheme
-                      .headline3!
+                      .displaySmall!
                       .copyWith(fontWeight: FontWeight.w800),
                   textDirection: TextDirection.ltr,
                 ),

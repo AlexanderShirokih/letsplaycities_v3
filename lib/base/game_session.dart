@@ -14,7 +14,6 @@ import 'package:lets_play_cities/base/scoring.dart';
 import 'package:lets_play_cities/base/users.dart';
 import 'package:lets_play_cities/utils/stream_utils.dart';
 import 'package:lets_play_cities/utils/string_utils.dart';
-import 'package:pedantic/pedantic.dart';
 
 class GameSession {
   /// Game participants
@@ -161,8 +160,8 @@ class GameSession {
         _serviceEvents.stream,
       ], (element) {
         final isMoveFinished = element is OnMoveFinished;
-        if (isMoveFinished &&
-            (element as OnMoveFinished).endType != MoveFinishType.Completed) {
+        if (element is OnMoveFinished &&
+            element.endType != MoveFinishType.Completed) {
           _gameRunning = false;
         }
         return !isMoveFinished;

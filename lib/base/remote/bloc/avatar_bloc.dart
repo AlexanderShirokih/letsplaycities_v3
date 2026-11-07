@@ -1,24 +1,27 @@
 import 'dart:async';
 
-import 'package:bloc/bloc.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:equatable/equatable.dart';
 
 import 'package:image_picker/image_picker.dart';
 import 'package:lets_play_cities/remote/api_repository.dart';
+import 'package:lets_play_cities/base/bloc/sequential_event_mapping.dart';
 
 part 'avatar_event.dart';
 
 part 'avatar_state.dart';
 
 /// BLoc that handles user picture actions
-class AvatarBloc extends Bloc<AvatarEvent, AvatarState> {
+class AvatarBloc extends Bloc<AvatarEvent, AvatarState>
+    with SequentialEventMapping<AvatarEvent, AvatarState> {
   final picker = ImagePicker();
   final ApiRepository _apiRepository;
 
-  AvatarBloc(this._apiRepository) : super(AvatarInitial());
+  AvatarBloc(this._apiRepository) : super(AvatarInitial()) {
+    mapEventsSequentially(_mapEventToState);
+  }
 
-  @override
-  Stream<AvatarState> mapEventToState(
+  Stream<AvatarState> _mapEventToState(
     AvatarEvent event,
   ) async* {
     switch (event) {
@@ -35,7 +38,7 @@ class AvatarBloc extends Bloc<AvatarEvent, AvatarState> {
   }
 
   Stream<AvatarState> getImage(ImageSource source) async* {
-    final pickedFile = await picker.getImage(source: source);
+    final pickedFile = await picker.pickImage(source: source);
 
     if (pickedFile != null) {
       yield AvatarLoadingState();

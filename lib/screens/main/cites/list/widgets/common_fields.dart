@@ -43,7 +43,7 @@ Widget createCountrySelector({
     return DropdownButtonFormField<CountryEntity>(
       isExpanded: true,
       autovalidateMode: AutovalidateMode.onUserInteraction,
-      value: current,
+      initialValue: current,
       validator: (e) => e == null ? 'Страна не определена' : null,
       decoration: InputDecoration(
         icon: Icon(Icons.flag_outlined),
@@ -77,7 +77,7 @@ Widget createRenameReasonField({
 }) =>
     TextFormField(
       decoration: InputDecoration(
-        icon: FaIcon(FontAwesomeIcons.solidQuestionCircle),
+        icon: FaIcon(FontAwesomeIcons.solidCircleQuestion),
         hintText: placeholder,
         helperText: placeholder,
         border: OutlineInputBorder(),

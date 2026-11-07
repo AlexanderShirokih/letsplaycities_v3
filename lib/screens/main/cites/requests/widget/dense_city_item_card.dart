@@ -29,7 +29,7 @@ class DenseCityItemCard extends StatelessWidget {
           children: [
             Text(
               cityItem.cityName,
-              style: Theme.of(context).textTheme.subtitle2,
+              style: Theme.of(context).textTheme.titleSmall,
             ),
             const SizedBox(height: 4.0),
             Row(
@@ -49,8 +49,8 @@ class DenseCityItemCard extends StatelessWidget {
                 const SizedBox(width: 7.0),
                 Text(
                   cityItem.country.name,
-                  style: theme.textTheme.subtitle2?.copyWith(
-                    color: theme.textTheme.caption?.color,
+                  style: theme.textTheme.titleSmall?.copyWith(
+                    color: theme.textTheme.bodySmall?.color,
                   ),
                 ),
               ],

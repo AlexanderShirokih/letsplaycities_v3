@@ -17,17 +17,18 @@ import 'package:lets_play_cities/base/scoring.dart';
 import 'package:lets_play_cities/l18n/localization_service.dart';
 import 'package:lets_play_cities/utils/string_utils.dart';
 import 'package:meta/meta.dart';
-import 'package:pedantic/pedantic.dart';
 
 import '../game_config.dart';
 import '../game_mode.dart';
 import '../game_session_factory.dart';
+import 'package:lets_play_cities/base/bloc/sequential_event_mapping.dart';
 
 part 'game_events.dart';
 
 part 'game_states.dart';
 
-class GameBloc extends Bloc<GameStateEvent, GameLifecycleState> {
+class GameBloc extends Bloc<GameStateEvent, GameLifecycleState>
+    with SequentialEventMapping<GameStateEvent, GameLifecycleState> {
   final GamePreferences _prefs;
   final LocalizationService _localizations;
   final DictionaryUpdater _dictionaryUpdater;
@@ -48,13 +49,14 @@ class GameBloc extends Bloc<GameStateEvent, GameLifecycleState> {
 
   GameBloc({
     required GameConfig gameConfig,
-  })   : _prefs = GetIt.instance.get<GamePreferences>(),
+  })  : _prefs = GetIt.instance.get<GamePreferences>(),
         _localizations = GetIt.instance.get<LocalizationService>(),
         _codeOverrides = GetIt.instance.get<CountryCodeOverrides>(),
         _gameConfig = gameConfig,
         _dictionaryUpdater = DictionaryUpdater(),
         _adManager = GetIt.instance.get<AdManager>(),
         super(InitialState()) {
+    mapEventsSequentially(_mapEventToStateSafely);
     _adManager.setUpAds(() {
       if (state is GameState) {
         final gameState = state as GameState;
@@ -75,8 +77,7 @@ class GameBloc extends Bloc<GameStateEvent, GameLifecycleState> {
     add(const GameEventBeginDataLoading());
   }
 
-  @override
-  Stream<GameLifecycleState> mapEventToState(GameStateEvent event) =>
+  Stream<GameLifecycleState> _mapEventToStateSafely(GameStateEvent event) =>
       _mapEventToState(event).transform(StreamTransformer.fromHandlers(
           handleError: (Object e, StackTrace stackTrace,
                   EventSink<GameLifecycleState> sink) =>

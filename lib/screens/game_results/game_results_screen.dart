@@ -48,7 +48,7 @@ class GameResultsScreen extends StatelessWidget {
                     sigmaY: 5.0,
                   ),
                   child: Container(
-                    color: Colors.black.withOpacity(0.0),
+                    color: Colors.black.withValues(alpha: 0.0),
                   ),
                 ),
               ),
@@ -76,13 +76,13 @@ class GameResultsScreen extends StatelessWidget {
                             .toString(),
                         style: Theme.of(context)
                             .textTheme
-                            .headline3!
+                            .displaySmall!
                             .copyWith(fontWeight: FontWeight.bold),
                       ),
                       const SizedBox(height: 4.0),
                       Text(
                         _getDescriptionText(l10n),
-                        style: Theme.of(context).textTheme.subtitle1,
+                        style: Theme.of(context).textTheme.titleMedium,
                       ),
                       _gameResult.hasScore
                           ? _buildScoreContainer(context, l10n)
@@ -110,7 +110,7 @@ class GameResultsScreen extends StatelessWidget {
                             BoxShadow(
                                 offset: const Offset(0.0, 4.0),
                                 blurRadius: 8,
-                                color: Colors.black.withOpacity(0.5),
+                                color: Colors.black.withValues(alpha: 0.5),
                                 spreadRadius: 2)
                           ],
                         ),
@@ -179,7 +179,7 @@ class GameResultsScreen extends StatelessWidget {
             boxShadow: [
               BoxShadow(
                 blurRadius: 6,
-                color: Colors.black.withOpacity(0.4),
+                color: Colors.black.withValues(alpha: 0.4),
                 spreadRadius: 0.5,
               )
             ]),
@@ -191,15 +191,15 @@ class GameResultsScreen extends StatelessWidget {
               Text(
                 l10n.gameResults['score'].toString().toUpperCase(),
                 style: Theme.of(context)
-                    .accentTextTheme
-                    .headline5!
+                    .primaryTextTheme
+                    .headlineSmall!
                     .copyWith(fontWeight: FontWeight.w400),
               ),
               Text(
                 _gameResult.owner.score.toString(),
                 style: Theme.of(context)
-                    .accentTextTheme
-                    .headline5!
+                    .primaryTextTheme
+                    .headlineSmall!
                     .copyWith(fontWeight: FontWeight.w900),
               )
             ],
@@ -238,7 +238,7 @@ class GameResultsScreen extends StatelessWidget {
           padding: const EdgeInsets.fromLTRB(12.0, 8.0, 0.0, 8.0),
           child: Text(
             'Вы играли с:',
-            style: Theme.of(context).textTheme.headline5,
+            style: Theme.of(context).textTheme.headlineSmall,
           ),
         )
       ],
@@ -258,8 +258,8 @@ class GameResultsScreen extends StatelessWidget {
                         mainAxisAlignment: MainAxisAlignment.start,
                         children: [
                           FaIcon(
-                            FontAwesomeIcons.externalLinkAlt,
-                            color: Theme.of(context).textTheme.caption!.color,
+                            FontAwesomeIcons.upRightFromSquare,
+                            color: Theme.of(context).textTheme.bodySmall!.color,
                             size: 14.0,
                           ),
                           const SizedBox(width: 6.0),

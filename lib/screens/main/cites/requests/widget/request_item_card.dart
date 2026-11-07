@@ -49,7 +49,7 @@ class RequestItemCard extends StatelessWidget {
                 children: [
                   Text(
                     _getItemTypeTitle(),
-                    style: theme.textTheme.subtitle2
+                    style: theme.textTheme.titleSmall
                         ?.copyWith(color: theme.hintColor),
                   ),
                   _createApprovalMark(),
@@ -64,7 +64,7 @@ class RequestItemCard extends StatelessWidget {
                     Padding(
                       padding: const EdgeInsets.symmetric(vertical: 4.0),
                       child: FaIcon(
-                        FontAwesomeIcons.exchangeAlt,
+                        FontAwesomeIcons.rightLeft,
                         color: theme.hintColor,
                       ),
                     ),
@@ -120,7 +120,7 @@ class RequestItemCard extends StatelessWidget {
           Flexible(
             child: Text(
               cityItem.cityName,
-              style: theme.textTheme.subtitle2,
+              style: theme.textTheme.titleSmall,
               overflow: TextOverflow.fade,
             ),
           ),
@@ -146,7 +146,7 @@ class RequestItemCard extends StatelessWidget {
           )
         ],
       ),
-      style: Theme.of(context).textTheme.caption,
+      style: Theme.of(context).textTheme.bodySmall,
     );
   }
 
@@ -158,7 +158,7 @@ class RequestItemCard extends StatelessWidget {
     } else if (approved) {
       return FaIcon(FontAwesomeIcons.check, color: Colors.green);
     } else {
-      return FaIcon(FontAwesomeIcons.times, color: Colors.red);
+      return FaIcon(FontAwesomeIcons.xmark, color: Colors.red);
     }
   }
 

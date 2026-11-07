@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:bloc/bloc.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:get_it/get_it.dart';
 import 'package:lets_play_cities/data/models/friend_game_request.dart';
@@ -13,12 +13,16 @@ import 'package:lets_play_cities/utils/error_logger.dart';
 
 import '../exceptions/game_request_exception.dart';
 import '../models/game_request_models.dart';
+import 'package:lets_play_cities/base/bloc/sequential_event_mapping.dart';
 
 part 'game_request_event.dart';
 
 /// BloC for handling Friend-mode requests
 class GameRequestBloc
-    extends Bloc<GameRequestEvent, BaseState<BaseGameRequestData>> {
+    extends Bloc<GameRequestEvent, BaseState<BaseGameRequestData>>
+    with
+        SequentialEventMapping<GameRequestEvent,
+            BaseState<BaseGameRequestData>> {
   /// Use case that checks all requirements and fetches requester [ProfileInfo].
   final SingleAsyncUseCase<GameRequest, ProfileInfo> _inputRequestProcessor;
 
@@ -31,10 +35,11 @@ class GameRequestBloc
   GameRequestBloc(
     this._inputRequestProcessor,
     this._requestResultProcessor,
-  ) : super(InitialState());
+  ) : super(InitialState()) {
+    mapEventsSequentially(_mapEventToState);
+  }
 
-  @override
-  Stream<BaseState<BaseGameRequestData>> mapEventToState(
+  Stream<BaseState<BaseGameRequestData>> _mapEventToState(
       GameRequestEvent event) async* {
     if (event is InputGameRequestEvent) {
       yield* _handleInputRequest(event.request);

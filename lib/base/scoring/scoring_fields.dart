@@ -45,11 +45,11 @@ abstract class ScoringField {
       case 'empty':
         return EmptyScoringField(name);
       case 'int':
-        return IntScoringField(name, value as int);
+        return IntScoringField(name, value as int?);
       case 'time':
         return TimeScoringField(name, value as int);
       case 'paired':
-        return PairedScoringField<String, int>(name, key, value as int);
+        return PairedScoringField<String, int>(name, key as String?, value as int?);
       default:
         throw ('Unknown field type: $type');
     }
@@ -71,7 +71,7 @@ abstract class ScoringField {
   IntScoringField asIntField() => this as IntScoringField;
 }
 
-class EmptyScoringField extends ScoringField with EquatableMixin {
+class EmptyScoringField extends ScoringField with Equatable {
   EmptyScoringField(String name) : super(name);
 
   @override
@@ -88,7 +88,8 @@ class EmptyScoringField extends ScoringField with EquatableMixin {
 }
 
 /// [ScoringField] holding [int] value
-class IntScoringField extends ScoringField with EquatableMixin {
+// ignore: must_be_immutable
+class IntScoringField extends ScoringField with Equatable {
   int? value;
 
   IntScoringField(String name, this.value) : super(name);
@@ -129,6 +130,7 @@ class IntScoringField extends ScoringField with EquatableMixin {
 }
 
 /// [ScoringField] holding time value that can be formatted as string
+// ignore: must_be_immutable
 class TimeScoringField extends IntScoringField {
   TimeScoringField(String name, int value) : super(name, value);
 
@@ -156,7 +158,7 @@ class TimeScoringField extends IntScoringField {
 }
 
 /// [ScoringField] that holds a pair of values
-class PairedScoringField<K, V> extends ScoringField with EquatableMixin {
+class PairedScoringField<K, V> extends ScoringField with Equatable {
   final K? key;
   final V? value;
 

@@ -123,8 +123,6 @@ extension InvitationResultExt on InvitationResult {
         return 1;
       case InvitationResult.decline:
         return 2;
-      default:
-        throw UnknownMessageException.badEnumType(this);
     }
   }
 }

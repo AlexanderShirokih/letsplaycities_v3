@@ -28,8 +28,6 @@ class SocketApi {
             return _converter.decode(event.data!);
           case SocketMessageType.closed:
             return DisconnectedMessage();
-          default:
-            throw UnknownMessageException('Bad event type: ${event.type}');
         }
       });
 

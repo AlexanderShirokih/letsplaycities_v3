@@ -91,7 +91,7 @@ class GameWaitingRoomScreen extends StatelessWidget {
                 return _WaitingForOpponentsView(request: state.request);
               } else if (state is WaitingRoomAuthorizationFailed) {
                 return _TextWithBigIconView(
-                  icon: FaIcon(FontAwesomeIcons.userAltSlash),
+                  icon: FaIcon(FontAwesomeIcons.userSlash),
                   message: state.description ??
                       buildWithLocalization(
                           context, (l10n) => l10n.online['auth_failed']),
@@ -153,7 +153,7 @@ class _ReadyToConnectView extends StatelessWidget {
                 child: Text(
                   l10n.online['game_desc'],
                   textAlign: TextAlign.center,
-                  style: Theme.of(context).textTheme.headline6,
+                  style: Theme.of(context).textTheme.titleLarge,
                 ),
               ),
               const SizedBox(height: 18.0),
@@ -180,7 +180,7 @@ class _WaitingForConnectionView extends StatelessWidget {
           children: [
             Text(
               _getStateDescription(l10n),
-              style: Theme.of(context).textTheme.headline6,
+              style: Theme.of(context).textTheme.titleLarge,
             ),
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 24.0),
@@ -201,8 +201,6 @@ class _WaitingForConnectionView extends StatelessWidget {
         return l10n.online['authorization'];
       case ConnectionStage.done:
         return l10n.online['connected'];
-      default:
-        return '...';
     }
   }
 }
@@ -264,7 +262,7 @@ class _TextWithBigIconView extends StatelessWidget {
 
 /// Used when waiting for opponents. Shows animation and text.
 class _WaitingForOpponentsView extends StatefulWidget {
-  static List<IconData> dices = [
+  static List<FaIconData> dices = [
     FontAwesomeIcons.diceOne,
     FontAwesomeIcons.diceTwo,
     FontAwesomeIcons.diceThree,
@@ -287,7 +285,7 @@ class _WaitingForOpponentsView extends StatefulWidget {
 
 class __WaitingForOpponentsViewState extends State<_WaitingForOpponentsView>
     with TickerProviderStateMixin, NetworkAvatarBuildingMixin {
-  final IconData _dice;
+  final FaIconData _dice;
 
   late AnimationController _controller;
   late Animation<double> _scaleAnimation;
@@ -348,7 +346,7 @@ class __WaitingForOpponentsViewState extends State<_WaitingForOpponentsView>
                     : (l10n.online['awaiting_for_invite'] as String)
                         .format([widget.request!.target.login]),
                 textAlign: TextAlign.center,
-                style: Theme.of(context).textTheme.headline6,
+                style: Theme.of(context).textTheme.titleLarge,
               ),
             ),
             Padding(
@@ -391,7 +389,7 @@ class _InvitationNegativeResult extends StatelessWidget
             ),
             Text(
               _describeResult(context),
-              style: Theme.of(context).textTheme.headline6,
+              style: Theme.of(context).textTheme.titleLarge,
             ),
             Padding(
               padding: const EdgeInsets.all(12.0),
@@ -416,7 +414,7 @@ Widget _createBackButton(BuildContext context) => createStyledMaterialButton(
 
 Widget _createCancelButton(BuildContext context) => ElevatedButton(
       style: ElevatedButton.styleFrom(
-        primary: Theme.of(context).primaryColor,
+        backgroundColor: Theme.of(context).primaryColor,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12.0),
         ),

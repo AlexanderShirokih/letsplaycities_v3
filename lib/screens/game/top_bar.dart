@@ -102,14 +102,14 @@ class _ActionButtons extends StatelessWidget {
                 builder: (context, snapshot) {
                   return Text(
                     snapshot.hasData ? snapshot.requireData : '',
-                    style: Theme.of(context).textTheme.headline6,
+                    style: Theme.of(context).textTheme.titleLarge,
                   );
                 }),
           ],
         ),
       );
 
-  Widget _createActionButton(BuildContext context, IconData faIconData,
+  Widget _createActionButton(BuildContext context, FaIconData faIconData,
           {String? confirmationMessageKey,
           required VoidCallback onConfirmed}) =>
       Container(
@@ -117,7 +117,7 @@ class _ActionButtons extends StatelessWidget {
         height: 56.0,
         child: ElevatedButton(
           style: ElevatedButton.styleFrom(
-            primary: Theme.of(context).primaryColor,
+            backgroundColor: Theme.of(context).primaryColor,
             padding: const EdgeInsets.all(10.0),
             shape: StadiumBorder(
                 side: BorderSide(color: Colors.white, width: 3.0)),

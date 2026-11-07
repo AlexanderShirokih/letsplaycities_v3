@@ -69,7 +69,7 @@ abstract class ClientAccountInfo {
 }
 
 /// [ClientAccountInfo] for local users
-class LocalAccountInfo extends ClientAccountInfo with EquatableMixin {
+class LocalAccountInfo extends ClientAccountInfo with Equatable {
   @override
   final PictureSource picture;
 
@@ -86,7 +86,7 @@ class LocalAccountInfo extends ClientAccountInfo with EquatableMixin {
 }
 
 /// [ClientAccountInfo] constructed from [ProfileInfo]
-class AdvancedAccountInfo extends ClientAccountInfo with EquatableMixin {
+class AdvancedAccountInfo extends ClientAccountInfo with Equatable {
   final ProfileInfo profileInfo;
 
   @override
@@ -105,7 +105,7 @@ class AdvancedAccountInfo extends ClientAccountInfo with EquatableMixin {
 }
 
 /// Contains remote account info of the user
-class RemoteAccount extends ClientAccountInfo with EquatableMixin {
+class RemoteAccount extends ClientAccountInfo with Equatable {
   /// User credentials
   final Credential credential;
 

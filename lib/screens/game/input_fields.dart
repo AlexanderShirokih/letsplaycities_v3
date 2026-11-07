@@ -67,9 +67,8 @@ class _CityInputFieldState extends State<_CityInputField> {
   Widget build(BuildContext context) => Container(
         margin: const EdgeInsets.all(8.0),
         child: TextField(
-          toolbarOptions: ToolbarOptions(
-            paste: false,
-          ),
+          // No context menu: pasting city names is not allowed.
+          contextMenuBuilder: null,
           autofocus: true,
           onSubmitted: _onSubmit,
           textAlignVertical: TextAlignVertical.center,

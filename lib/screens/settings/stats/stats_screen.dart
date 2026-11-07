@@ -1,6 +1,5 @@
 import 'dart:convert';
 
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -60,12 +59,12 @@ class _StatisticsList extends StatelessWidget {
                 children: [
                   Text(
                     _l10n['groups'][group.main.name],
-                    style: Theme.of(context).textTheme.headline6,
+                    style: Theme.of(context).textTheme.titleLarge,
                   ),
                   if (group.main.asString() != null)
                     Text(
                       group.main.asString() ?? '...',
-                      style: Theme.of(context).textTheme.headline6,
+                      style: Theme.of(context).textTheme.titleLarge,
                     )
                 ],
               ),

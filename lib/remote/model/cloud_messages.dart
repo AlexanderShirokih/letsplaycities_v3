@@ -11,7 +11,7 @@ class IncomingCloudMessage {
 enum RequestResult { accepted, declined }
 
 /// Game request model received from remote service.
-class GameRequest extends IncomingCloudMessage with EquatableMixin {
+class GameRequest extends IncomingCloudMessage with Equatable {
   /// Request sender login
   final String login;
 

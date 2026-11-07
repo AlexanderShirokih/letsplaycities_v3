@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:lets_play_cities/base/game/combo.dart';
@@ -40,11 +39,12 @@ class ComboBadgeWidget extends StatelessWidget {
                 const EdgeInsets.symmetric(vertical: 1.0, horizontal: 1.0),
             avatar: CircleAvatar(
               backgroundColor: Colors.transparent,
-              child: _getIcon(comboType, Theme.of(context).accentColor),
+              child:
+                  _getIcon(comboType, Theme.of(context).colorScheme.secondary),
             ),
             label: Text(
               '× $multiplier',
-              style: Theme.of(context).textTheme.caption,
+              style: Theme.of(context).textTheme.bodySmall,
             ),
           ),
         ),
@@ -59,9 +59,9 @@ class ComboBadgeWidget extends StatelessWidget {
       case ComboType.LONG_WORD:
         return FaIcon(FontAwesomeIcons.rulerHorizontal, color: color);
       case ComboType.SAME_COUNTRY:
-        return FaIcon(FontAwesomeIcons.globeEurope, color: color);
+        return FaIcon(FontAwesomeIcons.earthEurope, color: color);
       case ComboType.DIFFERENT_COUNTRIES:
-        return FaIcon(FontAwesomeIcons.atlas, color: color);
+        return FaIcon(FontAwesomeIcons.bookAtlas, color: color);
     }
   }
 }

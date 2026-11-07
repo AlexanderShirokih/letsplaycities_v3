@@ -14,8 +14,8 @@ class CustomMaterialButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => ElevatedButton(
-        style:
-            ElevatedButton.styleFrom(primary: Theme.of(context).primaryColor),
+        style: ElevatedButton.styleFrom(
+            backgroundColor: Theme.of(context).primaryColor),
         onPressed: _onTap,
         child: Padding(
           padding: const EdgeInsets.symmetric(vertical: 12.0),
@@ -84,7 +84,7 @@ class LoadingView extends StatelessWidget {
               children: [
                 CircularProgressIndicator(),
                 SizedBox(height: 10.0),
-                Text(_text, style: Theme.of(context).textTheme.headline6),
+                Text(_text, style: Theme.of(context).textTheme.titleLarge),
               ],
             ),
           ),
@@ -130,7 +130,7 @@ Widget createStyledMaterialButton(
     ElevatedButton.icon(
       style: ElevatedButton.styleFrom(
         elevation: 6.0,
-        primary: Theme.of(context).primaryColor,
+        backgroundColor: Theme.of(context).primaryColor,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12.0),
         ),

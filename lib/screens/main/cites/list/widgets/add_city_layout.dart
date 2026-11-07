@@ -33,7 +33,7 @@ class AddCityLayout extends StatelessWidget {
       children: [
         Text(
           'Добавить город',
-          style: Theme.of(context).textTheme.headline6,
+          style: Theme.of(context).textTheme.titleLarge,
         ),
         const SizedBox(height: 14.0),
         createCountryNameField(
@@ -61,7 +61,7 @@ class AddCityLayout extends StatelessWidget {
         const SizedBox(height: 28.0),
         Text(
           'Перед отправкой заявки убедитесь в следующем',
-          style: Theme.of(context).textTheme.subtitle2,
+          style: Theme.of(context).textTheme.titleSmall,
         ),
         const SizedBox(height: 8.0),
         createSuggestionRules(

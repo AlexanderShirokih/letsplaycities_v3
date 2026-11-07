@@ -35,6 +35,12 @@ class FirebaseServices implements CloudMessagingService {
 
     _firebaseMessaging = FirebaseMessaging.instance;
 
+    // Not awaited: the request completes only when the user answers the dialog.
+    unawaited(_firebaseMessaging!.requestPermission().then(
+          (_) {},
+          onError: (Object e, StackTrace s) => _logger.error(e, s),
+        ));
+
     var initialMsg = await _firebaseMessaging!.getInitialMessage();
 
     if (initialMsg != null) {

@@ -37,26 +37,24 @@ class LetsPlayCitiesApp extends StatelessWidget {
                     builder: (_, snap) {
                       final currentTheme = snap.requireData;
                       final dark = getIt.get<ThemeManager>().dark;
-                      final brightness =
-                          WidgetsBinding.instance!.window.platformBrightness;
+                      final brightness = WidgetsBinding
+                          .instance.platformDispatcher.platformBrightness;
                       final isSystemDark = brightness == Brightness.dark;
                       return snap.hasData
                           ? RepositoryProvider.value(
                               value: isSystemDark ? dark : currentTheme,
                               child: MaterialApp(
-                                theme: ThemeData(
-                                  primarySwatch: currentTheme.primaryColor,
-                                  accentColor: currentTheme.primaryColor,
-                                  brightness: currentTheme.isDark
+                                theme: _buildThemeData(
+                                  currentTheme.primaryColor,
+                                  currentTheme.isDark
                                       ? Brightness.dark
                                       : Brightness.light,
                                   visualDensity:
                                       VisualDensity.adaptivePlatformDensity,
                                 ),
-                                darkTheme: ThemeData(
-                                  primarySwatch: dark.primaryColor,
-                                  accentColor: dark.primaryColor,
-                                  brightness: Brightness.dark,
+                                darkTheme: _buildThemeData(
+                                  dark.primaryColor,
+                                  Brightness.dark,
                                 ),
                                 home: _buildAppHome(),
                               ),
@@ -70,6 +68,28 @@ class LetsPlayCitiesApp extends StatelessWidget {
                   snap, 'Fatal error: cannot load root dependencies!');
         },
       );
+
+  ThemeData _buildThemeData(
+    MaterialColor swatch,
+    Brightness brightness, {
+    VisualDensity? visualDensity,
+  }) {
+    final isDark = brightness == Brightness.dark;
+    return ThemeData(
+      useMaterial3: false,
+      primarySwatch: swatch,
+      brightness: brightness,
+      visualDensity: visualDensity,
+      colorScheme: ColorScheme.fromSwatch(
+        primarySwatch: swatch,
+        accentColor: swatch,
+        cardColor: isDark ? Colors.grey[800]! : Colors.white,
+        backgroundColor: isDark ? Colors.grey[700]! : swatch[200]!,
+        errorColor: Colors.red[700],
+        brightness: brightness,
+      ),
+    );
+  }
 
   Widget _buildAppHome() => Scaffold(
         body: Builder(

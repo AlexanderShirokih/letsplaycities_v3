@@ -28,8 +28,8 @@ class OnlineBanlistScreen extends StatelessWidget
         textAlign: TextAlign.center,
         style: withData<TextStyle, TextTheme>(
           Theme.of(context).textTheme,
-          (textTheme) =>
-              textTheme.headline5!.copyWith(color: textTheme.caption!.color),
+          (textTheme) => textTheme.headlineSmall!
+              .copyWith(color: textTheme.bodySmall!.color),
         ),
       );
 
@@ -68,12 +68,12 @@ class OnlineBanlistScreen extends StatelessWidget
           children: [
             Text(
               l10n.delete,
-              style: Theme.of(context).accentTextTheme.subtitle2,
+              style: Theme.of(context).primaryTextTheme.titleSmall,
             ),
             SizedBox(width: 12.0),
             FaIcon(
-              FontAwesomeIcons.times,
-              color: Theme.of(context).accentIconTheme.color,
+              FontAwesomeIcons.xmark,
+              color: Theme.of(context).primaryIconTheme.color,
             ),
             SizedBox(width: 12.0),
           ],

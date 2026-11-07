@@ -41,10 +41,8 @@ class VoiceRecognitionButton extends StatelessWidget {
 
           return isListening
               ? AvatarGlow(
-                  endRadius: 24.0,
-                  glowColor: Theme.of(context).accentColor,
+                  glowColor: Theme.of(context).colorScheme.secondary,
                   duration: const Duration(milliseconds: 1500),
-                  repeatPauseDuration: const Duration(milliseconds: 100),
                   repeat: true,
                   child: buildIconButton(),
                 )

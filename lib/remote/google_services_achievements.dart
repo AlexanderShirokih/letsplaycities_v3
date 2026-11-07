@@ -12,7 +12,7 @@ class GoogleServicesAchievementService implements AchievementsService {
   @override
   Future<void> showAchievementsScreen() async {
     try {
-      return _googleServicesChannel.invokeMethod('showAchievementsIntent');
+      await _googleServicesChannel.invokeMethod('showAchievementsIntent');
     } on PlatformException catch (e, s) {
       GetIt.instance.get<ErrorLogger>().error(e, s);
     }
@@ -21,7 +21,7 @@ class GoogleServicesAchievementService implements AchievementsService {
   @override
   Future<void> showLeaderboardScreen() async {
     try {
-      return _googleServicesChannel.invokeMethod('showLeaderboardIntent');
+      await _googleServicesChannel.invokeMethod('showLeaderboardIntent');
     } on PlatformException catch (e, s) {
       GetIt.instance.get<ErrorLogger>().error(e, s);
     }

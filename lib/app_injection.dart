@@ -115,7 +115,7 @@ Future<void> injectRootDependencies({required String serverHost}) async {
   );
 
   // DIO client
-  getIt.registerFactoryParam<Dio, AppConfig, void>((appConfig, _) {
+  getIt.registerFactoryParam<Dio, AppConfig?, void>((appConfig, _) {
     return _createDio(appConfig ?? getIt.get());
   });
 
@@ -126,7 +126,7 @@ Future<void> injectRootDependencies({required String serverHost}) async {
   );
 
   // Local account manager
-  getIt.registerFactoryParam<AccountManager, AppConfig, void>(
+  getIt.registerFactoryParam<AccountManager, AppConfig?, void>(
     (localConfig, _) => LocalAccountManager(
       getIt.get<AccountManager>(),
       getIt.get<GamePreferences>(),
@@ -169,7 +169,7 @@ Future<void> injectRootDependencies({required String serverHost}) async {
     dependsOn: [GamePreferences],
   ); // LPS API Client
 
-  getIt.registerFactoryParam<LpsApiClient, CredentialsProvider, AppConfig>(
+  getIt.registerFactoryParam<LpsApiClient, CredentialsProvider?, AppConfig?>(
     (credentialProvider, appConfig) {
       return RemoteLpsApiClient(
         getIt.get(instanceName: 'api'),
@@ -180,7 +180,7 @@ Future<void> injectRootDependencies({required String serverHost}) async {
   );
 
   /// Api Repository
-  getIt.registerFactoryParam<ApiRepository, CredentialsProvider, AppConfig>(
+  getIt.registerFactoryParam<ApiRepository, CredentialsProvider?, AppConfig?>(
     (credentialsProvider, appConfig) => ApiRepository(
       getIt.get<LpsApiClient>(param1: credentialsProvider, param2: appConfig),
       getIt.get<ApiRepositoryCacheHolder>(),
@@ -261,7 +261,7 @@ Future<void> injectRootDependencies({required String serverHost}) async {
 Dio _createDio(AppConfig appConfig) => Dio(
       BaseOptions(
         baseUrl: appConfig.remotePublicApiURL,
-        connectTimeout: 8000,
-        receiveTimeout: 5000,
+        connectTimeout: const Duration(milliseconds: 8000),
+        receiveTimeout: const Duration(milliseconds: 5000),
       ),
     );

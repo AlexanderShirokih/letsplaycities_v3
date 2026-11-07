@@ -27,7 +27,7 @@ class RemoveCityLayout extends StatelessWidget {
       children: [
         Text(
           'Удалить город',
-          style: Theme.of(context).textTheme.headline6,
+          style: Theme.of(context).textTheme.titleLarge,
         ),
         const SizedBox(height: 14.0),
         BlocBuilder<CityEditActionsBloc, CityEditActionsState>(
@@ -41,7 +41,7 @@ class RemoveCityLayout extends StatelessWidget {
         const SizedBox(height: 26.0),
         Text(
           'Причина удаления',
-          style: Theme.of(context).textTheme.headline6,
+          style: Theme.of(context).textTheme.titleLarge,
         ),
         const SizedBox(height: 14.0),
         const SizedBox(height: 10.0),
@@ -52,7 +52,7 @@ class RemoveCityLayout extends StatelessWidget {
         const SizedBox(height: 28.0),
         Text(
           'Перед отправкой заявки убедитесь в следующем',
-          style: Theme.of(context).textTheme.subtitle2,
+          style: Theme.of(context).textTheme.titleSmall,
         ),
         const SizedBox(height: 8.0),
         createSuggestionRules(

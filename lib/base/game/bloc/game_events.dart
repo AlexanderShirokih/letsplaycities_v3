@@ -18,7 +18,7 @@ class GameEventGameStart extends GameStateEvent {
 }
 
 /// Used internally to normally finish the game and prepare to show game results
-class GameEventFinish extends GameStateEvent with EquatableMixin {
+class GameEventFinish extends GameStateEvent with Equatable {
   final GameResult gameResult;
 
   const GameEventFinish(this.gameResult);

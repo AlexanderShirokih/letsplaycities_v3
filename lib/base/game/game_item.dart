@@ -15,7 +15,7 @@ abstract class GameItem {
 /// Info containing data about [city], [position] on the screen,
 /// [countryCode] of cities country in database and current [status]
 /// of the city (waiting for confirmation, error, accepted).
-class CityInfo extends GameItem with EquatableMixin {
+class CityInfo extends GameItem with Equatable {
   final String city;
   final CityStatus status;
   final int countryCode;
@@ -39,7 +39,7 @@ class CityInfo extends GameItem with EquatableMixin {
 }
 
 /// Info containing data about [message].
-class MessageInfo extends GameItem with EquatableMixin {
+class MessageInfo extends GameItem with Equatable {
   final String message;
 
   MessageInfo({

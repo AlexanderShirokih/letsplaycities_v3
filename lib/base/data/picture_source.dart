@@ -8,7 +8,7 @@ class PictureSource {
 }
 
 /// Describes picture from assets
-class AssetPictureSource extends PictureSource with EquatableMixin {
+class AssetPictureSource extends PictureSource with Equatable {
   final String assetName;
 
   const AssetPictureSource(this.assetName);
@@ -18,7 +18,7 @@ class AssetPictureSource extends PictureSource with EquatableMixin {
 }
 
 /// Describes picture from the network
-class NetworkPictureSource extends PictureSource with EquatableMixin {
+class NetworkPictureSource extends PictureSource with Equatable {
   final String? pictureURL;
 
   const NetworkPictureSource(this.pictureURL);

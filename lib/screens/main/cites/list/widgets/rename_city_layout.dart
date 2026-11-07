@@ -33,7 +33,7 @@ class RenameCityLayout extends StatelessWidget {
       children: [
         Text(
           'Изменить',
-          style: Theme.of(context).textTheme.headline6,
+          style: Theme.of(context).textTheme.titleLarge,
         ),
         const SizedBox(height: 14.0),
         BlocBuilder<CityEditActionsBloc, CityEditActionsState>(
@@ -47,7 +47,7 @@ class RenameCityLayout extends StatelessWidget {
         const SizedBox(height: 26.0),
         Text(
           'Предлагаемые изменения',
-          style: Theme.of(context).textTheme.headline6,
+          style: Theme.of(context).textTheme.titleLarge,
         ),
         const SizedBox(height: 14.0),
         createCountryNameField(
@@ -75,7 +75,7 @@ class RenameCityLayout extends StatelessWidget {
         const SizedBox(height: 28.0),
         Text(
           'Перед отправкой заявки убедитесь в следующем',
-          style: Theme.of(context).textTheme.subtitle2,
+          style: Theme.of(context).textTheme.titleSmall,
         ),
         const SizedBox(height: 8.0),
         createSuggestionRules(

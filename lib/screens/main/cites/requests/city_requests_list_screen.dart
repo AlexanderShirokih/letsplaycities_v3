@@ -55,7 +55,7 @@ class CityRequestsListScreen extends StatelessWidget {
                         'Вы можете самостоятельно отправлять заявки на изменение городов.\n'
                         'Мы обязательно рассмотрим вашу заявку. Свои заявки и результаты рассмотрения вы сможете увидеть здесь',
                         textAlign: TextAlign.center,
-                        style: Theme.of(context).textTheme.headline5,
+                        style: Theme.of(context).textTheme.headlineSmall,
                       ),
                     ),
                   );
@@ -69,12 +69,12 @@ class CityRequestsListScreen extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text('Заявки на рассмотрении',
-                            style: theme.textTheme.headline6),
+                            style: theme.textTheme.titleLarge),
                         const SizedBox(height: 12.0),
                         _createPendingRequests(context),
                         const SizedBox(height: 28.0),
                         Text('Ранее рассмотренные заявки',
-                            style: theme.textTheme.headline6),
+                            style: theme.textTheme.titleLarge),
                         const SizedBox(height: 12.0),
                         _createApprovedRequests(context),
                       ],
@@ -190,7 +190,7 @@ class CityRequestsListScreen extends StatelessWidget {
           const SizedBox(height: 4.0),
           Text(
             'Не удалось загрузить данные :(\n$message',
-            style: Theme.of(context).textTheme.caption,
+            style: Theme.of(context).textTheme.bodySmall,
           )
         ],
       ),

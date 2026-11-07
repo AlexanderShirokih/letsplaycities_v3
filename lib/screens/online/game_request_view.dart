@@ -27,7 +27,7 @@ class GameRequestView extends StatelessWidget with NetworkAvatarBuildingMixin {
           children: [
             Text(
               'Приглашение в игру от ${request.login}',
-              style: Theme.of(context).textTheme.headline5,
+              style: Theme.of(context).textTheme.headlineSmall,
             ),
             Expanded(
               child: BlocProvider<GameRequestBloc>.value(
@@ -105,7 +105,7 @@ class GameRequestView extends StatelessWidget with NetworkAvatarBuildingMixin {
         return Center(
           child: Text(
             'Не удалось принять запрос от пользователя: Вы не авторизованы в аккаунте',
-            style: Theme.of(context).textTheme.headline6,
+            style: Theme.of(context).textTheme.titleLarge,
             textAlign: TextAlign.center,
           ),
         );
@@ -128,7 +128,7 @@ class GameRequestView extends StatelessWidget with NetworkAvatarBuildingMixin {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             FaIcon(
-              FontAwesomeIcons.userAltSlash,
+              FontAwesomeIcons.userSlash,
               size: 42.0,
             ),
             Padding(
@@ -143,7 +143,7 @@ class GameRequestView extends StatelessWidget with NetworkAvatarBuildingMixin {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             FaIcon(
-              FontAwesomeIcons.exclamationTriangle,
+              FontAwesomeIcons.triangleExclamation,
               size: 42.0,
             ),
             Padding(

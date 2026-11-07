@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:lets_play_cities/screens/common/utils.dart';
 
 typedef ConfirmationCallback = void Function(bool isOk);
@@ -83,27 +82,30 @@ class _SingleChoiceDialogState extends State<SingleChoiceDialog> {
   Widget build(BuildContext context) => AlertDialog(
         contentPadding: EdgeInsets.fromLTRB(20.0, 18.0, 20.0, 0.0),
         title: Text(_title),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: Iterable.generate(_choicesList.length, (i) => i)
-              .map(
-                (int index) => RadioListTile<int>(
-                  title: Text(_choicesList[index]),
-                  value: index,
-                  groupValue: _selectedItemId,
-                  onChanged: (newValue) {
-                    if (newValue != null) {
-                      setState(() {
-                        _selectedItemId = newValue;
-                      });
-                      Future.microtask(
-                              () => Future.delayed(Duration(milliseconds: 300)))
-                          .then((_) => Navigator.of(context).pop(newValue));
-                    }
-                  },
-                ),
-              )
-              .toList(),
+        content: RadioGroup<int>(
+          groupValue: _selectedItemId,
+          onChanged: (newValue) {
+            if (newValue != null) {
+              setState(() {
+                _selectedItemId = newValue;
+              });
+              Future.microtask(
+                  () => Future.delayed(Duration(milliseconds: 300))).then((_) {
+                if (context.mounted) Navigator.of(context).pop(newValue);
+              });
+            }
+          },
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: Iterable.generate(_choicesList.length, (i) => i)
+                .map(
+                  (int index) => RadioListTile<int>(
+                    title: Text(_choicesList[index]),
+                    value: index,
+                  ),
+                )
+                .toList(),
+          ),
         ),
         actions: [
           TextButton(

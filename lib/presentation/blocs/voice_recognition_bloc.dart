@@ -1,9 +1,10 @@
 import 'dart:async';
 
-import 'package:bloc/bloc.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:get_it/get_it.dart';
 import 'package:lets_play_cities/base/stt/voice_recognition_service.dart';
+import 'package:lets_play_cities/base/bloc/sequential_event_mapping.dart';
 
 part 'voice_recognition_event.dart';
 
@@ -13,7 +14,8 @@ enum _ActionMode { start, stop }
 
 /// BloC used to handle speech to text recognition
 class VoiceRecognitionBloc
-    extends Bloc<VoiceRecognitionEvent, VoiceRecognitionState> {
+    extends Bloc<VoiceRecognitionEvent, VoiceRecognitionState>
+    with SequentialEventMapping<VoiceRecognitionEvent, VoiceRecognitionState> {
   final VoiceRecognitionService _recognitionService;
   final void Function(String) _onWords;
 
@@ -21,10 +23,11 @@ class VoiceRecognitionBloc
 
   VoiceRecognitionBloc(this._onWords)
       : _recognitionService = GetIt.instance.get<VoiceRecognitionService>(),
-        super(VoiceRecognitionInitial());
+        super(VoiceRecognitionInitial()) {
+    mapEventsSequentially(_mapEventToState);
+  }
 
-  @override
-  Stream<VoiceRecognitionState> mapEventToState(
+  Stream<VoiceRecognitionState> _mapEventToState(
     VoiceRecognitionEvent event,
   ) async* {
     if (event is VoiceRecognitionCancel) {

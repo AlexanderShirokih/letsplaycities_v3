@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:bloc/bloc.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:get_it/get_it.dart';
 import 'package:lets_play_cities/app_config.dart';
@@ -9,7 +9,7 @@ import 'package:lets_play_cities/remote/account_manager.dart';
 import 'package:lets_play_cities/remote/remote_host.dart';
 import 'package:lets_play_cities/remote/server/server_game_controller.dart';
 import 'package:lets_play_cities/utils/error_logger.dart';
-import 'package:pedantic/pedantic.dart';
+import 'package:lets_play_cities/base/bloc/sequential_event_mapping.dart';
 
 part 'local_multiplayer_event.dart';
 
@@ -17,12 +17,15 @@ part 'local_multiplayer_state.dart';
 
 /// Bloc for handling local multiplayer connections
 class LocalMultiplayerBloc
-    extends Bloc<LocalMultiplayerEvent, LocalMultiplayerState> {
+    extends Bloc<LocalMultiplayerEvent, LocalMultiplayerState>
+    with SequentialEventMapping<LocalMultiplayerEvent, LocalMultiplayerState> {
   final ServerGameController _server;
 
   LocalMultiplayerBloc(
     this._server,
-  ) : super(LocalMultiplayerInitial());
+  ) : super(LocalMultiplayerInitial()) {
+    mapEventsSequentially(_mapEventToState);
+  }
 
   @override
   Future<void> close() async {
@@ -30,8 +33,7 @@ class LocalMultiplayerBloc
     await super.close();
   }
 
-  @override
-  Stream<LocalMultiplayerState> mapEventToState(
+  Stream<LocalMultiplayerState> _mapEventToState(
       LocalMultiplayerEvent event) async* {
     if (event is LocalMultiplayerCreate) {
       yield* _createConnection();

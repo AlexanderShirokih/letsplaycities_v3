@@ -12,7 +12,7 @@ class InitialState<Data> extends BaseState<Data> {
 }
 
 /// State used while loading
-class LoadingState<Data> extends BaseState<Data> with EquatableMixin {
+class LoadingState<Data> extends BaseState<Data> with Equatable {
   /// Defines progress value when no progress information available
   static const int intermediateProgress = -1;
 
@@ -29,7 +29,7 @@ class LoadingState<Data> extends BaseState<Data> with EquatableMixin {
 }
 
 /// State used when data was fetched successfully
-class DataState<Data> extends BaseState<Data> with EquatableMixin {
+class DataState<Data> extends BaseState<Data> with Equatable {
   /// Resulting data
   final Data data;
 
@@ -41,7 +41,7 @@ class DataState<Data> extends BaseState<Data> with EquatableMixin {
 }
 
 /// State used when some error happens
-class ErrorState<Data> extends BaseState<Data> with EquatableMixin {
+class ErrorState<Data> extends BaseState<Data> with Equatable {
   /// Describes error reason
   final BaseException exception;
 

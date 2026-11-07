@@ -67,11 +67,11 @@ class OnlineFriendsScreen extends StatelessWidget
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(l10n.online['remove_from_friends'],
-                style: Theme.of(context).accentTextTheme.subtitle2),
+                style: Theme.of(context).primaryTextTheme.titleSmall),
             SizedBox(width: 12.0),
             FaIcon(
               FontAwesomeIcons.userMinus,
-              color: Theme.of(context).accentIconTheme.color,
+              color: Theme.of(context).primaryIconTheme.color,
             ),
             SizedBox(width: 12.0),
           ],
@@ -89,11 +89,11 @@ class OnlineFriendsScreen extends StatelessWidget
                 l10n.online[canCancel
                     ? 'cancel_friendship_request'
                     : 'decline_friendship_request'],
-                style: Theme.of(context).accentTextTheme.subtitle2),
+                style: Theme.of(context).primaryTextTheme.titleSmall),
             SizedBox(width: 12.0),
             FaIcon(
-              canCancel ? FontAwesomeIcons.times : FontAwesomeIcons.userTimes,
-              color: Theme.of(context).accentIconTheme.color,
+              canCancel ? FontAwesomeIcons.xmark : FontAwesomeIcons.userXmark,
+              color: Theme.of(context).primaryIconTheme.color,
             ),
             SizedBox(width: 12.0),
           ],
@@ -136,8 +136,8 @@ class OnlineFriendsScreen extends StatelessWidget
         textAlign: TextAlign.center,
         style: withData<TextStyle, TextTheme>(
           Theme.of(context).textTheme,
-          (textTheme) =>
-              textTheme.headline5!.copyWith(color: textTheme.caption!.color),
+          (textTheme) => textTheme.headlineSmall!
+              .copyWith(color: textTheme.bodySmall!.color),
         ),
       );
 }
