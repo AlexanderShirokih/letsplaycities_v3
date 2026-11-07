@@ -1,5 +1,3 @@
-// @dart=2.9
-
 import 'package:lets_play_cities/base/dictionary/city_properties.dart';
 import 'package:test/test.dart';
 
@@ -42,24 +40,24 @@ void main() {
 
     group('input data asserts', () {
       test('difficulty works in range 0-2', () {
-        [0, 1, 2].forEach((d) {
+        for (final d in [0, 1, 2]) {
           expect(() => CityProperties(difficulty: d, countryCode: 1),
               returnsNormally);
-        });
+        }
       });
 
       test('difficulty throws out of range', () {
-        [-1, 3].forEach((d) {
+        for (final d in [-1, 3]) {
           expect(() => CityProperties(difficulty: d, countryCode: 1),
               throwsA(isA<AssertionError>()));
-        });
+        }
       });
 
       test('countryCode works in range 0-255', () {
-        [0, 1, 2, 254, 255].forEach((cc) {
+        for (final cc in [0, 1, 2, 254, 255]) {
           expect(() => CityProperties(difficulty: 0, countryCode: cc),
               returnsNormally);
-        });
+        }
       });
     });
   });

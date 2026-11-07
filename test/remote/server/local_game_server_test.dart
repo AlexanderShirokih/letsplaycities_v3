@@ -1,30 +1,30 @@
-// @dart=2.9
-
 import 'package:lets_play_cities/remote/server/local_game_server.dart';
 import 'package:lets_play_cities/remote/server/remote_connection.dart';
 import 'package:lets_play_cities/remote/server/server_connection.dart';
 import 'package:lets_play_cities/remote/server/user_lookup_repository.dart';
+import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 
+import 'local_game_server_test.mocks.dart';
 import 'server_mocks.dart';
 
-class _MockRemoteServerConnection extends Mock implements ServerConnection {}
-
-class _MockLpsServerInteractor extends Mock implements RemoteConnection {}
-
-class _MockUserLookupRepository extends Mock implements UserLookupRepository {}
+@GenerateNiceMocks([
+  MockSpec<ServerConnection>(as: #MockRemoteServerConnection),
+  MockSpec<RemoteConnection>(as: #MockLpsServerInteractor),
+  MockSpec<UserLookupRepository>(),
+])
 
 void main() {
-  _MockRemoteServerConnection connection;
-  _MockLpsServerInteractor interactor;
-  _MockUserLookupRepository repository;
-  LocalGameServer apiServer;
+  late MockRemoteServerConnection connection;
+  late MockLpsServerInteractor interactor;
+  late MockUserLookupRepository repository;
+  late LocalGameServer apiServer;
 
   setUp(() {
-    connection = _MockRemoteServerConnection();
-    interactor = _MockLpsServerInteractor();
-    repository = _MockUserLookupRepository();
+    connection = MockRemoteServerConnection();
+    interactor = MockLpsServerInteractor();
+    repository = MockUserLookupRepository();
     apiServer = LocalGameServerImpl(connection, repository);
 
     when(interactor.authorize()).thenAnswer((_) => Future.value(testProfile));

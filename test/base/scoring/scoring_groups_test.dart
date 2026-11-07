@@ -1,5 +1,3 @@
-// @dart=2.9
-
 import 'dart:convert';
 
 import 'package:lets_play_cities/base/scoring.dart';
@@ -47,7 +45,7 @@ void main() {
 }
     ''';
 
-    ScoringSet set;
+    late ScoringSet set;
 
     expect(() {
       set = ScoringSet.fromJson(json.decode(testString));

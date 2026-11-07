@@ -1,35 +1,34 @@
-//@dart=2.9
-
 import 'package:lets_play_cities/base/preferences.dart';
 import 'package:lets_play_cities/domain/usecases.dart';
-import 'package:lets_play_cities/remote/account_manager.dart';
 import 'package:lets_play_cities/remote/auth.dart';
 import 'package:lets_play_cities/remote/exceptions.dart';
 import 'package:lets_play_cities/remote/server/local_account_manager.dart';
+import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 
-class _MockGamePreferences extends Mock implements GamePreferences {}
+import 'local_account_manager_test.mocks.dart';
 
-class _MockRemoteSignUpData extends Mock implements RemoteSignUpData {}
-
-class _MockSignUp extends Mock
-    implements SingleAsyncUseCase<RemoteSignUpData, RemoteSignUpResponse> {}
-
-class _MockAccountManager extends Mock implements AccountManager {}
+@GenerateNiceMocks([
+  MockSpec<GamePreferences>(),
+  MockSpec<RemoteSignUpData>(),
+  MockSpec<SingleAsyncUseCase<RemoteSignUpData, RemoteSignUpResponse>>(
+      as: #MockSignUp),
+  MockSpec<AccountManager>(),
+])
 
 void main() {
-  AccountManager accountManager;
-  RemoteSignUpData signUpData;
-  GamePreferences gamePreferences;
-  AccountManager mainAccountManager;
-  SingleAsyncUseCase<RemoteSignUpData, RemoteSignUpResponse> signUp;
+  late AccountManager accountManager;
+  late RemoteSignUpData signUpData;
+  late GamePreferences gamePreferences;
+  late AccountManager mainAccountManager;
+  late MockSignUp signUp;
 
   setUp(() {
-    signUp = _MockSignUp();
-    signUpData = _MockRemoteSignUpData();
-    gamePreferences = _MockGamePreferences();
-    mainAccountManager = _MockAccountManager();
+    signUp = MockSignUp();
+    signUpData = MockRemoteSignUpData();
+    gamePreferences = MockGamePreferences();
+    mainAccountManager = MockAccountManager();
     accountManager = LocalAccountManager(
       mainAccountManager,
       gamePreferences,
@@ -49,7 +48,7 @@ void main() {
     await expectLater(() => accountManager.signUp(signUpData),
         throwsA(isA<RemoteException>()));
 
-    verifyZeroInteractions(signUpData);
+    verifyNoMoreInteractions(signUpData);
   });
 
   test('Uses main account manager if it returns non null value', () async {
@@ -69,6 +68,8 @@ void main() {
     when(gamePreferences.onlineChatEnabled).thenReturn(true);
     when(gamePreferences.lastNativeLogin).thenReturn('test');
 
+    // The stub must produce a Future<RemoteAccount?> just like the real
+    // implementation, otherwise `.timeout(onTimeout: () => null)` fails.
     when(mainAccountManager.getLastSignedInAccount())
         .thenAnswer((_) async => RemoteAccount(
               credential: Credential(userId: 4321, accessToken: 'tkn'),
@@ -77,9 +78,9 @@ void main() {
               role: Role.regular,
               authType: AuthType.Native,
               pictureUri: 'http://test',
-            ));
+            ) as RemoteAccount?);
 
-    final result = await accountManager.getLastSignedInAccount();
+    final result = (await accountManager.getLastSignedInAccount())!;
 
     verify(mainAccountManager.getLastSignedInAccount()).called(1);
     verify(signUp.execute(any)).called(1);
@@ -105,7 +106,7 @@ void main() {
     when(gamePreferences.onlineChatEnabled).thenReturn(true);
     when(gamePreferences.lastNativeLogin).thenReturn('test');
 
-    final result = await accountManager.getLastSignedInAccount();
+    final result = (await accountManager.getLastSignedInAccount())!;
 
     verify(signUp.execute(any)).called(1);
 

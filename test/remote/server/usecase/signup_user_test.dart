@@ -1,36 +1,34 @@
-//@dart=2.9
-
 import 'dart:convert';
 import 'dart:io';
 
 import 'package:lets_play_cities/domain/usecases.dart';
 import 'package:lets_play_cities/remote/auth.dart';
-import 'package:lets_play_cities/remote/client/remote_api_client.dart';
-import 'package:lets_play_cities/remote/model/profile_info.dart';
 import 'package:lets_play_cities/remote/server/usecase/signup_user.dart';
+import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 
-class _MockGetProfileFromSignUpInfo extends Mock
-    implements SingleUseCase<RemoteSignUpData, ProfileInfo> {}
+import 'signup_user_test.mocks.dart';
 
-class _MockHttpRequest extends Mock implements HttpRequest {}
-
-class _MockHttpResponse extends Mock implements HttpResponse {}
-
-class _MockHttpHeaders extends Mock implements HttpHeaders {}
+@GenerateNiceMocks([
+  MockSpec<SingleUseCase<RemoteSignUpData, ProfileInfo>>(
+      as: #MockGetProfileFromSignUpInfo),
+  MockSpec<HttpRequest>(),
+  MockSpec<HttpResponse>(),
+  MockSpec<HttpHeaders>(),
+])
 
 void main() {
-  SingleAsyncUseCase<HttpRequest, void> useCase;
-  HttpRequest request;
-  HttpResponse response;
-  HttpHeaders headers;
-  ProfileInfo profileInfo;
+  late SingleAsyncUseCase<HttpRequest, void> useCase;
+  late HttpRequest request;
+  late HttpResponse response;
+  late HttpHeaders headers;
+  late ProfileInfo profileInfo;
 
   setUp(() {
-    headers = _MockHttpHeaders();
-    request = _MockHttpRequest();
-    response = _MockHttpResponse();
+    headers = MockHttpHeaders();
+    request = MockHttpRequest();
+    response = MockHttpResponse();
 
     profileInfo = ProfileInfo(
       userId: 1,
@@ -59,7 +57,7 @@ void main() {
     when(response.headers).thenReturn(headers);
     when(request.response).thenReturn(response);
 
-    final getProfileFromSignUpInfo = _MockGetProfileFromSignUpInfo();
+    final getProfileFromSignUpInfo = MockGetProfileFromSignUpInfo();
     when(getProfileFromSignUpInfo.execute(any)).thenReturn(profileInfo);
 
     useCase = SignUpUserUsecase(getProfileFromSignUpInfo);

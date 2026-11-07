@@ -1,5 +1,3 @@
-//@dart=2.9
-
 import 'package:lets_play_cities/app_config.dart';
 import 'package:lets_play_cities/domain/usecases.dart';
 import 'package:lets_play_cities/remote/auth.dart';
@@ -7,7 +5,7 @@ import 'package:lets_play_cities/remote/server/usecases.dart';
 import 'package:test/test.dart';
 
 void main() {
-  SingleUseCase<RemoteSignUpData, ProfileInfo> useCase;
+  late SingleUseCase<RemoteSignUpData, ProfileInfo> useCase;
 
   setUp(() {
     final appConfig = AppConfig.forHost(

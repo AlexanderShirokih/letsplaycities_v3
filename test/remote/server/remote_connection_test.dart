@@ -1,5 +1,3 @@
-// @dart=2.9
-
 import 'package:lets_play_cities/base/data.dart';
 import 'package:lets_play_cities/remote/auth.dart';
 import 'package:lets_play_cities/remote/model/client_messages.dart';
@@ -7,24 +5,26 @@ import 'package:lets_play_cities/remote/model/server_messages.dart';
 import 'package:lets_play_cities/remote/server/connection_transformer.dart';
 import 'package:lets_play_cities/remote/server/remote_connection.dart';
 import 'package:lets_play_cities/remote/server/user_lookup_repository.dart';
+import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 
+import 'remote_connection_test.mocks.dart';
 import 'server_mocks.dart';
 
-class _MockMessagePipe extends Mock
-    implements MessagePipe<ClientMessage, ServerMessage> {}
-
-class _MockUserLookupRepository extends Mock implements UserLookupRepository {}
+@GenerateNiceMocks([
+  MockSpec<MessagePipe<ClientMessage, ServerMessage>>(as: #MockMessagePipe),
+  MockSpec<UserLookupRepository>(),
+])
 
 void main() {
-  _MockMessagePipe messagePipe;
-  _MockUserLookupRepository lookupRepository;
-  RemoteConnection serverInteractor;
+  late MockMessagePipe messagePipe;
+  late MockUserLookupRepository lookupRepository;
+  late RemoteConnection serverInteractor;
 
   setUp(() {
-    messagePipe = _MockMessagePipe();
-    lookupRepository = _MockUserLookupRepository();
+    messagePipe = MockMessagePipe();
+    lookupRepository = MockUserLookupRepository();
     serverInteractor = LpsServerInteractorImpl(
       messagePipe,
       lookupRepository,

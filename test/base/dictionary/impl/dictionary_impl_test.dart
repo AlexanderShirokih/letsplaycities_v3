@@ -1,5 +1,3 @@
-// @dart=2.9
-
 import 'package:lets_play_cities/base/dictionary.dart';
 import 'package:lets_play_cities/base/dictionary/impl/dictionary_impl.dart';
 import 'package:test/test.dart';
@@ -91,11 +89,11 @@ void main() {
       test('marks word', () {
         final d = DictionaryServiceImpl(map);
         d.reset();
-        expect(d.getAll()['test'].used, isFalse);
+        expect(d.getAll()['test']!.used, isFalse);
         d.markUsed('test');
-        expect(d.getAll()['test'].used, isTrue);
+        expect(d.getAll()['test']!.used, isTrue);
         d.markUsed('test');
-        expect(d.getAll()['test'].used, isTrue);
+        expect(d.getAll()['test']!.used, isTrue);
       });
 
       test('does nothing when there is no word', () {
@@ -114,13 +112,13 @@ void main() {
       final d = DictionaryServiceImpl(map);
       d.markUsed('test');
       d.reset();
-      expect(d.getAll()['test'].used, isFalse);
+      expect(d.getAll()['test']!.used, isFalse);
     });
 
     group('.checkCity()', () {
       test('returns [OK] when word was not used before', () async {
         final d = DictionaryServiceImpl(map);
-        expect(d.getAll()['test'].used, isFalse);
+        expect(d.getAll()['test']!.used, isFalse);
         expect(await d.checkCity('test'), equals(CityResult.OK));
       });
 
