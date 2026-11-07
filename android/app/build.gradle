@@ -1,86 +1,90 @@
-def localProperties = new Properties()
-def localPropertiesFile = rootProject.file('local.properties')
-if (localPropertiesFile.exists()) {
-    localPropertiesFile.withReader('UTF-8') { reader ->
-        localProperties.load(reader)
-    }
+plugins {
+    id "com.android.application"
+    id "org.jetbrains.kotlin.android"
+    id "com.google.gms.google-services"
+    id "com.google.firebase.crashlytics"
+    // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
+    id "dev.flutter.flutter-gradle-plugin"
 }
 
-def flutterRoot = localProperties.getProperty('flutter.sdk')
-if (flutterRoot == null) {
-    throw new GradleException("Flutter SDK not found. Define location with flutter.sdk in the local.properties file.")
-}
+def hasSigningProps = { List<String> names -> names.every { project.hasProperty(it) } }
+def hasTestSigning = hasSigningProps(["store_pass", "store_file", "lps_alias"])
+def hasReleaseSigning = hasSigningProps(["store_pass_release", "store_file_release",
+                                         "lps_alias_release", "lps_alias_pass_release"])
 
-def flutterVersionCode = localProperties.getProperty('flutter.versionCode')
-if (flutterVersionCode == null) {
-    flutterVersionCode = '3100'
-}
-
-def flutterVersionName = localProperties.getProperty('flutter.versionName')
-if (flutterVersionName == null) {
-    flutterVersionName = '3.1.0'
-}
-
-apply plugin: 'com.android.application'
-apply plugin: 'kotlin-android'
-apply plugin: 'com.google.firebase.crashlytics'
-apply plugin: 'com.google.gms.google-services'
-apply from: "$flutterRoot/packages/flutter_tools/gradle/flutter.gradle"
 android {
-    compileSdkVersion 30
+    namespace = "ru.aleshi.letsplaycities"
+    compileSdk = 36
+    ndkVersion = flutter.ndkVersion
 
-    lintOptions {
-        disable 'InvalidPackage'
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
+    }
+
+    lint {
+        disable "InvalidPackage"
     }
 
     defaultConfig {
-        applicationId "ru.aleshi.letsplaycities"
-        minSdkVersion 21
-        targetSdkVersion 30
-        versionCode flutterVersionCode.toInteger()
-        versionName flutterVersionName
+        applicationId = "ru.aleshi.letsplaycities"
+        minSdk = flutter.minSdkVersion
+        targetSdk = 36
+        versionCode = flutter.versionCode
+        versionName = flutter.versionName
     }
 
     signingConfigs {
-        default_test {
-            def testPass = file(project.properties["store_pass"] as String).text
-            storeFile file(project.properties["store_file"] as String)
-            storePassword = testPass
-            keyPassword = testPass
-            keyAlias project.properties['lps_alias'] as String
+        if (hasTestSigning) {
+            default_test {
+                def testPass = file(project.property("store_pass") as String).text
+                storeFile = file(project.property("store_file") as String)
+                storePassword = testPass
+                keyPassword = testPass
+                keyAlias = project.property("lps_alias") as String
+            }
         }
 
-        release {
-            def testPass = file(project.properties["store_pass_release"] as String).text
-            storeFile file(project.properties["store_file_release"] as String)
-            storePassword = testPass
-            keyPassword = project.properties["lps_alias_pass_release"] as String
-            keyAlias project.properties['lps_alias_release'] as String
+        if (hasReleaseSigning) {
+            release {
+                storeFile = file(project.property("store_file_release") as String)
+                storePassword = file(project.property("store_pass_release") as String).text
+                keyPassword = project.property("lps_alias_pass_release") as String
+                keyAlias = project.property("lps_alias_release") as String
+            }
         }
     }
 
     buildTypes {
         release {
-            signingConfig signingConfigs.release
+            signingConfig = hasReleaseSigning ? signingConfigs.release : signingConfigs.debug
+            proguardFiles getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro"
         }
     }
 }
 
+kotlin {
+    compilerOptions {
+        jvmTarget = org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17
+    }
+}
+
 dependencies {
-    implementation "androidx.lifecycle:lifecycle-runtime-ktx:2.2.0"
-    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.4.2'
-    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.4.2'
+    implementation "androidx.lifecycle:lifecycle-runtime-ktx:2.10.0"
+    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:1.11.0"
 
-    implementation 'com.vk:androidsdk:2.6.0'
-    implementation 'ru.ok:odnoklassniki-android-sdk:2.1.8'
-    implementation 'com.facebook.android:facebook-login:9.0.0'
-    implementation 'com.google.firebase:firebase-analytics:18.0.2'
-    implementation 'com.google.firebase:firebase-messaging:21.0.1'
+    implementation "com.vk:androidsdk:2.7.0"
+    implementation "ru.ok:odnoklassniki-android-sdk:2.1.8"
+    implementation "com.facebook.android:facebook-login:9.0.0"
 
-    implementation 'com.google.android.gms:play-services-auth:19.0.0'
-    implementation 'com.google.android.gms:play-services-games:21.0.0'
+    // Keep the BoM in sync with FirebaseSDKVersion of the firebase_core plugin.
+    implementation platform("com.google.firebase:firebase-bom:35.1.0")
+    implementation "com.google.firebase:firebase-analytics"
+
+    implementation "com.google.android.gms:play-services-auth:19.0.0"
+    implementation "com.google.android.gms:play-services-games:21.0.0"
 }
 
 flutter {
-    source '../..'
+    source = "../.."
 }
