@@ -67,6 +67,7 @@ void main() {
       expect(prefs.currentCredentials, isNull);
       expect(prefs.lastNativeLogin, isEmpty);
       expect(prefs.hotseatNames, isEmpty);
+      expect(prefs.recentCountries, isEmpty);
     });
 
     test('reports the first launch only once, across restarts', () async {
@@ -121,6 +122,13 @@ void main() {
 
       expect((await relaunch()).hotseatNames, ['Аня', 'Боря']);
       expect(await stored('hotseatNames'), ['Аня', 'Боря']);
+    });
+
+    test('prefs recentCountries round-trip, at most five', () async {
+      prefs.recentCountries = [91, 3, 7, 12, 40, 55];
+
+      expect((await relaunch()).recentCountries, [91, 3, 7, 12, 40]);
+      expect(await stored('recentCountries'), ['91', '3', '7', '12', '40']);
     });
 
     test('dictionary check date, to the millisecond', () async {

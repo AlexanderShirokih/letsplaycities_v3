@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get_it/get_it.dart';
 import 'package:lets_play_cities/base/cities_list/bloc/city_edit_actions_bloc.dart';
 import 'package:lets_play_cities/base/cities_list/city_item.dart';
@@ -9,6 +8,7 @@ import 'package:lets_play_cities/base/repositories/cities/city_repository.dart';
 import 'package:lets_play_cities/base/repositories/cities/country_repository.dart';
 import 'package:lets_play_cities/i18n/strings.g.dart';
 import 'package:lets_play_cities/remote/city_requests_repository.dart';
+import 'package:lets_play_cities/screens/common/d2/d2.dart';
 import 'package:lets_play_cities/screens/main/cites/list/widgets/add_city_layout.dart';
 import 'package:lets_play_cities/screens/main/cites/list/widgets/remove_city_layout.dart';
 import 'package:lets_play_cities/screens/main/cites/list/widgets/rename_city_layout.dart';
@@ -93,30 +93,6 @@ class _CityEditActionsScreenState extends State<CityEditActionsScreen> {
         widget.city,
       ),
       child: Scaffold(
-        floatingActionButton: Builder(
-          builder: (context) {
-            return FloatingActionButton.extended(
-              backgroundColor: _showSendButton
-                  ? null
-                  : Theme.of(context).disabledColor,
-              icon: FaIcon(FontAwesomeIcons.solidPaperPlane),
-              label: Text(t.citiesRequest.send),
-              onPressed: _showSendButton
-                  ? () {
-                      context.read<CityEditActionsBloc>().add(
-                        CityEditActionSend(
-                          type: _mapType(widget.action),
-                          reason: _reasonTextController.text,
-                          updatedCityName: _cityNameController.text,
-                          updatedCountryCode: _currentCountry?.countryCode ?? 0,
-                        ),
-                      );
-                    }
-                  : null,
-            );
-          },
-        ),
-        appBar: AppBar(title: Text(_title(t))),
         body: BlocListener<CityEditActionsBloc, CityEditActionsState>(
           listener: (context, state) {
             if (state is CityNotFound) {
@@ -154,17 +130,46 @@ class _CityEditActionsScreenState extends State<CityEditActionsScreen> {
               });
             }
           },
-          child: Form(
-            key: _formKey,
-            child: SingleChildScrollView(
-              child: Padding(
-                padding: const EdgeInsets.only(
-                  left: 26.0,
-                  right: 26.0,
-                  top: 30,
+          child: SafeArea(
+            child: Column(
+              children: [
+                D2ScreenHeader(
+                  title: _title(t),
+                  onBack: () => Navigator.maybePop(context),
                 ),
-                child: _buildContent(context),
-              ),
+                Expanded(
+                  child: Form(
+                    key: _formKey,
+                    child: SingleChildScrollView(
+                      padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+                      child: _buildContent(context),
+                    ),
+                  ),
+                ),
+                Builder(
+                  builder: (context) => Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
+                    child: D2Button(
+                      label: t.citiesRequest.send,
+                      icon: D2Glyph.send,
+                      expand: true,
+                      onPressed: _showSendButton
+                          ? () {
+                              context.read<CityEditActionsBloc>().add(
+                                CityEditActionSend(
+                                  type: _mapType(widget.action),
+                                  reason: _reasonTextController.text,
+                                  updatedCityName: _cityNameController.text,
+                                  updatedCountryCode:
+                                      _currentCountry?.countryCode ?? 0,
+                                ),
+                              );
+                            }
+                          : null,
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
         ),

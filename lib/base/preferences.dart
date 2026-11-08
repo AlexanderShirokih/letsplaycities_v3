@@ -6,6 +6,9 @@ import 'package:lets_play_cities/base/scoring.dart';
 import 'package:lets_play_cities/base/themes/app_theme_mode.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+/// How many countries the cities filter remembers as recent
+const maxRecentCountries = 5;
+
 /// Represents application preferences
 abstract class GamePreferences {
   /// Words difficulty level.
@@ -79,6 +82,12 @@ abstract class GamePreferences {
   List<String> get hotseatNames;
 
   set hotseatNames(List<String> names);
+
+  /// Country codes of the last applied cities filters, the latest first,
+  /// at most [maxRecentCountries]
+  List<int> get recentCountries;
+
+  set recentCountries(List<int> codes);
 
   /// Local progress of each achievement by its wire name: the sum of its
   /// increments. Empty until the first achievement is unlocked.
@@ -200,6 +209,18 @@ class SharedPreferencesGamePrefs extends GamePreferences {
   @override
   set hotseatNames(List<String> names) =>
       _prefs.setStringList('hotseatNames', names);
+
+  @override
+  List<int> get recentCountries => [
+    for (final code in _prefs.getStringList('recentCountries') ?? const [])
+      ?int.tryParse(code),
+  ].take(maxRecentCountries).toList();
+
+  @override
+  set recentCountries(List<int> codes) => _prefs.setStringList(
+    'recentCountries',
+    [for (final code in codes.take(maxRecentCountries)) '$code'],
+  );
 
   @override
   Map<String, int> get achievementsProgress {

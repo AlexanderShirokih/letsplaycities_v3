@@ -119,25 +119,35 @@ TextSpan cityNameSpans(String city, D2Colors c, {double fontSize = 17}) {
   );
 }
 
-/// Flag of the country with [countryCode], 24x16 with rounded corners
+/// Flag of the country with [countryCode], 24x16 with rounded corners by
+/// default
 class CityFlag extends StatelessWidget {
   final int countryCode;
+  final double width;
+  final double height;
+  final double radius;
 
-  const CityFlag(this.countryCode, {super.key});
+  const CityFlag(
+    this.countryCode, {
+    super.key,
+    this.width = 24,
+    this.height = 16,
+    this.radius = 3,
+  });
 
   @override
   Widget build(BuildContext context) {
     final c = D2Colors.of(context);
 
     return Container(
-      width: 24,
-      height: 16,
+      width: width,
+      height: height,
       clipBehavior: Clip.antiAlias,
       foregroundDecoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(3),
+        borderRadius: BorderRadius.circular(radius),
         border: Border.all(color: c.shadow.withAlpha(64)),
       ),
-      decoration: BoxDecoration(borderRadius: BorderRadius.circular(3)),
+      decoration: BoxDecoration(borderRadius: BorderRadius.circular(radius)),
       child: Image.asset(
         'assets/images/flags/flag_$countryCode.png',
         fit: BoxFit.cover,

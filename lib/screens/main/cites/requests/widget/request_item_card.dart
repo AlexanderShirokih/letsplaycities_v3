@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:lets_play_cities/base/cities_list/city_item.dart';
 import 'package:lets_play_cities/i18n/strings.g.dart';
-import 'package:lets_play_cities/screens/common/utils.dart';
+import 'package:lets_play_cities/screens/common/d2/d2.dart';
+import 'package:lets_play_cities/screens/game/cities_list.dart';
 
 /// Shows card that describes approved or pending request
 class RequestItemCard extends StatelessWidget {
@@ -25,21 +25,14 @@ class RequestItemCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
+    final c = D2Colors.of(context);
     final t = context.t;
 
     return ConstrainedBox(
       constraints: BoxConstraints(maxWidth: 340.0),
-      child: Card(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
-        elevation: 4.0,
-        child: Padding(
-          padding: const EdgeInsets.only(
-            left: 6.0,
-            top: 6.0,
-            right: 10.0,
-            bottom: 10.0,
-          ),
+      child: Padding(
+        padding: const EdgeInsets.only(bottom: 10.0),
+        child: D2Card(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -47,29 +40,26 @@ class RequestItemCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(
-                    _getItemTypeTitle(t),
-                    style: theme.textTheme.titleSmall?.copyWith(
-                      color: theme.hintColor,
+                  Expanded(
+                    child: Text(
+                      _getItemTypeTitle(t),
+                      style: D2Text.small.copyWith(color: c.inkSoft),
                     ),
                   ),
-                  _createApprovalMark(),
+                  _createApprovalMark(c),
                 ],
               ),
               const SizedBox(height: 4.0),
               if (from != null) _createCityItem(context, from!),
               if (cardType == RequestItemType.edit)
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 4.0),
-                      child: FaIcon(
-                        FontAwesomeIcons.rightLeft,
-                        color: theme.hintColor,
-                      ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 4.0),
+                  child: Center(
+                    child: RotatedBox(
+                      quarterTurns: 1,
+                      child: D2Icon(D2Glyph.send, size: 22, color: c.inkSoft),
                     ),
-                  ],
+                  ),
                 ),
               if (to != null) ...[
                 _createCityItem(context, to!),
@@ -99,7 +89,7 @@ class RequestItemCard extends StatelessWidget {
   }
 
   Widget _createCityItem(BuildContext context, CityItem cityItem) {
-    final theme = Theme.of(context);
+    final c = D2Colors.of(context);
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 4.0, vertical: 4.0),
@@ -107,22 +97,18 @@ class RequestItemCard extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          Container(
-            decoration: BoxDecoration(
-              border: Border.all(
-                color: theme.colorScheme.onPrimary,
-                style: BorderStyle.solid,
-                width: 1.0,
-              ),
-            ),
-            child: createFlagImage(cityItem.country.countryCode),
+          CityFlag(
+            cityItem.country.countryCode,
+            width: 28,
+            height: 20,
+            radius: 4,
           ),
-          const SizedBox(width: 7.0),
+          const SizedBox(width: 8.0),
           Flexible(
             child: Text(
               cityItem.cityName,
-              style: theme.textTheme.titleSmall,
-              overflow: TextOverflow.fade,
+              style: D2Text.body.copyWith(color: c.ink),
+              overflow: TextOverflow.ellipsis,
             ),
           ),
         ],
@@ -135,29 +121,31 @@ class RequestItemCard extends StatelessWidget {
     required String title,
     required String content,
   }) {
+    final c = D2Colors.of(context);
+
     return Text.rich(
       TextSpan(
         children: [
           TextSpan(
             text: '$title ',
-            style: TextStyle(fontWeight: FontWeight.bold),
+            style: D2Text.body.copyWith(fontSize: 13, color: c.ink),
           ),
           TextSpan(text: content),
         ],
       ),
-      style: Theme.of(context).textTheme.bodySmall,
+      style: D2Text.caption.copyWith(color: c.ink),
     );
   }
 
-  Widget _createApprovalMark() {
+  Widget _createApprovalMark(D2Colors c) {
     final approved = isApproved;
 
     if (approved == null) {
       return const SizedBox();
     } else if (approved) {
-      return FaIcon(FontAwesomeIcons.check, color: Colors.green);
+      return D2Icon(D2Glyph.check, size: 22, color: c.mint);
     } else {
-      return FaIcon(FontAwesomeIcons.xmark, color: Colors.red);
+      return D2Icon(D2Glyph.close, size: 22, color: c.error);
     }
   }
 
@@ -184,19 +172,13 @@ class RequestItemCardShimmered extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final c = D2Colors.of(context);
+
     return ConstrainedBox(
       constraints: BoxConstraints(maxWidth: 340.0),
-      child: Card(
-        color: Colors.transparent,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
-        elevation: 4.0,
-        child: Padding(
-          padding: const EdgeInsets.only(
-            left: 6.0,
-            top: 6.0,
-            right: 10.0,
-            bottom: 10.0,
-          ),
+      child: Padding(
+        padding: const EdgeInsets.only(bottom: 10.0),
+        child: D2Card(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -204,36 +186,28 @@ class RequestItemCardShimmered extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Container(
-                    width: 65,
-                    height: 12,
-                    decoration: BoxDecoration(
-                      color: Colors.grey,
-                      borderRadius: BorderRadius.all(Radius.circular(4)),
-                    ),
-                  ),
-                  if (isApprovable)
-                    Container(
-                      width: 20,
-                      height: 20,
-                      decoration: BoxDecoration(
-                        color: Colors.grey,
-                        borderRadius: BorderRadius.all(Radius.circular(4)),
-                      ),
-                    ),
+                  _block(c, 65, 12),
+                  if (isApprovable) _block(c, 20, 20),
                 ],
               ),
               const SizedBox(height: 4.0),
-              _createCityItem(),
-              const SizedBox(height: 12.0),
-              Container(
-                width: 197,
-                height: 16,
-                decoration: BoxDecoration(
-                  color: Colors.grey,
-                  borderRadius: BorderRadius.all(Radius.circular(4)),
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 4.0,
+                  vertical: 4.0,
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    _block(c, 28, 20),
+                    const SizedBox(width: 8.0),
+                    Flexible(child: _block(c, 197, 16)),
+                  ],
                 ),
               ),
+              const SizedBox(height: 12.0),
+              _block(c, 197, 16),
             ],
           ),
         ),
@@ -241,25 +215,12 @@ class RequestItemCardShimmered extends StatelessWidget {
     );
   }
 
-  Widget _createCityItem() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 4.0, vertical: 4.0),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          Container(width: 23, height: 15, color: Colors.grey),
-          const SizedBox(width: 8.0),
-          Container(
-            width: 197,
-            height: 16,
-            decoration: BoxDecoration(
-              color: Colors.grey,
-              borderRadius: BorderRadius.all(Radius.circular(4)),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+  Widget _block(D2Colors c, double width, double height) => Container(
+    width: width,
+    height: height,
+    decoration: BoxDecoration(
+      color: c.edge,
+      borderRadius: BorderRadius.circular(4),
+    ),
+  );
 }

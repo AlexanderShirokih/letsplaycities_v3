@@ -459,26 +459,52 @@ class Translations$citiesList$ru {
 	/// ru: 'Города'
 	String get title => 'Города';
 
-	/// ru: 'Заявки на редактирование'
-	String get about => 'Заявки на редактирование';
-
-	/// ru: 'Введите город'
-	String get enterCity => 'Введите город';
-
 	/// ru: 'Загрузка базы данных...'
 	String get loading => 'Загрузка базы данных...';
 
 	/// ru: 'Неизвестно'
 	String get unkCity => 'Неизвестно';
 
-	/// ru: 'Выбрать все'
-	String get selectAll => 'Выбрать все';
+	/// ru: 'Мои заявки'
+	String get myRequests => 'Мои заявки';
 
-	/// ru: 'Нужно изменить страну или название'
-	String get wantEdit => 'Нужно изменить страну или название';
+	/// ru: 'Найти город'
+	String get searchHint => 'Найти город';
 
-	/// ru: 'Нужно удалить'
-	String get wantRemove => 'Нужно удалить';
+	/// ru: 'Все страны'
+	String get allCountries => 'Все страны';
+
+	/// ru: '(one) {{count} страна} (few) {{count} страны} (many) {{count} стран} (other) {{count} стран}'
+	String countriesN({required num count}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('ru'))(count,
+		one: '${count} страна',
+		few: '${count} страны',
+		many: '${count} стран',
+		other: '${count} стран',
+	);
+
+	/// ru: 'Предложить город'
+	String get proposeCity => 'Предложить город';
+
+	/// ru: 'Предложить правку'
+	String get proposeEdit => 'Предложить правку';
+
+	/// ru: 'Предложить удаление'
+	String get proposeRemove => 'Предложить удаление';
+
+	/// ru: 'Действия: {city}'
+	String cityActions({required Object city}) => 'Действия: ${city}';
+
+	/// ru: 'Страны'
+	String get countriesTitle => 'Страны';
+
+	/// ru: 'Найти страну'
+	String get countrySearch => 'Найти страну';
+
+	/// ru: 'Недавние'
+	String get recent => 'Недавние';
+
+	/// ru: 'Сбросить'
+	String get reset => 'Сбросить';
 }
 
 // Path: exclusionList
@@ -597,8 +623,8 @@ class Translations$citiesRequest$ru {
 		'Если город был переименован или указан неверно, используйте форму изменения города',
 	];
 
-	/// ru: 'ОТПРАВИТЬ'
-	String get send => 'ОТПРАВИТЬ';
+	/// ru: 'Отправить'
+	String get send => 'Отправить';
 
 	/// ru: 'Город с названием "{city}" не найден в базе данных'
 	String cityNotFound({required Object city}) => 'Город с названием "${city}" не найден в базе данных';
