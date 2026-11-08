@@ -64,6 +64,7 @@ void main() {
       expect(prefs.dictionaryUpdatePeriod, DictionaryUpdatePeriod.threeHours);
       expect(prefs.themeMode, AppThemeMode.system);
       expect(prefs.lastNativeLogin, isEmpty);
+      expect(prefs.signedOut, isFalse);
       expect(prefs.hotseatNames, isEmpty);
       expect(prefs.recentCountries, isEmpty);
     });
@@ -113,6 +114,11 @@ void main() {
     test('last native login', () async {
       prefs.lastNativeLogin = 'Игрок 1';
       expect((await relaunch()).lastNativeLogin, 'Игрок 1');
+    });
+
+    test('signed-out flag round-trips', () async {
+      prefs.signedOut = true;
+      expect((await relaunch()).signedOut, isTrue);
     });
 
     test('prefs hotseatNames round-trip', () async {

@@ -70,6 +70,12 @@ abstract class GamePreferences {
 
   set lastNativeLogin(String newLogin);
 
+  /// `true` after the user signed out of the online account, until the next
+  /// sign-in. The device account is not signed in silently meanwhile.
+  bool get signedOut;
+
+  set signedOut(bool value);
+
   /// Names of the first and the second player in the last game of two
   /// players on one device. Empty until the first such game.
   List<String> get hotseatNames;
@@ -185,6 +191,12 @@ class SharedPreferencesGamePrefs extends GamePreferences {
   set lastNativeLogin(String newLogin) {
     _prefs.setString('lastNativeLogin', newLogin);
   }
+
+  @override
+  bool get signedOut => _prefs.getBool('signedOut') ?? false;
+
+  @override
+  set signedOut(bool value) => _prefs.setBool('signedOut', value);
 
   @override
   List<String> get hotseatNames => _prefs.getStringList('hotseatNames') ?? [];

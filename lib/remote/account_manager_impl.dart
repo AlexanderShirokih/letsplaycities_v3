@@ -90,6 +90,10 @@ class AccountManagerImpl implements AccountManager {
 
   @override
   Future<RemoteAccount?> trySilentNative() async {
+    // After a sign-out the user chooses the account on the login screen:
+    // the server would sign the device account straight back in.
+    if (_preferences.signedOut) return null;
+
     try {
       final deviceId = await _socialNetworks.getDeviceId();
 
@@ -140,6 +144,7 @@ class AccountManagerImpl implements AccountManager {
     }
 
     _session++;
+    _preferences.signedOut = true;
     _forgetAccount();
     await _fcmRefreshes?.cancel();
     _fcmRefreshes = null;
@@ -151,10 +156,13 @@ class AccountManagerImpl implements AccountManager {
     await _apiRepositories.tokens.write(result.token);
     _apiRepositories.cache.clear();
     _session++;
+    _preferences.signedOut = false;
 
     final account = _toAccount(result.user);
     _keepAccount(account, result.token);
-    await _startFcmSync();
+
+    // A slow FCM must not hold the sign-in; the errors are logged.
+    unawaited(_startFcmSync());
 
     return account;
   }

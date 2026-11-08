@@ -23,6 +23,9 @@ import 'fake_server.dart';
 class _FakePreferences extends Fake implements GamePreferences {
   @override
   bool get onlineChatEnabled => true;
+
+  @override
+  bool signedOut = false;
 }
 
 class _FakeSocialNetworks extends Fake implements SocialNetworksService {
@@ -53,8 +56,14 @@ class _FakeMessaging implements CloudMessagingService {
   String token = 'fcm-1';
   final refreshes = StreamController<String>.broadcast();
 
+  /// When set, [getUserToken] waits for it
+  Completer<void>? tokenGate;
+
   @override
-  Future<String> getUserToken() async => token;
+  Future<String> getUserToken() async {
+    await tokenGate?.future;
+    return token;
+  }
 
   @override
   Stream<String> get tokenRefreshes => refreshes.stream;
@@ -114,6 +123,7 @@ void main() {
   late _FakeMessaging messaging;
   late _RecordingLogger logger;
   late DateTime now;
+  late _FakePreferences preferences;
   late AccountManagerImpl manager;
 
   setUp(() {
@@ -124,6 +134,7 @@ void main() {
     messaging = _FakeMessaging();
     logger = _RecordingLogger();
     now = DateTime(2026, 11, 8, 12);
+    preferences = _FakePreferences();
 
     final dio = createApiDio(
       config,
@@ -133,7 +144,7 @@ void main() {
     )..httpClientAdapter = server;
 
     manager = AccountManagerImpl(
-      preferences: _FakePreferences(),
+      preferences: preferences,
       apiRepositories: factory,
       auth: AuthApi(dio),
       socialNetworks: social,
@@ -288,6 +299,21 @@ void main() {
 
     test('fcm token is patched after sign-in', () async {
       await manager.signInNative('Мария');
+      await pumpEventQueue();
+
+      expect(server.bodyOf('PATCH', '/v1/me'), {'fcmToken': 'fcm-1'});
+    });
+
+    test('a slow fcm token does not hold the sign-in', () async {
+      final gate = messaging.tokenGate = Completer<void>();
+
+      final account = await manager.signInNative('Мария');
+
+      expect(account.userId, 14397);
+      expect(server.calls, isNot(contains('PATCH /v1/me')));
+
+      gate.complete();
+      await pumpEventQueue();
 
       expect(server.bodyOf('PATCH', '/v1/me'), {'fcmToken': 'fcm-1'});
     });
@@ -296,6 +322,7 @@ void main() {
       messaging.token = '';
 
       await manager.signInNative('Мария');
+      await pumpEventQueue();
 
       expect(server.calls, isNot(contains('PATCH /v1/me')));
     });
@@ -304,6 +331,7 @@ void main() {
       server.fail('PATCH', '/v1/me', 500, 'internal');
 
       final account = await manager.signInNative('Мария');
+      await pumpEventQueue();
 
       expect(account.userId, 14397);
       expect(logger.errors, isNotEmpty);
@@ -311,6 +339,7 @@ void main() {
 
     test('a refreshed token is patched while signed in', () async {
       await manager.signInNative('Мария');
+      await pumpEventQueue();
 
       messaging.refreshes.add('fcm-2');
       await pumpEventQueue();
@@ -323,6 +352,33 @@ void main() {
       await pumpEventQueue();
 
       expect(server.calls, isEmpty);
+    });
+  });
+
+  group('after sign-out', () {
+    setUp(() async {
+      server.on('POST', '/v1/auth/native', 200, _auth('session'));
+      await manager.signInNative('Мария');
+      await pumpEventQueue();
+      await manager.signOut();
+      server.requests.clear();
+    });
+
+    test('silent native sends no request', () async {
+      expect(preferences.signedOut, isTrue);
+      expect(await manager.trySilentNative(), isNull);
+      expect(server.calls, isEmpty);
+    });
+
+    test('a sign-in clears the flag and silent native works again', () async {
+      await manager.signInNative('Мария');
+
+      expect(preferences.signedOut, isFalse);
+
+      await tokens.clear();
+      server.requests.clear();
+      expect(await manager.trySilentNative(), isNotNull);
+      expect(server.calls, contains('POST /v1/auth/native'));
     });
   });
 
@@ -374,6 +430,7 @@ void main() {
     setUp(() async {
       server.on('POST', '/v1/auth/native', 200, _auth('session'));
       await manager.signInNative('Мария');
+      await pumpEventQueue();
       factory.cache.cachedFriendsList = [friend(10)];
       server.requests.clear();
     });
