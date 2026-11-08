@@ -10,7 +10,12 @@ import 'package:lets_play_cities/base/users.dart';
 import 'package:lets_play_cities/utils/debouncer.dart';
 
 class GameSessionRepository {
+  // Words and chat messages are debounced apart: one [Debouncer] drops the
+  // call it has deferred when it is run again, even by an unrelated input.
   final Debouncer _userInputDebounce = Debouncer(
+    const Duration(milliseconds: 1000),
+  );
+  final Debouncer _userMessageDebounce = Debouncer(
     const Duration(milliseconds: 1000),
   );
 
@@ -55,6 +60,7 @@ class GameSessionRepository {
   /// Called to dispose internal StreamControllers
   Future finish() async {
     _userInputDebounce.cancel();
+    _userMessageDebounce.cancel();
     await _session.cancel();
   }
 
@@ -69,6 +75,6 @@ class GameSessionRepository {
 
   /// Dispatches input message to the game session
   void sendChatMessage(String message) {
-    _userInputDebounce.run(() => _session.deliverUserMessage(message));
+    _userMessageDebounce.run(() => _session.deliverUserMessage(message));
   }
 }
