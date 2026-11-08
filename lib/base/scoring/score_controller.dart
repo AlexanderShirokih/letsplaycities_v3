@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:lets_play_cities/base/game/combo.dart';
 import 'package:lets_play_cities/base/game/game_mode.dart';
 import 'package:lets_play_cities/base/game/game_result.dart';
 import 'package:lets_play_cities/base/preferences.dart';
@@ -36,14 +37,42 @@ class ScoreController {
     if (scoringData.isEmpty) return ScoringSet.initial();
 
     final stored = ScoringSet.fromJson(jsonDecode(scoringData));
+    final initial = ScoringSet.initial();
+    final defaults = {
+      for (final group in initial.groups) group.main.name: group,
+    };
     final storedNames = stored.groups.map((group) => group.main.name).toSet();
 
-    // Groups this version updates must exist, so missing ones start empty.
+    // Groups and fields this version updates must exist, so missing ones
+    // start empty. Everything stored stays as it is.
     return ScoringSet(
       groups: [
-        ...stored.groups,
-        ...ScoringSet.initial().groups.where(
+        ...stored.groups.map(
+          (group) => _withMissingFields(group, defaults[group.main.name]),
+        ),
+        ...initial.groups.where(
           (group) => !storedNames.contains(group.main.name),
+        ),
+      ],
+    );
+  }
+
+  /// Adds the fields of [defaults] that [stored] lacks, matching them by name.
+  static ScoringGroup _withMissingFields(
+    ScoringGroup stored,
+    ScoringGroup? defaults,
+  ) {
+    if (defaults == null) return stored;
+
+    final storedNames = stored.child.map((field) => field.name).toSet();
+    return ScoringGroup(
+      main: stored.main,
+      child: [
+        ...stored.child,
+        ...defaults.child.where(
+          // Ranked lists of cities hold as many entries as were played.
+          (field) =>
+              field is! PairedScoringField && !storedNames.contains(field.name),
         ),
       ],
     );
@@ -110,7 +139,8 @@ class ScoreController {
 
   void _updateCombos(Map<int, int> activeCombos) {
     for (final combo in activeCombos.entries) {
-      _allGroups[groupCombo].child[combo.key].asIntField().max(combo.value);
+      final field = _comboFieldName(ComboType.values[combo.key]);
+      _allGroups[groupCombo][field].asIntField().max(combo.value);
     }
   }
 
@@ -168,6 +198,21 @@ class ScoreController {
       case ScoringType.byTime:
         final dt = ((40000 - moveTime) ~/ 2000);
         return 2 + (dt > 0 ? dt : 0);
+    }
+  }
+
+  String _comboFieldName(ComboType type) {
+    switch (type) {
+      case ComboType.quickTime:
+        return fieldQuickTime;
+      case ComboType.shortWord:
+        return fieldShortWord;
+      case ComboType.longWord:
+        return fieldLongWord;
+      case ComboType.sameCountry:
+        return fieldSameCountry;
+      case ComboType.differentCountries:
+        return fieldDiffCountry;
     }
   }
 

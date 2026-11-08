@@ -469,6 +469,95 @@ void main() {
       expect(_entries(prefs.stored, groupBigCities), {'москва': 6});
     });
 
+    /// Stored statistics where [change] edited the fields of [group].
+    _Prefs prefsWith(
+      String group,
+      List<ScoringField> Function(List<ScoringField> fields) change,
+    ) {
+      final stored = ScoringSet.initial();
+      stored[group].child = change(stored[group].child);
+      return _Prefs(scoringData: jsonEncode(stored.toJson()));
+    }
+
+    test('without a field of a group still record the other fields', () {
+      final prefs = prefsWith(
+        groupOnline,
+        (fields) => [
+          for (final field in fields)
+            if (field.name == fieldWins)
+              ScoringField.int(name: fieldWins, value: 3)
+            else if (field.name != fieldTime)
+              field,
+        ],
+      );
+      final controller = ScoreController.fromPrefs(prefs, GameMode.network);
+      final player = _player();
+
+      controller
+        ..onMoveFinished(player, 'москва', 5000, const {})
+        ..onGameFinished(_result(player))
+        ..commit();
+
+      expect(_int(prefs.stored, groupOnline, fieldTime), 5);
+      expect(_int(prefs.stored, groupOnline, fieldWins), 4);
+      expect(_int(prefs.stored, groupOnline, fieldLose), 0);
+    });
+
+    test('keep fields this version does not know in a known group', () {
+      final extra = ScoringField.int(name: 'future', value: 7);
+      final prefs = prefsWith(groupParts, (fields) => [...fields, extra]);
+
+      ScoreController.fromPrefs(prefs, GameMode.playerVsAndroid).commit();
+
+      expect(prefs.stored[groupParts].findField('future'), extra);
+      expect(_int(prefs.stored, groupParts, fieldAndroid), 0);
+    });
+
+    test('record combos in the field of their type if the order differs', () {
+      final prefs = prefsWith(
+        groupCombo,
+        (fields) => [
+          for (final field in fields.reversed)
+            ScoringField.int(name: field.name, value: 1),
+        ],
+      );
+
+      ScoreController.fromPrefs(prefs, GameMode.playerVsAndroid)
+        ..onMoveFinished(_player(), 'москва', 1000, {
+          ComboType.quickTime.index: 2,
+          ComboType.differentCountries.index: 3,
+        })
+        ..commit();
+
+      expect(_int(prefs.stored, groupCombo, fieldQuickTime), 2);
+      expect(_int(prefs.stored, groupCombo, fieldDiffCountry), 3);
+      for (final field in [fieldShortWord, fieldLongWord, fieldSameCountry]) {
+        expect(_int(prefs.stored, groupCombo, field), 1, reason: field);
+      }
+    });
+
+    test('record combos in the field of their type if one is missing', () {
+      final prefs = prefsWith(
+        groupCombo,
+        (fields) => [
+          for (final field in fields)
+            if (field.name == fieldDiffCountry)
+              ScoringField.int(name: fieldDiffCountry, value: 5)
+            else if (field.name != fieldSameCountry)
+              field,
+        ],
+      );
+
+      ScoreController.fromPrefs(prefs, GameMode.playerVsAndroid)
+        ..onMoveFinished(_player(), 'москва', 1000, {
+          ComboType.sameCountry.index: 2,
+        })
+        ..commit();
+
+      expect(_int(prefs.stored, groupCombo, fieldSameCountry), 2);
+      expect(_int(prefs.stored, groupCombo, fieldDiffCountry), 5);
+    });
+
     test('keep groups this version does not know', () {
       final record = ScoringGroup(
         main: ScoringField.empty(name: groupHiscore),
