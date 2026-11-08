@@ -1,6 +1,6 @@
 import 'dart:convert';
 
-import 'package:flutter/foundation.dart';
+import 'package:clock/clock.dart';
 import 'package:lets_play_cities/app_config.dart';
 import 'package:lets_play_cities/base/data/word_result.dart';
 import 'package:lets_play_cities/remote/auth.dart';
@@ -38,20 +38,24 @@ class JsonMessageConverter
             userId: jsonMessage['oppUid'],
             login: jsonMessage['login'],
             banStatus: BanStatus.notBanned,
-            friendshipStatus:
-                FriendshipStatusExt.fromString(jsonMessage['friendshipStatus']),
+            friendshipStatus: FriendshipStatus.fromString(
+              jsonMessage['friendshipStatus'],
+            ),
             role: Role.regular,
-            authType: AuthTypeExtension.fromString(jsonMessage['authType']),
-            lastVisitDate: DateTime.now(),
+            authType: AuthType.fromString(jsonMessage['authType']),
+            lastVisitDate: clock.now(),
             pictureUrl: getPictureUrlOrNull(
-                _appConfig, jsonMessage['oppUid'], jsonMessage['pictureHash']),
+              _appConfig,
+              jsonMessage['oppUid'],
+              jsonMessage['pictureHash'],
+            ),
           ),
         );
       case 'word':
         return WordMessage(
           ownerId: jsonMessage['ownerId'],
           word: jsonMessage['word'],
-          result: WordResultExtensions.fromString(jsonMessage['result']),
+          result: WordResult.fromString(jsonMessage['result']),
         );
       case 'msg':
         return ChatMessage(
@@ -91,19 +95,13 @@ class JsonMessageConverter
     } else if (message is PlayMessage) {
       return {
         'action': 'play',
-        'mode': describeEnum(message.mode),
+        'mode': message.mode.wireName,
         'oppUid': message.oppUid,
       };
     } else if (message is OutgoingWordMessage) {
-      return {
-        'action': 'word',
-        'word': message.word,
-      };
+      return {'action': 'word', 'word': message.word};
     } else if (message is OutgoingChatMessage) {
-      return {
-        'action': 'msg',
-        'msg': message.msg,
-      };
+      return {'action': 'msg', 'msg': message.msg};
     } else if (message is InvitationResultMessage) {
       return {
         'action': 'fm_req_result',
@@ -112,7 +110,8 @@ class JsonMessageConverter
       };
     }
     throw UnknownMessageException(
-        'Unexpected kind of message: ${message.runtimeType}');
+      'Unexpected kind of message: ${message.runtimeType}',
+    );
   }
 }
 

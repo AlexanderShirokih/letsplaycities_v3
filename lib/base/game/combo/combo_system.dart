@@ -47,23 +47,29 @@ class ComboSystem {
 
     final isAnyComboChanged = [
       _updateCombo(
-          ComboType.QUICK_TIME, (info) => canUseQuickTime && info.isQuick),
-      _updateCombo(ComboType.SHORT_WORD, (info) => info.isShort),
-      _updateCombo(ComboType.LONG_WORD, (info) => info.isLong),
+        ComboType.quickTime,
+        (info) => canUseQuickTime && info.isQuick,
+      ),
+      _updateCombo(ComboType.shortWord, (info) => info.isShort),
+      _updateCombo(ComboType.longWord, (info) => info.isLong),
       _updateCombo(
-          ComboType.SAME_COUNTRY,
-          (info) =>
-              info.countryCode > 0 && info.countryCode == lastCountryCode),
-      _updateCombo(ComboType.DIFFERENT_COUNTRIES, (info) {
+        ComboType.sameCountry,
+        (info) => info.countryCode > 0 && info.countryCode == lastCountryCode,
+      ),
+      _updateCombo(ComboType.differentCountries, (info) {
         final res = !usedCountries.contains(info.countryCode);
         usedCountries.add(info.countryCode);
         return res;
-      })
+      }),
     ].any((changed) => changed);
 
     if (isAnyComboChanged) {
-      _controller.add(_activeCombos.map((type, level) =>
-          MapEntry<ComboType, int>(type, _getScore(level).round())));
+      _controller.add(
+        _activeCombos.map(
+          (type, level) =>
+              MapEntry<ComboType, int>(type, _getScore(level).round()),
+        ),
+      );
     }
   }
 
@@ -71,8 +77,9 @@ class ComboSystem {
     final comboLevel = _getCombo(type.minSize, predicate);
 
     if (comboLevel > 0) {
+      final previousLevel = _activeCombos[type];
       _activeCombos[type] = comboLevel;
-      return true;
+      return previousLevel != comboLevel;
     } else if (_activeCombos.remove(type) != null) {
       return true;
     }
@@ -81,9 +88,16 @@ class ComboSystem {
   }
 
   int _getCombo(
-          int minComboSize, bool Function(CityComboInfo info) predicate) =>
+    int minComboSize,
+    bool Function(CityComboInfo info) predicate,
+  ) =>
       max(_infoList.reversed.takeWhile(predicate).length - minComboSize + 1, 0);
 
-  /// Closes internal stream controller
-  Future<void> close() => _controller.close();
+  /// Closes internal stream controller.
+  ///
+  /// Completes without waiting for the done event to be delivered: if nobody
+  /// has listened to [eventStream], it never is.
+  Future<void> close() async {
+    unawaited(_controller.close());
+  }
 }

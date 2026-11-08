@@ -21,15 +21,15 @@ class SocketApi {
   /// Returns stream emitting all incoming messages
   /// Throws [UnknownMessageException] if message cannot be decoded by any reasons
   Stream<ServerMessage> get messages => _connector.messageStream.map((event) {
-        switch (event.type) {
-          case SocketMessageType.connected:
-            return ConnectedMessage();
-          case SocketMessageType.data:
-            return _converter.decode(event.data!);
-          case SocketMessageType.closed:
-            return DisconnectedMessage();
-        }
-      });
+    switch (event.type) {
+      case SocketMessageType.connected:
+        return ConnectedMessage();
+      case SocketMessageType.data:
+        return _converter.decode(event.data!);
+      case SocketMessageType.closed:
+        return DisconnectedMessage();
+    }
+  });
 
   /// Sends encoded message to socket connection
   void sendMessage(ClientMessage message) {

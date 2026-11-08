@@ -17,7 +17,7 @@ class SocialNetworkData extends Equatable {
 
   final String pictureUri;
 
-  SocialNetworkData({
+  const SocialNetworkData({
     required this.login,
     required this.authType,
     required this.pictureUri,
@@ -28,7 +28,7 @@ class SocialNetworkData extends Equatable {
   factory SocialNetworkData.fromJson(Map<String, dynamic> json) =>
       SocialNetworkData(
         login: json['login'],
-        authType: AuthTypeExtension.fromShortString(json['networkType']),
+        authType: AuthType.fromShortString(json['networkType']),
         pictureUri: json['pictureUri'],
         accessToken: json['accessToken'],
         snUID: json['snUID'],

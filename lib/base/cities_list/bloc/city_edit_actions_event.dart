@@ -15,11 +15,7 @@ class CityEditActionFetchData extends CityEditActions {
   List<Object?> get props => [city];
 }
 
-enum CityEditActionType {
-  Add,
-  Edit,
-  Remove,
-}
+enum CityEditActionType { add, edit, remove }
 
 /// Sends changes as a new request
 class CityEditActionSend extends CityEditActions {
@@ -44,9 +40,9 @@ class CityEditActionSend extends CityEditActions {
 
   @override
   List<Object?> get props => [
-        type,
-        reason,
-        updatedCityName,
-        updatedCountryCode,
-      ];
+    type,
+    reason,
+    updatedCityName,
+    updatedCountryCode,
+  ];
 }

@@ -31,7 +31,10 @@ class LocalMultiplayerStartGame extends LocalMultiplayerState {
   /// Overrides of [AccountManager] for local game
   final AccountManager accountManagerOverrides;
 
-  LocalMultiplayerStartGame(this.configOverrides, this.accountManagerOverrides);
+  const LocalMultiplayerStartGame(
+    this.configOverrides,
+    this.accountManagerOverrides,
+  );
 
   @override
   List<Object> get props => [configOverrides, accountManagerOverrides];

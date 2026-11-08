@@ -10,43 +10,57 @@ class RemoteException implements Exception {
 
 /// Indicates that unknown kind of message was received
 class UnknownMessageException extends RemoteException {
-  const UnknownMessageException(String description) : super(description);
+  const UnknownMessageException(super.description);
 
   UnknownMessageException.badEnumType(dynamic value)
-      : this('Unknown enum type: $value');
+    : this('Unknown enum type: $value');
 }
 
 /// Used as wrapper for SocketException
 class ConnectionException extends RemoteException {
-  const ConnectionException(String message) : super(message);
+  const ConnectionException(super.message);
 }
 
 /// Indicates an error in socket transferring
 class RemoteIOException extends RemoteException {
-  const RemoteIOException(String description) : super(description);
+  const RemoteIOException(super.description);
+}
+
+/// Thrown by the LAN server when a client's connection ends before the
+/// message the server waits for arrives.
+class ClientDisconnectedException extends RemoteException {
+  const ClientDisconnectedException(super.description);
 }
 
 /// Used when some authorization error happened in REST service
 /// or Socket service
 class AuthorizationException extends RemoteException {
-  AuthorizationException(String message) : super(message);
+  AuthorizationException(super.message);
 
   factory AuthorizationException.fromStatus(
-          String reasonPhrase, int responseCode) =>
-      AuthorizationException('Status: $responseCode ($reasonPhrase)');
+    String reasonPhrase,
+    int responseCode,
+  ) => AuthorizationException('Status: $responseCode ($reasonPhrase)');
+}
+
+/// Thrown when the server refuses a request with HTTP 401, e.g. because the
+/// access tokens of the account have expired. The screens show their own
+/// text for it; [description] is for logs.
+class AccessDeniedException extends AuthorizationException {
+  AccessDeniedException() : super('Access denied (HTTP 401)');
 }
 
 /// Used when the user is logged in, but the request is intended for another account
 class WrongAccountException extends RemoteException {
   const WrongAccountException()
-      : super('User logged in another account then intended');
+    : super('User logged in another account then intended');
 }
 
 /// Used when error happens during REST API fetch requests
 class FetchingException extends RemoteException {
   final Uri uri;
 
-  FetchingException(String message, this.uri) : super(message);
+  FetchingException(super.message, this.uri);
 
   @override
   String toString() => 'Fetching exception: $description, URL: $uri';

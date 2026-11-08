@@ -18,14 +18,13 @@ import 'package:lets_play_cities/base/stt/voice_recognition_service.dart';
 import 'package:lets_play_cities/base/stt/voice_recognition_service_impl.dart';
 import 'package:lets_play_cities/base/themes/theme_manager.dart';
 import 'package:lets_play_cities/base/themes/theme_manager_impl.dart';
-import 'package:lets_play_cities/l18n/localization_service.dart';
-import 'package:lets_play_cities/l18n/localizations_factory.dart';
+import 'package:lets_play_cities/i18n/strings.g.dart';
 import 'package:lets_play_cities/remote/account.dart';
 import 'package:lets_play_cities/remote/account_manager.dart';
 import 'package:lets_play_cities/remote/account_manager_impl.dart';
 import 'package:lets_play_cities/remote/api_repository.dart';
-import 'package:lets_play_cities/remote/client/api_client.dart';
-import 'package:lets_play_cities/remote/client/remote_api_client.dart';
+import 'package:lets_play_cities/remote/api_repository_factory.dart';
+import 'package:lets_play_cities/remote/city_requests_repository.dart';
 import 'package:lets_play_cities/remote/firebase/firebase_service.dart';
 import 'package:lets_play_cities/remote/google_services_achievements.dart';
 import 'package:lets_play_cities/remote/http_overrides.dart';
@@ -45,7 +44,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'base/dictionary/impl/country_list_loader_factory.dart';
 import 'base/platform/device_name.dart';
 import 'base/repositories/cities/city_repository.dart';
-import 'base/repositories/cities/city_requests_repository.dart';
 import 'base/repositories/cities/country_repository.dart';
 
 /// Registers root app dependencies. Should be called before
@@ -86,12 +84,10 @@ Future<void> injectRootDependencies({required String serverHost}) async {
   );
 
   // Game preferences
-  getIt.registerSingletonAsync<GamePreferences>(() async =>
-      SharedPreferencesGamePrefs(await SharedPreferences.getInstance()));
-
-  // Localization service
-  getIt.registerSingletonAsync<LocalizationService>(
-      () => LocalizationsFactory().createDefaultLocalizations());
+  getIt.registerSingletonAsync<GamePreferences>(
+    () async =>
+        SharedPreferencesGamePrefs(await SharedPreferences.getInstance()),
+  );
 
   // Theme manager
   getIt.registerSingletonWithDependencies<ThemeManager>(
@@ -114,14 +110,26 @@ Future<void> injectRootDependencies({required String serverHost}) async {
     }),
   );
 
-  // DIO client
-  getIt.registerFactoryParam<Dio, AppConfig?, void>((appConfig, _) {
-    return _createDio(appConfig ?? getIt.get());
-  });
+  // DIO client for the unnamed AppConfig current at the time of the call
+  getIt.registerFactory<Dio>(() => _createDio(getIt.get<AppConfig>()));
+
+  // API clients for the main server. A LAN game registers its own factory in
+  // its GetIt scope, which shares this one's cache. The 'api' config is the
+  // same instance as the unnamed one.
+  getIt.registerSingleton<ApiRepositoryFactory>(
+    ApiRepositoryFactory(
+      getIt.get<AppConfig>(instanceName: 'api'),
+      ApiRepositoryCacheHolder(),
+      _createDio,
+    ),
+  );
 
   // Account manager
   getIt.registerSingletonWithDependencies<AccountManager>(
-    () => AccountManagerImpl(getIt.get(), getIt.get()),
+    () => AccountManagerImpl(
+      getIt.get<GamePreferences>(),
+      getIt.get<ApiRepositoryFactory>(),
+    ),
     dependsOn: [GamePreferences],
   );
 
@@ -131,6 +139,7 @@ Future<void> injectRootDependencies({required String serverHost}) async {
       getIt.get<AccountManager>(),
       getIt.get<GamePreferences>(),
       SignUpUser(_createDio(localConfig!)),
+      t.players.player,
     ),
     instanceName: 'local',
   );
@@ -140,65 +149,56 @@ Future<void> injectRootDependencies({required String serverHost}) async {
     getIt.registerSingletonAsync<FirebaseApp>(() => Firebase.initializeApp());
   }
 
-  // Error logger
-  getIt.registerSingletonWithDependencies<ErrorLogger>(
-    () => Platform.isLinux ? SimpleErrorLogger() : CrashlyticsErrorLogger(),
-    dependsOn: [if (!Platform.isLinux) FirebaseApp],
-  );
+  // Error logger. Registered eagerly on Linux: get_it never runs the factory
+  // of registerSingletonWithDependencies when dependsOn is empty.
+  if (Platform.isLinux) {
+    getIt.registerSingleton<ErrorLogger>(SimpleErrorLogger());
+  } else {
+    getIt.registerSingletonWithDependencies<ErrorLogger>(
+      () => CrashlyticsErrorLogger(),
+      dependsOn: [FirebaseApp],
+    );
+  }
 
-  // Cloud messaging service
+  // Cloud messaging service. The Linux stub needs neither Firebase nor the
+  // logger, and get_it cannot wait for the plain Linux logger singleton.
   getIt.registerSingletonAsync<CloudMessagingService>(
     () async {
       if (Platform.isLinux) {
         return StubCloudMessagingService();
       }
-      final instance = FirebaseServices.instance;
+      final instance = FirebaseServices(getIt.get<ErrorLogger>());
       await instance.configure();
 
       return instance;
     },
-    dependsOn: [if (!Platform.isLinux) FirebaseApp],
+    dependsOn: [
+      if (!Platform.isLinux) ...[FirebaseApp, ErrorLogger],
+    ],
   );
 
-  /// Api Repository Cache
-  getIt.registerSingleton<ApiRepositoryCacheHolder>(ApiRepositoryCacheHolder());
-
-  // Credentials provider
+  // Credentials of the signed-in user, read on every request
   getIt.registerSingletonWithDependencies<CredentialsProvider>(
     () => GamePreferencesCredentialsProvider(getIt.get<GamePreferences>()),
     dependsOn: [GamePreferences],
-  ); // LPS API Client
-
-  getIt.registerFactoryParam<LpsApiClient, CredentialsProvider?, AppConfig?>(
-    (credentialProvider, appConfig) {
-      return RemoteLpsApiClient(
-        getIt.get(instanceName: 'api'),
-        getIt.get(param1: appConfig),
-        getIt.get<CredentialsProvider>(),
-      );
-    },
-  );
-
-  /// Api Repository
-  getIt.registerFactoryParam<ApiRepository, CredentialsProvider?, AppConfig?>(
-    (credentialsProvider, appConfig) => ApiRepository(
-      getIt.get<LpsApiClient>(param1: credentialsProvider, param2: appConfig),
-      getIt.get<ApiRepositoryCacheHolder>(),
-    ),
   );
 
   /// City requests repository
   getIt.registerFactory<CityRequestsRepository>(
     () => CityRequestsRepository(
-      getIt.get<LpsApiClient>(),
+      getIt.get<ApiRepositoryFactory>().clientWith(
+        getIt.get<CredentialsProvider>(),
+      ),
     ),
   );
 
-  /// Google Game Services as [AchievementsService]
+  /// Google Game Services as [AchievementsService]. A lazy singleton cannot
+  /// declare dependsOn; it is first read after allReady(), when the
+  /// [ErrorLogger] is ready.
   getIt.registerLazySingleton<AchievementsService>(() {
     return Platform.isLinux
         ? StubAchievementsService()
-        : GoogleServicesAchievementService();
+        : GoogleServicesAchievementService(getIt.get<ErrorLogger>());
   });
 
   /// Voice recognition provider
@@ -222,11 +222,10 @@ Future<void> injectRootDependencies({required String serverHost}) async {
   getIt.registerFactory<RequestDispatcher>(
     () => RequestDispatcher.buildRequestDispatcher(
       SignUpUserUsecase(
-        GetProfileInfoFromSignUpData(
-          getIt.get(instanceName: 'local'),
-        ),
+        GetProfileInfoFromSignUpData(getIt.get(instanceName: 'local')),
       ),
-      getIt.get(),
+      getIt.get<UserLookupRepository>(),
+      getIt.get<ErrorLogger>(),
     ),
   );
 
@@ -234,16 +233,17 @@ Future<void> injectRootDependencies({required String serverHost}) async {
   /// [UserLookupRepository] should be injected in target scope
   getIt.registerFactory<LocalGameServer>(
     () => LocalGameServerImpl(
-      WebSocketServerConnection(
-        getIt.get(instanceName: 'local'),
-        getIt.get(),
-      ),
+      WebSocketServerConnection(getIt.get(instanceName: 'local'), getIt.get()),
       getIt.get(),
     ),
   );
 
   getIt.registerFactory<ServerGameController>(
-    () => ServerGameControllerImpl(getIt.get(), getIt.get()),
+    () => ServerGameControllerImpl(
+      getIt.get<LocalGameServer>(),
+      getIt.get<GamePreferences>(),
+      getIt.get<ErrorLogger>(),
+    ),
   );
 
   // Cities list
@@ -253,15 +253,18 @@ Future<void> injectRootDependencies({required String serverHost}) async {
 
   // Country list
   getIt.registerFactory<CountryRepository>(
-    () => CountryRepository(CountryListLoaderServiceFactory()),
+    () => CountryRepository(
+      CountryListLoaderServiceFactory(),
+      t.citiesList.unkCity,
+    ),
   );
 }
 
 /// Returns DIO client instance
 Dio _createDio(AppConfig appConfig) => Dio(
-      BaseOptions(
-        baseUrl: appConfig.remotePublicApiURL,
-        connectTimeout: const Duration(milliseconds: 8000),
-        receiveTimeout: const Duration(milliseconds: 5000),
-      ),
-    );
+  BaseOptions(
+    baseUrl: appConfig.remotePublicApiURL,
+    connectTimeout: const Duration(milliseconds: 8000),
+    receiveTimeout: const Duration(milliseconds: 5000),
+  ),
+);

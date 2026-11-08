@@ -16,13 +16,11 @@ class SearchAppBar extends StatefulWidget implements PreferredSizeWidget {
     required this.searchHint,
     required this.actions,
     required this.onSearchTextChanged,
-    Key? key,
-  })  : preferredSize = Size.fromHeight(kToolbarHeight),
-        super(key: key);
+    super.key,
+  }) : preferredSize = Size.fromHeight(kToolbarHeight);
 
   @override
-  _SearchAppBarState createState() =>
-      _SearchAppBarState(title, searchHint, actions, onSearchTextChanged);
+  State<SearchAppBar> createState() => _SearchAppBarState();
 
   @override
   final Size preferredSize;
@@ -30,25 +28,15 @@ class SearchAppBar extends StatefulWidget implements PreferredSizeWidget {
 
 class _SearchAppBarState extends State<SearchAppBar> {
   final TextEditingController _controller = TextEditingController();
-  final String _title;
-  final String _searchHint;
-  final List<Widget> _actions;
-  final OnTextChanged _onSearchTextChanged;
 
   bool isSearching = false;
-
-  _SearchAppBarState(
-    this._title,
-    this._searchHint,
-    this._actions,
-    this._onSearchTextChanged,
-  );
 
   @override
   void initState() {
     super.initState();
     _controller.addListener(
-        () => setState(() => _onSearchTextChanged(_controller.text)));
+      () => setState(() => widget.onSearchTextChanged(_controller.text)),
+    );
   }
 
   @override
@@ -59,41 +47,43 @@ class _SearchAppBarState extends State<SearchAppBar> {
 
   @override
   Widget build(BuildContext context) => AppBar(
-        leading: BackButton(onPressed: () {
-          if (isSearching) {
-            setState(() {
-              isSearching = false;
-            });
-          } else {
-            Navigator.maybePop(context);
-          }
-        }),
-        title: isSearching
-            ? TextField(
-                controller: _controller,
-                decoration: InputDecoration(
-                  border: InputBorder.none,
-                  hintText: _searchHint,
-                ),
-              )
-            : Text(_title),
-        actions: isSearching
-            ? ([
-                  if (_controller.text.isNotEmpty)
-                    IconButton(
-                      icon: Icon(Icons.clear),
-                      onPressed: () => setState(() => _controller.clear()),
-                    ),
-                ].cast<Widget>() +
-                _actions)
-            : (_actions +
-                [
+    leading: BackButton(
+      onPressed: () {
+        if (isSearching) {
+          setState(() {
+            isSearching = false;
+          });
+        } else {
+          Navigator.maybePop(context);
+        }
+      },
+    ),
+    title: isSearching
+        ? TextField(
+            controller: _controller,
+            decoration: InputDecoration(
+              border: InputBorder.none,
+              hintText: widget.searchHint,
+            ),
+          )
+        : Text(widget.title),
+    actions: isSearching
+        ? ([
+                if (_controller.text.isNotEmpty)
                   IconButton(
-                    icon: Icon(Icons.search),
-                    onPressed: () => setState(() {
-                      isSearching = !isSearching;
-                    }),
-                  )
-                ].cast<Widget>()),
-      );
+                    icon: Icon(Icons.clear),
+                    onPressed: () => setState(() => _controller.clear()),
+                  ),
+              ].cast<Widget>() +
+              widget.actions)
+        : (widget.actions +
+              [
+                IconButton(
+                  icon: Icon(Icons.search),
+                  onPressed: () => setState(() {
+                    isSearching = !isSearching;
+                  }),
+                ),
+              ].cast<Widget>()),
+  );
 }

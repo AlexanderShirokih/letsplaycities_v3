@@ -27,33 +27,50 @@ class _MergeStreamController<T> {
         .toList(growable: false);
 
     void cancelAll() {
-      subscriptions.forEach((sub) {
+      for (var sub in subscriptions) {
         sub.cancelSubscription();
-      });
+      }
     }
 
-    subscriptions.forEach((subsData) {
+    // Stop the sources when the merged stream is no longer listened to.
+    _controller.onCancel = cancelAll;
+
+    for (var subsData in subscriptions) {
       subsData.subscription.onData((data) {
+        if (_controller.isClosed) return;
         if (!predicate(data)) {
           // Little trick: emit latest rejected event
           _controller.add(data);
           workingStreamsCount = 0;
           _controller.close();
           cancelAll();
-        } else if (!_controller.isClosed) _controller.add(data);
+        } else {
+          _controller.add(data);
+        }
+      });
+
+      subsData.subscription.onError((Object error, StackTrace stackTrace) {
+        if (_controller.isClosed) return;
+        _controller.addError(error, stackTrace);
+        workingStreamsCount = 0;
+        _controller.close();
+        cancelAll();
       });
 
       subsData.subscription.onDone(() {
         if (--workingStreamsCount <= 0) _controller.close();
         subsData.cancelSubscription();
       });
-    });
+    }
   }
 }
 
 /// Merges [sources] streams into a single stream channel
 /// Stream closes when the first [source] stream emits event which is not satisfying predicate
 /// or all streams done its work.
+/// The first error of any source is passed on and closes the stream.
+/// All sources are cancelled when the stream closes or its listener cancels.
 Stream<T> mergeStreamsWhile<T>(
-        List<Stream<T>> sources, bool Function(T) takeWhile) =>
-    _MergeStreamController(sources, takeWhile)._controller.stream;
+  List<Stream<T>> sources,
+  bool Function(T) takeWhile,
+) => _MergeStreamController(sources, takeWhile)._controller.stream;

@@ -7,7 +7,7 @@ import 'package:lets_play_cities/remote/server/remote_connection.dart';
 import 'package:lets_play_cities/remote/server/user_lookup_repository.dart';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
-import 'package:test/test.dart';
+import 'package:flutter_test/flutter_test.dart';
 
 import 'remote_connection_test.mocks.dart';
 import 'server_mocks.dart';
@@ -16,7 +16,6 @@ import 'server_mocks.dart';
   MockSpec<MessagePipe<ClientMessage, ServerMessage>>(as: #MockMessagePipe),
   MockSpec<UserLookupRepository>(),
 ])
-
 void main() {
   late MockMessagePipe messagePipe;
   late MockUserLookupRepository lookupRepository;
@@ -25,10 +24,7 @@ void main() {
   setUp(() {
     messagePipe = MockMessagePipe();
     lookupRepository = MockUserLookupRepository();
-    serverInteractor = LpsServerInteractorImpl(
-      messagePipe,
-      lookupRepository,
-    );
+    serverInteractor = LpsServerInteractorImpl(messagePipe, lookupRepository);
   });
 
   test('Login works properly', () async {
@@ -43,18 +39,20 @@ void main() {
         lastVisitDate: DateTime.now(),
         banStatus: BanStatus.notBanned,
         friendshipStatus: FriendshipStatus.notFriends,
-        authType: AuthType.Native,
+        authType: AuthType.native,
       ),
     );
 
-    when(messagePipe.readMessage()).thenAnswer((_) async => LogInMessage(
-          clientBuild: 123,
-          clientVersion: '1.2.3',
-          canReceiveMessages: true,
-          firebaseToken: 'fbToken',
-          uid: expectedUserId,
-          hash: 'hash',
-        ));
+    when(messagePipe.readMessage()).thenAnswer(
+      (_) async => LogInMessage(
+        clientBuild: 123,
+        clientVersion: '1.2.3',
+        canReceiveMessages: true,
+        firebaseToken: 'fbToken',
+        uid: expectedUserId,
+        hash: 'hash',
+      ),
+    );
 
     await expectLater(serverInteractor.authorize(), completes);
 
@@ -64,10 +62,7 @@ void main() {
 
   test('await start should return JoinMessage with owner', () async {
     when(messagePipe.readMessage()).thenAnswer(
-      (_) async => PlayMessage(
-        mode: PlayMode.RANDOM_PAIR,
-        oppUid: null,
-      ),
+      (_) async => PlayMessage(mode: PlayMode.randomPair, oppUid: null),
     );
 
     await expectLater(serverInteractor.ready, completes);
@@ -78,10 +73,9 @@ void main() {
       opponent: testProfile,
     );
 
-    final captured =
-        verify(messagePipe.sendMessage(captureThat(isA<JoinMessage>())))
-            .captured
-            .cast<JoinMessage>();
+    final captured = verify(
+      messagePipe.sendMessage(captureThat(isA<JoinMessage>())),
+    ).captured.cast<JoinMessage>();
 
     expect(captured.length, equals(1));
     expect(captured.single.youStarter, false);
@@ -97,23 +91,19 @@ void main() {
 
   test('Interactor passes words to message pipe', () async {
     serverInteractor.sendWord(
-      WordResult.RECEIVED,
+      WordResult.received,
       'city',
-      BaseProfileInfo(
-        userId: 123,
-        login: 'hello',
-      ),
+      BaseProfileInfo(userId: 123, login: 'hello'),
     );
 
-    final captures =
-        verify(messagePipe.sendMessage(captureThat(isA<WordMessage>())))
-            .captured
-            .cast<WordMessage>();
+    final captures = verify(
+      messagePipe.sendMessage(captureThat(isA<WordMessage>())),
+    ).captured.cast<WordMessage>();
 
     expect(captures.length, equals(1));
     expect(captures.single.ownerId, equals(123));
     expect(captures.single.word, equals('city'));
-    expect(captures.single.result, equals(WordResult.RECEIVED));
+    expect(captures.single.result, equals(WordResult.received));
 
     verifyNoMoreInteractions(messagePipe);
   });
@@ -121,16 +111,12 @@ void main() {
   test('Interactor passes chat messages to message pipe', () async {
     serverInteractor.sendMessage(
       'hello world',
-      BaseProfileInfo(
-        userId: 123,
-        login: 'test',
-      ),
+      BaseProfileInfo(userId: 123, login: 'test'),
     );
 
-    final captures =
-        verify(messagePipe.sendMessage(captureThat(isA<ChatMessage>())))
-            .captured
-            .cast<ChatMessage>();
+    final captures = verify(
+      messagePipe.sendMessage(captureThat(isA<ChatMessage>())),
+    ).captured.cast<ChatMessage>();
 
     expect(captures.length, equals(1));
     expect(captures.single.ownerId, equals(123));

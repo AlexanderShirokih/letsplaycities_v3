@@ -4,7 +4,7 @@ abstract class CityRequestState extends Equatable {
   const CityRequestState();
 }
 
-enum CityRequestType { Add, Edit, Remove }
+enum CityRequestType { add, edit, remove }
 
 class CityRequestEntity extends Equatable {
   final String city;
@@ -77,7 +77,8 @@ class CityRequestItems extends CityRequestState {
 
 /// State used when data cannot be loaded
 class CityRequestError extends CityRequestState {
-  final String error;
+  /// What failed. The screen shows it as text.
+  final Object error;
 
   const CityRequestError(this.error);
 

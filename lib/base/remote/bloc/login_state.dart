@@ -33,7 +33,7 @@ class LoginAuthCompletedState extends LoginState {
 class LoginErrorState extends LoginState {
   final Object error;
 
-  LoginErrorState(this.error);
+  const LoginErrorState(this.error);
 
   @override
   List<Object> get props => [error];
@@ -43,7 +43,7 @@ class LoginErrorState extends LoginState {
 class LoginAuthErrorState extends LoginState {
   final AuthorizationException exception;
 
-  LoginAuthErrorState(this.exception);
+  const LoginAuthErrorState(this.exception);
 
   @override
   List<Object> get props => [exception];

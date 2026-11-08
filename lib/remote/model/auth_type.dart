@@ -1,37 +1,34 @@
-import 'package:flutter/foundation.dart';
-
 /// Describes account types
-enum AuthType { Native, Google, Vkontakte, Odnoklassniki, Facebook }
+enum AuthType {
+  native('nv', 'Native'),
+  google('gl', 'Google'),
+  vkontakte('vk', 'Vkontakte'),
+  odnoklassniki('ok', 'Odnoklassniki'),
+  facebook('fb', 'Facebook');
 
-extension AuthTypeExtension on AuthType {
-  String get name {
-    switch (this) {
-      case AuthType.Native:
-        return 'nv';
-      case AuthType.Google:
-        return 'gl';
-      case AuthType.Vkontakte:
-        return 'vk';
-      case AuthType.Odnoklassniki:
-        return 'ok';
-      case AuthType.Facebook:
-        return 'fb';
-    }
-  }
+  const AuthType(this.shortName, this.fullName);
 
-  String get fullName => describeEnum(this);
+  /// Name used on the native social login channel ('authType', 'networkType')
+  final String shortName;
 
+  /// Name used by the game server and the REST API ('authType')
+  final String fullName;
+
+  /// Returns the type named [s] by its [shortName].
+  /// Throws a [String] when there is no such type.
   static AuthType fromShortString(String s) {
-    for (final type in AuthType.values) {
-      if (type.name == s) {
+    for (final type in values) {
+      if (type.shortName == s) {
         return type;
       }
     }
     throw 'Unknown value "$s"!';
   }
 
+  /// Returns the type named [s] by its [fullName].
+  /// Throws a [String] when there is no such type.
   static AuthType fromString(String s) {
-    for (final type in AuthType.values) {
+    for (final type in values) {
       if (type.fullName == s) {
         return type;
       }

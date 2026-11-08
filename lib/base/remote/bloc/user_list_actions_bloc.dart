@@ -14,7 +14,7 @@ class UserListActionsBloc extends Bloc<UserActionsEvent, UserActionsState>
   final BaseProfileInfo? target;
 
   UserListActionsBloc(this._apiRepository, this.fetchType, [this.target])
-      : super(UserActionsInitial()) {
+    : super(UserActionsInitial()) {
     mapEventsSequentially(_mapEventToState);
     add(UserFetchListEvent(false));
   }
@@ -27,11 +27,14 @@ class UserListActionsBloc extends Bloc<UserActionsEvent, UserActionsState>
 
   Stream<UserActionsState> _handleFetchEventSafely(UserFetchListEvent event) {
     return _handleFetchEvent(event).transform(
-        StreamTransformer<UserActionsState, UserActionsState>.fromHandlers(
-      handleError: (e, s, sink) {
-        sink.add(UserActionErrorState(e.toString(), s));
-      },
-    ));
+      StreamTransformer<UserActionsState, UserActionsState>.fromHandlers(
+        handleError: (e, s, sink) {
+          // The error itself, not its text: the screen words some errors,
+          // such as AccessDeniedException, for the player.
+          sink.add(UserActionErrorState(e, s));
+        },
+      ),
+    );
   }
 
   Stream<UserActionsState> _handleFetchEvent(UserFetchListEvent event) async* {

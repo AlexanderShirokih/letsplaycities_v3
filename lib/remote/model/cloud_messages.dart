@@ -28,16 +28,14 @@ class GameRequest extends IncomingCloudMessage with Equatable {
 
   /// Creates [GameRequest] instance from [Map]
   factory GameRequest.fromMap(Map<String, dynamic> data) => GameRequest(
-        data['login'],
-        int.parse(data['user_id']),
-        int.parse(data['target_id']),
-      );
+    data['login'],
+    int.parse(data['user_id']),
+    int.parse(data['target_id']),
+  );
 
   /// Returns [BaseProfileInfo] containing requester login and ID
-  BaseProfileInfo get requester => BaseProfileInfo(
-        userId: userId,
-        login: login,
-      );
+  BaseProfileInfo get requester =>
+      BaseProfileInfo(userId: userId, login: login);
 
   @override
   List<Object?> get props => [login, userId, targetId];

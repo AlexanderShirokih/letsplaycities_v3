@@ -29,8 +29,16 @@ class _SoundPlayerState extends State<SoundPlayer> {
   void initState() {
     super.initState();
     _player.setPlayerMode(PlayerMode.lowLatency);
-    _subscription =
-        widget.windowStream.asyncMap((_) => _playAsset()).listen(null);
+    // A short click must not take audio focus on Android: that pauses the
+    // user's background music for the rest of the game.
+    _player.setAudioContext(
+      AudioContext(
+        android: const AudioContextAndroid(audioFocus: AndroidAudioFocus.none),
+      ),
+    );
+    _subscription = widget.windowStream
+        .asyncMap((_) => _playAsset())
+        .listen(null);
   }
 
   @override

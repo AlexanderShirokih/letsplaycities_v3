@@ -6,10 +6,10 @@
 
 import 'dart:async' as _i3;
 
+import 'package:lets_play_cities/base/data.dart' as _i9;
 import 'package:lets_play_cities/base/dictionary.dart' as _i6;
 import 'package:lets_play_cities/base/preferences.dart' as _i5;
 import 'package:lets_play_cities/base/scoring.dart' as _i7;
-import 'package:lets_play_cities/remote/account.dart' as _i9;
 import 'package:lets_play_cities/remote/server/local_game_server.dart' as _i2;
 import 'package:lets_play_cities/remote/server/remote_connection.dart' as _i4;
 import 'package:mockito/mockito.dart' as _i1;
@@ -32,13 +32,8 @@ import 'package:mockito/src/dummies.dart' as _i8;
 // ignore_for_file: invalid_use_of_internal_member
 
 class _FakeDateTime_0 extends _i1.SmartFake implements DateTime {
-  _FakeDateTime_0(
-    Object parent,
-    Invocation parentInvocation,
-  ) : super(
-          parent,
-          parentInvocation,
-        );
+  _FakeDateTime_0(Object parent, Invocation parentInvocation)
+    : super(parent, parentInvocation);
 }
 
 /// A class which mocks [LocalGameServer].
@@ -47,40 +42,31 @@ class _FakeDateTime_0 extends _i1.SmartFake implements DateTime {
 class MockLocalGameServer extends _i1.Mock implements _i2.LocalGameServer {
   @override
   bool get isStarted => (super.noSuchMethod(
-        Invocation.getter(#isStarted),
-        returnValue: false,
-        returnValueForMissingStub: false,
-      ) as bool);
+    Invocation.getter(#isStarted),
+    returnValue: false,
+    returnValueForMissingStub: false,
+  ) as bool);
 
   @override
   _i3.Future<void> startServer() => (super.noSuchMethod(
-        Invocation.method(
-          #startServer,
-          [],
-        ),
-        returnValue: _i3.Future<void>.value(),
-        returnValueForMissingStub: _i3.Future<void>.value(),
-      ) as _i3.Future<void>);
+    Invocation.method(#startServer, []),
+    returnValue: _i3.Future<void>.value(),
+    returnValueForMissingStub: _i3.Future<void>.value(),
+  ) as _i3.Future<void>);
 
   @override
   _i3.Stream<_i4.RemoteConnection> getPlayers() => (super.noSuchMethod(
-        Invocation.method(
-          #getPlayers,
-          [],
-        ),
-        returnValue: _i3.Stream<_i4.RemoteConnection>.empty(),
-        returnValueForMissingStub: _i3.Stream<_i4.RemoteConnection>.empty(),
-      ) as _i3.Stream<_i4.RemoteConnection>);
+    Invocation.method(#getPlayers, []),
+    returnValue: _i3.Stream<_i4.RemoteConnection>.empty(),
+    returnValueForMissingStub: _i3.Stream<_i4.RemoteConnection>.empty(),
+  ) as _i3.Stream<_i4.RemoteConnection>);
 
   @override
   _i3.Future<void> close() => (super.noSuchMethod(
-        Invocation.method(
-          #close,
-          [],
-        ),
-        returnValue: _i3.Future<void>.value(),
-        returnValueForMissingStub: _i3.Future<void>.value(),
-      ) as _i3.Future<void>);
+    Invocation.method(#close, []),
+    returnValue: _i3.Future<void>.value(),
+    returnValueForMissingStub: _i3.Future<void>.value(),
+  ) as _i3.Future<void>);
 }
 
 /// A class which mocks [GamePreferences].
@@ -89,206 +75,167 @@ class MockLocalGameServer extends _i1.Mock implements _i2.LocalGameServer {
 class MockGamePreferences extends _i1.Mock implements _i5.GamePreferences {
   @override
   _i6.Difficulty get wordsDifficulty => (super.noSuchMethod(
-        Invocation.getter(#wordsDifficulty),
-        returnValue: _i6.Difficulty.EASY,
-        returnValueForMissingStub: _i6.Difficulty.EASY,
-      ) as _i6.Difficulty);
+    Invocation.getter(#wordsDifficulty),
+    returnValue: _i6.Difficulty.easy,
+    returnValueForMissingStub: _i6.Difficulty.easy,
+  ) as _i6.Difficulty);
 
   @override
   bool get correctionEnabled => (super.noSuchMethod(
-        Invocation.getter(#correctionEnabled),
-        returnValue: false,
-        returnValueForMissingStub: false,
-      ) as bool);
+    Invocation.getter(#correctionEnabled),
+    returnValue: false,
+    returnValueForMissingStub: false,
+  ) as bool);
 
   @override
   bool get soundEnabled => (super.noSuchMethod(
-        Invocation.getter(#soundEnabled),
-        returnValue: false,
-        returnValueForMissingStub: false,
-      ) as bool);
+    Invocation.getter(#soundEnabled),
+    returnValue: false,
+    returnValueForMissingStub: false,
+  ) as bool);
 
   @override
   bool get onlineChatEnabled => (super.noSuchMethod(
-        Invocation.getter(#onlineChatEnabled),
-        returnValue: false,
-        returnValueForMissingStub: false,
-      ) as bool);
+    Invocation.getter(#onlineChatEnabled),
+    returnValue: false,
+    returnValueForMissingStub: false,
+  ) as bool);
 
   @override
   int get timeLimit => (super.noSuchMethod(
-        Invocation.getter(#timeLimit),
-        returnValue: 0,
-        returnValueForMissingStub: 0,
-      ) as int);
+    Invocation.getter(#timeLimit),
+    returnValue: 0,
+    returnValueForMissingStub: 0,
+  ) as int);
 
   @override
   _i7.ScoringType get scoringType => (super.noSuchMethod(
-        Invocation.getter(#scoringType),
-        returnValue: _i7.ScoringType.BY_SCORE,
-        returnValueForMissingStub: _i7.ScoringType.BY_SCORE,
-      ) as _i7.ScoringType);
+    Invocation.getter(#scoringType),
+    returnValue: _i7.ScoringType.byScore,
+    returnValueForMissingStub: _i7.ScoringType.byScore,
+  ) as _i7.ScoringType);
 
   @override
   String get scoringData => (super.noSuchMethod(
-        Invocation.getter(#scoringData),
-        returnValue: _i8.dummyValue<String>(
-          this,
-          Invocation.getter(#scoringData),
-        ),
-        returnValueForMissingStub: _i8.dummyValue<String>(
-          this,
-          Invocation.getter(#scoringData),
-        ),
-      ) as String);
+    Invocation.getter(#scoringData),
+    returnValue: _i8.dummyValue<String>(this, Invocation.getter(#scoringData)),
+    returnValueForMissingStub: _i8.dummyValue<String>(
+      this,
+      Invocation.getter(#scoringData),
+    ),
+  ) as String);
 
   @override
   DateTime get lastDictionaryCheckDate => (super.noSuchMethod(
-        Invocation.getter(#lastDictionaryCheckDate),
-        returnValue: _FakeDateTime_0(
-          this,
-          Invocation.getter(#lastDictionaryCheckDate),
-        ),
-        returnValueForMissingStub: _FakeDateTime_0(
-          this,
-          Invocation.getter(#lastDictionaryCheckDate),
-        ),
-      ) as DateTime);
+    Invocation.getter(#lastDictionaryCheckDate),
+    returnValue: _FakeDateTime_0(
+      this,
+      Invocation.getter(#lastDictionaryCheckDate),
+    ),
+    returnValueForMissingStub: _FakeDateTime_0(
+      this,
+      Invocation.getter(#lastDictionaryCheckDate),
+    ),
+  ) as DateTime);
 
   @override
   _i6.DictionaryUpdatePeriod get dictionaryUpdatePeriod => (super.noSuchMethod(
-        Invocation.getter(#dictionaryUpdatePeriod),
-        returnValue: _i6.DictionaryUpdatePeriod.NEVER,
-        returnValueForMissingStub: _i6.DictionaryUpdatePeriod.NEVER,
-      ) as _i6.DictionaryUpdatePeriod);
+    Invocation.getter(#dictionaryUpdatePeriod),
+    returnValue: _i6.DictionaryUpdatePeriod.never,
+    returnValueForMissingStub: _i6.DictionaryUpdatePeriod.never,
+  ) as _i6.DictionaryUpdatePeriod);
 
   @override
   bool get isFirstLaunch => (super.noSuchMethod(
-        Invocation.getter(#isFirstLaunch),
-        returnValue: false,
-        returnValueForMissingStub: false,
-      ) as bool);
+    Invocation.getter(#isFirstLaunch),
+    returnValue: false,
+    returnValueForMissingStub: false,
+  ) as bool);
 
   @override
   String get lastNativeLogin => (super.noSuchMethod(
-        Invocation.getter(#lastNativeLogin),
-        returnValue: _i8.dummyValue<String>(
-          this,
-          Invocation.getter(#lastNativeLogin),
-        ),
-        returnValueForMissingStub: _i8.dummyValue<String>(
-          this,
-          Invocation.getter(#lastNativeLogin),
-        ),
-      ) as String);
+    Invocation.getter(#lastNativeLogin),
+    returnValue: _i8.dummyValue<String>(
+      this,
+      Invocation.getter(#lastNativeLogin),
+    ),
+    returnValueForMissingStub: _i8.dummyValue<String>(
+      this,
+      Invocation.getter(#lastNativeLogin),
+    ),
+  ) as String);
 
   @override
   set theme(String? themeName) => super.noSuchMethod(
-        Invocation.setter(
-          #theme,
-          themeName,
-        ),
-        returnValueForMissingStub: null,
-      );
+    Invocation.setter(#theme, themeName),
+    returnValueForMissingStub: null,
+  );
 
   @override
   set wordsDifficulty(_i6.Difficulty? d) => super.noSuchMethod(
-        Invocation.setter(
-          #wordsDifficulty,
-          d,
-        ),
-        returnValueForMissingStub: null,
-      );
+    Invocation.setter(#wordsDifficulty, d),
+    returnValueForMissingStub: null,
+  );
 
   @override
   set correctionEnabled(bool? b) => super.noSuchMethod(
-        Invocation.setter(
-          #correctionEnabled,
-          b,
-        ),
-        returnValueForMissingStub: null,
-      );
+    Invocation.setter(#correctionEnabled, b),
+    returnValueForMissingStub: null,
+  );
 
   @override
   set soundEnabled(bool? b) => super.noSuchMethod(
-        Invocation.setter(
-          #soundEnabled,
-          b,
-        ),
-        returnValueForMissingStub: null,
-      );
+    Invocation.setter(#soundEnabled, b),
+    returnValueForMissingStub: null,
+  );
 
   @override
   set onlineChatEnabled(bool? b) => super.noSuchMethod(
-        Invocation.setter(
-          #onlineChatEnabled,
-          b,
-        ),
-        returnValueForMissingStub: null,
-      );
+    Invocation.setter(#onlineChatEnabled, b),
+    returnValueForMissingStub: null,
+  );
 
   @override
   set timeLimit(int? i) => super.noSuchMethod(
-        Invocation.setter(
-          #timeLimit,
-          i,
-        ),
-        returnValueForMissingStub: null,
-      );
+    Invocation.setter(#timeLimit, i),
+    returnValueForMissingStub: null,
+  );
 
   @override
   set scoringType(_i7.ScoringType? s) => super.noSuchMethod(
-        Invocation.setter(
-          #scoringType,
-          s,
-        ),
-        returnValueForMissingStub: null,
-      );
+    Invocation.setter(#scoringType, s),
+    returnValueForMissingStub: null,
+  );
 
   @override
   set scoringData(String? s) => super.noSuchMethod(
-        Invocation.setter(
-          #scoringData,
-          s,
-        ),
-        returnValueForMissingStub: null,
-      );
+    Invocation.setter(#scoringData, s),
+    returnValueForMissingStub: null,
+  );
 
   @override
   set lastDictionaryCheckDate(DateTime? d) => super.noSuchMethod(
-        Invocation.setter(
-          #lastDictionaryCheckDate,
-          d,
-        ),
-        returnValueForMissingStub: null,
-      );
+    Invocation.setter(#lastDictionaryCheckDate, d),
+    returnValueForMissingStub: null,
+  );
 
   @override
   set dictionaryUpdatePeriod(_i6.DictionaryUpdatePeriod? dup) =>
       super.noSuchMethod(
-        Invocation.setter(
-          #dictionaryUpdatePeriod,
-          dup,
-        ),
+        Invocation.setter(#dictionaryUpdatePeriod, dup),
         returnValueForMissingStub: null,
       );
 
   @override
   set lastNativeLogin(String? newLogin) => super.noSuchMethod(
-        Invocation.setter(
-          #lastNativeLogin,
-          newLogin,
-        ),
-        returnValueForMissingStub: null,
-      );
+    Invocation.setter(#lastNativeLogin, newLogin),
+    returnValueForMissingStub: null,
+  );
 
   @override
   _i3.Future<dynamic> setCurrentCredentials(_i9.Credential? newCredentials) =>
       (super.noSuchMethod(
-        Invocation.method(
-          #setCurrentCredentials,
-          [newCredentials],
-        ),
+        Invocation.method(#setCurrentCredentials, [newCredentials]),
         returnValue: _i3.Future<dynamic>.value(),
         returnValueForMissingStub: _i3.Future<dynamic>.value(),
       ) as _i3.Future<dynamic>);

@@ -7,34 +7,33 @@ import 'package:lets_play_cities/base/game/game_item.dart';
 import 'package:lets_play_cities/base/game/player/user.dart';
 import 'package:lets_play_cities/base/themes/theme.dart' as themes;
 import 'package:lets_play_cities/base/themes/theme_manager.dart';
-import 'package:lets_play_cities/l18n/localization_service.dart';
-import 'package:lets_play_cities/remote/account.dart';
+import 'package:lets_play_cities/i18n/strings.g.dart';
 import 'package:lets_play_cities/screens/common/common_widgets.dart';
 import 'package:lets_play_cities/screens/game/cities_list.dart';
 
 /// Screen used to switch current application theme
 class ThemeManagerScreen extends StatelessWidget {
   final ThemeManager _themeManager;
-  final LocalizationService _l10n;
 
-  ThemeManagerScreen({Key? key})
-      : _themeManager = GetIt.instance.get<ThemeManager>(),
-        _l10n = GetIt.instance.get<LocalizationService>(),
-        super(key: key);
+  /// Country codes of the sample cities (Берлин, Нью-Йорк, Казань), in the
+  /// order of `t.themes.sampleCities`.
+  static const _sampleCountryCodes = [118, 44, 51];
+
+  ThemeManagerScreen({super.key})
+    : _themeManager = GetIt.instance.get<ThemeManager>();
 
   @override
   Widget build(BuildContext context) {
+    final t = context.t;
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Темы'),
-      ),
+      appBar: AppBar(title: Text(t.themes.title)),
       body: SafeArea(
         child: FutureBuilder<themes.Theme>(
           initialData: _themeManager.fallback,
           future: _themeManager.currentTheme.first,
           builder: (_, snap) => ListView(
             children: _themeManager.availableThemes
-                .map((theme) => _buildThemeItem(theme, theme == snap.data))
+                .map((theme) => _buildThemeItem(t, theme, theme == snap.data))
                 .toList(),
           ),
         ),
@@ -42,11 +41,10 @@ class ThemeManagerScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildThemeItem(themes.Theme theme, bool isActive) {
+  Widget _buildThemeItem(Translations t, themes.Theme theme, bool isActive) {
     final even = _StubUser(true);
     final odd = _StubUser(false);
-    final samples =
-        (_l10n.themes['samples'] as List<dynamic>).cast<Map<String, dynamic>>();
+    final samples = t.themes.sampleCities;
 
     return Theme(
       data: ThemeData.from(
@@ -81,13 +79,11 @@ class ThemeManagerScreen extends StatelessWidget {
                         children: [
                           Expanded(
                             child: Text(
-                              _l10n.themes['theme_names'][theme.name],
-                              style: TextStyle(
-                                fontSize: 18.0,
-                              ),
+                              t.themes.themeNames[theme.name]!,
+                              style: TextStyle(fontSize: 18.0),
                             ),
                           ),
-                          if (isActive) Icon(Icons.done)
+                          if (isActive) Icon(Icons.done),
                         ],
                       ),
                     ),
@@ -95,13 +91,12 @@ class ThemeManagerScreen extends StatelessWidget {
                       mainAxisAlignment: MainAxisAlignment.start,
                       mainAxisSize: MainAxisSize.min,
                       children: List.generate(samples.length, (index) {
-                        final item = samples[index];
                         return GameItemListTile(
                           CityInfo(
                             owner: index % 2 == 0 ? even : odd,
-                            status: CityStatus.OK,
-                            city: item['name'],
-                            countryCode: item['code'],
+                            status: CityStatus.ok,
+                            city: samples[index],
+                            countryCode: _sampleCountryCodes[index],
                           ),
                         );
                       }).toList(),
@@ -119,11 +114,12 @@ class ThemeManagerScreen extends StatelessWidget {
 
 class _StubUser extends User {
   _StubUser(bool alignRight)
-      : super(
-            isTrusted: true,
-            comboSystem: ComboSystem(canUseQuickTime: false),
-            accountInfo: _StubClientAccountInfo()) {
-    position = alignRight ? Position.RIGHT : Position.LEFT;
+    : super(
+        isTrusted: true,
+        comboSystem: ComboSystem(canUseQuickTime: false),
+        accountInfo: _StubClientAccountInfo(),
+      ) {
+    position = alignRight ? Position.right : Position.left;
   }
 
   @override

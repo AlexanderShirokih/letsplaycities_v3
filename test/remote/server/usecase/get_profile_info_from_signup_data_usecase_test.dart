@@ -1,28 +1,25 @@
+import 'package:flutter_test/flutter_test.dart';
 import 'package:lets_play_cities/app_config.dart';
-import 'package:lets_play_cities/domain/usecases.dart';
+import 'package:lets_play_cities/base/usecases.dart';
 import 'package:lets_play_cities/remote/auth.dart';
 import 'package:lets_play_cities/remote/server/usecases.dart';
-import 'package:test/test.dart';
 
 void main() {
   late SingleUseCase<RemoteSignUpData, ProfileInfo> useCase;
 
   setUp(() {
-    final appConfig = AppConfig.forHost(
-      'host',
-      isSecure: false,
-    );
+    final appConfig = AppConfig.forHost('host', isSecure: false);
 
     useCase = GetProfileInfoFromSignUpData(appConfig);
   });
 
   RemoteSignUpData buildRequest() => RemoteSignUpData(
-        login: 'abc',
-        authType: AuthType.Native,
-        firebaseToken: 'fbToken',
-        accessToken: 'accToken',
-        snUID: '1234',
-      );
+    login: 'abc',
+    authType: AuthType.native,
+    firebaseToken: 'fbToken',
+    accessToken: 'accToken',
+    snUID: '1234',
+  );
 
   test('Copies important params from request', () {
     final result = useCase.execute(buildRequest());
@@ -30,7 +27,7 @@ void main() {
     expect(result.login, equals('abc'));
     expect(result.pictureUrl, equals('http://host:8443/user/1234/picture'));
     expect(result.role, equals(Role.regular));
-    expect(result.authType, equals(AuthType.Native));
+    expect(result.authType, equals(AuthType.native));
     expect(result.banStatus, equals(BanStatus.notBanned));
     expect(result.friendshipStatus, equals(FriendshipStatus.notFriends));
   });

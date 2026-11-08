@@ -1,22 +1,18 @@
 import 'package:equatable/equatable.dart';
-import 'package:get_it/get_it.dart';
-import 'package:lets_play_cities/app_config.dart';
 import 'package:lets_play_cities/base/data/word_result.dart';
 import 'package:lets_play_cities/base/game/game_config.dart';
 import 'package:lets_play_cities/base/game/game_mode.dart';
 import 'package:lets_play_cities/base/game/management.dart';
-import 'package:lets_play_cities/base/game/player/player.dart';
-import 'package:lets_play_cities/base/game/player/users_list.dart';
 import 'package:lets_play_cities/base/game_session.dart';
 import 'package:lets_play_cities/base/platform/app_version.dart';
 import 'package:lets_play_cities/base/preferences.dart';
 import 'package:lets_play_cities/base/users.dart';
-import 'package:lets_play_cities/data/models/friend_game_request.dart';
 import 'package:lets_play_cities/remote/auth.dart';
 import 'package:lets_play_cities/remote/client/socket_api.dart';
 import 'package:lets_play_cities/remote/exceptions.dart';
 import 'package:lets_play_cities/remote/handlers/network_interceptor.dart';
 import 'package:lets_play_cities/remote/model/client_messages.dart';
+import 'package:lets_play_cities/remote/model/friend_game_request.dart';
 import 'package:lets_play_cities/remote/model/server_messages.dart';
 import 'package:lets_play_cities/remote/remote_player.dart';
 
@@ -27,11 +23,17 @@ class RemoteGameClient {
   final Future<String> firebaseToken;
   final GamePreferences preferences;
 
+  /// Whether the server is a LAN host rather than the main server: a local
+  /// game is played in [GameMode.multiplayer] instead of [GameMode.network].
+  /// Called each time an opponent joins, not once when the client is built.
+  final bool Function() isLocal;
+
   const RemoteGameClient({
     required this.account,
     required this.socketApi,
     required this.firebaseToken,
     required this.preferences,
+    required this.isLocal,
   });
 
   /// Starts connection to the server
@@ -39,8 +41,9 @@ class RemoteGameClient {
     socketApi.connect();
 
     // Wait for connection established
-    return socketApi.messages
-        .firstWhere((element) => element is ConnectedMessage);
+    return socketApi.messages.firstWhere(
+      (element) => element is ConnectedMessage,
+    );
   }
 
   /// Does the authorization sequence.
@@ -50,14 +53,16 @@ class RemoteGameClient {
     final fbToken = await firebaseToken;
     final version = VersionInfoService.instance;
 
-    socketApi.sendMessage(LogInMessage(
-      clientBuild: version.build,
-      clientVersion: version.name,
-      canReceiveMessages: preferences.onlineChatEnabled,
-      firebaseToken: fbToken,
-      uid: credential.userId,
-      hash: credential.accessToken,
-    ));
+    socketApi.sendMessage(
+      LogInMessage(
+        clientBuild: version.build,
+        clientVersion: version.name,
+        canReceiveMessages: preferences.onlineChatEnabled,
+        firebaseToken: fbToken,
+        uid: credential.userId,
+        hash: credential.accessToken,
+      ),
+    );
 
     // Wait for login result
     final authResult = await socketApi.messages.first;
@@ -67,10 +72,12 @@ class RemoteGameClient {
       return;
     } else if (authResult is BannedMessage) {
       throw AuthorizationException(
-          authResult.banReason ?? 'Authorization failed!');
+        authResult.banReason ?? 'Authorization failed!',
+      );
     } else {
       throw UnknownMessageException(
-          'Unexpected message at login sequence: $authResult');
+        'Unexpected message at login sequence: $authResult',
+      );
     }
   }
 
@@ -78,40 +85,38 @@ class RemoteGameClient {
   /// Waits for opponent and then returns list of game players.
   /// First player in list make move first
   Future<GameConfig> play() async {
-    socketApi.sendMessage(PlayMessage(
-      mode: PlayMode.RANDOM_PAIR,
-      oppUid: null,
-    ));
+    socketApi.sendMessage(PlayMessage(mode: PlayMode.randomPair, oppUid: null));
 
-    final join = await socketApi.messages.firstWhere(
-            (element) => element is JoinMessage,
-            orElse: () => throw ConnectionException('Connection interrupted'))
-        as JoinMessage;
+    final response = await socketApi.messages.firstWhere(
+      (element) => element is JoinMessage || element is DisconnectedMessage,
+      orElse: () => throw ConnectionException('Connection interrupted'),
+    );
 
-    return _buildGameConfig(join);
+    if (response is! JoinMessage) {
+      throw ConnectionException('Connection interrupted');
+    }
+
+    return _buildGameConfig(response);
   }
 
   GameConfig _buildGameConfig(JoinMessage join) {
     final owningPlayer = Player(account);
     final opponentPlayer = RemotePlayer(
-        AdvancedAccountInfo(
-          join.opponent,
-          join.canReceiveMessages,
-        ),
-        this);
+      AdvancedAccountInfo(join.opponent, join.canReceiveMessages),
+      this,
+    );
 
     final users = join.youStarter
         ? <User>[owningPlayer, opponentPlayer]
         : <User>[opponentPlayer, owningPlayer];
 
-    final isLocalhost = !GetIt.instance<AppConfig>().isSecure;
-
     return GameConfig(
-        gameMode: isLocalhost ? GameMode.multiplayer : GameMode.network,
-        usersListOverride: UsersList(users),
-        timeLimitOverride: 92,
-        externalEventSource: _translateServiceEvents,
-        additionalEventHandlers: [NetworkInterceptor(this)]);
+      gameMode: isLocal() ? GameMode.multiplayer : GameMode.network,
+      usersListOverride: UsersList(users),
+      timeLimitOverride: 92,
+      externalEventSource: _translateServiceEvents,
+      additionalEventHandlers: [NetworkInterceptor(this)],
+    );
   }
 
   /// Sends friend-mode [request] (when request is [FriendGameRequestType.invite])
@@ -123,23 +128,27 @@ class RemoteGameClient {
   Future<dynamic> invite(FriendGameRequest request) async {
     switch (request.mode) {
       case FriendGameRequestType.invite:
-        socketApi.sendMessage(PlayMessage(
-          mode: PlayMode.FRIEND,
-          oppUid: request.target.userId,
-        ));
+        socketApi.sendMessage(
+          PlayMessage(mode: PlayMode.friend, oppUid: request.target.userId),
+        );
         break;
       case FriendGameRequestType.join:
-        socketApi.sendMessage(InvitationResultMessage(
-          result: InvitationResult.accept,
-          oppId: request.target.userId,
-        ));
+        socketApi.sendMessage(
+          InvitationResultMessage(
+            result: InvitationResult.accept,
+            oppId: request.target.userId,
+          ),
+        );
         break;
     }
 
     final response = await socketApi.messages.firstWhere(
-        (element) =>
-            element is InvitationResponseMessage || element is JoinMessage,
-        orElse: () => throw ConnectionException('Connection interrupted'));
+      (element) =>
+          element is InvitationResponseMessage ||
+          element is JoinMessage ||
+          element is DisconnectedMessage,
+      orElse: () => throw ConnectionException('Connection interrupted'),
+    );
 
     if (response is JoinMessage) {
       // Opponent accepts the request. We can start the game
@@ -147,6 +156,8 @@ class RemoteGameClient {
     } else if (response is InvitationResponseMessage) {
       // Opponent declines request or another bad response
       return response;
+    } else if (response is DisconnectedMessage) {
+      throw ConnectionException('Connection interrupted');
     } else {
       throw 'Unexpected situation!';
     }
@@ -162,18 +173,18 @@ class RemoteGameClient {
     return _getInputWordsFor(owner).first.then((res) => res.result);
   }
 
-  /// Returns a stream of word messages with result [WordResult.RECEIVED] for
+  /// Returns a stream of word messages with result [WordResult.received] for
   /// [owner]
   Stream<String> getInputWords(ClientAccountInfo owner) =>
       _getInputWordsFor(owner)
-          .where((wordMessage) => wordMessage.result == WordResult.RECEIVED)
+          .where((wordMessage) => wordMessage.result == WordResult.received)
           .map((wordMessage) => wordMessage.word);
 
-  Stream<WordMessage> _getInputWordsFor(ClientAccountInfo owner) =>
-      socketApi.messages
-          .where((element) => element is WordMessage)
-          .cast<WordMessage>()
-          .where((result) => _extractId(owner) == result.ownerId);
+  Stream<WordMessage> _getInputWordsFor(ClientAccountInfo owner) => socketApi
+      .messages
+      .where((element) => element is WordMessage)
+      .cast<WordMessage>()
+      .where((result) => _extractId(owner) == result.ownerId);
 
   /// Sends chat message
   Future sendChatMessage(String message) async {
@@ -186,10 +197,9 @@ class RemoteGameClient {
     BaseProfileInfo sender,
     InvitationResult result,
   ) async {
-    socketApi.sendMessage(InvitationResultMessage(
-      result: result,
-      oppId: sender.userId,
-    ));
+    socketApi.sendMessage(
+      InvitationResultMessage(result: result, oppId: sender.userId),
+    );
     return;
   }
 
@@ -197,14 +207,17 @@ class RemoteGameClient {
     EquatableConfig.stringify = true;
     await for (final message in socketApi.messages) {
       if (message is ChatMessage) {
-        final user = session.usersList.all
-            .singleWhere((u) => _extractId(u.accountInfo) == message.ownerId);
+        final user = session.usersList.all.singleWhere(
+          (u) => _extractId(u.accountInfo) == message.ownerId,
+        );
         yield MessageEvent(message.message, user);
       } else if (message is DisconnectedMessage) {
-        yield OnMoveFinished(MoveFinishType.Disconnected,
-            session.usersList.all.firstWhere((u) => u is! Player));
+        yield OnMoveFinished(
+          MoveFinishType.disconnected,
+          session.usersList.all.firstWhere((u) => u is! Player),
+        );
       } else if (message is TimeoutMessage) {
-        yield OnMoveFinished(MoveFinishType.Timeout, session.usersList.current);
+        yield OnMoveFinished(MoveFinishType.timeout, session.usersList.current);
       }
     }
   }

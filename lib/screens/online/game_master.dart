@@ -5,6 +5,8 @@ import 'package:lets_play_cities/screens/online/logged_in_game_master.dart';
 /// Shows Log-in screen if user is not logged in yet or shows
 /// [LoggedInOnlineGameMasterScreen].
 class OnlineGameMasterScreen extends StatelessWidget {
+  const OnlineGameMasterScreen({super.key});
+
   /// Creates navigation route to new instance of [OnlineGameMasterScreen]
   static Route createNavigationRoute() =>
       MaterialPageRoute(builder: (_) => OnlineGameMasterScreen());

@@ -4,7 +4,7 @@ import 'package:get_it/get_it.dart';
 import 'package:lets_play_cities/base/cities_list/bloc/cities_list_bloc.dart';
 import 'package:lets_play_cities/base/cities_list/cities_list_entry.dart';
 import 'package:lets_play_cities/base/cities_list/cities_list_filter.dart';
-import 'package:lets_play_cities/l18n/localization_service.dart';
+import 'package:lets_play_cities/i18n/strings.g.dart';
 import 'package:lets_play_cities/screens/common/common_widgets.dart';
 import 'package:lets_play_cities/screens/common/search_app_bar.dart';
 import 'package:lets_play_cities/screens/common/utils.dart';
@@ -17,48 +17,46 @@ import 'widgets/city_list_item.dart';
 
 /// Screen that shows a list of all database cities
 class CitiesListScreen extends StatelessWidget {
+  const CitiesListScreen({super.key});
+
   @override
-  Widget build(BuildContext context) => buildWithLocalization(
-        context,
-        (l10n) => BlocProvider(
-          create: (_) => CitiesListBloc(
-            GetIt.instance.get(),
-            GetIt.instance.get(),
+  Widget build(BuildContext context) {
+    final t = context.t;
+    return BlocProvider(
+      create: (_) => CitiesListBloc(GetIt.instance.get(), GetIt.instance.get()),
+      child: BlocBuilder<CitiesListBloc, CitiesListState>(
+        builder: (ctx, state) => Scaffold(
+          floatingActionButton: FloatingActionButton(
+            child: Icon(Icons.add),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) =>
+                      CityEditActionsScreen(action: CityEditAction.add),
+                ),
+              );
+            },
           ),
-          child: BlocBuilder<CitiesListBloc, CitiesListState>(
-            builder: (ctx, state) => Scaffold(
-              floatingActionButton: FloatingActionButton(
-                child: Icon(Icons.add),
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => CityEditActionsScreen(
-                        action: CityEditAction.Add,
-                      ),
-                    ),
-                  );
-                },
-              ),
-              appBar: SearchAppBar(
-                title: l10n.citiesList['title'],
-                searchHint: l10n.citiesList['enter_city'],
-                actions: [_createFilterButton(ctx)],
-                onSearchTextChanged: (text) => ctx.read<CitiesListBloc>().add(
-                      CitiesListUpdateNameFilter(text.toLowerCase()),
-                    ),
-              ),
-              body: _buildBody(l10n, state),
+          appBar: SearchAppBar(
+            title: t.citiesList.title,
+            searchHint: t.citiesList.enterCity,
+            actions: [_createFilterButton(ctx)],
+            onSearchTextChanged: (text) => ctx.read<CitiesListBloc>().add(
+              CitiesListUpdateNameFilter(text.toLowerCase()),
             ),
           ),
+          body: _buildBody(t, state),
         ),
-      );
+      ),
+    );
+  }
 
-  Widget _buildBody(LocalizationService l10n, CitiesListState state) {
+  Widget _buildBody(Translations t, CitiesListState state) {
     if (state is CitiesListInitial) {
-      return LoadingView(l10n.citiesList['loading'].toString());
+      return LoadingView(t.citiesList.loading);
     } else if (state is CitiesListDataState) {
-      return _CitiesListContent(l10n: l10n, data: state);
+      return _CitiesListContent(data: state);
     } else {
       throw ('Unexpected state $state');
     }
@@ -69,7 +67,7 @@ class CitiesListScreen extends StatelessWidget {
     return IconButton(
       icon: Icon(Icons.filter_list),
       onPressed: () {
-        if (!(bloc.state is CitiesListDataState)) return;
+        if (bloc.state is! CitiesListDataState) return;
         final dataState = bloc.state as CitiesListDataState;
 
         showDialog<CountryListFilter>(
@@ -78,15 +76,13 @@ class CitiesListScreen extends StatelessWidget {
             dataState.countryList,
             (dataState is CitiesListFilteredDataState)
                 ? (dataState.filter.countryFilter.isAllPresent
-                    ? null
-                    : dataState.filter.countryFilter.allowedCountryCodes)
+                      ? null
+                      : dataState.filter.countryFilter.allowedCountryCodes)
                 : null,
           ),
         ).then((countryFilter) {
           if (countryFilter != null) {
-            bloc.add(
-              CitiesListUpdateCountryFilterEvent(countryFilter),
-            );
+            bloc.add(CitiesListUpdateCountryFilterEvent(countryFilter));
           }
         });
       },
@@ -95,24 +91,22 @@ class CitiesListScreen extends StatelessWidget {
 }
 
 class _CitiesListContent extends StatefulWidget {
-  final LocalizationService l10n;
   final CitiesListDataState data;
 
-  const _CitiesListContent({
-    Key? key,
-    required this.l10n,
-    required this.data,
-  }) : super(key: key);
+  const _CitiesListContent({required this.data});
 
   @override
   _CitiesListContentState createState() => _CitiesListContentState();
 }
 
 class _CitiesListContentState extends State<_CitiesListContent> {
-  int _active = -1;
+  /// The expanded city. It is kept by value rather than by list position
+  /// because filtering replaces the list while this state survives.
+  CitiesListEntry? _activeEntry;
 
   @override
   Widget build(BuildContext context) {
+    final t = context.t;
     final data = widget.data;
 
     return ListView.builder(
@@ -122,7 +116,7 @@ class _CitiesListContentState extends State<_CitiesListContent> {
               padding: const EdgeInsets.fromLTRB(12.0, 8.0, 12.0, 0.0),
               child: Column(
                 children: [
-                  Container(
+                  SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
                       onPressed: () => Navigator.push(
@@ -131,22 +125,24 @@ class _CitiesListContentState extends State<_CitiesListContent> {
                           builder: (_) => CityRequestsListScreen(),
                         ),
                       ),
-                      child: Text(widget.l10n.citiesList['about']),
+                      child: Text(t.citiesList.about),
                     ),
                   ),
                   Divider(thickness: 2.0),
                 ],
               ),
             )
-          : _createListTile(
-              data: data,
-              missingCountryText: widget.l10n.citiesList['unk_city'],
-              expanded: index == _active,
-              entry: data.citiesList[index - 1],
-              onTap: () => setState(() {
-                final alreadyActive = index == _active;
-                _active = alreadyActive ? -1 : index;
-              }),
+          : withData(
+              data.citiesList[index - 1],
+              (CitiesListEntry entry) => _createListTile(
+                data: data,
+                missingCountryText: t.citiesList.unkCity,
+                expanded: entry == _activeEntry,
+                entry: entry,
+                onTap: () => setState(() {
+                  _activeEntry = entry == _activeEntry ? null : entry;
+                }),
+              ),
             ),
     );
   }
@@ -169,7 +165,7 @@ class _CitiesListContentState extends State<_CitiesListContent> {
         context,
         MaterialPageRoute(
           builder: (_) => CityEditActionsScreen(
-            action: CityEditAction.Edit,
+            action: CityEditAction.edit,
             city: cityItem.cityName,
           ),
         ),
@@ -178,7 +174,7 @@ class _CitiesListContentState extends State<_CitiesListContent> {
         context,
         MaterialPageRoute(
           builder: (_) => CityEditActionsScreen(
-            action: CityEditAction.Remove,
+            action: CityEditAction.remove,
             city: cityItem.cityName,
           ),
         ),

@@ -31,45 +31,46 @@ class GameResultChecker {
   /// Determines game results relative to [owner].
   /// Returns new [GameResult] instance with game results
   GameResult getGameResults() => GameResult(
-      owner: owner,
-      finishType: finishType,
-      hasScore: scoringType != ScoringType.LAST_MOVE,
-      matchResult: _getMatchResult(
-        finishType == MoveFinishType.Timeout
-            ? ScoringType.LAST_MOVE
-            : scoringType,
-      ),
-      finishRequester: finishRequester);
+    owner: owner,
+    finishType: finishType,
+    hasScore: scoringType != ScoringType.lastMove,
+    matchResult: _getMatchResult(
+      finishType == MoveFinishType.timeout ? ScoringType.lastMove : scoringType,
+    ),
+    finishRequester: finishRequester,
+  );
 
   MatchResult _getMatchResult(ScoringType scoringType) =>
-      scoringType == ScoringType.LAST_MOVE
-          // Wins user that have the last completed move
-          ? users.current == owner
-              ? MatchResult.LOSE
-              : MatchResult.WIN
-          // Wins user that have more score points at the end
-          : _getMathResultByScore();
+      scoringType == ScoringType.lastMove
+      // Wins user that have the last completed move
+      ? users.current == owner
+            ? MatchResult.lose
+            : MatchResult.win
+      // Wins user that have more score points at the end
+      : _getMathResultByScore();
 
   MatchResult _getMathResultByScore() =>
       (users.all.every((user) => user.score == owner.score))
-          ? MatchResult.DRAW
-          : (owner ==
-                  users.all.reduce((value, element) =>
-                      value.score > element.score ? value : element)
-              ? MatchResult.WIN
-              : MatchResult.LOSE);
+      ? MatchResult.draw
+      : (owner ==
+                users.all.reduce(
+                  (value, element) =>
+                      value.score > element.score ? value : element,
+                )
+            ? MatchResult.win
+            : MatchResult.lose);
 }
 
 /// Describes game result for specific user
 enum MatchResult {
   /// The user wins the game
-  WIN,
+  win,
 
   /// The user loses the game
-  LOSE,
+  lose,
 
   /// Game result for the user is draw
-  DRAW
+  draw,
 }
 
 /// Contains game result relative to owner
@@ -99,10 +100,10 @@ class GameResult extends Equatable {
 
   @override
   List<Object?> get props => [
-        owner,
-        matchResult,
-        finishType,
-        hasScore,
-        finishRequester,
-      ];
+    owner,
+    matchResult,
+    finishType,
+    hasScore,
+    finishRequester,
+  ];
 }

@@ -1,6 +1,5 @@
 plugins {
     id "com.android.application"
-    id "org.jetbrains.kotlin.android"
     id "com.google.gms.google-services"
     id "com.google.firebase.crashlytics"
     // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
@@ -11,6 +10,26 @@ def hasSigningProps = { List<String> names -> names.every { project.hasProperty(
 def hasTestSigning = hasSigningProps(["store_pass", "store_file", "lps_alias"])
 def hasReleaseSigning = hasSigningProps(["store_pass_release", "store_file_release",
                                          "lps_alias_release", "lps_alias_pass_release"])
+
+// Without the release keystore the release build type falls back to the debug key, so that
+// `flutter run --release` works locally. Such an artifact is rejected by stores, cannot update
+// a store install, and breaks Google, Facebook and VK sign-in bound to the release certificate.
+// Warn on every release build: the task declares no outputs, so Gradle never skips it as
+// up-to-date. QUIET level, because Flutter runs Gradle with -q.
+if (!hasReleaseSigning) {
+    def warnDebugSignedRelease = tasks.register("warnDebugSignedRelease") {
+        doLast { task ->
+            task.logger.quiet("WARNING: release signing properties (store_pass_release, store_file_release, " +
+                    "lps_alias_release, lps_alias_pass_release) are missing. " +
+                    "This release build is signed with the DEBUG key and must not be distributed.")
+        }
+    }
+    tasks.configureEach { task ->
+        if (task.name == "preReleaseBuild") {
+            task.dependsOn(warnDebugSignedRelease)
+        }
+    }
+}
 
 android {
     namespace = "ru.aleshi.letsplaycities"

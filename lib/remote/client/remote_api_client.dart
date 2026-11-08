@@ -1,7 +1,6 @@
 import 'package:crypto/crypto.dart' as crypto;
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
-import 'package:http_parser/http_parser.dart' as http_parser;
 import 'package:lets_play_cities/app_config.dart';
 import 'package:lets_play_cities/base/cities_list/city_request.dart';
 import 'package:lets_play_cities/remote/auth.dart';
@@ -27,17 +26,24 @@ class RemoteLpsApiClient extends LpsApiClient {
       SignUpUser(_httpClient).execute(data);
 
   @override
-  Future<List<FriendInfo>> getFriendsList() => _fetchList('friend')
-      .then((list) => list.map((e) => FriendInfo.fromJson(e)).toList());
+  Future<List<FriendInfo>> getFriendsList() => _fetchList('friend').then(
+    (list) =>
+        list.map((e) => FriendInfo.fromJson(_globalAppConfig, e)).toList(),
+  );
 
   @override
   Future<List<HistoryInfo>> getHistoryList([int? targetId]) =>
-      _fetchList('history', targetId)
-          .then((list) => list.map((e) => HistoryInfo.fromJson(e)).toList());
+      _fetchList('history', targetId).then(
+        (list) =>
+            list.map((e) => HistoryInfo.fromJson(_globalAppConfig, e)).toList(),
+      );
 
   @override
-  Future<List<BlackListItemInfo>> getBanList() => _fetchList('blacklist')
-      .then((list) => list.map((e) => BlackListItemInfo.fromJson(e)).toList());
+  Future<List<BlackListItemInfo>> getBanList() => _fetchList('blacklist').then(
+    (list) => list
+        .map((e) => BlackListItemInfo.fromJson(_globalAppConfig, e))
+        .toList(),
+  );
 
   Credential getCredentials() {
     return _credentialsProvider.getCredentials();
@@ -99,7 +105,7 @@ class RemoteLpsApiClient extends LpsApiClient {
 
     await _requireOK(
       () => _httpClient.put(
-        '/friend/request/$friendId/${describeEnum(requestType)}',
+        '/friend/request/$friendId/${requestType.wireName}',
         options: Options(headers: getCredentials().asAuthorizationHeader()),
       ),
     );
@@ -155,7 +161,7 @@ class RemoteLpsApiClient extends LpsApiClient {
       'imageFile': MultipartFile.fromBytes(
         thumbnail,
         filename: '$hash.$extension',
-        contentType: http_parser.MediaType.parse(contentType),
+        contentType: DioMediaType.parse(contentType),
       ),
     });
 
@@ -204,7 +210,9 @@ class RemoteLpsApiClient extends LpsApiClient {
 
       if (response.statusCode != 200) {
         throw AuthorizationException.fromStatus(
-            response.statusMessage ?? 'No message', response.statusCode ?? 0);
+          response.statusMessage ?? 'No message',
+          response.statusCode ?? 0,
+        );
       }
       return response;
     } on DioException catch (e) {
@@ -215,8 +223,7 @@ class RemoteLpsApiClient extends LpsApiClient {
         description = 'No response!';
       } else {
         if (response.statusCode == 401) {
-          throw AuthorizationException(
-              'У вас нет доступа к получению информации. Возможно истек срок жизни токенов доступа. Попробуйте очистить данные приложения');
+          throw AccessDeniedException();
         }
 
         if (response.data is String) {
@@ -230,12 +237,17 @@ class RemoteLpsApiClient extends LpsApiClient {
         }
       }
 
-      throw FetchingException(_getDetailedData(e, description), e.requestOptions.uri);
+      throw FetchingException(
+        _getDetailedData(e, description),
+        e.requestOptions.uri,
+      );
     }
   }
 
-  Future<dynamic> _decodeJson(Future<Response> Function() response,
-      {bool requireOK = true}) async {
+  Future<dynamic> _decodeJson(
+    Future<Response> Function() response, {
+    bool requireOK = true,
+  }) async {
     try {
       if (requireOK) {
         return (await _requireOK(response)).data;
@@ -243,7 +255,10 @@ class RemoteLpsApiClient extends LpsApiClient {
         return (await response()).data;
       }
     } on DioException catch (e) {
-      throw FetchingException('JSON decoding error. \n$e', e.requestOptions.uri);
+      throw FetchingException(
+        'JSON decoding error. \n$e',
+        e.requestOptions.uri,
+      );
     }
   }
 
@@ -310,48 +325,22 @@ class RemoteSignUpResponse {
   });
 
   factory RemoteSignUpResponse.fromMap(dynamic data) => RemoteSignUpResponse(
-        userId: data['userId'],
-        login: data['name'],
-        accessToken: data['accHash'],
-        pictureHash: data['picHash'],
-        role: UserRoleExtension.fromString(data['state']),
-        authType: AuthTypeExtension.fromString(data['authType']),
-      );
+    userId: data['userId'],
+    login: data['name'],
+    accessToken: data['accHash'],
+    pictureHash: data['picHash'],
+    role: Role.fromSignUpState(data['state']),
+    authType: AuthType.fromString(data['authType']),
+  );
 
   Map<String, dynamic> toMap() => {
-        'userId': userId,
-        'name': login,
-        'accHash': accessToken,
-        'picHash': pictureHash,
-        'state': role.name,
-        'authType': authType.fullName,
-      };
-}
-
-extension UserRoleExtension on Role {
-  static Role fromString(String s) {
-    switch (s) {
-      case 'banned':
-        return Role.banned;
-      case 'ready':
-        return Role.regular;
-      case 'admin':
-        return Role.admin;
-      default:
-        throw ('Unknown UserRole: $s');
-    }
-  }
-
-  String get name {
-    switch (this) {
-      case Role.banned:
-        return 'banned';
-      case Role.regular:
-        return 'ready';
-      case Role.admin:
-        return 'admin';
-    }
-  }
+    'userId': userId,
+    'name': login,
+    'accHash': accessToken,
+    'picHash': pictureHash,
+    'state': role.signUpState,
+    'authType': authType.fullName,
+  };
 }
 
 /// Request for authentication on the remote game server
@@ -383,17 +372,17 @@ class RemoteSignUpData {
   });
 
   dynamic toMap() => {
-        'version': version,
-        'login': login,
-        'authType': authType.fullName,
-        'firebaseToken': firebaseToken,
-        'accToken': accessToken,
-        'snUID': snUID
-      };
+    'version': version,
+    'login': login,
+    'authType': authType.fullName,
+    'firebaseToken': firebaseToken,
+    'accToken': accessToken,
+    'snUID': snUID,
+  };
 
   factory RemoteSignUpData.fromMap(Map<String, dynamic> json) =>
       RemoteSignUpData(
-        authType: AuthTypeExtension.fromString(json['authType']),
+        authType: AuthType.fromString(json['authType']),
         login: json['login'],
         accessToken: json['accToken'],
         firebaseToken: json['firebaseToken'],

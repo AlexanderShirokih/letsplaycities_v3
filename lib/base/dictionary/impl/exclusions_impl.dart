@@ -1,16 +1,16 @@
 import '../country_entity.dart';
+import '../exclusion_messages.dart';
 import '../exclusions.dart';
 
-import 'package:lets_play_cities/l18n/localizations_keys.dart';
 import 'package:lets_play_cities/utils/string_utils.dart';
 
 /// Exclusion kind
 enum ExclusionType {
-  CITY_WAS_RENAMED,
-  ALTERNATIVE_NAME,
-  INCOMPLETE_NAME,
-  NOT_A_CITY,
-  REGION_NAME
+  cityWasRenamed,
+  alternativeName,
+  incompleteName,
+  notACity,
+  regionName,
 }
 
 /// Structure containing exclusion type and its description|alternative
@@ -35,8 +35,8 @@ class ExclusionsServiceImpl extends ExclusionsService {
   /// Map of the city name and its exclusion type
   final Map<String, Exclusion> exclusionsList;
 
-  /// Map of string representations of the [ErrorCode]
-  final Map<ErrorCode, String> errMessages;
+  /// Texts that explain an exclusion to the player
+  final ExclusionMessages messages;
 
   /// List of country names
   final List<CountryEntity> countries;
@@ -46,22 +46,21 @@ class ExclusionsServiceImpl extends ExclusionsService {
 
   ExclusionsServiceImpl({
     required this.exclusionsList,
-    required this.errMessages,
+    required this.messages,
     required this.countries,
     required this.states,
   });
 
   @override
   String checkForExclusion(String city) {
-    if (countries
-        .any((c) => !c.hasSiblingCity && c.name.toLowerCase() == city)) {
-      return errMessages[ErrorCode.THIS_IS_A_COUNTRY]!
-          .format([city.toTitleCase()]);
+    if (countries.any(
+      (c) => !c.hasSiblingCity && c.name.toLowerCase() == city,
+    )) {
+      return messages.thisIsACountry(city.toTitleCase());
     }
 
     if (states.contains(city)) {
-      return errMessages[ErrorCode.THIS_IS_A_STATE]!
-          .format([city.toTitleCase()]);
+      return messages.thisIsAState(city.toTitleCase());
     }
 
     return _checkCity(city);
@@ -72,18 +71,14 @@ class ExclusionsServiceImpl extends ExclusionsService {
     if (ex == null) return '';
 
     switch (ex.type) {
-      case ExclusionType.CITY_WAS_RENAMED: // City was renamed
-        return errMessages[ErrorCode.RENAMED_CITY]!
-            .format([city.toTitleCase(), ex.thing.toTitleCase()]);
-      case ExclusionType.INCOMPLETE_NAME: // Incomplete name
-        return errMessages[ErrorCode.INCOMPLETE_CITY]!
-            .format([ex.thing.toTitleCase()]);
-      case ExclusionType.NOT_A_CITY: // Geographic object which are not a city
-        return errMessages[ErrorCode.NOT_A_CITY]!
-            .format([city.toTitleCase(), ex.thing]);
-      case ExclusionType.REGION_NAME: // Historical site
-        return errMessages[ErrorCode.THIS_IS_NOT_A_CITY]!
-            .format([city.toTitleCase()]);
+      case ExclusionType.cityWasRenamed: // City was renamed
+        return messages.renamedCity(city.toTitleCase(), ex.thing.toTitleCase());
+      case ExclusionType.incompleteName: // Incomplete name
+        return messages.incompleteCity(ex.thing.toTitleCase());
+      case ExclusionType.notACity: // Geographic object which are not a city
+        return messages.notACity(city.toTitleCase(), ex.thing);
+      case ExclusionType.regionName: // Historical site
+        return messages.thisIsNotACity(city.toTitleCase());
       default:
         return '';
     }
@@ -92,15 +87,16 @@ class ExclusionsServiceImpl extends ExclusionsService {
   @override
   String? getAlternativeName(String city) {
     final ex = exclusionsList[city];
-    if (ex == null || ex.type != ExclusionType.ALTERNATIVE_NAME) return null;
+    if (ex == null || ex.type != ExclusionType.alternativeName) return null;
     return ex.thing;
   }
 
   @override
   bool hasNoExclusions(String input) {
     final word = input.trim().toLowerCase();
-    final noCountryEx =
-        countries.every((c) => c.hasSiblingCity || !(c.name == word));
+    final noCountryEx = countries.every(
+      (c) => c.hasSiblingCity || !(c.name == word),
+    );
     final noStatesEx = !states.contains(word);
     final notInExclusionsList = !exclusionsList.containsKey(word);
 

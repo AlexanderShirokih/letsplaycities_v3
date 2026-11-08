@@ -1,3 +1,4 @@
+import 'package:clock/clock.dart';
 import 'package:lets_play_cities/base/data.dart';
 import 'package:lets_play_cities/base/dictionary.dart';
 import 'package:lets_play_cities/base/dictionary/countrycode_overrides.dart';
@@ -28,7 +29,9 @@ class Endpoint extends EventHandler {
 
   final OnUserMoveBegins _onUserMoveBegins;
 
-  late DateTime _currentUserStartTime;
+  /// Reset by every [OnFirstCharChanged]; a word accepted before the first
+  /// one is timed from the creation of this handler.
+  DateTime _currentUserStartTime = clock.now();
 
   Endpoint(
     this._dictionaryService,
@@ -41,7 +44,7 @@ class Endpoint extends EventHandler {
   @override
   Stream<GameEvent> process(GameEvent event) async* {
     if (event is OnFirstCharChanged) {
-      _currentUserStartTime = DateTime.now();
+      _currentUserStartTime = clock.now();
     }
 
     if (event is OnUserSwitchedEvent) {
@@ -53,26 +56,31 @@ class Endpoint extends EventHandler {
     if (event is Accepted) {
       _dictionaryService.markUsed(event.word);
 
-      final countryCode = _codeOverrides.findOverride(event.word) ??
+      final countryCode =
+          _codeOverrides.findOverride(event.word) ??
           _dictionaryService.getCountryCode(event.word);
 
       final comboSystem = event.owner.comboSystem;
-      final deltaTime =
-          DateTime.now().difference(_currentUserStartTime).inMilliseconds;
+      final deltaTime = clock
+          .now()
+          .difference(_currentUserStartTime)
+          .inMilliseconds;
 
-      yield event.clone(status: CityStatus.OK, countryCode: countryCode);
+      yield event.clone(status: CityStatus.ok, countryCode: countryCode);
 
       if (event.owner is Player) _onUserInputAccepted();
 
       comboSystem.addCity(
-          CityComboInfo.fromMoveParams(deltaTime, event.word, countryCode));
+        CityComboInfo.fromMoveParams(deltaTime, event.word, countryCode),
+      );
 
       _scoreController.onMoveFinished(
         event.owner,
         event.word,
         deltaTime,
-        comboSystem.activeCombos
-            .map((key, value) => MapEntry<int, int>(key.index, value)),
+        comboSystem.activeCombos.map(
+          (key, value) => MapEntry<int, int>(key.index, value),
+        ),
       );
     } else {
       yield event;

@@ -1,8 +1,8 @@
 import 'package:lets_play_cities/base/data.dart';
 import 'package:lets_play_cities/base/dictionary.dart';
 import 'package:lets_play_cities/base/game/game_mode.dart';
+import 'package:lets_play_cities/base/game/player/default_player_names.dart';
 import 'package:lets_play_cities/base/users.dart';
-import 'package:lets_play_cities/remote/auth.dart';
 
 /// Manages user queue. Defines users list,
 /// who would make next move and its order.
@@ -57,42 +57,46 @@ class UsersList {
     current = next;
   }
 
+  /// Creates the users of a game on one device, named by [names].
   factory UsersList.forGameMode(
-      GameMode gameMode, DictionaryDecorator dictionaryService) {
+    GameMode gameMode,
+    DictionaryDecorator dictionaryService,
+    DefaultPlayerNames names,
+  ) {
     switch (gameMode) {
       case GameMode.playerVsAndroid:
-        return _buildPvAList(dictionaryService);
+        return _buildPvAList(dictionaryService, names);
       case GameMode.playerVsPlayer:
-        return _buildPvPList();
+        return _buildPvPList(names);
       default:
         throw ('Unsupported game mode!');
     }
   }
 
-  static UsersList _buildPvAList(DictionaryDecorator dictionary) => UsersList([
-        Player(
-          LocalAccountInfo(
-            name: 'Игрок',
-            picture: PlaceholderPictureSource(),
-          ),
-        ),
-        Android(dictionary, 'Андроид'),
-      ]);
+  static UsersList _buildPvAList(
+    DictionaryDecorator dictionary,
+    DefaultPlayerNames names,
+  ) => UsersList([
+    Player(
+      LocalAccountInfo(name: names.player, picture: PlaceholderPictureSource()),
+    ),
+    Android(dictionary, names.android),
+  ]);
 
-  static UsersList _buildPvPList() => UsersList([
-        Player(
-          LocalAccountInfo(
-            name: 'Игрок 1',
-            picture: PlaceholderPictureSource(),
-          ),
-        ),
-        Player(
-          LocalAccountInfo(
-            name: 'Игрок 2',
-            picture: PlaceholderPictureSource(),
-          ),
-        ),
-      ]);
+  static UsersList _buildPvPList(DefaultPlayerNames names) => UsersList([
+    Player(
+      LocalAccountInfo(
+        name: names.firstPlayer,
+        picture: PlaceholderPictureSource(),
+      ),
+    ),
+    Player(
+      LocalAccountInfo(
+        name: names.secondPlayer,
+        picture: PlaceholderPictureSource(),
+      ),
+    ),
+  ]);
 
   /// Closes all users resources
   Future<void> close() async {

@@ -33,13 +33,8 @@ import 'package:mockito/mockito.dart' as _i1;
 // ignore_for_file: invalid_use_of_internal_member
 
 class _FakeProfileInfo_0 extends _i1.SmartFake implements _i2.ProfileInfo {
-  _FakeProfileInfo_0(
-    Object parent,
-    Invocation parentInvocation,
-  ) : super(
-          parent,
-          parentInvocation,
-        );
+  _FakeProfileInfo_0(Object parent, Invocation parentInvocation)
+    : super(parent, parentInvocation);
 }
 
 /// A class which mocks [ServerConnection].
@@ -49,41 +44,32 @@ class MockRemoteServerConnection extends _i1.Mock
     implements _i3.ServerConnection {
   @override
   bool get isOpened => (super.noSuchMethod(
-        Invocation.getter(#isOpened),
-        returnValue: false,
-        returnValueForMissingStub: false,
-      ) as bool);
+    Invocation.getter(#isOpened),
+    returnValue: false,
+    returnValueForMissingStub: false,
+  ) as bool);
 
   @override
   _i4.Future<void> start() => (super.noSuchMethod(
-        Invocation.method(
-          #start,
-          [],
-        ),
-        returnValue: _i4.Future<void>.value(),
-        returnValueForMissingStub: _i4.Future<void>.value(),
-      ) as _i4.Future<void>);
+    Invocation.method(#start, []),
+    returnValue: _i4.Future<void>.value(),
+    returnValueForMissingStub: _i4.Future<void>.value(),
+  ) as _i4.Future<void>);
 
   @override
   _i4.Stream<_i5.MessagePipe<String, String>> connect() => (super.noSuchMethod(
-        Invocation.method(
-          #connect,
-          [],
-        ),
-        returnValue: _i4.Stream<_i5.MessagePipe<String, String>>.empty(),
-        returnValueForMissingStub:
-            _i4.Stream<_i5.MessagePipe<String, String>>.empty(),
-      ) as _i4.Stream<_i5.MessagePipe<String, String>>);
+    Invocation.method(#connect, []),
+    returnValue: _i4.Stream<_i5.MessagePipe<String, String>>.empty(),
+    returnValueForMissingStub:
+        _i4.Stream<_i5.MessagePipe<String, String>>.empty(),
+  ) as _i4.Stream<_i5.MessagePipe<String, String>>);
 
   @override
   _i4.Future<void> close() => (super.noSuchMethod(
-        Invocation.method(
-          #close,
-          [],
-        ),
-        returnValue: _i4.Future<void>.value(),
-        returnValueForMissingStub: _i4.Future<void>.value(),
-      ) as _i4.Future<void>);
+    Invocation.method(#close, []),
+    returnValue: _i4.Future<void>.value(),
+    returnValueForMissingStub: _i4.Future<void>.value(),
+  ) as _i4.Future<void>);
 }
 
 /// A class which mocks [RemoteConnection].
@@ -92,89 +78,63 @@ class MockRemoteServerConnection extends _i1.Mock
 class MockLpsServerInteractor extends _i1.Mock implements _i6.RemoteConnection {
   @override
   _i2.ProfileInfo get profile => (super.noSuchMethod(
-        Invocation.getter(#profile),
-        returnValue: _FakeProfileInfo_0(
-          this,
-          Invocation.getter(#profile),
-        ),
-        returnValueForMissingStub: _FakeProfileInfo_0(
-          this,
-          Invocation.getter(#profile),
-        ),
-      ) as _i2.ProfileInfo);
+    Invocation.getter(#profile),
+    returnValue: _FakeProfileInfo_0(this, Invocation.getter(#profile)),
+    returnValueForMissingStub: _FakeProfileInfo_0(
+      this,
+      Invocation.getter(#profile),
+    ),
+  ) as _i2.ProfileInfo);
 
   @override
   _i4.Future<void> get ready => (super.noSuchMethod(
-        Invocation.getter(#ready),
-        returnValue: _i4.Future<void>.value(),
-        returnValueForMissingStub: _i4.Future<void>.value(),
-      ) as _i4.Future<void>);
+    Invocation.getter(#ready),
+    returnValue: _i4.Future<void>.value(),
+    returnValueForMissingStub: _i4.Future<void>.value(),
+  ) as _i4.Future<void>);
 
   @override
   _i4.Stream<String> get incomingMessages => (super.noSuchMethod(
-        Invocation.getter(#incomingMessages),
-        returnValue: _i4.Stream<String>.empty(),
-        returnValueForMissingStub: _i4.Stream<String>.empty(),
-      ) as _i4.Stream<String>);
+    Invocation.getter(#incomingMessages),
+    returnValue: _i4.Stream<String>.empty(),
+    returnValueForMissingStub: _i4.Stream<String>.empty(),
+  ) as _i4.Stream<String>);
 
   @override
   _i4.Stream<String> get incomingWords => (super.noSuchMethod(
-        Invocation.getter(#incomingWords),
-        returnValue: _i4.Stream<String>.empty(),
-        returnValueForMissingStub: _i4.Stream<String>.empty(),
-      ) as _i4.Stream<String>);
+    Invocation.getter(#incomingWords),
+    returnValue: _i4.Stream<String>.empty(),
+    returnValueForMissingStub: _i4.Stream<String>.empty(),
+  ) as _i4.Stream<String>);
 
   @override
   _i4.Future<_i2.ProfileInfo?> authorize() => (super.noSuchMethod(
-        Invocation.method(
-          #authorize,
-          [],
-        ),
-        returnValue: _i4.Future<_i2.ProfileInfo?>.value(),
-        returnValueForMissingStub: _i4.Future<_i2.ProfileInfo?>.value(),
-      ) as _i4.Future<_i2.ProfileInfo?>);
+    Invocation.method(#authorize, []),
+    returnValue: _i4.Future<_i2.ProfileInfo?>.value(),
+    returnValueForMissingStub: _i4.Future<_i2.ProfileInfo?>.value(),
+  ) as _i4.Future<_i2.ProfileInfo?>);
 
   @override
   _i4.Future<void> close() => (super.noSuchMethod(
-        Invocation.method(
-          #close,
-          [],
-        ),
-        returnValue: _i4.Future<void>.value(),
-        returnValueForMissingStub: _i4.Future<void>.value(),
-      ) as _i4.Future<void>);
+    Invocation.method(#close, []),
+    returnValue: _i4.Future<void>.value(),
+    returnValueForMissingStub: _i4.Future<void>.value(),
+  ) as _i4.Future<void>);
 
   @override
   void sendWord(
     _i7.WordResult? wordResult,
     String? city,
     _i2.BaseProfileInfo? owner,
-  ) =>
-      super.noSuchMethod(
-        Invocation.method(
-          #sendWord,
-          [
-            wordResult,
-            city,
-            owner,
-          ],
-        ),
-        returnValueForMissingStub: null,
-      );
+  ) => super.noSuchMethod(
+    Invocation.method(#sendWord, [wordResult, city, owner]),
+    returnValueForMissingStub: null,
+  );
 
   @override
-  void sendMessage(
-    String? message,
-    _i2.BaseProfileInfo? owner,
-  ) =>
+  void sendMessage(String? message, _i2.BaseProfileInfo? owner) =>
       super.noSuchMethod(
-        Invocation.method(
-          #sendMessage,
-          [
-            message,
-            owner,
-          ],
-        ),
+        Invocation.method(#sendMessage, [message, owner]),
         returnValueForMissingStub: null,
       );
 
@@ -183,20 +143,15 @@ class MockLpsServerInteractor extends _i1.Mock implements _i6.RemoteConnection {
     required bool? canReceiveMessages,
     required bool? youStarter,
     required _i2.ProfileInfo? opponent,
-  }) =>
-      (super.noSuchMethod(
-        Invocation.method(
-          #join,
-          [],
-          {
-            #canReceiveMessages: canReceiveMessages,
-            #youStarter: youStarter,
-            #opponent: opponent,
-          },
-        ),
-        returnValue: _i4.Future<void>.value(),
-        returnValueForMissingStub: _i4.Future<void>.value(),
-      ) as _i4.Future<void>);
+  }) => (super.noSuchMethod(
+    Invocation.method(#join, [], {
+      #canReceiveMessages: canReceiveMessages,
+      #youStarter: youStarter,
+      #opponent: opponent,
+    }),
+    returnValue: _i4.Future<void>.value(),
+    returnValueForMissingStub: _i4.Future<void>.value(),
+  ) as _i4.Future<void>);
 }
 
 /// A class which mocks [UserLookupRepository].
@@ -206,28 +161,19 @@ class MockUserLookupRepository extends _i1.Mock
     implements _i8.UserLookupRepository {
   @override
   _i2.ProfileInfo? getUser(_i2.Credential? d) => (super.noSuchMethod(
-        Invocation.method(
-          #getUser,
-          [d],
-        ),
-        returnValueForMissingStub: null,
-      ) as _i2.ProfileInfo?);
+    Invocation.method(#getUser, [d]),
+    returnValueForMissingStub: null,
+  ) as _i2.ProfileInfo?);
 
   @override
   void addUser(_i2.ProfileInfo? profile) => super.noSuchMethod(
-        Invocation.method(
-          #addUser,
-          [profile],
-        ),
-        returnValueForMissingStub: null,
-      );
+    Invocation.method(#addUser, [profile]),
+    returnValueForMissingStub: null,
+  );
 
   @override
   void clear() => super.noSuchMethod(
-        Invocation.method(
-          #clear,
-          [],
-        ),
-        returnValueForMissingStub: null,
-      );
+    Invocation.method(#clear, []),
+    returnValueForMissingStub: null,
+  );
 }

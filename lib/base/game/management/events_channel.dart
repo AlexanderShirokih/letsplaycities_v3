@@ -25,7 +25,10 @@ class ProcessingEventChannel extends AbstractEventChannel {
 
   Stream<GameEvent> _dispatchEventToProcessor(GameEvent input, int level) =>
       level == processors.length
-          ? Stream.value(input)
-          : processors[level].process(input).asyncExpand(
-              (event) => _dispatchEventToProcessor(event, level + 1));
+      ? Stream.value(input)
+      : processors[level]
+            .process(input)
+            .asyncExpand(
+              (event) => _dispatchEventToProcessor(event, level + 1),
+            );
 }

@@ -3,83 +3,103 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lets_play_cities/base/dictionary.dart';
 import 'package:lets_play_cities/base/preferences.dart';
 import 'package:lets_play_cities/base/scoring.dart';
+import 'package:lets_play_cities/i18n/enum_labels.dart';
+import 'package:lets_play_cities/i18n/strings.g.dart';
 import 'package:lets_play_cities/screens/common/dialogs.dart';
-import 'package:lets_play_cities/screens/common/utils.dart';
 import 'package:lets_play_cities/screens/settings/stats/stats_screen.dart';
 import 'package:lets_play_cities/screens/settings/theme_manager_screen.dart';
 
 class SettingsScreen extends StatelessWidget {
+  const SettingsScreen({super.key});
+
   @override
-  Widget build(BuildContext context) => buildWithLocalization(
-        context,
-        (l10n) => Scaffold(
-          appBar: AppBar(
-            title: Text(l10n.settings['settings']),
-          ),
-          body: _SettingsItemsList(
-            l10n.settings,
-            (l10n.themes['theme_names'] as Map<String, dynamic>)
-                .cast<String, String>(),
-            context.watch<GamePreferences>(),
-          ),
-        ),
-      );
+  Widget build(BuildContext context) {
+    final t = context.t;
+    return Scaffold(
+      appBar: AppBar(title: Text(t.settings.settings)),
+      body: _SettingsItemsList(t, context.watch<GamePreferences>()),
+    );
+  }
 }
 
 class _SettingsItemsList extends StatefulWidget {
-  final Map<String, dynamic> _settings;
-  final Map<String, String> _themes;
-  final List<String> _titles;
-  final List<String> _onOff;
+  final Translations _t;
   final GamePreferences _prefs;
 
-  _SettingsItemsList(this._settings, this._themes, this._prefs)
-      : _titles =
-            (_settings['settings_item_titles'] as List<dynamic>).cast<String>(),
-        _onOff = (_settings['on_off'] as List<dynamic>).cast<String>();
+  const _SettingsItemsList(this._t, this._prefs);
 
   @override
-  _SettingsItemsListState createState() => _SettingsItemsListState(
+  State<_SettingsItemsList> createState() => _SettingsItemsListState();
+
+  /// Creates the items from the current preferences. Items hold the values
+  /// the user changes, so the [State] creates them once and keeps them.
+  List<_SettingsItem> _createItems() {
+    final titles = _t.settings.settingsItemTitles;
+    final onOff = [_t.settings.onOff.off, _t.settings.onOff.on];
+    return [
+      _NavigationItem(
+        titles.theme,
+        () =>
+            _t.themes.themeNames[_prefs.theme] ?? _t.settings.themeNotSelected,
+        () => ThemeManagerScreen(),
+      ),
+      _SingleChoiceItem(
+        titles.difficulty,
+        [for (final value in Difficulty.values) value.label(_t)],
+        _prefs.wordsDifficulty.index,
+        onSet: (i) => _prefs.wordsDifficulty = Difficulty.values[i],
+      ),
+      _SingleChoiceItem(
+        titles.scoring,
+        [for (final value in ScoringType.values) value.label(_t)],
+        _prefs.scoringType.index,
+        onSet: (i) => _prefs.scoringType = ScoringType.values[i],
+      ),
+      _SingleChoiceItem(
+        titles.moveTimer,
         [
-          _NavigationItem(_titles[0], _themes[_prefs.theme] ?? 'Не выбрано',
-              () => ThemeManagerScreen()),
-          _SingleChoiceItem(
-            _titles[1],
-            (_settings['difficulty'] as List<dynamic>).cast<String>(),
-            _prefs.wordsDifficulty.index,
-            onSet: (i) => _prefs.wordsDifficulty = Difficulty.values[i],
-          ),
-          _SingleChoiceItem(
-            _titles[2],
-            (_settings['scoring_type'] as List<dynamic>).cast<String>(),
-            _prefs.scoringType.index,
-            onSet: (i) => _prefs.scoringType = ScoringType.values[i],
-          ),
-          _SingleChoiceItem(
-            _titles[3],
-            (_settings['move_timer'] as List<dynamic>).cast<String>(),
-            _timerValueToIndex(_prefs.timeLimit),
-            useRadio: true,
-            onSet: (i) => _prefs.timeLimit = _indexToTimeValue(i),
-          ),
-          _ToggleItem(_titles[4], _onOff, _prefs.correctionEnabled,
-              onSet: (f) => _prefs.correctionEnabled = f),
-          _ToggleItem(_titles[5], _onOff, _prefs.soundEnabled,
-              onSet: (f) => _prefs.soundEnabled = f),
-          _ToggleItem(_titles[6], _onOff, _prefs.onlineChatEnabled,
-              onSet: (f) => _prefs.onlineChatEnabled = f),
-          _NavigationItem(
-              _titles[7], _settings['statistic_sub'], () => StatisticsScreen()),
-          _SingleChoiceItem(
-            _titles[8],
-            (_settings['dict_upd_period'] as List<dynamic>).cast<String>(),
-            _prefs.dictionaryUpdatePeriod.index,
-            useRadio: true,
-            onSet: (i) => _prefs.dictionaryUpdatePeriod =
-                DictionaryUpdatePeriod.values[i],
-          ),
+          for (final minutes in _acceptedValues)
+            minutes == 0
+                ? _t.settings.moveTimer.off
+                : _t.settings.moveTimer.minutes(n: minutes),
         ],
-      );
+        _timerValueToIndex(_prefs.timeLimit),
+        useRadio: true,
+        onSet: (i) => _prefs.timeLimit = _indexToTimeValue(i),
+      ),
+      _ToggleItem(
+        titles.correction,
+        onOff,
+        _prefs.correctionEnabled,
+        onSet: (f) => _prefs.correctionEnabled = f,
+      ),
+      _ToggleItem(
+        titles.sound,
+        onOff,
+        _prefs.soundEnabled,
+        onSet: (f) => _prefs.soundEnabled = f,
+      ),
+      _ToggleItem(
+        titles.onlineChat,
+        onOff,
+        _prefs.onlineChatEnabled,
+        onSet: (f) => _prefs.onlineChatEnabled = f,
+      ),
+      _NavigationItem(
+        titles.statistics,
+        () => _t.settings.statisticSub,
+        () => StatisticsScreen(),
+      ),
+      _SingleChoiceItem(
+        titles.dictUpdates,
+        [for (final value in DictionaryUpdatePeriod.values) value.label(_t)],
+        _prefs.dictionaryUpdatePeriod.index,
+        useRadio: true,
+        onSet: (i) =>
+            _prefs.dictionaryUpdatePeriod = DictionaryUpdatePeriod.values[i],
+      ),
+    ];
+  }
 
   static final _acceptedValues = [0, 1, 2, 5, 10, 15];
 
@@ -90,9 +110,13 @@ class _SettingsItemsList extends StatefulWidget {
 }
 
 class _SettingsItemsListState extends State<_SettingsItemsList> {
-  final List<_SettingsItem> _items;
+  late final List<_SettingsItem> _items;
 
-  _SettingsItemsListState(this._items);
+  @override
+  void initState() {
+    super.initState();
+    _items = widget._createItems();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -134,12 +158,14 @@ abstract class _SettingsItem {
 
 typedef ScreenSelector = Widget Function();
 
-// When item is clicked then navigates to the specified destination
+// When item is clicked then navigates to the specified destination.
+// The subtitle is read on every build, because the destination may change
+// what it shows (e.g. the current theme name).
 class _NavigationItem extends _SettingsItem {
-  final String _subtitle;
+  final String Function() _subtitle;
   final ScreenSelector _selector;
 
-  _NavigationItem(String title, this._subtitle, this._selector) : super(title);
+  _NavigationItem(super.title, this._subtitle, this._selector);
 
   @override
   Future<void> onClicked(BuildContext context) {
@@ -151,7 +177,7 @@ class _NavigationItem extends _SettingsItem {
   bool? get isChecked => null;
 
   @override
-  String get subtitle => _subtitle;
+  String get subtitle => _subtitle();
 }
 
 class _ToggleItem extends _SettingsItem {
@@ -160,10 +186,12 @@ class _ToggleItem extends _SettingsItem {
 
   bool _isChecked;
 
-  _ToggleItem(String title, this._stateNames, bool initialState,
-      {required this.onSet})
-      : _isChecked = initialState,
-        super(title);
+  _ToggleItem(
+    super.title,
+    this._stateNames,
+    bool initialState, {
+    required this.onSet,
+  }) : _isChecked = initialState;
 
   @override
   bool get isChecked => _isChecked;
@@ -185,23 +213,27 @@ class _SingleChoiceItem extends _SettingsItem {
   int _currentChoice;
   Function(int) onSet;
 
-  _SingleChoiceItem(String title, this._choiceItems, this._currentChoice,
-      {bool? useRadio, required this.onSet})
-      : _useRadio = useRadio ?? false,
-        super(title);
+  _SingleChoiceItem(
+    super.title,
+    this._choiceItems,
+    this._currentChoice, {
+    bool? useRadio,
+    required this.onSet,
+  }) : _useRadio = useRadio ?? false;
 
   @override
   bool? get isChecked => _useRadio ? _currentChoice != 0 : null;
 
   @override
   Future<void> onClicked(BuildContext context) =>
-      showSingleChoiceDialog(context, title, _choiceItems, _currentChoice)
-          .then((value) {
-        if (value != null) {
-          _currentChoice = value;
-          onSet(value);
-        }
-      });
+      showSingleChoiceDialog(context, title, _choiceItems, _currentChoice).then(
+        (value) {
+          if (value != null) {
+            _currentChoice = value;
+            onSet(value);
+          }
+        },
+      );
 
   @override
   String get subtitle => _choiceItems[_currentChoice];

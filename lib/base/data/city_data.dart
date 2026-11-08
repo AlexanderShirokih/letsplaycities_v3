@@ -8,7 +8,7 @@ class City {
   City(this.city, this.owner);
 }
 
-enum CityStatus { OK, WAITING, ERROR }
+enum CityStatus { ok, waiting, error }
 
 /// Represents user position on the screen
-enum Position { LEFT, RIGHT, UNKNOWN }
+enum Position { left, right, unknown }

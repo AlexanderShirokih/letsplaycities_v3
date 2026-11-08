@@ -9,19 +9,18 @@ class CitiesListFilter extends Equatable {
   final String nameFilter;
   final CountryListFilter countryFilter;
 
-  CitiesListFilter({
-    this.nameFilter = '',
-    CountryListFilter? countryFilter,
-  }) : countryFilter = countryFilter ?? CountryListFilter.empty();
+  CitiesListFilter({this.nameFilter = '', CountryListFilter? countryFilter})
+    : countryFilter = countryFilter ?? CountryListFilter.empty();
 
   /// Creates copy of this filter with customizable params
   /// `null` value for input argument means value is not changed
-  CitiesListFilter copy(
-          {String? nameFilter, CountryListFilter? countryFilter}) =>
-      CitiesListFilter(
-        nameFilter: nameFilter ?? this.nameFilter,
-        countryFilter: countryFilter ?? this.countryFilter,
-      );
+  CitiesListFilter copy({
+    String? nameFilter,
+    CountryListFilter? countryFilter,
+  }) => CitiesListFilter(
+    nameFilter: nameFilter ?? this.nameFilter,
+    countryFilter: countryFilter ?? this.countryFilter,
+  );
 
   /// Returns `true` if filter doesn't filter anything
   bool get isEmpty => nameFilter.isEmpty && countryFilter.isAllPresent;
@@ -78,8 +77,9 @@ class CountryListFilter extends Equatable {
       return false;
     }
 
-    return allowedCountryCodes
-        .every((element) => prev.allowedCountryCodes.contains(element));
+    return allowedCountryCodes.every(
+      (element) => prev.allowedCountryCodes.contains(element),
+    );
   }
 
   @override

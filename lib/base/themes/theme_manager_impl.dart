@@ -106,8 +106,10 @@ class ThemeManagerImpl implements ThemeManager {
 
   ThemeManagerImpl(this._preferences) {
     final name = _preferences.theme;
-    final current = _themes.firstWhere((theme) => theme.name == name,
-        orElse: () => fallback);
+    final current = _themes.firstWhere(
+      (theme) => theme.name == name,
+      orElse: () => fallback,
+    );
 
     // Emit current theme
     _currentTheme.add(current);

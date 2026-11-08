@@ -6,16 +6,15 @@ class CacheList<T> {
   final Queue<T> _cachedProfilesInfo;
 
   CacheList(this.capacity)
-      : assert(capacity > 0),
-        _cachedProfilesInfo = ListQueue(capacity);
+    : assert(capacity > 0),
+      _cachedProfilesInfo = ListQueue(capacity);
 
-  /// Puts [data] to cache list. Displaces last item if cache queue if full.
+  /// Puts [data] to cache list. Displaces the oldest item if the queue is full.
   void put(T data) {
-    if (_cachedProfilesInfo.length < capacity) {
-      _cachedProfilesInfo.add(data);
-    } else {
+    if (_cachedProfilesInfo.length >= capacity) {
       _cachedProfilesInfo.removeFirst();
     }
+    _cachedProfilesInfo.add(data);
   }
 
   /// Removes [target] from list

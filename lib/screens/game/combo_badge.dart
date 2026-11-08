@@ -1,20 +1,18 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:lets_play_cities/base/game/combo.dart';
-import 'package:lets_play_cities/l18n/localization_service.dart';
+import 'package:lets_play_cities/i18n/enum_labels.dart';
+import 'package:lets_play_cities/i18n/strings.g.dart';
 
 /// Used to display users combos.
 class ComboBadgeWidget extends StatelessWidget {
   final Stream<Map<ComboType, int>> _comboEvents;
 
-  ComboBadgeWidget(this._comboEvents);
+  const ComboBadgeWidget(this._comboEvents, {super.key});
 
   @override
   Widget build(BuildContext context) {
-    final comboNames =
-        (context.watch<LocalizationService>().game['combos'] as List<dynamic>)
-            .cast<String>();
+    final t = context.t;
 
     return StreamBuilder<Map<ComboType, int>>(
       stream: _comboEvents,
@@ -22,45 +20,49 @@ class ComboBadgeWidget extends StatelessWidget {
           ? Container()
           : Row(
               children: snap.requireData.entries
-                  .map((e) => _createBadge(context, comboNames, e.key, e.value))
+                  .map((e) => _createBadge(context, t, e.key, e.value))
                   .toList(growable: false),
             ),
     );
   }
 
-  Widget _createBadge(BuildContext context, List<String> comboNames,
-          ComboType comboType, int multiplier) =>
-      Tooltip(
-        message: comboNames[comboType.index],
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 2.0),
-          child: Chip(
-            labelPadding:
-                const EdgeInsets.symmetric(vertical: 1.0, horizontal: 1.0),
-            avatar: CircleAvatar(
-              backgroundColor: Colors.transparent,
-              child:
-                  _getIcon(comboType, Theme.of(context).colorScheme.secondary),
-            ),
-            label: Text(
-              '× $multiplier',
-              style: Theme.of(context).textTheme.bodySmall,
-            ),
-          ),
+  Widget _createBadge(
+    BuildContext context,
+    Translations t,
+    ComboType comboType,
+    int multiplier,
+  ) => Tooltip(
+    message: comboType.label(t),
+    child: Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 2.0),
+      child: Chip(
+        labelPadding: const EdgeInsets.symmetric(
+          vertical: 1.0,
+          horizontal: 1.0,
         ),
-      );
+        avatar: CircleAvatar(
+          backgroundColor: Colors.transparent,
+          child: _getIcon(comboType, Theme.of(context).colorScheme.secondary),
+        ),
+        label: Text(
+          '× $multiplier',
+          style: Theme.of(context).textTheme.bodySmall,
+        ),
+      ),
+    ),
+  );
 
   Widget _getIcon(ComboType type, Color color) {
     switch (type) {
-      case ComboType.QUICK_TIME:
+      case ComboType.quickTime:
         return Icon(Icons.timelapse_outlined, color: color);
-      case ComboType.SHORT_WORD:
+      case ComboType.shortWord:
         return Icon(Icons.star, color: color);
-      case ComboType.LONG_WORD:
+      case ComboType.longWord:
         return FaIcon(FontAwesomeIcons.rulerHorizontal, color: color);
-      case ComboType.SAME_COUNTRY:
+      case ComboType.sameCountry:
         return FaIcon(FontAwesomeIcons.earthEurope, color: color);
-      case ComboType.DIFFERENT_COUNTRIES:
+      case ComboType.differentCountries:
         return FaIcon(FontAwesomeIcons.bookAtlas, color: color);
     }
   }

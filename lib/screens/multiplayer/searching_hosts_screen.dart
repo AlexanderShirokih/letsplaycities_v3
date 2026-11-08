@@ -1,22 +1,35 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:get_it/get_it.dart';
+import 'package:lets_play_cities/app_config.dart';
 import 'package:lets_play_cities/base/remote/bloc/searching_for_hosts_bloc.dart';
+import 'package:lets_play_cities/i18n/strings.g.dart';
 import 'package:lets_play_cities/remote/remote_host.dart';
+import 'package:lets_play_cities/remote/server/probe/network_discovery.dart';
 import 'package:lets_play_cities/screens/common/base_bloc_builder.dart';
+import 'package:lets_play_cities/utils/error_logger.dart';
 
 /// Screen used to search all game server hosts on local network
 class SearchingHostsScreen extends StatelessWidget {
+  const SearchingHostsScreen({super.key});
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Мультиплеер'),
-      ),
+      appBar: AppBar(title: Text(context.t.multiplayer.title)),
       body: Padding(
         padding: EdgeInsets.all(16.0),
         child: BlocProvider(
-          create: (_) => SearchingForHostsBloc()..add(StartSearchingEvent()),
+          create: (_) {
+            final getIt = GetIt.instance;
+            return SearchingForHostsBloc(
+              discovery: NetworkDiscovery.createDiscovery(
+                port: getIt.get<AppConfig>(instanceName: 'local').port,
+                errorLogger: getIt.get<ErrorLogger>(),
+              ),
+            )..add(StartSearchingEvent());
+          },
           child: BaseBlocBuilder<SearchingForHostsBloc, HostSearchingResult>(
             dataBuilder: _buildScanResults,
             loadingBuilder: _buildLoadingView,
@@ -31,7 +44,7 @@ class SearchingHostsScreen extends StatelessWidget {
     return Center(
       child: ElevatedButton.icon(
         icon: Icon(Icons.search),
-        label: Text('Поиск'),
+        label: Text(context.t.multiplayer.search),
         onPressed: () =>
             context.read<SearchingForHostsBloc>().add(StartSearchingEvent()),
       ),
@@ -50,16 +63,16 @@ class SearchingHostsScreen extends StatelessWidget {
           children: [
             Expanded(
               child: Text(
-                'Доступные устройства',
+                context.t.multiplayer.availableDevices,
                 style: Theme.of(context).textTheme.headlineSmall,
               ),
             ),
             result.isCompleted
                 ? IconButton(
                     icon: FaIcon(FontAwesomeIcons.rotate),
-                    onPressed: () => context
-                        .read<SearchingForHostsBloc>()
-                        .add(StartSearchingEvent()),
+                    onPressed: () => context.read<SearchingForHostsBloc>().add(
+                      StartSearchingEvent(),
+                    ),
                   )
                 : CircularProgressIndicator(),
           ],
@@ -71,7 +84,7 @@ class SearchingHostsScreen extends StatelessWidget {
         ),
         const SizedBox(height: 12.0),
         Text(
-          'Вы должны находиться в одной сети для поиска устройств',
+          context.t.multiplayer.sameNetworkHint,
           style: Theme.of(context).textTheme.bodySmall,
         ),
       ],
@@ -97,17 +110,14 @@ class SearchingHostsScreen extends StatelessWidget {
   Widget _buildContent(BuildContext context, HostSearchingResult result) {
     if (result.availableHosts.isNotEmpty) {
       return ListView(
-        children:
-            result.availableHosts.map((e) => _buildItem(context, e)).toList(),
+        children: result.availableHosts
+            .map((e) => _buildItem(context, e))
+            .toList(),
       );
     }
 
     if (result.isCompleted) {
-      return Center(
-        child: Text(
-            'Ничего не найдено. Убедитесь что у оппонента создано соединение и '
-            'вы находитесь в одной сети'),
-      );
+      return Center(child: Text(context.t.multiplayer.nothingFound));
     }
 
     return Center(

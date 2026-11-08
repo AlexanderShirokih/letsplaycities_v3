@@ -15,7 +15,7 @@ class InitialState extends GameLifecycleState {
 }
 
 /// Stages for [CheckingForUpdatesState]
-enum CheckingForUpdatesStage { FetchingUpdate, Updating }
+enum CheckingForUpdatesStage { fetchingUpdate, updating }
 
 /// The state used when game doing checking for dictionary updates and downloading it
 class CheckingForUpdatesState extends GameLifecycleState {
@@ -49,11 +49,7 @@ class GotDataState extends GameLifecycleState {
   final ScoreController scoreController;
 
   /// Creates [DataLoadingState] containing loaded data
-  const GotDataState(
-    this.dictionary,
-    this.exclusions,
-    this.scoreController,
-  );
+  const GotDataState(this.dictionary, this.exclusions, this.scoreController);
 
   @override
   List<Object?> get props => [dictionary, exclusions, scoreController];
@@ -74,20 +70,26 @@ class GameState extends GameLifecycleState {
 
   @override
   List<Object?> get props => [
-        gameSessionRepository,
-        dictionary,
-        scoreController,
-      ];
+    gameSessionRepository,
+    dictionary,
+    scoreController,
+  ];
+}
+
+/// What [GameNotificationState] tells the player.
+enum GameNotification {
+  /// The player asked for a hint, but no rewarded ad is loaded yet.
+  hintNotReady,
 }
 
 /// Used to show notification snackbar
 class GameNotificationState extends GameLifecycleState {
-  final String message;
+  final GameNotification notification;
 
-  const GameNotificationState(this.message);
+  const GameNotificationState(this.notification);
 
   @override
-  List<Object?> get props => [message];
+  List<Object?> get props => [notification];
 }
 
 /// Used when the game ends

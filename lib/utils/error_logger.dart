@@ -1,3 +1,5 @@
+import 'package:flutter/foundation.dart';
+
 /// Service used to log errors and important messages for debugging purposes
 abstract class ErrorLogger {
   /// Sends log message to log system
@@ -11,8 +13,8 @@ abstract class ErrorLogger {
 class SimpleErrorLogger implements ErrorLogger {
   @override
   void error(Object error, StackTrace stackTrace) =>
-      print('ERROR: $error\nSTACK TRACE:\n$stackTrace');
+      debugPrint('ERROR: $error\nSTACK TRACE:\n$stackTrace');
 
   @override
-  void log(String message) => print(message);
+  void log(String message) => debugPrint(message);
 }

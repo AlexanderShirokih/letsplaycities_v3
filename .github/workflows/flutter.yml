@@ -2,34 +2,81 @@ name: Flutter CI
 
 on:
   push:
-    branches: [ master ]
+    branches: [master, develop]
+  pull_request:
+    branches: [master, develop]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  # Keep in sync with the SDK the lockfile was resolved with
+  # (pubspec.lock: dart ">=3.13.0", flutter ">=3.47.0").
+  FLUTTER_VERSION: '3.47.9'
 
 jobs:
-  build:
-
+  check:
+    name: Format, analyze, test
     runs-on: ubuntu-latest
-
+    timeout-minutes: 20
     steps:
+      - uses: actions/checkout@v7
 
-      # Setup Java environment in order to build the Android app.
-      - uses: actions/checkout@v1
-      - uses: actions/setup-java@v1
+      - uses: subosito/flutter-action@v2
         with:
-          java-version: '12.x'
+          channel: stable
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          cache: true
 
-      # Setup the flutter environment.
-      - uses: subosito/flutter-action@v1
+      - name: Install dependencies
+        run: flutter pub get --enforce-lockfile
+
+      # lib/i18n/strings*.g.dart are committed; fail when ru.i18n.json changed
+      # without regenerating them.
+      - name: Check generated strings are up to date
+        run: dart run slang && git diff --exit-code lib/i18n
+
+      - name: Check formatting
+        run: dart format --output=none --set-exit-if-changed lib test
+
+      - name: Analyze
+        run: flutter analyze
+
+      - name: Test
+        run: flutter test --test-randomize-ordering-seed random
+
+  build-android:
+    name: Build debug APK
+    needs: check
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v7
+
+      # AGP 9.1 / Gradle 9.3 / JDK 17.
+      - uses: actions/setup-java@v6
         with:
-          channel: 'dev'
+          distribution: temurin
+          java-version: '17'
+          cache: gradle
 
-      # Get flutter dependencies.
-      - run: flutter pub get
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          cache: true
 
-      # Check for any formatting issues in the code.
-      - run: flutter format --set-exit-if-changed .
+      - name: Install dependencies
+        run: flutter pub get --enforce-lockfile
 
-      # Statically analyze the Dart code for any errors.
-      - run: flutter analyze .
-
-      # Run widget tests for flutter project.
-      - run: flutter test
+      # android/app/google-services.json is committed, so the google-services
+      # plugin needs no secrets. Debug builds use the default debug keystore.
+      # flutter generates android/local.properties and the Gradle wrapper
+      # scripts (both gitignored) before invoking Gradle.
+      - name: Build debug APK
+        run: flutter build apk --debug

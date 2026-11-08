@@ -23,15 +23,23 @@ abstract class SocialNetworksService {
 /// [SocialNetworksService] implementation that uses native channels
 /// to provide social network authorization
 class NativeBridgeSocialNetworksService implements SocialNetworksService {
-  static const MethodChannel _authenticationChannel =
-      MethodChannel('ru.aleshi.letsplaycities/authentication');
+  static const MethodChannel _authenticationChannel = MethodChannel(
+    'ru.aleshi.letsplaycities/authentication',
+  );
+
+  /// [isLinux] defaults to [Platform.isLinux]; tests pass it explicitly.
+  NativeBridgeSocialNetworksService({bool? isLinux})
+    : _isLinux = isLinux ?? Platform.isLinux;
+
+  final bool _isLinux;
 
   @override
   Future<SocialNetworkData> login(AuthType networkType) async {
     try {
       final result = await _authenticationChannel
-          .invokeMapMethod<String, dynamic>(
-              'login', {'authType': networkType.name});
+          .invokeMapMethod<String, dynamic>('login', {
+            'authType': networkType.shortName,
+          });
       return SocialNetworkData.fromJson(result!);
     } on PlatformException catch (e) {
       throw AuthorizationException('${e.code}: ${e.message}');
@@ -40,20 +48,27 @@ class NativeBridgeSocialNetworksService implements SocialNetworksService {
 
   @override
   Future<void> logout(AuthType networkType) {
-    return _authenticationChannel.invokeMapMethod<String, dynamic>(
-        'logout', {'authType': networkType.name});
+    return _authenticationChannel.invokeMapMethod<String, dynamic>('logout', {
+      'authType': networkType.shortName,
+    });
   }
 
+  /// Linux desktop builds have no native side, so they get a fixed test ID.
+  /// On a phone a native failure is rethrown: the ID becomes the account's
+  /// snUID on the server, and a shared placeholder would put every such
+  /// device into one account.
   @override
   Future<String> getDeviceId() async {
     try {
-      return await _authenticationChannel.invokeMethod('getDeviceId');
+      return (await _authenticationChannel.invokeMethod<String>(
+        'getDeviceId',
+      ))!;
     } on PlatformException {
-      if (!Platform.isLinux) {
-        return 'linuz-test';
-      } else {
-        rethrow;
-      }
+      if (_isLinux) return 'linuz-test';
+      rethrow;
+    } on MissingPluginException {
+      if (_isLinux) return 'linuz-test';
+      rethrow;
     }
   }
 }

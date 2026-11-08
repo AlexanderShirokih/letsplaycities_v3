@@ -21,37 +21,49 @@ class AvatarBloc extends Bloc<AvatarEvent, AvatarState>
     mapEventsSequentially(_mapEventToState);
   }
 
-  Stream<AvatarState> _mapEventToState(
-    AvatarEvent event,
-  ) async* {
+  Stream<AvatarState> _mapEventToState(AvatarEvent event) async* {
     switch (event) {
-      case AvatarEvent.RemoveAvatarEvent:
+      case AvatarEvent.removeAvatarEvent:
         yield* removeImage();
         break;
-      case AvatarEvent.PickGalleryAvatarEvent:
+      case AvatarEvent.pickGalleryAvatarEvent:
         yield* getImage(ImageSource.gallery);
         break;
-      case AvatarEvent.PickCameraAvatarEvent:
+      case AvatarEvent.pickCameraAvatarEvent:
         yield* getImage(ImageSource.camera);
         break;
     }
   }
 
   Stream<AvatarState> getImage(ImageSource source) async* {
-    final pickedFile = await picker.pickImage(source: source);
+    try {
+      final pickedFile = await picker.pickImage(source: source);
 
-    if (pickedFile != null) {
-      yield AvatarLoadingState();
-      await _apiRepository.updatePicture(pickedFile.readAsBytes());
-      yield AvatarDoneState(true);
-    } else {
-      yield AvatarDoneState();
+      if (pickedFile != null) {
+        yield AvatarLoadingState();
+        await _apiRepository.updatePicture(pickedFile.readAsBytes());
+        yield AvatarDoneState(true);
+      } else {
+        yield AvatarDoneState();
+      }
+    } catch (error, stackTrace) {
+      yield* _fail(error, stackTrace);
     }
   }
 
   Stream<AvatarState> removeImage() async* {
     yield AvatarLoadingState();
-    await _apiRepository.removePicture();
-    yield AvatarDoneState(true);
+    try {
+      await _apiRepository.removePicture();
+      yield AvatarDoneState(true);
+    } catch (error, stackTrace) {
+      yield* _fail(error, stackTrace);
+    }
+  }
+
+  /// Ends the action with an error, so the view stops waiting for it.
+  Stream<AvatarState> _fail(Object error, StackTrace stackTrace) async* {
+    addError(error, stackTrace);
+    yield AvatarDoneState(false, error.toString());
   }
 }

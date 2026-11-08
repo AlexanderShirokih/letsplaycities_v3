@@ -2,8 +2,8 @@ import 'dart:async';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:equatable/equatable.dart';
-import 'package:get_it/get_it.dart';
 import 'package:lets_play_cities/base/preferences.dart';
+import 'package:lets_play_cities/remote/api_repository_factory.dart';
 import 'package:lets_play_cities/remote/auth.dart';
 import 'package:lets_play_cities/remote/exceptions.dart';
 import 'package:lets_play_cities/remote/model/cloud_messaging_service.dart';
@@ -22,27 +22,41 @@ class LoginBloc extends Bloc<LoginEvent, LoginState>
   final CloudMessagingService _cloudServices;
   final SocialNetworksService _socialNetworksService;
 
-  LoginBloc(
-    this._socialNetworksService,
-  )   : _accountManager = GetIt.instance.get<AccountManager>(),
-        _preferences = GetIt.instance.get<GamePreferences>(),
-        _cloudServices = GetIt.instance.get<CloudMessagingService>(),
-        super(LoginInitial()) {
+  /// Called once a social sign-up succeeds, so the caller decides which
+  /// factory is current when the picture is uploaded.
+  final ApiRepositoryFactory Function() _apiRepositories;
+
+  LoginBloc({
+    required this._socialNetworksService,
+    required this._accountManager,
+    required this._preferences,
+    required this._cloudServices,
+    required this._apiRepositories,
+  }) : super(LoginInitial()) {
     mapEventsSequentially(_mapEventToState);
+  }
+
+  /// Set as soon as [close] starts. [isClosed] only covers the event queue
+  /// from bloc 9.2.1 on, and pubspec.yaml does not pin that version.
+  bool _closing = false;
+
+  @override
+  Future<void> close() {
+    _closing = true;
+    return super.close();
   }
 
   @override
   void onError(Object error, StackTrace stackTrace) {
-    add(LoginAuthErrorEvent(error));
+    // After close() add() throws StateError and reports it through onError,
+    // so an unguarded add() here recurses until the stack overflows.
+    if (!_closing) add(LoginAuthErrorEvent(error));
     super.onError(error, stackTrace);
   }
 
   Stream<LoginState> _mapEventToState(LoginEvent event) async* {
     if (event is LoginNativeEvent) {
-      yield* _handleNativeLogin(event.login).map((event) {
-        print("GOT EVENTTTT: $event");
-        return event;
-      });
+      yield* _handleNativeLogin(event.login);
     } else if (event is LoginSocialEvent) {
       yield* _handleSocialLogin(event.authType);
     } else if (event is LoginAuthErrorEvent) {
@@ -55,7 +69,7 @@ class LoginBloc extends Bloc<LoginEvent, LoginState>
 
     final request = RemoteSignUpData(
       login: login,
-      authType: AuthType.Native,
+      authType: AuthType.native,
       firebaseToken: await _cloudServices.getUserToken(),
       accessToken: 'native_access',
       snUID: await _socialNetworksService.getDeviceId(),
@@ -89,8 +103,8 @@ class LoginBloc extends Bloc<LoginEvent, LoginState>
       final remoteAccount = await _accountManager.signUp(request);
 
       yield LoginAuthUpdateAvatarState();
-      await remoteAccount
-          .getApiRepository()
+      await _apiRepositories()
+          .forCredential(remoteAccount.credential)
           .updatePictureFromURL(result.pictureUri);
 
       yield LoginAuthCompletedState();

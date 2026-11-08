@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:get_it/get_it.dart';
 import 'package:lets_play_cities/base/achievements/achievements.dart';
 import 'package:lets_play_cities/base/achievements/achievements_service.dart';
 import 'package:lets_play_cities/base/data.dart';
@@ -9,7 +8,6 @@ import 'package:lets_play_cities/base/game/game_mode.dart';
 import 'package:lets_play_cities/base/game/game_result.dart';
 import 'package:lets_play_cities/base/game/management.dart';
 import 'package:lets_play_cities/base/game/player/surrender_exception.dart';
-import 'package:lets_play_cities/base/preferences.dart';
 import 'package:lets_play_cities/base/scoring.dart';
 import 'package:lets_play_cities/base/users.dart';
 import 'package:lets_play_cities/utils/stream_utils.dart';
@@ -33,6 +31,11 @@ class GameSession {
 
   /// Time limit in seconds per users move
   final int timeLimit;
+
+  final AchievementsService _achievements;
+
+  /// Called when the game ends, so the setting in effect at that moment counts
+  final Difficulty Function() _wordsDifficulty;
 
   // This stream will closed automatically by closing [_serviceEvents]
   // ignore: close_sinks
@@ -59,14 +62,18 @@ class GameSession {
     required this.scoringType,
     required this.timeLimit,
     required this.scoreController,
+    required this._achievements,
+    required this._wordsDifficulty,
     Stream<GameEvent> Function(GameSession)? externalEvents,
   }) {
     if (externalEvents != null) {
-      unawaited(externalEvents(this).asyncMap((event) async {
-        if (_gameRunning) {
-          await _sendServiceEvent(event);
-        }
-      }).drain());
+      unawaited(
+        externalEvents(this).asyncMap((event) async {
+          if (_gameRunning) {
+            await _sendServiceEvent(event);
+          }
+        }).drain(),
+      );
     }
   }
 
@@ -88,7 +95,8 @@ class GameSession {
 
   /// Dispatches user input to the current [Player] in users list
   void deliverUserMessage(String message) {
-    final currentPlayer = usersList.currentPlayer ??
+    final currentPlayer =
+        usersList.currentPlayer ??
         usersList.all.firstWhere((element) => element is Player);
 
     _sendServiceEvent(MessageEvent(message, currentPlayer));
@@ -106,8 +114,8 @@ class GameSession {
     await _sendServiceEvent(
       OnMoveFinished(
         usersList.currentPlayer == null
-            ? MoveFinishType.Disconnected
-            : MoveFinishType.Surrender,
+            ? MoveFinishType.disconnected
+            : MoveFinishType.surrender,
         usersList.currentPlayer ??
             usersList.all.firstWhere((user) => user is Player),
       ),
@@ -118,13 +126,16 @@ class GameSession {
   /// When the game finishes returns [GameResult]
   Future<GameResult> runMoves() async {
     GameEvent? event;
-    await for (event in _runMoves()) {
-      _inputEvents.sink.add(event);
+    try {
+      await for (event in _runMoves()) {
+        _inputEvents.sink.add(event);
+      }
+    } finally {
+      await _inputEvents.close();
     }
-    await _inputEvents.close();
 
     if (event is OnMoveFinished) {
-      if (event.endType == MoveFinishType.Completed) {
+      if (event.endType == MoveFinishType.completed) {
         throw ('This move type should not finish the game!');
       }
 
@@ -154,18 +165,17 @@ class GameSession {
     await Future.delayed(Duration(milliseconds: 150));
 
     while (_gameRunning) {
-      yield* mergeStreamsWhile([
-        _createTimer(),
-        _makeMoveForCurrentUser(),
-        _serviceEvents.stream,
-      ], (element) {
-        final isMoveFinished = element is OnMoveFinished;
-        if (element is OnMoveFinished &&
-            element.endType != MoveFinishType.Completed) {
-          _gameRunning = false;
-        }
-        return !isMoveFinished;
-      });
+      yield* mergeStreamsWhile(
+        [_createTimer(), _makeMoveForCurrentUser(), _serviceEvents.stream],
+        (element) {
+          final isMoveFinished = element is OnMoveFinished;
+          if (element is OnMoveFinished &&
+              element.endType != MoveFinishType.completed) {
+            _gameRunning = false;
+          }
+          return !isMoveFinished;
+        },
+      );
     }
   }
 
@@ -175,8 +185,9 @@ class GameSession {
     final currentUser = usersList.current;
 
     // Send current user switching event
-    yield* eventChannel
-        .sendEvent(OnUserSwitchedEvent(currentUser, usersList.all));
+    yield* eventChannel.sendEvent(
+      OnUserSwitchedEvent(currentUser, usersList.all),
+    );
 
     // Update the first char
     yield* eventChannel.sendEvent(OnFirstCharChanged(lastSuitableChar));
@@ -186,7 +197,7 @@ class GameSession {
       try {
         city = await currentUser.onCreateWord(lastSuitableChar);
       } on SurrenderException {
-        yield OnMoveFinished(MoveFinishType.Surrender, currentUser);
+        yield OnMoveFinished(MoveFinishType.surrender, currentUser);
         return;
       }
 
@@ -198,7 +209,7 @@ class GameSession {
 
           _lastAcceptedWord = event.word;
           usersList.switchToNext();
-          yield OnMoveFinished(MoveFinishType.Completed, currentUser);
+          yield OnMoveFinished(MoveFinishType.completed, currentUser);
           return;
         }
       }
@@ -208,12 +219,14 @@ class GameSession {
   Stream<GameEvent> _createTimer() async* {
     if (timeLimit == 0) return;
     yield* Stream.periodic(
-            const Duration(seconds: 1), (tick) => timeLimit - tick)
-        .map((currentTime) => TimeEvent(formatTime(currentTime)))
+          const Duration(seconds: 1),
+          (tick) => timeLimit - tick,
+        )
+        .map((secondsLeft) => TimeEvent(secondsLeft))
         .take(timeLimit + 1)
         .takeWhile((_) => _gameRunning);
 
-    yield OnMoveFinished(MoveFinishType.Timeout, usersList.current);
+    yield OnMoveFinished(MoveFinishType.timeout, usersList.current);
   }
 
   Future cancel() async {
@@ -225,46 +238,53 @@ class GameSession {
 
   // Checks for achievements type when game ends
   Future<void> _updateAchievements() async {
-    final achievementService = GetIt.instance.get<AchievementsService>();
-
     final playerScore = usersList.all.whereType<Player>().first.score;
 
     final nonEmptyScore = playerScore > 0;
 
     if (nonEmptyScore) {
-      await achievementService.unlockAchievement(
-          Achievement.write15Cities, _playerMovesInGame);
-      await achievementService.unlockAchievement(
-          Achievement.write80Cities, _playerMovesInGame);
-      await achievementService.unlockAchievement(
-          Achievement.write500Cities, _playerMovesInGame);
-      await achievementService.unlockAchievement(
-          Achievement.reachScore1000Pts, playerScore);
-      await achievementService.unlockAchievement(
-          Achievement.reachScore5000Pts, playerScore);
-      await achievementService.unlockAchievement(
-          Achievement.reachScore25000Pts, playerScore);
+      await _achievements.unlockAchievement(
+        Achievement.write15Cities,
+        _playerMovesInGame,
+      );
+      await _achievements.unlockAchievement(
+        Achievement.write80Cities,
+        _playerMovesInGame,
+      );
+      await _achievements.unlockAchievement(
+        Achievement.write500Cities,
+        _playerMovesInGame,
+      );
+      await _achievements.unlockAchievement(
+        Achievement.reachScore1000Pts,
+        playerScore,
+      );
+      await _achievements.unlockAchievement(
+        Achievement.reachScore5000Pts,
+        playerScore,
+      );
+      await _achievements.unlockAchievement(
+        Achievement.reachScore25000Pts,
+        playerScore,
+      );
 
       if (_playerMovesInGame >= 50) {
-        await achievementService
-            .unlockAchievement(Achievement.write50CitiesInGame);
+        await _achievements.unlockAchievement(Achievement.write50CitiesInGame);
       }
       if (_playerMovesInGame >= 100) {
-        await achievementService
-            .unlockAchievement(Achievement.write100CitiesInGame);
+        await _achievements.unlockAchievement(Achievement.write100CitiesInGame);
       }
 
-      final difficulty = GetIt.instance.get<GamePreferences>().wordsDifficulty;
+      final difficulty = _wordsDifficulty();
 
-      if (difficulty == Difficulty.HARD) {
-        await achievementService.unlockAchievement(Achievement.playInHardMode);
+      if (difficulty == Difficulty.hard) {
+        await _achievements.unlockAchievement(Achievement.playInHardMode);
       }
       if (mode == GameMode.network) {
-        await achievementService
-            .unlockAchievement(Achievement.playOnline3Times);
+        await _achievements.unlockAchievement(Achievement.playOnline3Times);
       }
       if (mode != GameMode.playerVsPlayer) {
-        await achievementService.submitScore(playerScore);
+        await _achievements.submitScore(playerScore);
       }
     }
   }

@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:lets_play_cities/domain/usecases.dart';
+import 'package:lets_play_cities/base/usecases.dart';
 import 'package:lets_play_cities/remote/client/remote_api_client.dart';
 import 'package:lets_play_cities/remote/model/profile_info.dart';
 
@@ -14,8 +14,8 @@ class SignUpUserUsecase
 
   @override
   Future<ProfileInfo> execute(HttpRequest request) async {
-    final rawMessage = await request.single;
-    final json = jsonDecode(utf8.decode(rawMessage));
+    // The body may arrive in several chunks
+    final json = jsonDecode(await utf8.decoder.bind(request).join());
     final signUpData = RemoteSignUpData.fromMap(json);
     final profile = _getProfileFromSignUpInfo.execute(signUpData);
 

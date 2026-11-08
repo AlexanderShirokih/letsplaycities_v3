@@ -1,4 +1,3 @@
-import 'package:get_it/get_it.dart';
 import 'package:lets_play_cities/app_config.dart';
 import 'package:lets_play_cities/remote/auth.dart';
 import 'package:lets_play_cities/remote/model/utils.dart';
@@ -18,33 +17,36 @@ class HistoryInfo extends BaseProfileInfo {
   final int wordsCount;
 
   const HistoryInfo._({
-    required int userId,
-    required String login,
-    required String? pictureUrl,
+    required super.userId,
+    required super.login,
+    required super.pictureUrl,
     required this.isFriend,
     required this.startTime,
     required this.duration,
     required this.wordsCount,
-  }) : super(userId: userId, login: login, pictureUrl: pictureUrl);
+  });
 
-  HistoryInfo.fromJson(Map<String, dynamic> data)
-      : this._(
-          userId: data['userId'],
-          login: data['login'],
-          isFriend: data['isFriend'] == 'true',
-          duration: data['duration'],
-          wordsCount: data['wordsCount'],
-          startTime: DateTime.fromMillisecondsSinceEpoch(data['startTime']),
-          pictureUrl: getPictureUrlOrNull(
-              GetIt.instance<AppConfig>(), data['userId'], data['pictureHash']),
-        );
+  HistoryInfo.fromJson(AppConfig appConfig, Map<String, dynamic> data)
+    : this._(
+        userId: data['userId'],
+        login: data['login'],
+        isFriend: data['isFriend'] == 'true',
+        duration: data['duration'],
+        wordsCount: data['wordsCount'],
+        startTime: DateTime.fromMillisecondsSinceEpoch(data['startTime']),
+        pictureUrl: getPictureUrlOrNull(
+          appConfig,
+          data['userId'],
+          data['pictureHash'],
+        ),
+      );
 
   @override
   List<Object?> get props => [
-        ...super.props,
-        isFriend,
-        duration,
-        wordsCount,
-        startTime,
-      ];
+    ...super.props,
+    isFriend,
+    duration,
+    wordsCount,
+    startTime,
+  ];
 }

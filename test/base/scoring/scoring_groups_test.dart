@@ -1,7 +1,7 @@
 import 'dart:convert';
 
 import 'package:lets_play_cities/base/scoring.dart';
-import 'package:test/test.dart';
+import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   test('parsing scoring from JSON is correct', () {
@@ -55,18 +55,19 @@ void main() {
     expect(set.groups.length, equals(2));
 
     expect(set.groups[0].main, equals(ScoringField.empty(name: 'name')));
-    expect(set.groups[0].child,
-        equals([ScoringField.int(name: 'name', value: 12)]));
+    expect(
+      set.groups[0].child,
+      equals([ScoringField.int(name: 'name', value: 12)]),
+    );
 
     expect(set.groups[1].main, equals(TimeScoringField('name', 12)));
     expect(
-        set.groups[1].child,
-        equals(
-          [
-            PairedScoringField('name', 'key', 123),
-            ScoringField.paired(name: 'name', value: 'key'),
-          ],
-        ));
+      set.groups[1].child,
+      equals([
+        PairedScoringField('name', 'key', 123),
+        ScoringField.paired(name: 'name', value: 'key'),
+      ]),
+    );
   });
 
   test('test toJson() works correctly', () {
@@ -90,7 +91,7 @@ void main() {
             ScoringField.int(name: 'ch1', value: 100),
             ScoringField.int(name: 'ch2', value: 200),
           ],
-        )
+        ),
       ],
     );
 
@@ -110,7 +111,7 @@ void main() {
             ScoringField.int(name: 'val1', value: 30),
             ScoringField.int(name: 'val2', value: 40),
           ],
-        )
+        ),
       ],
     );
 
@@ -130,7 +131,7 @@ void main() {
             ScoringField.int(name: 'val1', value: 30),
             ScoringField.int(name: 'val2', value: 40),
           ],
-        )
+        ),
       ],
     );
 

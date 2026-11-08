@@ -14,16 +14,12 @@ enum UserUserAction {
   unbanUser,
 }
 
-enum UserFetchType {
-  getFriendsList,
-  getHistoryList,
-  getBanlist,
-}
+enum UserFetchType { getFriendsList, getHistoryList, getBanlist }
 
 class UserFetchListEvent extends UserActionsEvent {
   final bool forceRefresh;
 
-  UserFetchListEvent(this.forceRefresh);
+  const UserFetchListEvent(this.forceRefresh);
 
   @override
   List<Object> get props => [forceRefresh];
@@ -35,8 +31,12 @@ class UserEvent extends UserActionsEvent {
   final String? confirmationMessage;
   final bool undoable;
 
-  const UserEvent(this.target, this.action,
-      {this.confirmationMessage, this.undoable = false});
+  const UserEvent(
+    this.target,
+    this.action, {
+    this.confirmationMessage,
+    this.undoable = false,
+  });
 
   @override
   List<Object> get props => [target, action, confirmationMessage ?? ''];
@@ -49,4 +49,14 @@ class UserActionConfirmedEvent extends UserActionsEvent {
 
   @override
   List<Object> get props => [sourceEvent];
+}
+
+/// Returns the bloc to [UserActionsInitial]. Without it, repeating the
+/// cancelled undoable [UserEvent] would yield a state equal to the current
+/// one, which the bloc drops, so the user would get no undo snackbar.
+class UserActionsResetEvent extends UserActionsEvent {
+  const UserActionsResetEvent();
+
+  @override
+  List<Object> get props => [];
 }

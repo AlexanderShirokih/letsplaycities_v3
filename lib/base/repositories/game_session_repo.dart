@@ -10,8 +10,9 @@ import 'package:lets_play_cities/base/users.dart';
 import 'package:lets_play_cities/utils/debouncer.dart';
 
 class GameSessionRepository {
-  final Debouncer _userInputDebounce =
-      Debouncer(const Duration(milliseconds: 1000));
+  final Debouncer _userInputDebounce = Debouncer(
+    const Duration(milliseconds: 1000),
+  );
 
   final GameSession _session;
 
@@ -31,9 +32,14 @@ class GameSessionRepository {
   /// Returns latest accepted word
   String get lastAcceptedWord => _session.lastAcceptedWord;
 
-  /// Creates new instance of [GameItemsRepository]
-  GameItemsRepository createGameItemsRepository() =>
-      GameItemsRepository(_session.inputEvents);
+  /// Cities and messages of this game. There is one instance per session, so
+  /// the played items survive rebuilds of the widgets that show them.
+  late final GameItemsRepository gameItemsRepository = GameItemsRepository(
+    _session.inputEvents,
+  );
+
+  /// Returns [gameItemsRepository]; it does not create a new instance.
+  GameItemsRepository createGameItemsRepository() => gameItemsRepository;
 
   /// Creates new instance of [GameServiceEventsRepository]
   GameServiceEventsRepository createGameServiceEventsRepository() =>

@@ -15,11 +15,11 @@ class RemotePlayer extends User {
       _remoteGameClient.disconnect().then((_) => super.close());
 
   RemotePlayer(AdvancedAccountInfo accountInfo, this._remoteGameClient)
-      : super(
-          comboSystem: ComboSystem(canUseQuickTime: true),
-          accountInfo: accountInfo,
-          isTrusted: true,
-        );
+    : super(
+        comboSystem: ComboSystem(canUseQuickTime: true),
+        accountInfo: accountInfo,
+        isTrusted: true,
+      );
 
   @override
   Future<String> onCreateWord(String firstChar) {

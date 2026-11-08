@@ -1,5 +1,4 @@
 import 'package:equatable/equatable.dart';
-import 'package:flutter/foundation.dart';
 import 'package:lets_play_cities/app_config.dart';
 import 'package:lets_play_cities/remote/model/utils.dart';
 
@@ -8,78 +7,96 @@ import 'auth_type.dart';
 /// Describes user roles
 enum Role {
   /// Used when user is banned
-  banned,
+  banned('BANNED_USER', 'banned'),
 
   /// Default user state
-  regular,
+  regular('REGULAR_USER', 'ready'),
 
   /// Used when user has admin privileges
-  admin
-}
+  admin('ADMIN', 'admin');
 
-extension RoleExt on Role {
+  const Role(this.wireName, this.signUpState);
+
+  /// Name of the role in a profile of the REST API ('role')
+  final String wireName;
+
+  /// Name of the role in the sign-up response ('state')
+  final String signUpState;
+
   /// Converts string role representation to [Role] value.
+  /// Throws a [String] when there is no such role.
   static Role fromString(String role) {
-    switch (role) {
-      case 'REGULAR_USER':
-        return Role.regular;
-      case 'ADMIN':
-        return Role.admin;
-      case 'BANNED_USER':
-        return Role.banned;
+    for (final value in values) {
+      if (value.wireName == role) {
+        return value;
+      }
     }
     throw ('Bad state! role=$role');
+  }
+
+  /// Converts the sign-up response 'state' to [Role] value.
+  /// Throws a [String] when there is no such role.
+  static Role fromSignUpState(String s) {
+    for (final value in values) {
+      if (value.signUpState == s) {
+        return value;
+      }
+    }
+    throw ('Unknown UserRole: $s');
   }
 }
 
 /// Friendship status between two users
 enum FriendshipStatus {
   /// Users aren't friends
-  notFriends,
+  notFriends('notFriends'),
 
   /// Users are friends
-  friends,
+  friends('friends'),
 
   /// There is a request from owner to target
-  inputRequest,
+  inputRequest('inputRequest'),
 
   /// There is a request from target to owner
-  outputRequest,
+  outputRequest('outputRequest'),
 
   /// There is owner profile (no target)
-  owner,
+  owner('owner');
+
+  const FriendshipStatus(this.wireName);
+
+  /// Name of the status in a REST profile and in the 'join' message
+  final String wireName;
+
+  /// Returns the status named [s] by its [wireName].
+  /// Throws a [StateError] when there is no such status.
+  static FriendshipStatus fromString(String s) =>
+      values.singleWhere((element) => element.wireName == s);
 }
 
+/// Ban status between two users
 enum BanStatus {
   /// Neither user or owner bans each other
-  notBanned,
+  notBanned('notBanned'),
 
   /// Owner was banned by user
-  inputBan,
+  inputBan('inputBan'),
 
   /// This user banned by owner
-  outputBan,
+  outputBan('outputBan'),
 
   /// There is owner profile
-  owner
-}
+  owner('owner');
 
-extension BanStatusExt on BanStatus {
-  /// Converts string representation of this enum to enum constant
+  const BanStatus(this.wireName);
+
+  /// Name of the status in a REST profile
+  final String wireName;
+
+  /// Returns the status named [s] by its [wireName].
+  /// Throws a [StateError] when there is no such status.
   static BanStatus fromString(String s) =>
-      BanStatus.values.singleWhere((element) => describeEnum(element) == s);
-
-  /// Converts enum value to string representation
-  String asString() => describeEnum(this);
-}
-
-extension FriendshipStatusExt on FriendshipStatus {
-  /// Converts string representation of this enum to enum constant
-  static FriendshipStatus fromString(String s) => FriendshipStatus.values
-      .singleWhere((element) => describeEnum(element) == s);
-
-  /// Converts enum value to string representation
-  String asString() => describeEnum(this);
+      values.singleWhere((element) => element.wireName == s);
 }
 
 /// A data class containing base user info
@@ -121,42 +138,41 @@ class ProfileInfo extends BaseProfileInfo {
   final BanStatus banStatus;
 
   const ProfileInfo({
-    required int userId,
-    required String login,
-    required String? pictureUrl,
+    required super.userId,
+    required super.login,
+    required super.pictureUrl,
     required this.role,
     required this.lastVisitDate,
     required this.banStatus,
     required this.friendshipStatus,
     required this.authType,
-  }) : super(
-          userId: userId,
-          login: login,
-          pictureUrl: pictureUrl,
-        );
+  });
 
   ProfileInfo.fromJson(AppConfig appConfig, Map<String, dynamic> data)
-      : this(
-          login: data['login'],
-          userId: data['userId'],
-          friendshipStatus:
-              FriendshipStatusExt.fromString(data['friendshipStatus']),
-          banStatus: BanStatusExt.fromString(data['banStatus']),
-          role: RoleExt.fromString(data['role']),
-          authType: AuthTypeExtension.fromString(data['authType']),
-          lastVisitDate:
-              DateTime.fromMillisecondsSinceEpoch(data['lastVisitDate']),
-          pictureUrl: getPictureUrlOrNull(
-              appConfig, data['userId'], data['pictureHash']),
-        );
+    : this(
+        login: data['login'],
+        userId: data['userId'],
+        friendshipStatus: FriendshipStatus.fromString(data['friendshipStatus']),
+        banStatus: BanStatus.fromString(data['banStatus']),
+        role: Role.fromString(data['role']),
+        authType: AuthType.fromString(data['authType']),
+        lastVisitDate: DateTime.fromMillisecondsSinceEpoch(
+          data['lastVisitDate'],
+        ),
+        pictureUrl: getPictureUrlOrNull(
+          appConfig,
+          data['userId'],
+          data['pictureHash'],
+        ),
+      );
 
   @override
   List<Object?> get props => [
-        ...super.props,
-        role,
-        lastVisitDate,
-        friendshipStatus,
-        banStatus,
-        authType,
-      ];
+    ...super.props,
+    role,
+    lastVisitDate,
+    friendshipStatus,
+    banStatus,
+    authType,
+  ];
 }

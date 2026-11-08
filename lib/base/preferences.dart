@@ -1,8 +1,8 @@
 import 'dart:convert';
 
+import 'package:lets_play_cities/base/data.dart';
 import 'package:lets_play_cities/base/dictionary.dart';
 import 'package:lets_play_cities/base/scoring.dart';
-import 'package:lets_play_cities/remote/account.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// Represents application preferences
@@ -55,7 +55,7 @@ abstract class GamePreferences {
   set lastDictionaryCheckDate(DateTime d);
 
   /// Gets dictionary update checking interval.
-  /// [DictionaryUpdatePeriod.NEVER] means don't fetch updates.
+  /// [DictionaryUpdatePeriod.never] means don't fetch updates.
   DictionaryUpdatePeriod get dictionaryUpdatePeriod;
 
   set dictionaryUpdatePeriod(DictionaryUpdatePeriod dup);
@@ -130,15 +130,17 @@ class SharedPreferencesGamePrefs extends GamePreferences {
 
   @override
   DateTime get lastDictionaryCheckDate => DateTime.fromMillisecondsSinceEpoch(
-      _prefs.getInt('lastDictionaryCheckDate') ?? 0);
+    _prefs.getInt('lastDictionaryCheckDate') ?? 0,
+  );
 
   @override
   set lastDictionaryCheckDate(DateTime d) =>
       _prefs.setInt('lastDictionaryCheckDate', d.millisecondsSinceEpoch);
 
   @override
-  DictionaryUpdatePeriod get dictionaryUpdatePeriod => DictionaryUpdatePeriod
-      .values[_prefs.getInt('dictionaryUpdatePeriod') ?? 1];
+  DictionaryUpdatePeriod get dictionaryUpdatePeriod =>
+      DictionaryUpdatePeriod.values[_prefs.getInt('dictionaryUpdatePeriod') ??
+          1];
 
   @override
   set dictionaryUpdatePeriod(DictionaryUpdatePeriod dup) =>
@@ -156,8 +158,8 @@ class SharedPreferencesGamePrefs extends GamePreferences {
     return newCredentials == null
         ? _prefs.remove('uhash').then((_) => _prefs.remove('uid'))
         : _prefs
-            .setString('uhash', newCredentials.accessToken)
-            .then((_) => _prefs.setInt('uid', newCredentials.userId));
+              .setString('uhash', newCredentials.accessToken)
+              .then((_) => _prefs.setInt('uid', newCredentials.userId));
   }
 
   @override

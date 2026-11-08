@@ -47,9 +47,13 @@ abstract class ScoringField {
       case 'int':
         return IntScoringField(name, value as int?);
       case 'time':
-        return TimeScoringField(name, value as int);
+        return TimeScoringField(name, value as int? ?? 0);
       case 'paired':
-        return PairedScoringField<String, int>(name, key as String?, value as int?);
+        return PairedScoringField<String, int>(
+          name,
+          key as String?,
+          value as int?,
+        );
       default:
         throw ('Unknown field type: $type');
     }
@@ -72,7 +76,7 @@ abstract class ScoringField {
 }
 
 class EmptyScoringField extends ScoringField with Equatable {
-  EmptyScoringField(String name) : super(name);
+  EmptyScoringField(super.name);
 
   @override
   String? asString() => null;
@@ -92,7 +96,7 @@ class EmptyScoringField extends ScoringField with Equatable {
 class IntScoringField extends ScoringField with Equatable {
   int? value;
 
-  IntScoringField(String name, this.value) : super(name);
+  IntScoringField(super.name, this.value);
 
   /// Increases value by 1
   /// Works only for `int` type
@@ -125,25 +129,28 @@ class IntScoringField extends ScoringField with Equatable {
   bool get stringify => true;
 
   @override
-  Map<String, dynamic> toJson() =>
-      {'type': 'int', 'name': name, 'value': value};
+  Map<String, dynamic> toJson() => {
+    'type': 'int',
+    'name': name,
+    'value': value,
+  };
 }
 
 /// [ScoringField] holding time value that can be formatted as string
 // ignore: must_be_immutable
 class TimeScoringField extends IntScoringField {
-  TimeScoringField(String name, int value) : super(name, value);
+  TimeScoringField(super.name, int super.value);
 
   @override
   String asString() {
     var s = value ?? 0;
     var h = 0;
     var m = 0;
-    if (s > 3600) {
+    if (s >= 3600) {
       h = s ~/ 3600;
       s -= 3600 * h;
     }
-    if (s > 60) {
+    if (s >= 60) {
       m = s ~/ 60;
       s -= 60 * m;
     }
@@ -153,8 +160,11 @@ class TimeScoringField extends IntScoringField {
   }
 
   @override
-  Map<String, dynamic> toJson() =>
-      {'type': 'time', 'name': name, 'value': value};
+  Map<String, dynamic> toJson() => {
+    'type': 'time',
+    'name': name,
+    'value': value,
+  };
 }
 
 /// [ScoringField] that holds a pair of values
@@ -162,7 +172,7 @@ class PairedScoringField<K, V> extends ScoringField with Equatable {
   final K? key;
   final V? value;
 
-  const PairedScoringField(String name, this.key, this.value) : super(name);
+  const PairedScoringField(super.name, this.key, this.value);
 
   @override
   bool hasValue() => value != null;
@@ -181,11 +191,18 @@ class PairedScoringField<K, V> extends ScoringField with Equatable {
   bool get stringify => true;
 
   @override
-  Map<String, dynamic> toJson() =>
-      {'type': 'paired', 'name': name, 'key': key, 'value': value};
+  Map<String, dynamic> toJson() => {
+    'type': 'paired',
+    'name': name,
+    'key': key,
+    'value': value,
+  };
 
   /// Creates deep copy of this field
   PairedScoringField<K, V> clone({String? name, K? key, V? value}) =>
       PairedScoringField(
-          name ?? this.name, key ?? this.key, value ?? this.value);
+        name ?? this.name,
+        key ?? this.key,
+        value ?? this.value,
+      );
 }

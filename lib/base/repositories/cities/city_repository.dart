@@ -24,15 +24,12 @@ class CityRepository {
     final dictionaryService = await _dictionaryFactory.createDictionary();
 
     final result = await dictionaryService.checkCity(city);
-    if (result == CityResult.CITY_NOT_FOUND) {
+    if (result == CityResult.cityNotFound) {
       return null;
     }
 
     final countryCode = dictionaryService.getCountryCode(city);
 
-    return CitiesListEntry(
-      city,
-      countryCode,
-    );
+    return CitiesListEntry(city, countryCode);
   }
 }

@@ -1,15 +1,14 @@
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:lets_play_cities/base/bloc/sequential_event_mapping.dart';
+import 'package:lets_play_cities/base/cities_list/city_item.dart';
 import 'package:lets_play_cities/base/dictionary/country_entity.dart';
 import 'package:lets_play_cities/base/repositories/cities/city_repository.dart';
-import 'package:lets_play_cities/base/repositories/cities/city_requests_repository.dart';
 import 'package:lets_play_cities/base/repositories/cities/country_repository.dart';
-import 'package:lets_play_cities/l18n/localization_service.dart';
 import 'package:lets_play_cities/remote/auth.dart';
+import 'package:lets_play_cities/remote/city_requests_repository.dart';
 import 'package:lets_play_cities/remote/exceptions.dart';
-import 'package:lets_play_cities/screens/main/cites/model/city_item.dart';
 import 'package:lets_play_cities/utils/string_utils.dart';
-import 'package:lets_play_cities/base/bloc/sequential_event_mapping.dart';
 
 part 'city_edit_actions_event.dart';
 
@@ -22,13 +21,15 @@ class CityEditActionsBloc extends Bloc<CityEditActions, CityEditActionsState>
   final CityRequestsRepository _cityRequestsRepository;
   final CountryRepository _countryRepository;
   final CityRepository _cityRepository;
-  final LocalizationService _l10n;
+
+  /// Country of a city whose country code is not in the country list.
+  final String _unknownCountryName;
 
   CityEditActionsBloc(
     this._cityRequestsRepository,
     this._countryRepository,
     this._cityRepository,
-    this._l10n,
+    this._unknownCountryName,
     String? city,
   ) : super(CityEditActionsInitial()) {
     mapEventsSequentially(_mapEventToState);
@@ -37,7 +38,16 @@ class CityEditActionsBloc extends Bloc<CityEditActions, CityEditActionsState>
 
   Stream<CityEditActionsState> _mapEventToState(CityEditActions event) async* {
     if (event is CityEditActionFetchData) {
-      yield* _loadData(event.city);
+      // `await for`, not `yield*`, so that a loading error reaches the catch
+      try {
+        await for (final state in _loadData(event.city)) {
+          yield state;
+        }
+      } catch (e, stackTrace) {
+        // Without the data the screen cannot send anything, so tell the user
+        addError(e, stackTrace);
+        yield const CityDataLoadingError();
+      }
     } else if (event is CityEditActionSend) {
       yield* _handleRequest(
         event.updatedCountryCode,
@@ -57,13 +67,7 @@ class CityEditActionsBloc extends Bloc<CityEditActions, CityEditActionsState>
         orElse: () => countryList.first,
       );
 
-      yield CityEditActionsData(
-        countryList,
-        CityItem(
-          '',
-          defaultCountry,
-        ),
-      );
+      yield CityEditActionsData(countryList, CityItem('', defaultCountry));
       return;
     }
 
@@ -72,11 +76,9 @@ class CityEditActionsBloc extends Bloc<CityEditActions, CityEditActionsState>
     if (cityEntity == null) {
       yield CityNotFound(city);
     } else {
-      final missingCountryText = _l10n.citiesList['unk_city'];
-
       final countryEntity = countryList.firstWhere(
         (county) => county.countryCode == cityEntity.countryCode,
-        orElse: () => CountryEntity(missingCountryText, 0, false),
+        orElse: () => CountryEntity(_unknownCountryName, 0, false),
       );
 
       final cityItem = CityItem(
@@ -84,10 +86,7 @@ class CityEditActionsBloc extends Bloc<CityEditActions, CityEditActionsState>
         countryEntity,
       );
 
-      yield CityEditActionsData(
-        countryList,
-        cityItem,
-      );
+      yield CityEditActionsData(countryList, cityItem);
     }
   }
 
@@ -99,7 +98,7 @@ class CityEditActionsBloc extends Bloc<CityEditActions, CityEditActionsState>
   ) async* {
     final currentState = state;
 
-    if (!(currentState is CityEditActionsData)) {
+    if (currentState is! CityEditActionsData) {
       return;
     }
 
@@ -115,10 +114,10 @@ class CityEditActionsBloc extends Bloc<CityEditActions, CityEditActionsState>
 
       yield CityRequestSent();
     } on NotAuthorizedException {
-      yield CityRequestSendingError(CityRequestSendingType.NotAuthorized);
+      yield CityRequestSendingError(CityRequestSendingType.notAuthorized);
       yield currentState;
     } on RemoteException {
-      yield CityRequestSendingError(CityRequestSendingType.Network);
+      yield CityRequestSendingError(CityRequestSendingType.network);
       yield currentState;
     }
   }
@@ -132,21 +131,21 @@ class CityEditActionsBloc extends Bloc<CityEditActions, CityEditActionsState>
     required CityEditActionType type,
   }) async {
     switch (type) {
-      case CityEditActionType.Add:
+      case CityEditActionType.add:
         await _cityRequestsRepository.sendAddCityRequest(
           newCountryCode: newCountryCode,
           newCityName: newCityName,
           reason: reason,
         );
         break;
-      case CityEditActionType.Remove:
+      case CityEditActionType.remove:
         await _cityRequestsRepository.sendRemoveRequest(
           oldCountryCode: oldCountryCode,
           oldCityName: oldCityName,
           reason: reason,
         );
         break;
-      case CityEditActionType.Edit:
+      case CityEditActionType.edit:
         await _cityRequestsRepository.sendEditRequest(
           newCountryCode: newCountryCode,
           newCityName: newCityName,

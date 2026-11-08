@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:lets_play_cities/base/data.dart';
 import 'package:lets_play_cities/base/game/combo.dart';
 import 'package:lets_play_cities/base/game/player/surrender_exception.dart';
-import 'package:lets_play_cities/remote/auth.dart';
 
 /// Base class that keeps users data and defines user behaviour.
 /// [playerData] is a users data model class
@@ -24,7 +23,7 @@ abstract class User {
   });
 
   /// Current user position
-  Position position = Position.UNKNOWN;
+  Position position = Position.unknown;
 
   /// Returns true is the user can receive messages
   bool get isMessagesAllowed => accountInfo.canReceiveMessages;

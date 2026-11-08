@@ -27,10 +27,7 @@ abstract class CitiesListDataState extends CitiesListState {
       orElse: () => CountryEntity(missingCountryText, 0, false),
     );
 
-    return CityItem(
-      entry.cityName.toTitleCase(),
-      countryEntity,
-    );
+    return CityItem(entry.cityName.toTitleCase(), countryEntity);
   }
 }
 
@@ -68,10 +65,13 @@ class CitiesListFilteredDataState extends CitiesListDataState {
 
   /// Creates data state with original data and filter
   const CitiesListFilteredDataState(
-      this.originalState, this._filteredCities, this.filter);
+    this.originalState,
+    this._filteredCities,
+    this.filter,
+  );
 
   @override
-  List<Object> get props => [originalState, _filteredCities];
+  List<Object> get props => [originalState, _filteredCities, filter];
 
   @override
   List<CitiesListEntry> get citiesList => _filteredCities;

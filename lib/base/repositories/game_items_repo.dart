@@ -12,13 +12,13 @@ class GameItemsRepository {
   /// Emits [GameItem] events such as [CityInfo] and [MessageInfo]
   /// from the session event channel.
   Stream<GameItem> getGameItems() => _eventsStream
-          .where((event) => event is Accepted || event is MessageEvent)
-          .map((event) {
+      .where((event) => event is Accepted || event is MessageEvent)
+      .map((event) {
         if (event is Accepted) {
           return CityInfo(
             city: event.word,
             owner: event.owner,
-            status: event.status ?? CityStatus.ERROR,
+            status: event.status ?? CityStatus.error,
             countryCode: event.countryCode ?? 0,
           );
         } else if (event is MessageEvent) {
@@ -31,15 +31,26 @@ class GameItemsRepository {
   int _findWithTheSameBase(GameItem item) =>
       _itemsList.lastIndexWhere((element) => element.hasTheSameBaseData(item));
 
-  /// Returns stream containing list of actual [GameItem] items.
-  Stream<List<GameItem>> getItemsList() => getGameItems().asyncMap((event) {
-        final curr = _findWithTheSameBase(event);
-        if (curr != -1) {
-          _itemsList[curr] = event;
-        } else {
-          _itemsList.add(event);
-        }
+  // Built once: a second pipeline would apply every event to [_itemsList]
+  // again.
+  late final Stream<List<GameItem>> _itemsListStream = getGameItems().asyncMap((
+    event,
+  ) {
+    // A city comes again when its status changes; a message is always new.
+    final curr = event is CityInfo ? _findWithTheSameBase(event) : -1;
+    if (curr != -1) {
+      _itemsList[curr] = event;
+    } else {
+      _itemsList.add(event);
+    }
 
-        return _itemsList;
-      });
+    return _itemsList;
+  });
+
+  /// Items received so far.
+  List<GameItem> get items => List.unmodifiable(_itemsList);
+
+  /// Returns stream containing list of actual [GameItem] items.
+  /// Every call returns the same stream.
+  Stream<List<GameItem>> getItemsList() => _itemsListStream;
 }

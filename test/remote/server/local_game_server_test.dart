@@ -4,7 +4,7 @@ import 'package:lets_play_cities/remote/server/server_connection.dart';
 import 'package:lets_play_cities/remote/server/user_lookup_repository.dart';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
-import 'package:test/test.dart';
+import 'package:flutter_test/flutter_test.dart';
 
 import 'local_game_server_test.mocks.dart';
 import 'server_mocks.dart';
@@ -14,7 +14,6 @@ import 'server_mocks.dart';
   MockSpec<RemoteConnection>(as: #MockLpsServerInteractor),
   MockSpec<UserLookupRepository>(),
 ])
-
 void main() {
   late MockRemoteServerConnection connection;
   late MockLpsServerInteractor interactor;

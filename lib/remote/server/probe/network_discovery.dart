@@ -3,7 +3,6 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
-import 'package:get_it/get_it.dart';
 import 'package:lets_play_cities/remote/remote_host.dart';
 import 'package:lets_play_cities/utils/error_logger.dart';
 
@@ -52,25 +51,42 @@ abstract class NetworkDiscovery {
   factory NetworkDiscovery.createDiscovery({
     Duration timeout = const Duration(milliseconds: 500),
     required int port,
-  }) =>
-      NetworkDiscoveryImpl(
-        port: port,
-        connectionProbe: ConnectionProbeImpl(port, timeout),
-        httpClient: HttpClient(),
-      );
+    required ErrorLogger errorLogger,
+  }) => NetworkDiscoveryImpl(
+    port: port,
+    connectionProbe: ConnectionProbeImpl(port, timeout),
+    httpClient: HttpClient(),
+    errorLogger: errorLogger,
+  );
 }
 
+/// Returns the IPv4 addresses of this device's network interfaces
+typedef LocalAddressesProvider = Future<List<InternetAddress>> Function();
+
 class NetworkDiscoveryImpl extends NetworkDiscovery {
-  static const int _baseIP = 0xC0A80000;
-  static const int _wildCard = 0x000003FF;
+  /// Range scanned when the device has no private IPv4 address:
+  /// 192.168.0.0 - 192.168.3.255
+  static const int _fallbackBaseIP = 0xC0A80000;
+  static const int _fallbackSize = 0x400;
+
+  /// Interface name prefixes of mobile data connections on Android and iOS
+  static const _cellularInterfaces = ['rmnet', 'ccmni', 'pdp_ip', 'v4-'];
 
   final HttpClient httpClient;
   final ConnectionProbe connectionProbe;
+  final ErrorLogger _errorLogger;
+  final LocalAddressesProvider _localAddresses;
+
+  /// Time limit for the whole /ack exchange with one host
+  final Duration _ackTimeout;
 
   NetworkDiscoveryImpl({
     required int port,
     required this.connectionProbe,
     required this.httpClient,
+    required this._errorLogger,
+    this._localAddresses = _listLocalAddresses,
+    this._ackTimeout = const Duration(seconds: 2),
   }) : super(port);
 
   @override
@@ -78,81 +94,138 @@ class NetworkDiscoveryImpl extends NetworkDiscovery {
     // How many sockets may be opened in parallel
     const windowSize = 16;
 
-    final addresses = List<Uint8List>.generate(
-      windowSize,
-      (_) => Uint8List(4)
-        ..[0] = 192
-        ..[1] = 168,
-    );
-
-    Uint8List buildAddress(int addressSlot, int offset) {
-      final ip = _baseIP + offset;
-      final address = addresses[addressSlot];
-      address[2] = (ip & 0xFF00) >> 8;
-      address[3] = ip & 0xFF;
-      return address;
+    List<InternetAddress> localAddresses;
+    try {
+      localAddresses = await _localAddresses();
+    } catch (_) {
+      localAddresses = const [];
     }
+    final candidates = candidateAddresses(localAddresses);
 
-    // Go through all subnet
-    for (var i = 0; i < _wildCard; i += windowSize) {
-      final futures = List.generate(
-        windowSize,
-        (index) => InternetAddress.fromRawAddress(
-          buildAddress(index, index + i),
-          type: InternetAddressType.IPv4,
-        ),
-      ).map(_ping);
+    for (var i = 0; i < candidates.length; i += windowSize) {
+      final window = candidates.skip(i).take(windowSize);
 
       // Wait for all futures to complete
-      final hosts = await Future.wait<RemoteHost?>(futures);
+      final hosts = await Future.wait(window.map(_ping));
 
       // Yield all tested hosts
-      yield* Stream.fromIterable(
-        hosts.where((element) => element != null).cast<RemoteHost>(),
-      );
+      yield* Stream.fromIterable(hosts.whereType<RemoteHost>());
     }
   }
+
+  /// Returns the addresses to probe: every host of the /24 subnet of each
+  /// private address in [localAddresses], except those addresses themselves.
+  /// Falls back to 192.168.0.0 - 192.168.3.255 when none of them is private.
+  static List<InternetAddress> candidateAddresses(
+    Iterable<InternetAddress> localAddresses,
+  ) {
+    final ownIPs = <int>{};
+    final subnets = <int>{};
+
+    for (final address in localAddresses) {
+      if (address.type != InternetAddressType.IPv4) {
+        continue;
+      }
+      final ip = _toInt(address.rawAddress);
+      if (_isPrivate(ip)) {
+        ownIPs.add(ip);
+        subnets.add(ip & 0xFFFFFF00);
+      }
+    }
+
+    if (subnets.isEmpty) {
+      return [
+        for (var offset = 0; offset < _fallbackSize; offset++)
+          _fromInt(_fallbackBaseIP + offset),
+      ];
+    }
+
+    return [
+      for (final subnet in subnets)
+        for (var host = 1; host < 255; host++)
+          if (!ownIPs.contains(subnet + host)) _fromInt(subnet + host),
+    ];
+  }
+
+  static Future<List<InternetAddress>> _listLocalAddresses() async {
+    final interfaces = await NetworkInterface.list(
+      type: InternetAddressType.IPv4,
+    );
+    return [
+      for (final interface in interfaces)
+        if (!_cellularInterfaces.any(interface.name.startsWith))
+          ...interface.addresses,
+    ];
+  }
+
+  /// 10.0.0.0/8, 172.16.0.0/12 and 192.168.0.0/16
+  static bool _isPrivate(int ip) =>
+      (ip & 0xFF000000) == 0x0A000000 ||
+      (ip & 0xFFF00000) == 0xAC100000 ||
+      (ip & 0xFFFF0000) == 0xC0A80000;
+
+  static int _toInt(Uint8List raw) =>
+      (raw[0] << 24) | (raw[1] << 16) | (raw[2] << 8) | raw[3];
+
+  static InternetAddress _fromInt(int ip) => InternetAddress.fromRawAddress(
+    Uint8List.fromList([
+      (ip >> 24) & 0xFF,
+      (ip >> 16) & 0xFF,
+      (ip >> 8) & 0xFF,
+      ip & 0xFF,
+    ]),
+    type: InternetAddressType.IPv4,
+  );
 
   Future<RemoteHost?> _ping(InternetAddress address) async {
-    final isAvailable = await connectionProbe.testConnection(address);
-
-    if (isAvailable) {
-      return await _testServer(address.host);
-    }
-
-    return null;
-  }
-
-  Future<RemoteHost?> _testServer(String host) async {
-    final uri = Uri.parse('http://$host:$port/ack');
-
-    final result = await httpClient.getUrl(uri);
-
     try {
-      final resp = await result.close().timeout(Duration(seconds: 1));
-
-      final message = String.fromCharCodes(await resp.first);
-      if (resp.statusCode != 200) {
-        // Some error
-        GetIt.instance<ErrorLogger>().log('Server is up on address $uri, '
-            'but returns code ${resp.statusCode}. Body: $message');
+      if (!await connectionProbe.testConnection(address)) {
         return null;
       }
-
-      final data = jsonDecode(message);
-
-      return RemoteHost(
-        address: uri.host,
-        hostName: data['hostName'] ?? 'Unknown',
-        versionName: data['version'] ?? '???',
-        buildNumber: data['build'] ?? 0,
-      );
-    } on TimeoutException {
-      // Assume server is not running on this address
-      return null;
-    } on SocketException {
+      final uri = Uri.parse('http://${address.host}:$port/ack');
+      final opening = httpClient.getUrl(uri);
+      try {
+        return await _testServer(uri, opening).timeout(_ackTimeout);
+      } on TimeoutException {
+        // Do not keep the connection open while waiting for the response
+        // headers. abort() has no effect once they have arrived.
+        opening.then((request) => request.abort(), onError: (_) {});
+        return null;
+      }
+    } catch (_) {
+      // Not an LPS server, or it stopped while being tested: skip the address
       return null;
     }
+  }
+
+  Future<RemoteHost?> _testServer(
+    Uri uri,
+    Future<HttpClientRequest> opening,
+  ) async {
+    final request = await opening;
+    final resp = await request.close();
+
+    // The body is UTF-8 and may arrive in several chunks
+    final message = await resp
+        .transform(const Utf8Decoder(allowMalformed: true))
+        .join();
+    if (resp.statusCode != 200) {
+      // Some error
+      _errorLogger.log(
+        'Server is up on address $uri, '
+        'but returns code ${resp.statusCode}. Body: $message',
+      );
+      return null;
+    }
+
+    final data = jsonDecode(message);
+
+    return RemoteHost(
+      address: uri.host,
+      hostName: data['hostName'] ?? 'Unknown',
+      versionName: data['version'] ?? '???',
+      buildNumber: data['build'] ?? 0,
+    );
   }
 
   @override

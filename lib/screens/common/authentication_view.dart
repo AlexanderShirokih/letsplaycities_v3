@@ -2,10 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get_it/get_it.dart';
 import 'package:lets_play_cities/base/preferences.dart';
+import 'package:lets_play_cities/i18n/strings.g.dart';
 import 'package:lets_play_cities/remote/auth.dart';
 import 'package:lets_play_cities/remote/exceptions.dart';
 import 'package:lets_play_cities/screens/common/common_widgets.dart';
-import 'package:lets_play_cities/screens/common/utils.dart';
+import 'package:lets_play_cities/screens/common/error_texts.dart';
 import 'package:lets_play_cities/screens/online/common_online_widgets.dart';
 import 'package:lets_play_cities/screens/online/login_screen.dart';
 
@@ -15,11 +16,10 @@ import 'package:lets_play_cities/screens/online/login_screen.dart';
 class AuthenticationView extends StatefulWidget {
   final WidgetBuilder onLoggedIn;
 
-  const AuthenticationView({Key? key, required this.onLoggedIn})
-      : super(key: key);
+  const AuthenticationView({super.key, required this.onLoggedIn});
 
   @override
-  _AuthenticationViewState createState() => _AuthenticationViewState();
+  State<AuthenticationView> createState() => _AuthenticationViewState();
 }
 
 class _AuthenticationViewState extends State<AuthenticationView> {
@@ -37,7 +37,7 @@ class _AuthenticationViewState extends State<AuthenticationView> {
                   if (error is AuthorizationException) {
                     return ConnectionErrorView(
                       onReload: () => setState(() {}),
-                      errorMessage: error.description,
+                      errorMessage: authorizationErrorText(context.t, error),
                     );
                   } else {
                     return ConnectionErrorView(onReload: () => setState(() {}));
@@ -51,8 +51,7 @@ class _AuthenticationViewState extends State<AuthenticationView> {
                       preferences: context.watch<GamePreferences>(),
                     );
                   } else {
-                    return buildWithLocalization(context,
-                        (l10n) => LoadingView(l10n.online['fetching_profile']));
+                    return LoadingView(context.t.online.fetchingProfile);
                   }
                 }
                 return RepositoryProvider<RemoteAccount>.value(

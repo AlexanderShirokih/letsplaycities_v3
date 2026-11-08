@@ -1,25 +1,20 @@
 import 'package:flutter/material.dart';
+import 'package:lets_play_cities/base/cities_list/city_item.dart';
 import 'package:lets_play_cities/screens/common/utils.dart';
-import 'package:lets_play_cities/screens/main/cites/model/city_item.dart';
 
 /// Displays a single city item with its country (both flag and name) as a
 /// rounded card
 class DenseCityItemCard extends StatelessWidget {
   final CityItem cityItem;
 
-  const DenseCityItemCard({
-    Key? key,
-    required this.cityItem,
-  }) : super(key: key);
+  const DenseCityItemCard({super.key, required this.cityItem});
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
     return Card(
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(6),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
       elevation: 4.0,
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 6.0, horizontal: 10.0),
@@ -54,7 +49,7 @@ class DenseCityItemCard extends StatelessWidget {
                   ),
                 ),
               ],
-            )
+            ),
           ],
         ),
       ),

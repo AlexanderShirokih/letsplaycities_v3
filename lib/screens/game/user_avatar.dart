@@ -12,49 +12,48 @@ class UserAvatar extends StatelessWidget with NetworkAvatarBuildingMixin {
   final User _user;
   final CrossAxisAlignment alignment;
 
-  UserAvatar({required User user, Key? key})
-      : alignment = _getAlignmentByPosition(user.position),
-        _user = user,
-        super(key: key);
+  UserAvatar({required User user, super.key})
+    : alignment = _getAlignmentByPosition(user.position),
+      _user = user;
 
   @override
   Widget build(BuildContext rootContext) => StreamBuilder<OnUserSwitchedEvent>(
-        stream:
-            rootContext.watch<GameServiceEventsRepository>().getUserSwitches(),
-        builder: (context, snapshot) => Container(
-          width: 80.0,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: alignment,
-            children: [
-              _AvatarBorderAnimator(
-                user: _user,
-                isActive:
-                    snapshot.hasData && snapshot.requireData.nextUser == _user,
-                borderColor: Theme.of(context).primaryColor,
-              ),
-              SizedBox(height: 4.0),
-              RichText(
-                text: TextSpan(text: '${_user.name}: ', children: [
-                  TextSpan(
-                    text: _user.score.toString(),
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ]),
-                overflow: TextOverflow.fade,
-                softWrap: true,
-              ),
-            ],
+    stream: rootContext.watch<GameServiceEventsRepository>().getUserSwitches(),
+    builder: (context, snapshot) => SizedBox(
+      width: 80.0,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: alignment,
+        children: [
+          _AvatarBorderAnimator(
+            user: _user,
+            isActive:
+                snapshot.hasData && snapshot.requireData.nextUser == _user,
+            borderColor: Theme.of(context).primaryColor,
           ),
-        ),
-      );
+          SizedBox(height: 4.0),
+          RichText(
+            text: TextSpan(
+              text: '${_user.name}: ',
+              children: [
+                TextSpan(
+                  text: _user.score.toString(),
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+              ],
+            ),
+            overflow: TextOverflow.fade,
+            softWrap: true,
+          ),
+        ],
+      ),
+    ),
+  );
 
   static CrossAxisAlignment _getAlignmentByPosition(Position position) =>
-      (position == Position.LEFT)
-          ? CrossAxisAlignment.start
-          : CrossAxisAlignment.end;
+      (position == Position.left)
+      ? CrossAxisAlignment.start
+      : CrossAxisAlignment.end;
 }
 
 class _AvatarBorderAnimator extends StatefulWidget {
@@ -63,11 +62,10 @@ class _AvatarBorderAnimator extends StatefulWidget {
   final Color borderColor;
 
   const _AvatarBorderAnimator({
-    Key? key,
     required this.user,
     required this.isActive,
     required this.borderColor,
-  }) : super(key: key);
+  });
 
   @override
   __AvatarBorderAnimatorState createState() => __AvatarBorderAnimatorState();
@@ -87,13 +85,13 @@ class __AvatarBorderAnimatorState extends State<_AvatarBorderAnimator>
       vsync: this,
     )..repeat(reverse: true);
 
-    animation = ColorTween(
-      begin: widget.borderColor,
-      end: Colors.white,
-    ).animate(_controller)
-      ..addListener(() {
-        setState(() {});
-      });
+    animation =
+        ColorTween(
+          begin: widget.borderColor,
+          end: Colors.white,
+        ).animate(_controller)..addListener(() {
+          setState(() {});
+        });
   }
 
   @override
@@ -130,8 +128,9 @@ Widget buildAvatarForUser(User user, double radius) {
   } else {
     return CircleAvatar(
       radius: radius,
-      backgroundImage:
-          _getImageProviderByPictureSource(user.accountInfo.picture),
+      backgroundImage: _getImageProviderByPictureSource(
+        user.accountInfo.picture,
+      ),
     );
   }
 }

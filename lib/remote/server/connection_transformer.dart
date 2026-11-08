@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:lets_play_cities/remote/exceptions.dart';
 import 'package:lets_play_cities/remote/model/client_messages.dart';
 import 'package:lets_play_cities/remote/model/server_messages.dart';
 
@@ -9,8 +10,18 @@ abstract class MessagePipe<I, O> {
   /// Reads all messages from connection
   Stream<I> readAllMessages();
 
-  /// Reads the next message from connection
-  Future<I> readMessage() => readAllMessages().first;
+  /// Reads the next message from connection.
+  ///
+  /// Throws [ClientDisconnectedException] if the connection ends first. A
+  /// dart:io WebSocket ends its stream instead of reporting an error when
+  /// the client closes it or the connection breaks, so this is how a client
+  /// that drops shows up here.
+  Future<I> readMessage() => readAllMessages().firstWhere(
+    (_) => true,
+    orElse: () => throw const ClientDisconnectedException(
+      'The client disconnected before it sent a message',
+    ),
+  );
 
   /// Sends [message] to the connection
   void sendMessage(O message);
@@ -26,7 +37,7 @@ class WebSocketMessagePipe extends MessagePipe<String, String> {
 
   /// Creates [MessagePipe] from existing [Socket].
   WebSocketMessagePipe(this._socket)
-      : _messagesStream = _socket.asBroadcastStream().cast<String>();
+    : _messagesStream = _socket.asBroadcastStream().cast<String>();
 
   @override
   Stream<String> readAllMessages() => _messagesStream;

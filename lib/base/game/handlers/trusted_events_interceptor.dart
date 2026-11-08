@@ -9,7 +9,7 @@ class TrustedEventsInterceptor extends TypedEventHandler<RawWordEvent> {
   Stream<GameEvent> processTypedEvent(RawWordEvent event) {
     return Stream.value(
       event.owner.isTrusted
-          ? Accepted(event.word, event.owner, status: CityStatus.OK)
+          ? Accepted(event.word, event.owner, status: CityStatus.ok)
           : event,
     );
   }

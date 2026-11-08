@@ -1,8 +1,8 @@
 /// Data class for collect info about finished move parameters
 class CityComboInfo {
-  static const _QUICK_MOVE_TIME = 5000;
-  static const _SHORT_WORD_SIZE = 4;
-  static const _LONG_WORD_SIZE = 8;
+  static const _quickMoveTime = 5000;
+  static const _shortWordSize = 4;
+  static const _longWordSize = 8;
 
   final bool isQuick;
   final bool isShort;
@@ -12,10 +12,13 @@ class CityComboInfo {
   CityComboInfo._(this.isQuick, this.isShort, this.isLong, this.countryCode);
 
   factory CityComboInfo.fromMoveParams(
-          int deltaTimeInMs, String word, int countryCode) =>
-      CityComboInfo._(
-          deltaTimeInMs <= _QUICK_MOVE_TIME,
-          word.length <= _SHORT_WORD_SIZE,
-          word.length >= _LONG_WORD_SIZE,
-          countryCode);
+    int deltaTimeInMs,
+    String word,
+    int countryCode,
+  ) => CityComboInfo._(
+    deltaTimeInMs <= _quickMoveTime,
+    word.length <= _shortWordSize,
+    word.length >= _longWordSize,
+    countryCode,
+  );
 }

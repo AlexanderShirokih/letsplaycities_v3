@@ -17,13 +17,13 @@ mixin NetworkAvatarBuildingMixin {
   /// default text avatar from [profile.login] initials
   Widget buildAvatar(BaseProfileInfo profile, [double radius = 46.0]) =>
       profile.pictureUrl == null
-          ? _buildTextAvatar(profile, radius)
-          : CircleAvatar(
-              radius: radius,
-              key: ObjectKey(profile),
-              backgroundImage: NetworkImage(profile.pictureUrl!),
-              backgroundColor: Colors.transparent,
-            );
+      ? _buildTextAvatar(profile, radius)
+      : CircleAvatar(
+          radius: radius,
+          key: ObjectKey(profile),
+          backgroundImage: NetworkImage(profile.pictureUrl!),
+          backgroundColor: Colors.transparent,
+        );
 
   Widget _buildTextAvatar(BaseProfileInfo profile, double radius) =>
       CircleAvatar(
@@ -36,8 +36,13 @@ mixin NetworkAvatarBuildingMixin {
         ),
       );
 
-  String _getInitials(String login) => login
-      .split(RegExp('[ \\-]'))
-      .map((e) => e.characters.first.toUpperCase())
-      .reduce((value, element) => value + element);
+  String _getInitials(String login) {
+    // Leading, trailing or repeated separators give empty parts.
+    final initials = login
+        .split(RegExp(r'[ \-]'))
+        .where((part) => part.isNotEmpty)
+        .map((part) => part.characters.first.toUpperCase())
+        .join();
+    return initials.isEmpty ? '?' : initials;
+  }
 }

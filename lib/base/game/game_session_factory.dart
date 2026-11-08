@@ -1,5 +1,7 @@
+import 'package:lets_play_cities/base/achievements/achievements_service.dart';
 import 'package:lets_play_cities/base/dictionary.dart';
 import 'package:lets_play_cities/base/dictionary/countrycode_overrides.dart';
+import 'package:lets_play_cities/base/game/player/default_player_names.dart';
 import 'package:lets_play_cities/base/game_session.dart';
 import 'package:lets_play_cities/base/preferences.dart';
 import 'package:lets_play_cities/base/scoring.dart';
@@ -13,6 +15,7 @@ import 'management.dart';
 class GameSessionFactory {
   /// Creates [GameSession] depending on given parameters.
   /// Note that [GameConfig] will override some parameters.
+  /// [playerNames] name the users of a game on one device.
   static GameSession createForGameMode({
     required GamePreferences preferences,
     required GameConfig config,
@@ -20,6 +23,8 @@ class GameSessionFactory {
     required DictionaryService dictionary,
     required CountryCodeOverrides codeOverrides,
     required ScoreController scoreController,
+    required AchievementsService achievements,
+    required DefaultPlayerNames playerNames,
     required void Function() onUserInputAccepted,
     required void Function() onUserMoveBegins,
   }) {
@@ -30,7 +35,8 @@ class GameSessionFactory {
     }
 
     final usersList =
-        config.usersListOverride ?? UsersList.forGameMode(mode, dictionary);
+        config.usersListOverride ??
+        UsersList.forGameMode(mode, dictionary, playerNames);
 
     final gameProcessorsStack = [
       TrustedEventsInterceptor(),
@@ -54,6 +60,8 @@ class GameSessionFactory {
       scoringType: preferences.scoringType,
       eventChannel: ProcessingEventChannel(gameProcessorsStack),
       timeLimit: config.timeLimitOverride ?? preferences.timeLimit,
+      achievements: achievements,
+      wordsDifficulty: () => preferences.wordsDifficulty,
       externalEvents: config.externalEventSource,
     );
   }

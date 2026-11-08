@@ -17,7 +17,7 @@ class ServiceEventsBloc extends Bloc<ServiceEventsEvent, ServiceEventsState>
 
   Stream<ServiceEventsState> _mapEventToState(ServiceEventsEvent event) async* {
     switch (event) {
-      case ServiceEventsEvent.ToggleMessageField:
+      case ServiceEventsEvent.toggleMessageField:
         yield state.copy(isMessageFieldOpened: !state.isMessageFieldOpened);
         break;
     }

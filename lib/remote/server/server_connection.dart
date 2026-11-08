@@ -30,10 +30,7 @@ class WebSocketServerConnection implements ServerConnection {
   final RequestDispatcher _requestDispatcher;
   final AppConfig _appConfig;
 
-  WebSocketServerConnection(
-    this._appConfig,
-    this._requestDispatcher,
-  );
+  WebSocketServerConnection(this._appConfig, this._requestDispatcher);
 
   @override
   Future<void> start() async {

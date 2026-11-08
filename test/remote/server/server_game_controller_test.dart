@@ -1,14 +1,14 @@
 import 'package:lets_play_cities/base/preferences.dart';
 import 'package:lets_play_cities/remote/server/local_game_server.dart';
 import 'package:lets_play_cities/remote/server/server_game_controller.dart';
+import 'package:lets_play_cities/utils/error_logger.dart';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
-import 'package:test/test.dart';
+import 'package:flutter_test/flutter_test.dart';
 
 import 'server_game_controller_test.mocks.dart';
 
 @GenerateNiceMocks([MockSpec<LocalGameServer>(), MockSpec<GamePreferences>()])
-
 void main() {
   late ServerGameController controller;
   late LocalGameServer localGameServer;
@@ -17,7 +17,11 @@ void main() {
   setUp(() {
     localGameServer = MockLocalGameServer();
     gamePreferences = MockGamePreferences();
-    controller = ServerGameControllerImpl(localGameServer, gamePreferences);
+    controller = ServerGameControllerImpl(
+      localGameServer,
+      gamePreferences,
+      SimpleErrorLogger(),
+    );
   });
 
   test('Controller runs server on setup', () async {

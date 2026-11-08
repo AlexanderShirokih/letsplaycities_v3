@@ -6,8 +6,10 @@ abstract class AchievementsService {
   /// [achievement] the achievement to be unlocked
   /// [incrementCount] how much achievement should be incremented. Used only
   /// for incremental achievements.
-  Future<void> unlockAchievement(Achievement achievement,
-      [int incrementCount = 1]);
+  Future<void> unlockAchievement(
+    Achievement achievement, [
+    int incrementCount = 1,
+  ]);
 
   /// Submits score to play games server only if user logged in
   /// [score] user score to be submitted
@@ -38,8 +40,10 @@ class StubAchievementsService implements AchievementsService {
   }
 
   @override
-  Future<void> unlockAchievement(Achievement achievement,
-      [int incrementCount = 1]) {
+  Future<void> unlockAchievement(
+    Achievement achievement, [
+    int incrementCount = 1,
+  ]) {
     return Future.value();
   }
 }

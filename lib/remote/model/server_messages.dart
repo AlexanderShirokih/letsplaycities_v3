@@ -85,10 +85,7 @@ class ChatMessage extends ServerMessage {
   final String message;
   final int ownerId;
 
-  const ChatMessage({
-    required this.message,
-    required this.ownerId,
-  });
+  const ChatMessage({required this.message, required this.ownerId});
 
   @override
   List<Object> get props => [message, ownerId];

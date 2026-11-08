@@ -1,0 +1,23 @@
+# Code generation settings for the typed strings in lib/i18n.
+# Regenerate with `dart run slang` after every change to lib/i18n/*.i18n.json
+# and commit lib/i18n/strings.g.dart together with the JSON.
+base_locale: ru
+fallback_strategy: none
+input_directory: lib/i18n
+input_file_pattern: .i18n.json
+output_directory: lib/i18n
+output_file_name: strings.g.dart
+lazy: false
+locale_handling: true
+flutter_integration: true
+# go_to_menu becomes goToMenu. key_map_case stays unset, so the keys of (map)
+# nodes stay the runtime ids the app looks them up by (tt_n_pts, default).
+key_case: camel
+param_case: camel
+# {name} placeholders. A '$' in a string stays a plain character.
+string_interpolation: braces
+# No untyped operator[] on the translations.
+flat_map: false
+# Keeps the committed generated file stable between runs.
+timestamp: false
+statistics: false

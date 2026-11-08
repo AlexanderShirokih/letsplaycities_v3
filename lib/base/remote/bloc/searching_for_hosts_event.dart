@@ -15,7 +15,7 @@ class StartSearchingEvent extends SearchingForHostsEvent {
 class AddRemoteHostEvent extends SearchingForHostsEvent {
   final HostSearchingResult results;
 
-  AddRemoteHostEvent(this.results);
+  const AddRemoteHostEvent(this.results);
 
   @override
   List<Object?> get props => [results];

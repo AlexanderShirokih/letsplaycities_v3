@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 import 'package:lets_play_cities/base/remote/bloc/user_actions_bloc.dart';
+import 'package:lets_play_cities/i18n/strings.g.dart';
+import 'package:lets_play_cities/i18n/time_format.dart';
 import 'package:lets_play_cities/remote/account_manager.dart';
 import 'package:lets_play_cities/remote/model/profile_info.dart';
 import 'package:lets_play_cities/remote/model/history_info.dart';
@@ -10,7 +12,6 @@ import 'package:lets_play_cities/screens/common/utils.dart';
 import 'package:lets_play_cities/screens/online/base_list_fetching_screen_mixin.dart';
 import 'package:lets_play_cities/screens/online/network_avatar_building_mixin.dart';
 import 'package:lets_play_cities/screens/online/profile.dart';
-import 'package:lets_play_cities/utils/string_utils.dart';
 
 /// Battle history list screen
 /// Provides a list of user battle history
@@ -32,92 +33,84 @@ class OnlineHistoryScreen extends StatelessWidget
   @override
   final BaseProfileInfo? target;
 
-  const OnlineHistoryScreen({this.target, this.embedded = false});
+  const OnlineHistoryScreen({super.key, this.target, this.embedded = false});
 
   @override
   Widget getOnListEmptyPlaceHolder(BuildContext context) => Text(
-        buildWithLocalization(
-            context, (l10n) => l10n.online['no_history_placeholder']),
-        textAlign: TextAlign.center,
-        style: withData<TextStyle, TextTheme>(
-          Theme.of(context).textTheme,
-          (textTheme) => textTheme.headlineSmall!
-              .copyWith(color: textTheme.bodySmall!.color),
-        ),
-      );
+    context.t.online.noHistoryPlaceholder,
+    textAlign: TextAlign.center,
+    style: withData<TextStyle, TextTheme>(
+      Theme.of(context).textTheme,
+      (textTheme) =>
+          textTheme.headlineSmall!.copyWith(color: textTheme.bodySmall!.color),
+    ),
+  );
 
   @override
   Widget buildItem(BuildContext context, HistoryInfo data) => Card(
-        elevation: 4.0,
-        child: ListTile(
-          onTap: () => Navigator.push(
-            context,
-            OnlineProfileView.createRoute(context, target: data),
-          ),
-          contentPadding: EdgeInsets.all(8.0),
-          leading: Stack(
-            alignment: Alignment.bottomRight,
-            fit: StackFit.loose,
-            children: [
-              buildAvatar(data),
-              if (data.isFriend)
-                FaIcon(
-                  FontAwesomeIcons.userGroup,
-                  color: Theme.of(context).primaryColor,
-                ),
-            ],
-          ),
-          title: Text(data.login),
-          subtitle: Builder(
-            builder: (context) => _buildSubtitle(context, data),
-          ),
-        ),
-      );
-
-  Widget _buildSubtitle(BuildContext context, HistoryInfo data) =>
-      buildWithLocalization(
+    elevation: 4.0,
+    child: ListTile(
+      onTap: () => Navigator.push(
         context,
-        (l10n) => Align(
-          alignment: Alignment.centerLeft,
-          child: withData<Widget, Color>(
-            Theme.of(context).textTheme.bodySmall!.color!,
-            (color) => Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 8.0),
-                  child: Row(
-                    children: [
-                      FaIcon(FontAwesomeIcons.calendar, color: color),
-                      const SizedBox(width: 8),
-                      Text(_timeFormat.format(data.startTime)),
-                      const SizedBox(width: 8),
-                      FaIcon(FontAwesomeIcons.stopwatch, color: color),
-                      const SizedBox(width: 6),
-                      Text(
-                        formatTime(data.duration),
-                        overflow: TextOverflow.clip,
-                      ),
-                    ],
+        OnlineProfileView.createRoute(context, target: data),
+      ),
+      contentPadding: EdgeInsets.all(8.0),
+      leading: Stack(
+        alignment: Alignment.bottomRight,
+        fit: StackFit.loose,
+        children: [
+          buildAvatar(data),
+          if (data.isFriend)
+            FaIcon(
+              FontAwesomeIcons.userGroup,
+              color: Theme.of(context).primaryColor,
+            ),
+        ],
+      ),
+      title: Text(data.login),
+      subtitle: Builder(builder: (context) => _buildSubtitle(context, data)),
+    ),
+  );
+
+  Widget _buildSubtitle(BuildContext context, HistoryInfo data) {
+    final t = context.t;
+    return Align(
+      alignment: Alignment.centerLeft,
+      child: withData<Widget, Color>(
+        Theme.of(context).textTheme.bodySmall!.color!,
+        (color) => Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 8.0),
+              child: Row(
+                children: [
+                  FaIcon(FontAwesomeIcons.calendar, color: color),
+                  const SizedBox(width: 8),
+                  Text(_timeFormat.format(data.startTime)),
+                  const SizedBox(width: 8),
+                  FaIcon(FontAwesomeIcons.stopwatch, color: color),
+                  const SizedBox(width: 6),
+                  Text(
+                    formatMinutesSeconds(t, data.duration),
+                    overflow: TextOverflow.clip,
                   ),
-                ),
-                Row(
-                  children: [
-                    FaIcon(FontAwesomeIcons.star, color: color),
-                    const SizedBox(width: 4),
-                    Text(
-                      getPluralForm(
-                              (l10n.online['words_count'] as List<dynamic>)
-                                  .cast<String>(),
-                              data.wordsCount)
-                          .format([data.wordsCount]),
-                      overflow: TextOverflow.clip,
-                    ),
-                  ],
+                ],
+              ),
+            ),
+            Row(
+              children: [
+                FaIcon(FontAwesomeIcons.star, color: color),
+                const SizedBox(width: 4),
+                Text(
+                  t.online.wordsCount(count: data.wordsCount),
+                  overflow: TextOverflow.clip,
                 ),
               ],
             ),
-          ),
+          ],
         ),
-      );
+      ),
+    );
+  }
 }

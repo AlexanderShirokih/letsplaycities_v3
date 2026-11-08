@@ -39,14 +39,14 @@ class Theme extends Equatable {
 
   @override
   List<Object?> get props => [
-        name,
-        backgroundImage,
-        isDark,
-        primaryColor,
-        accentColor,
-        fillColor,
-        borderColor,
-        messageMe,
-        messageOther,
-      ];
+    name,
+    backgroundImage,
+    isDark,
+    primaryColor,
+    accentColor,
+    fillColor,
+    borderColor,
+    messageMe,
+    messageOther,
+  ];
 }

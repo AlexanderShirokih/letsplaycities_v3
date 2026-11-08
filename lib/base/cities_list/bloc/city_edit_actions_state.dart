@@ -21,13 +21,18 @@ class CityEditActionsData extends CityEditActionsState {
   /// Target city
   final CityItem cityItem;
 
-  const CityEditActionsData(
-    this.countryEntities,
-    this.cityItem,
-  );
+  const CityEditActionsData(this.countryEntities, this.cityItem);
 
   @override
   List<Object> get props => [countryEntities, cityItem];
+}
+
+/// State used when the city or the country list cannot be loaded
+class CityDataLoadingError extends CityEditActionsState {
+  const CityDataLoadingError();
+
+  @override
+  List<Object?> get props => [];
 }
 
 /// State used when requested city is not found
@@ -41,10 +46,7 @@ class CityNotFound extends CityEditActionsState {
 }
 
 /// Describes error type
-enum CityRequestSendingType {
-  Network,
-  NotAuthorized,
-}
+enum CityRequestSendingType { network, notAuthorized }
 
 /// State when used was not authorized
 class CityRequestSendingError extends CityEditActionsState {

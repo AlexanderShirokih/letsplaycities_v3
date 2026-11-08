@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lets_play_cities/base/cities_list/bloc/city_edit_actions_bloc.dart';
-import 'package:lets_play_cities/l18n/localization_service.dart';
+import 'package:lets_play_cities/i18n/strings.g.dart';
 import 'package:lets_play_cities/screens/main/cites/requests/widget/dense_city_item_card.dart';
 
 import 'common_fields.dart';
@@ -10,23 +10,19 @@ import 'common_fields.dart';
 /// Contains the following fields: new city name, new country name,
 /// renaming reason
 class RemoveCityLayout extends StatelessWidget {
-  final LocalizationService l10n;
   final TextEditingController reasonController;
 
-  const RemoveCityLayout({
-    Key? key,
-    required this.l10n,
-    required this.reasonController,
-  }) : super(key: key);
+  const RemoveCityLayout({super.key, required this.reasonController});
 
   @override
   Widget build(BuildContext context) {
+    final t = context.t;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisAlignment: MainAxisAlignment.start,
       children: [
         Text(
-          'Удалить город',
+          t.citiesRequest.removeCity,
           style: Theme.of(context).textTheme.titleLarge,
         ),
         const SizedBox(height: 14.0),
@@ -40,26 +36,23 @@ class RemoveCityLayout extends StatelessWidget {
         ),
         const SizedBox(height: 26.0),
         Text(
-          'Причина удаления',
+          t.citiesRequest.removeReason,
           style: Theme.of(context).textTheme.titleLarge,
         ),
         const SizedBox(height: 14.0),
         const SizedBox(height: 10.0),
         createRenameReasonField(
-          placeholder: 'Причина удаления или ссылка на источник',
+          t: t,
+          placeholder: t.citiesRequest.removeReasonHint,
           textEditingController: reasonController,
         ),
         const SizedBox(height: 28.0),
         Text(
-          'Перед отправкой заявки убедитесь в следующем',
+          t.citiesRequest.beforeSending,
           style: Theme.of(context).textTheme.titleSmall,
         ),
         const SizedBox(height: 8.0),
-        createSuggestionRules(
-          context,
-          rules: (l10n.citiesRequest['removing_rules'] as List<dynamic>)
-              .cast<String>(),
-        ),
+        createSuggestionRules(context, rules: t.citiesRequest.removingRules),
         const SizedBox(height: 46.0),
       ],
     );

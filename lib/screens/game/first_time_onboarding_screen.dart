@@ -10,54 +10,45 @@ class FirstTimeOnBoardingScreen extends StatefulWidget {
   final GameConfig gameConfig;
 
   const FirstTimeOnBoardingScreen({
+    super.key,
     required this.strings,
     required this.duration,
     required this.gameConfig,
   });
 
   @override
-  _FirstTimeOnBoardingScreenState createState() =>
-      _FirstTimeOnBoardingScreenState(strings, duration, gameConfig);
+  State<FirstTimeOnBoardingScreen> createState() =>
+      _FirstTimeOnBoardingScreenState();
 }
 
 class _FirstTimeOnBoardingScreenState extends State<FirstTimeOnBoardingScreen>
     with SingleTickerProviderStateMixin {
-  final List<String> _strings;
-  final Duration _duration;
-  final GameConfig _gameConfig;
-
   late AnimationController _controller;
   late Animation<double> _fadeAnimation;
   late Animation<double> _scaleAnimation;
 
   int _currentTextId = 0;
 
-  _FirstTimeOnBoardingScreenState(
-      this._strings, this._duration, this._gameConfig);
-
   @override
   void initState() {
     super.initState();
-    _controller = AnimationController(
-      duration: _duration,
-      vsync: this,
-    )..addStatusListener((status) {
+    _controller = AnimationController(duration: widget.duration, vsync: this)
+      ..addStatusListener((status) {
         if (status == AnimationStatus.completed) {
           _controller.reset();
-          if (_currentTextId < _strings.length - 1) {
+          if (_currentTextId < widget.strings.length - 1) {
             setState(() {
               _currentTextId++;
             });
           } else {
-            Navigator.pushReplacement(context,
-                MaterialPageRoute(builder: (_) => GameScreen(_gameConfig)));
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (_) => GameScreen(widget.gameConfig)),
+            );
           }
         }
       });
-    final curved = CurvedAnimation(
-      parent: _controller,
-      curve: Curves.easeOut,
-    );
+    final curved = CurvedAnimation(parent: _controller, curve: Curves.easeOut);
 
     _fadeAnimation = Tween(begin: 0.0, end: 1.0).animate(curved);
     _scaleAnimation = Tween(begin: 0.98, end: 1.0).animate(curved);
@@ -88,12 +79,10 @@ class _FirstTimeOnBoardingScreenState extends State<FirstTimeOnBoardingScreen>
               child: ScaleTransition(
                 scale: _scaleAnimation,
                 child: Text(
-                  _strings[_currentTextId],
+                  widget.strings[_currentTextId],
                   textAlign: TextAlign.center,
                   overflow: TextOverflow.fade,
-                  style: Theme.of(context)
-                      .textTheme
-                      .displaySmall!
+                  style: Theme.of(context).textTheme.displaySmall!
                       .copyWith(fontWeight: FontWeight.w800),
                   textDirection: TextDirection.ltr,
                 ),

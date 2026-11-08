@@ -8,10 +8,10 @@ import '../country_list_loader.dart';
 /// Implementation of [CountryListLoaderService] that loads country list from
 /// file as '|'-separated values.
 class CountryListLoaderServiceFactory {
-  static const _COUNTRIES_LIST_NAME = 'assets/data/countries.txt';
+  static const _countriesListName = 'assets/data/countries.txt';
 
   CountryListLoaderService createCountryList() =>
-      _CountryListLoaderServiceImpl(_COUNTRIES_LIST_NAME);
+      _CountryListLoaderServiceImpl(_countriesListName);
 }
 
 class _CountryListLoaderServiceImpl extends CountryListLoaderService {
@@ -28,8 +28,10 @@ class _CountryListLoaderServiceImpl extends CountryListLoaderService {
         .expand((string) => LineSplitter().convert(string))
         .where((line) => line.isNotEmpty)
         .map((line) => line.split(RegExp(r'\||\+')))
-        .map((split) =>
-            CountryEntity(split[0], int.parse(split[1]), split.length == 3))
+        .map(
+          (split) =>
+              CountryEntity(split[0], int.parse(split[1]), split.length == 3),
+        )
         .toList();
   }
 }

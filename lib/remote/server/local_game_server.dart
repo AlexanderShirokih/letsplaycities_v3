@@ -26,10 +26,7 @@ class LocalGameServerImpl extends LocalGameServer {
   final ServerConnection _serverConnection;
   final UserLookupRepository _userLookupRepository;
 
-  LocalGameServerImpl(
-    this._serverConnection,
-    this._userLookupRepository,
-  );
+  LocalGameServerImpl(this._serverConnection, this._userLookupRepository);
 
   @override
   Future<void> startServer() => _serverConnection.start();

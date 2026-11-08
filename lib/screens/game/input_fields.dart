@@ -4,23 +4,26 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lets_play_cities/base/game/bloc/game_bloc.dart';
 import 'package:lets_play_cities/base/game/bloc/service_events_bloc.dart';
 import 'package:lets_play_cities/base/repos.dart';
+import 'package:lets_play_cities/i18n/strings.g.dart';
 import 'package:lets_play_cities/screens/game/voice_recognition_view.dart';
 
 class InputFieldsGroup extends StatelessWidget {
+  const InputFieldsGroup({super.key});
+
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<ServiceEventsBloc, ServiceEventsState>(
       builder: (context, state) {
         return AnimatedSwitcher(
           duration: const Duration(milliseconds: 360),
-          transitionBuilder: (child, animation) => ScaleTransition(
-            scale: animation,
-            child: child,
-          ),
+          transitionBuilder: (child, animation) =>
+              ScaleTransition(scale: animation, child: child),
           child: state.isMessageFieldOpened
               ? _ChatMessageInputField()
-              : _CityInputField(context.watch<GameSessionRepository>(),
-                  context.watch<GameBloc>()),
+              : _CityInputField(
+                  context.watch<GameSessionRepository>(),
+                  context.watch<GameBloc>(),
+                ),
         );
       },
     );
@@ -34,23 +37,22 @@ class _CityInputField extends StatefulWidget {
   final GameSessionRepository _repository;
   final GameBloc _gameBloc;
 
-  _CityInputField(this._repository, this._gameBloc);
+  const _CityInputField(this._repository, this._gameBloc);
 
   @override
-  _CityInputFieldState createState() =>
-      _CityInputFieldState(_repository, _gameBloc);
+  State<_CityInputField> createState() => _CityInputFieldState();
 }
 
 class _CityInputFieldState extends State<_CityInputField> {
-  final InputMatcherCallback _onPressed;
-  final GameSessionRepository _repository;
+  late final InputMatcherCallback _onPressed;
   final inputController = TextEditingController();
 
-  _CityInputFieldState(GameSessionRepository repository, GameBloc bloc)
-      : _onPressed = repository.sendInputWord,
-        _repository = repository {
+  @override
+  void initState() {
+    super.initState();
+    _onPressed = widget._repository.sendInputWord;
     // Register callback hook to be able to clear input when the word is accepted.
-    bloc.onUserInputAccepted = _onClear;
+    widget._gameBloc.onUserInputAccepted = _onClear;
   }
 
   void _onSubmit(String value) {
@@ -65,40 +67,31 @@ class _CityInputFieldState extends State<_CityInputField> {
 
   @override
   Widget build(BuildContext context) => Container(
-        margin: const EdgeInsets.all(8.0),
-        child: TextField(
-          // No context menu: pasting city names is not allowed.
-          contextMenuBuilder: null,
-          autofocus: true,
-          onSubmitted: _onSubmit,
-          textAlignVertical: TextAlignVertical.center,
-          controller: inputController,
-          textCapitalization: TextCapitalization.words,
-          decoration: InputDecoration(
-            filled: true,
-            fillColor: Theme.of(context).cardColor,
-            contentPadding: EdgeInsets.symmetric(
-              vertical: 2.0,
-              horizontal: 8.0,
-            ),
-            prefixIcon: VoiceRecognitionButton(
-              onWords: _repository.sendInputWord,
-            ),
-            suffixIcon: IconButton(
-              icon: Icon(Icons.add_circle_outline),
-              onPressed: () => _onSubmit(inputController.text),
-            ),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(16.0),
-            ),
-          ),
-          inputFormatters: [
-            FilteringTextInputFormatter.allow(
-              RegExp("^[А-я-.' ]+\$"),
-            )
-          ],
+    margin: const EdgeInsets.all(8.0),
+    child: TextField(
+      // No context menu: pasting city names is not allowed.
+      contextMenuBuilder: null,
+      autofocus: true,
+      onSubmitted: _onSubmit,
+      textAlignVertical: TextAlignVertical.center,
+      controller: inputController,
+      textCapitalization: TextCapitalization.words,
+      decoration: InputDecoration(
+        filled: true,
+        fillColor: Theme.of(context).cardColor,
+        contentPadding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 8.0),
+        prefixIcon: const VoiceRecognitionButton(),
+        suffixIcon: IconButton(
+          icon: Icon(Icons.add_circle_outline),
+          onPressed: () => _onSubmit(inputController.text),
         ),
-      );
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(16.0)),
+      ),
+      inputFormatters: [
+        FilteringTextInputFormatter.allow(RegExp("^[А-я-.' ]+\$")),
+      ],
+    ),
+  );
 
   @override
   void dispose() {
@@ -109,7 +102,7 @@ class _CityInputFieldState extends State<_CityInputField> {
 
 /// Used to enter chat messages
 class _ChatMessageInputField extends StatefulWidget {
-  const _ChatMessageInputField({Key? key}) : super(key: key);
+  const _ChatMessageInputField();
 
   @override
   __ChatMessageInputFieldState createState() => __ChatMessageInputFieldState();
@@ -121,9 +114,9 @@ class __ChatMessageInputFieldState extends State<_ChatMessageInputField> {
   void _onSubmit(BuildContext context, String value) {
     if (value.isNotEmpty) {
       context.read<GameSessionRepository>().sendChatMessage(value);
-      context
-          .read<ServiceEventsBloc>()
-          .add(ServiceEventsEvent.ToggleMessageField);
+      context.read<ServiceEventsBloc>().add(
+        ServiceEventsEvent.toggleMessageField,
+      );
       inputController.clear();
     }
   }
@@ -136,28 +129,23 @@ class __ChatMessageInputFieldState extends State<_ChatMessageInputField> {
 
   @override
   Widget build(BuildContext context) => Container(
-        margin: const EdgeInsets.all(8.0),
-        child: TextField(
-          onSubmitted: (text) => _onSubmit(context, text),
-          controller: inputController,
-          textCapitalization: TextCapitalization.words,
-          textAlignVertical: TextAlignVertical.center,
-          decoration: InputDecoration(
-            filled: true,
-            fillColor: Theme.of(context).cardColor,
-            contentPadding: EdgeInsets.symmetric(
-              vertical: 2.0,
-              horizontal: 12.0,
-            ),
-            suffixIcon: IconButton(
-              icon: Icon(Icons.send),
-              onPressed: () => _onSubmit(context, inputController.text),
-            ),
-            hintText: 'Сообщение',
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(16.0),
-            ),
-          ),
+    margin: const EdgeInsets.all(8.0),
+    child: TextField(
+      onSubmitted: (text) => _onSubmit(context, text),
+      controller: inputController,
+      textCapitalization: TextCapitalization.words,
+      textAlignVertical: TextAlignVertical.center,
+      decoration: InputDecoration(
+        filled: true,
+        fillColor: Theme.of(context).cardColor,
+        contentPadding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 12.0),
+        suffixIcon: IconButton(
+          icon: Icon(Icons.send),
+          onPressed: () => _onSubmit(context, inputController.text),
         ),
-      );
+        hintText: context.t.game.messageHint,
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(16.0)),
+      ),
+    ),
+  );
 }

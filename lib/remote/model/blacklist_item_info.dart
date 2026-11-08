@@ -1,4 +1,3 @@
-import 'package:get_it/get_it.dart';
 import 'package:lets_play_cities/app_config.dart';
 import 'package:lets_play_cities/remote/auth.dart';
 
@@ -9,20 +8,19 @@ class BlackListItemInfo extends BaseProfileInfo {
   /// Banned user picture URL
 
   const BlackListItemInfo._({
-    required int userId,
-    required String login,
-    required String? pictureUrl,
-  }) : super(
-          userId: userId,
-          login: login,
-          pictureUrl: pictureUrl,
-        );
+    required super.userId,
+    required super.login,
+    required super.pictureUrl,
+  });
 
-  BlackListItemInfo.fromJson(Map<String, dynamic> data)
-      : this._(
-          userId: data['userId'],
-          login: data['login'],
-          pictureUrl: getPictureUrlOrNull(
-              GetIt.instance<AppConfig>(), data['userId'], data['pictureHash']),
-        );
+  BlackListItemInfo.fromJson(AppConfig appConfig, Map<String, dynamic> data)
+    : this._(
+        userId: data['userId'],
+        login: data['login'],
+        pictureUrl: getPictureUrlOrNull(
+          appConfig,
+          data['userId'],
+          data['pictureHash'],
+        ),
+      );
 }

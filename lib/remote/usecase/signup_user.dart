@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:dio/dio.dart';
-import 'package:lets_play_cities/domain/usecases.dart';
+import 'package:lets_play_cities/base/usecases.dart';
 import 'package:lets_play_cities/remote/auth.dart';
 
 import '../exceptions.dart';
@@ -31,9 +31,10 @@ class SignUpUser
         );
       }
 
-      if (!(response.data is Map<String, dynamic>)) {
+      if (response.data is! Map<String, dynamic>) {
         throw RemoteException(
-            '${HttpHeaders.contentTypeHeader}: ${ContentType.json.value} expected');
+          '${HttpHeaders.contentTypeHeader}: ${ContentType.json.value} expected',
+        );
       }
 
       final Map<String, dynamic> decoded = response.data;

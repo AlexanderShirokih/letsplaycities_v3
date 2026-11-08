@@ -23,8 +23,8 @@ class DictionaryDecorator extends DictionaryService {
   @override
   Stream<String> getCorrectionVariants(String city) =>
       (_prefs.correctionEnabled)
-          ? _dictionaryService.getCorrectionVariants(city)
-          : Stream.empty();
+      ? _dictionaryService.getCorrectionVariants(city)
+      : Stream.empty();
 
   @override
   Future<CityResult> checkCity(String city) =>
@@ -41,8 +41,9 @@ class DictionaryDecorator extends DictionaryService {
 
   @override
   Future<String> getRandomWordByDifficulty(
-          String firstChar, Difficulty difficulty) =>
-      _dictionaryService.getRandomWordByDifficulty(firstChar, difficulty);
+    String firstChar,
+    Difficulty difficulty,
+  ) => _dictionaryService.getRandomWordByDifficulty(firstChar, difficulty);
 
   @override
   void markUsed(String city) => _dictionaryService.markUsed(city);

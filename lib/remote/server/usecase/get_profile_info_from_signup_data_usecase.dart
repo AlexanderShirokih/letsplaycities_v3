@@ -1,5 +1,5 @@
 import 'package:lets_play_cities/app_config.dart';
-import 'package:lets_play_cities/domain/usecases.dart';
+import 'package:lets_play_cities/base/usecases.dart';
 import 'package:lets_play_cities/remote/auth.dart';
 import 'package:lets_play_cities/remote/model/utils.dart';
 
@@ -15,16 +15,16 @@ class GetProfileInfoFromSignUpData
 
   @override
   ProfileInfo execute(RemoteSignUpData request) => ProfileInfo(
-        // remote ID used as snUID
-        pictureUrl: request.snUID.isNotEmpty
-            ? getPictureUrlOrNullNoHash(_appConfig, request.snUID)
-            : null,
-        userId: ++_tempId,
-        login: request.login,
-        role: Role.regular,
-        lastVisitDate: DateTime.now(),
-        banStatus: BanStatus.notBanned,
-        friendshipStatus: FriendshipStatus.notFriends,
-        authType: AuthType.Native,
-      );
+    // remote ID used as snUID
+    pictureUrl: request.snUID.isNotEmpty
+        ? getPictureUrlOrNullNoHash(_appConfig, request.snUID)
+        : null,
+    userId: ++_tempId,
+    login: request.login,
+    role: Role.regular,
+    lastVisitDate: DateTime.now(),
+    banStatus: BanStatus.notBanned,
+    friendshipStatus: FriendshipStatus.notFriends,
+    authType: AuthType.native,
+  );
 }

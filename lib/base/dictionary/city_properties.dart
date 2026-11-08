@@ -3,11 +3,11 @@
 /// Difficulty level - difficulty of the city name for average user (0-3)
 /// Usage flag - when raised - city wasn't used in the game
 class CityProperties {
-  static const _DIFFICULTY_BITS_OFFSET = 16;
+  static const _difficultyBitsOffset = 16;
 
-  static const _COUNTY_CODE_MASK = 0xFFFF;
-  static const _DIFFICULTY_MASK = 0x030000;
-  static const _USAGE_FLAG_MASK = 0x1000000;
+  static const _countryCodeMask = 0xFFFF;
+  static const _difficultyMask = 0x030000;
+  static const _usageFlagMask = 0x1000000;
 
   // 0-15 bits - country code bits.
   // 16-23 bits - difficulty index bits
@@ -16,31 +16,35 @@ class CityProperties {
 
   /// Creates new instance from difficulty level and country code
   CityProperties({required int difficulty, required int countryCode})
-      : assert(difficulty >= 0 && difficulty < 3,
-            'Invalid difficulty value=$difficulty'),
-        assert(countryCode >= 0 && countryCode.bitLength < 16,
-            'Invalid country code value=$countryCode'),
-        _dataBits = countryCode & _COUNTY_CODE_MASK |
-            (difficulty << _DIFFICULTY_BITS_OFFSET) & _DIFFICULTY_MASK;
+    : assert(
+        difficulty >= 0 && difficulty < 3,
+        'Invalid difficulty value=$difficulty',
+      ),
+      assert(
+        countryCode >= 0 && countryCode.bitLength < 16,
+        'Invalid country code value=$countryCode',
+      ),
+      _dataBits =
+          countryCode & _countryCodeMask |
+          (difficulty << _difficultyBitsOffset) & _difficultyMask;
 
   /// Bitmask layout: [difficulty(u8)][countryCode(u16)] <- 0
   /// Other bits will be clears using logic AND mask
   CityProperties.fromBitmask(int bitmask) : _dataBits = bitmask & 0xFFFFFF;
 
   /// Raises usage flag
-  void markUsed() => _dataBits |= _USAGE_FLAG_MASK;
+  void markUsed() => _dataBits |= _usageFlagMask;
 
   /// Clears usage flag
-  void reset() => _dataBits &= ~(_USAGE_FLAG_MASK);
+  void reset() => _dataBits &= ~(_usageFlagMask);
 
   /// Returns `true` when usage flag is raised
-  bool get used => _dataBits & _USAGE_FLAG_MASK != 0;
+  bool get used => _dataBits & _usageFlagMask != 0;
 
   /// Returns difficulty level index (0-2).
   /// Where: 0- Easy, 1- Medium, 2-Hard
-  int get difficulty =>
-      (_dataBits & _DIFFICULTY_MASK) >> _DIFFICULTY_BITS_OFFSET;
+  int get difficulty => (_dataBits & _difficultyMask) >> _difficultyBitsOffset;
 
   /// Returns the country code index
-  int get countryCode => _dataBits & _COUNTY_CODE_MASK;
+  int get countryCode => _dataBits & _countryCodeMask;
 }

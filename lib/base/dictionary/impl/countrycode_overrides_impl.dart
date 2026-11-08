@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:equatable/equatable.dart';
 import 'package:lets_play_cities/base/dictionary/countrycode_overrides.dart';
+import 'package:lets_play_cities/utils/string_utils.dart';
 
 class _OverrideEntity extends Equatable {
   final List<String> locales;
@@ -25,32 +26,34 @@ class CountryCodeOverridesImpl implements CountryCodeOverrides {
   const CountryCodeOverridesImpl._(this._overrides);
 
   factory CountryCodeOverridesImpl.fromString(
-          String data, String currentLocale) =>
-      CountryCodeOverridesImpl._(
-        {
-          for (var override in (jsonDecode(data) as List<dynamic>)
-              .cast<Map<String, dynamic>>()
-              .expand((overrideGroup) {
-            final int target = overrideGroup['target'];
-            final locales = (overrideGroup['locales'] as List<dynamic>)
-                .cast<String>()
-                .toList(growable: false);
-            return (overrideGroup['cities'] as List<dynamic>)
-                .cast<String>()
-                .map(
-                  (city) => _OverrideEntity(
-                    locales: locales,
-                    name: city,
-                    target: target,
-                  ),
-                );
-          }).where((element) {
-            final localeRegex = RegExp('(${element.locales.join('|')})');
-            return currentLocale.contains(localeRegex);
-          }))
-            override.name: override.target,
-        },
-      );
+    String data,
+    String currentLocale,
+  ) => CountryCodeOverridesImpl._({
+    for (var override
+        in (jsonDecode(data) as List<dynamic>)
+            .cast<Map<String, dynamic>>()
+            .expand((overrideGroup) {
+              final int target = overrideGroup['target'];
+              final locales = (overrideGroup['locales'] as List<dynamic>)
+                  .cast<String>()
+                  .toList(growable: false);
+              return (overrideGroup['cities'] as List<dynamic>)
+                  .cast<String>()
+                  .map(
+                    (city) => _OverrideEntity(
+                      locales: locales,
+                      name: city,
+                      target: target,
+                    ),
+                  );
+            })
+            .where((element) {
+              final localeRegex = RegExp('(${element.locales.join('|')})');
+              return currentLocale.contains(localeRegex);
+            }))
+      // Looked-up words are normalized ('ё' -> 'е'), so the keys must be too
+      formatCity(override.name): override.target,
+  });
 
   @override
   int? findOverride(String word) => _overrides[word];

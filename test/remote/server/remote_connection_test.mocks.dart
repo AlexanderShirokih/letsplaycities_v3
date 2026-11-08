@@ -32,13 +32,8 @@ import 'package:mockito/mockito.dart' as _i1;
 // ignore_for_file: invalid_use_of_internal_member
 
 class _FakeClientMessage_0 extends _i1.SmartFake implements _i2.ClientMessage {
-  _FakeClientMessage_0(
-    Object parent,
-    Invocation parentInvocation,
-  ) : super(
-          parent,
-          parentInvocation,
-        );
+  _FakeClientMessage_0(Object parent, Invocation parentInvocation)
+    : super(parent, parentInvocation);
 }
 
 /// A class which mocks [MessagePipe].
@@ -48,55 +43,34 @@ class MockMessagePipe extends _i1.Mock
     implements _i3.MessagePipe<_i2.ClientMessage, _i4.ServerMessage> {
   @override
   _i5.Stream<_i2.ClientMessage> readAllMessages() => (super.noSuchMethod(
-        Invocation.method(
-          #readAllMessages,
-          [],
-        ),
-        returnValue: _i5.Stream<_i2.ClientMessage>.empty(),
-        returnValueForMissingStub: _i5.Stream<_i2.ClientMessage>.empty(),
-      ) as _i5.Stream<_i2.ClientMessage>);
+    Invocation.method(#readAllMessages, []),
+    returnValue: _i5.Stream<_i2.ClientMessage>.empty(),
+    returnValueForMissingStub: _i5.Stream<_i2.ClientMessage>.empty(),
+  ) as _i5.Stream<_i2.ClientMessage>);
 
   @override
   _i5.Future<_i2.ClientMessage> readMessage() => (super.noSuchMethod(
-        Invocation.method(
-          #readMessage,
-          [],
-        ),
-        returnValue: _i5.Future<_i2.ClientMessage>.value(_FakeClientMessage_0(
-          this,
-          Invocation.method(
-            #readMessage,
-            [],
-          ),
-        )),
-        returnValueForMissingStub:
-            _i5.Future<_i2.ClientMessage>.value(_FakeClientMessage_0(
-          this,
-          Invocation.method(
-            #readMessage,
-            [],
-          ),
-        )),
-      ) as _i5.Future<_i2.ClientMessage>);
+    Invocation.method(#readMessage, []),
+    returnValue: _i5.Future<_i2.ClientMessage>.value(
+      _FakeClientMessage_0(this, Invocation.method(#readMessage, [])),
+    ),
+    returnValueForMissingStub: _i5.Future<_i2.ClientMessage>.value(
+      _FakeClientMessage_0(this, Invocation.method(#readMessage, [])),
+    ),
+  ) as _i5.Future<_i2.ClientMessage>);
 
   @override
   void sendMessage(_i4.ServerMessage? message) => super.noSuchMethod(
-        Invocation.method(
-          #sendMessage,
-          [message],
-        ),
-        returnValueForMissingStub: null,
-      );
+    Invocation.method(#sendMessage, [message]),
+    returnValueForMissingStub: null,
+  );
 
   @override
   _i5.Future<void> close() => (super.noSuchMethod(
-        Invocation.method(
-          #close,
-          [],
-        ),
-        returnValue: _i5.Future<void>.value(),
-        returnValueForMissingStub: _i5.Future<void>.value(),
-      ) as _i5.Future<void>);
+    Invocation.method(#close, []),
+    returnValue: _i5.Future<void>.value(),
+    returnValueForMissingStub: _i5.Future<void>.value(),
+  ) as _i5.Future<void>);
 }
 
 /// A class which mocks [UserLookupRepository].
@@ -106,28 +80,19 @@ class MockUserLookupRepository extends _i1.Mock
     implements _i6.UserLookupRepository {
   @override
   _i7.ProfileInfo? getUser(_i7.Credential? d) => (super.noSuchMethod(
-        Invocation.method(
-          #getUser,
-          [d],
-        ),
-        returnValueForMissingStub: null,
-      ) as _i7.ProfileInfo?);
+    Invocation.method(#getUser, [d]),
+    returnValueForMissingStub: null,
+  ) as _i7.ProfileInfo?);
 
   @override
   void addUser(_i7.ProfileInfo? profile) => super.noSuchMethod(
-        Invocation.method(
-          #addUser,
-          [profile],
-        ),
-        returnValueForMissingStub: null,
-      );
+    Invocation.method(#addUser, [profile]),
+    returnValueForMissingStub: null,
+  );
 
   @override
   void clear() => super.noSuchMethod(
-        Invocation.method(
-          #clear,
-          [],
-        ),
-        returnValueForMissingStub: null,
-      );
+    Invocation.method(#clear, []),
+    returnValueForMissingStub: null,
+  );
 }

@@ -1,22 +1,22 @@
 // Describes combo types
 enum ComboType {
-  QUICK_TIME,
-  SHORT_WORD,
-  LONG_WORD,
-  SAME_COUNTRY,
-  DIFFERENT_COUNTRIES
+  quickTime,
+  shortWord,
+  longWord,
+  sameCountry,
+  differentCountries,
 }
 
 extension ComboTypeMinSize on ComboType {
   int get minSize {
     switch (this) {
-      case ComboType.QUICK_TIME:
-      case ComboType.SHORT_WORD:
-      case ComboType.LONG_WORD:
+      case ComboType.quickTime:
+      case ComboType.shortWord:
+      case ComboType.longWord:
         return 3;
-      case ComboType.SAME_COUNTRY:
+      case ComboType.sameCountry:
         return 7;
-      case ComboType.DIFFERENT_COUNTRIES:
+      case ComboType.differentCountries:
         return 6;
     }
   }

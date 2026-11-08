@@ -23,12 +23,9 @@ class CityInfo extends GameItem with Equatable {
   CityInfo({
     required User owner,
     required this.city,
-    this.status = CityStatus.WAITING,
+    this.status = CityStatus.waiting,
     this.countryCode = 0,
   }) : super(owner);
-
-  @override
-  int get hashCode => city.hashCode;
 
   @override
   bool hasTheSameBaseData(GameItem o) =>
@@ -42,13 +39,7 @@ class CityInfo extends GameItem with Equatable {
 class MessageInfo extends GameItem with Equatable {
   final String message;
 
-  MessageInfo({
-    required this.message,
-    required User owner,
-  }) : super(owner);
-
-  @override
-  int get hashCode => message.hashCode;
+  MessageInfo({required this.message, required User owner}) : super(owner);
 
   @override
   List<Object?> get props => [message];

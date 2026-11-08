@@ -1,5 +1,4 @@
 import 'package:equatable/equatable.dart';
-import 'package:flutter/foundation.dart';
 
 /// Base class for all outgoing socket messages
 abstract class ClientMessage extends Equatable {
@@ -43,21 +42,29 @@ class LogInMessage extends ClientMessage {
 
   @override
   List<Object> get props => [
-        clientBuild,
-        clientVersion,
-        canReceiveMessages,
-        firebaseToken,
-        uid,
-        hash,
-      ];
+    clientBuild,
+    clientVersion,
+    canReceiveMessages,
+    firebaseToken,
+    uid,
+    hash,
+  ];
 }
 
 /// Game modes. Random pair game or playing with friend
-enum PlayMode { RANDOM_PAIR, FRIEND }
+enum PlayMode {
+  randomPair('RANDOM_PAIR'),
+  friend('FRIEND');
 
-extension PlayModeExtensions on PlayMode {
+  const PlayMode(this.wireName);
+
+  /// Name of the mode in the 'play' message
+  final String wireName;
+
+  /// Returns the mode named [mode] by its [wireName].
+  /// Throws a [StateError] when there is no such mode.
   static PlayMode fromString(String mode) =>
-      PlayMode.values.firstWhere((item) => describeEnum(item) == mode);
+      values.firstWhere((item) => item.wireName == mode);
 }
 
 /// Indicates request for beginning a new game.
@@ -65,13 +72,10 @@ class PlayMessage extends ClientMessage {
   /// Requesting game mode
   final PlayMode mode;
 
-  /// Opponent ID. used in [PlayMode.FRIEND] mode
+  /// Opponent ID. used in [PlayMode.friend] mode
   final int? oppUid;
 
-  const PlayMessage({
-    required this.mode,
-    required this.oppUid,
-  });
+  const PlayMessage({required this.mode, required this.oppUid});
 
   @override
   List<Object?> get props => [mode, oppUid];
@@ -83,6 +87,9 @@ class OutgoingWordMessage extends ClientMessage {
   final String word;
 
   const OutgoingWordMessage({required this.word});
+
+  @override
+  List<Object> get props => [word];
 }
 
 /// Used to send users message to server
@@ -91,6 +98,9 @@ class OutgoingChatMessage extends ClientMessage {
   final String msg;
 
   const OutgoingChatMessage({required this.msg});
+
+  @override
+  List<Object> get props => [msg];
 }
 
 enum InvitationResult { accept, decline }
@@ -103,10 +113,7 @@ class InvitationResultMessage extends ClientMessage {
   /// Inviter ID
   final int oppId;
 
-  const InvitationResultMessage({
-    required this.result,
-    required this.oppId,
-  });
+  const InvitationResultMessage({required this.result, required this.oppId});
 
   @override
   List<Object> get props => [result, oppId];

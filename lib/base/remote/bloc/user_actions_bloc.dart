@@ -31,6 +31,8 @@ class UserActionsBloc extends Bloc<UserActionsEvent, UserActionsState>
 
     if (event is UserActionConfirmedEvent) {
       yield* _doActionsSafely(event.sourceEvent);
+    } else if (event is UserActionsResetEvent) {
+      yield UserActionsInitial();
     } else {
       throw 'Bad state: event "$event" is unsupported!';
     }
@@ -38,11 +40,12 @@ class UserActionsBloc extends Bloc<UserActionsEvent, UserActionsState>
 
   Stream<UserActionsState> _doActionsSafely(UserEvent sourceEvent) {
     return _doActions(sourceEvent).transform(
-        StreamTransformer<UserActionsState, UserActionsState>.fromHandlers(
-      handleError: (e, s, sink) {
-        sink.add(UserActionErrorState(e, s));
-      },
-    ));
+      StreamTransformer<UserActionsState, UserActionsState>.fromHandlers(
+        handleError: (e, s, sink) {
+          sink.add(UserActionErrorState(e, s));
+        },
+      ),
+    );
   }
 
   Stream<UserActionsState> _doActions(UserEvent sourceEvent) async* {

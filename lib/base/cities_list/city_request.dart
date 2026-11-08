@@ -26,21 +26,21 @@ class SendCityRequest extends Equatable {
   });
 
   Map<String, dynamic> toJson() => {
-        'oldCountryCode': oldCountryCode,
-        'newCountryCode': newCountryCode,
-        'oldName': oldName,
-        'newName': newName,
-        'reason': reason,
-      };
+    'oldCountryCode': oldCountryCode,
+    'newCountryCode': newCountryCode,
+    'oldName': oldName,
+    'newName': newName,
+    'reason': reason,
+  };
 
   @override
   List<Object?> get props => [
-        oldCountryCode,
-        newCountryCode,
-        oldName,
-        newName,
-        reason,
-      ];
+    oldCountryCode,
+    newCountryCode,
+    oldName,
+    newName,
+    reason,
+  ];
 }
 
 /// Model, that describes a posted city request
@@ -81,51 +81,51 @@ class CityRequest extends Equatable {
   });
 
   CityRequest.fromJson(Map<String, dynamic> data)
-      : id = data['id'],
-        oldCountryCode = data['oldCountryCode'],
-        newCountryCode = data['newCountryCode'],
-        oldName = data['oldName'],
-        newName = data['newName'],
-        reason = data['reason'] ?? '',
-        verdict = data['verdict'],
-        status = _decodeStatus(data['status']);
+    : id = data['id'],
+      oldCountryCode = data['oldCountryCode'],
+      newCountryCode = data['newCountryCode'],
+      oldName = data['oldName'],
+      newName = data['newName'],
+      reason = data['reason'] ?? '',
+      verdict = data['verdict'],
+      status = _decodeStatus(data['status']);
 
   @override
   List<Object?> get props => [
-        id,
-        oldCountryCode,
-        newCountryCode,
-        oldName,
-        newName,
-        reason,
-        verdict,
-        status,
-      ];
+    id,
+    oldCountryCode,
+    newCountryCode,
+    oldName,
+    newName,
+    reason,
+    verdict,
+    status,
+  ];
 
   static CityRequestStatus _decodeStatus(String data) {
     switch (data) {
       case 'NEW':
-        return CityRequestStatus.NEW;
+        return CityRequestStatus.newRequest;
       case 'APPROVED':
-        return CityRequestStatus.APPROVED;
+        return CityRequestStatus.approved;
       case 'DECLINED':
-        return CityRequestStatus.DECLINED;
+        return CityRequestStatus.declined;
       default:
-        return CityRequestStatus.UNKNOWN;
+        return CityRequestStatus.unknown;
     }
   }
 }
 
 enum CityRequestStatus {
   /// Request is not reviewed
-  NEW,
+  newRequest,
 
   /// Request was approved
-  APPROVED,
+  approved,
 
   /// Request was declined
-  DECLINED,
+  declined,
 
   /// Request status is unknown
-  UNKNOWN,
+  unknown,
 }

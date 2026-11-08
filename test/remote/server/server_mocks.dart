@@ -8,5 +8,5 @@ final ProfileInfo testProfile = ProfileInfo(
   lastVisitDate: DateTime.now(),
   banStatus: BanStatus.notBanned,
   friendshipStatus: FriendshipStatus.friends,
-  authType: AuthType.Native,
+  authType: AuthType.native,
 );

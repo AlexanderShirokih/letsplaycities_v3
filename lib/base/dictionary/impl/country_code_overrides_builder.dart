@@ -12,8 +12,10 @@ class CountryCodeOverridesBuilder {
   const CountryCodeOverridesBuilder(this._currentLocale);
 
   Future<CountryCodeOverrides> build() async {
-    final data =
-        await rootBundle.loadString(_countryCodeOverridesFile, cache: false);
+    final data = await rootBundle.loadString(
+      _countryCodeOverridesFile,
+      cache: false,
+    );
     return CountryCodeOverridesImpl.fromString(data, _currentLocale);
   }
 }

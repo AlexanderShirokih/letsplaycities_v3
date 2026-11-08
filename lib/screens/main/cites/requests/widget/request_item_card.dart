@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:lets_play_cities/base/cities_list/city_item.dart';
+import 'package:lets_play_cities/i18n/strings.g.dart';
 import 'package:lets_play_cities/screens/common/utils.dart';
-import 'package:lets_play_cities/screens/main/cites/model/city_item.dart';
 
 /// Shows card that describes approved or pending request
 class RequestItemCard extends StatelessWidget {
@@ -13,25 +14,24 @@ class RequestItemCard extends StatelessWidget {
   final String result;
 
   const RequestItemCard({
-    Key? key,
+    super.key,
     required this.cardType,
     required this.reason,
     required this.result,
     this.isApproved,
     this.from,
     this.to,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final t = context.t;
 
     return ConstrainedBox(
       constraints: BoxConstraints(maxWidth: 340.0),
       child: Card(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(6),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
         elevation: 4.0,
         child: Padding(
           padding: const EdgeInsets.only(
@@ -48,16 +48,17 @@ class RequestItemCard extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    _getItemTypeTitle(),
-                    style: theme.textTheme.titleSmall
-                        ?.copyWith(color: theme.hintColor),
+                    _getItemTypeTitle(t),
+                    style: theme.textTheme.titleSmall?.copyWith(
+                      color: theme.hintColor,
+                    ),
                   ),
                   _createApprovalMark(),
                 ],
               ),
               const SizedBox(height: 4.0),
               if (from != null) _createCityItem(context, from!),
-              if (cardType == RequestItemType.Edit)
+              if (cardType == RequestItemType.edit)
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
@@ -74,22 +75,22 @@ class RequestItemCard extends StatelessWidget {
                 _createCityItem(context, to!),
                 const SizedBox(height: 6.0),
               ],
-              if (cardType == RequestItemType.Edit)
+              if (cardType == RequestItemType.edit)
                 const SizedBox(height: 12.0),
               if (reason.isNotEmpty)
                 _createTextWithInlinedTitle(
                   context,
-                  title: 'Причина:',
+                  title: t.citiesRequest.reasonLabel,
                   content: reason,
                 ),
               if (result.isNotEmpty) ...[
                 const SizedBox(height: 4.0),
                 _createTextWithInlinedTitle(
                   context,
-                  title: 'Результат:',
+                  title: t.citiesRequest.resultLabel,
                   content: result,
                 ),
-              ]
+              ],
             ],
           ),
         ),
@@ -141,9 +142,7 @@ class RequestItemCard extends StatelessWidget {
             text: '$title ',
             style: TextStyle(fontWeight: FontWeight.bold),
           ),
-          TextSpan(
-            text: content,
-          )
+          TextSpan(text: content),
         ],
       ),
       style: Theme.of(context).textTheme.bodySmall,
@@ -162,33 +161,26 @@ class RequestItemCard extends StatelessWidget {
     }
   }
 
-  String _getItemTypeTitle() {
+  String _getItemTypeTitle(Translations t) {
     switch (cardType) {
-      case RequestItemType.Edit:
-        return 'Изменить';
-      case RequestItemType.Add:
-        return 'Добавить';
-      case RequestItemType.Remove:
-        return 'Удалить';
+      case RequestItemType.edit:
+        return t.edit;
+      case RequestItemType.add:
+        return t.add;
+      case RequestItemType.remove:
+        return t.delete;
     }
   }
 }
 
 /// Describes card type
-enum RequestItemType {
-  Edit,
-  Add,
-  Remove,
-}
+enum RequestItemType { edit, add, remove }
 
 /// Shows placeholder for request item card
 class RequestItemCardShimmered extends StatelessWidget {
   final bool isApprovable;
 
-  const RequestItemCardShimmered({
-    Key? key,
-    required this.isApprovable,
-  }) : super(key: key);
+  const RequestItemCardShimmered({super.key, required this.isApprovable});
 
   @override
   Widget build(BuildContext context) {
@@ -196,9 +188,7 @@ class RequestItemCardShimmered extends StatelessWidget {
       constraints: BoxConstraints(maxWidth: 340.0),
       child: Card(
         color: Colors.transparent,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(6),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
         elevation: 4.0,
         child: Padding(
           padding: const EdgeInsets.only(
@@ -230,7 +220,7 @@ class RequestItemCardShimmered extends StatelessWidget {
                         color: Colors.grey,
                         borderRadius: BorderRadius.all(Radius.circular(4)),
                       ),
-                    )
+                    ),
                 ],
               ),
               const SizedBox(height: 4.0),
@@ -258,11 +248,7 @@ class RequestItemCardShimmered extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          Container(
-            width: 23,
-            height: 15,
-            color: Colors.grey,
-          ),
+          Container(width: 23, height: 15, color: Colors.grey),
           const SizedBox(width: 8.0),
           Container(
             width: 197,

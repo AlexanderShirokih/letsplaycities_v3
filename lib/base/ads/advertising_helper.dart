@@ -1,11 +1,19 @@
+import 'package:flutter/services.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
+import 'package:meta/meta.dart';
 
 typedef OnRewardedAdShown = void Function();
+
+/// Starts loading one ad; the result arrives through one of the callbacks.
+typedef AdLoader<T extends Ad> = Future<void> Function(
+  void Function(T ad) onAdLoaded,
+  void Function(LoadAdError error) onAdFailedToLoad,
+);
 
 abstract class AdManager {
   void setUpAds(OnRewardedAdShown onAdShown);
 
-  /// Returns `true` is ad ready to show
+  /// Returns `true` if an ad was ready to show
   Future<bool> showRewarded();
 
   Future<void> showInterstitial();
@@ -30,26 +38,63 @@ class StubAdManager implements AdManager {
   Future<void> showInterstitial() => Future.value();
 }
 
-/// Firebase Ad implementation
+/// Firebase Ad implementation.
+///
+/// Keeps at most one loaded ad of each kind and runs at most one load of each
+/// kind at a time, so [setUpAds] can be called for every game.
 class GoogleAdManager implements AdManager {
   static const _rewardedAdId = 'ca-app-pub-1936321025389344/2624259268';
   static const _interstitialAdId = 'ca-app-pub-1936321025389344/5623100806';
 
   late OnRewardedAdShown callback;
 
+  final AdLoader<InterstitialAd> _loadInterstitialAd;
+  final AdLoader<RewardedAd> _loadRewardedAd;
+
   InterstitialAd? _interstitialAd;
   RewardedAd? _rewardAd;
+  bool _interstitialLoading = false;
+  bool _rewardLoading = false;
 
-  GoogleAdManager() {
+  factory GoogleAdManager() {
     // Request configuration must be set before initialization: calling it while
     // the SDK initializes deadlocks the Android main thread on WebView setup.
     MobileAds.instance
         .updateRequestConfiguration(
           RequestConfiguration(
-              testDeviceIds: ['2FC7074A00EF0F1A87A07B43024079BA']),
+            testDeviceIds: ['2FC7074A00EF0F1A87A07B43024079BA'],
+          ),
         )
         .then((_) => MobileAds.instance.initialize());
+
+    return GoogleAdManager.withLoaders(
+      loadInterstitial: (onAdLoaded, onAdFailedToLoad) => InterstitialAd.load(
+        adUnitId: _interstitialAdId,
+        request: const AdRequest(),
+        adLoadCallback: InterstitialAdLoadCallback(
+          onAdLoaded: onAdLoaded,
+          onAdFailedToLoad: onAdFailedToLoad,
+        ),
+      ),
+      loadRewarded: (onAdLoaded, onAdFailedToLoad) => RewardedAd.load(
+        adUnitId: _rewardedAdId,
+        request: const AdRequest(),
+        rewardedAdLoadCallback: RewardedAdLoadCallback(
+          onAdLoaded: onAdLoaded,
+          onAdFailedToLoad: onAdFailedToLoad,
+        ),
+      ),
+    );
   }
+
+  /// Loads ads with [loadInterstitial] and [loadRewarded] and does not
+  /// initialize the Mobile Ads SDK.
+  @visibleForTesting
+  GoogleAdManager.withLoaders({
+    required AdLoader<InterstitialAd> loadInterstitial,
+    required AdLoader<RewardedAd> loadRewarded,
+  }) : _loadInterstitialAd = loadInterstitial,
+       _loadRewardedAd = loadRewarded;
 
   @override
   void setUpAds(void Function() onAdShown) {
@@ -64,53 +109,56 @@ class GoogleAdManager implements AdManager {
   }
 
   void _loadInterstitial() {
-    InterstitialAd.load(
-      adUnitId: _interstitialAdId,
-      request: const AdRequest(),
-      adLoadCallback: InterstitialAdLoadCallback(
-        onAdLoaded: (ad) {
-          ad.fullScreenContentCallback = FullScreenContentCallback(
-            onAdDismissedFullScreenContent: (ad) {
-              ad.dispose();
-              _interstitialAd = null;
-              _loadInterstitial();
-            },
-            onAdFailedToShowFullScreenContent: (ad, _) {
-              ad.dispose();
-              _interstitialAd = null;
-              _loadInterstitial();
-            },
-          );
-          _interstitialAd = ad;
-        },
-        onAdFailedToLoad: (_) => _interstitialAd = null,
-      ),
-    );
+    if (_interstitialAd != null || _interstitialLoading) return;
+    _interstitialLoading = true;
+    _loadInterstitialAd(
+      (ad) {
+        _interstitialLoading = false;
+        ad.fullScreenContentCallback = FullScreenContentCallback(
+          onAdDismissedFullScreenContent: _onInterstitialClosed,
+          onAdFailedToShowFullScreenContent: (ad, _) =>
+              _onInterstitialClosed(ad),
+        );
+        _interstitialAd = ad;
+      },
+      // The plugin disposes an ad that failed to load.
+      (_) => _interstitialLoading = false,
+    ).catchError((Object _) {
+      // No load callback follows a failed platform call.
+      _interstitialLoading = false;
+    });
+  }
+
+  void _onInterstitialClosed(InterstitialAd ad) {
+    ad.dispose();
+    if (identical(_interstitialAd, ad)) _interstitialAd = null;
+    _loadInterstitial();
   }
 
   void _loadRewarded() {
-    RewardedAd.load(
-      adUnitId: _rewardedAdId,
-      request: const AdRequest(),
-      rewardedAdLoadCallback: RewardedAdLoadCallback(
-        onAdLoaded: (ad) {
-          ad.fullScreenContentCallback = FullScreenContentCallback(
-            onAdDismissedFullScreenContent: (ad) {
-              ad.dispose();
-              _rewardAd = null;
-              _loadRewarded();
-            },
-            onAdFailedToShowFullScreenContent: (ad, _) {
-              ad.dispose();
-              _rewardAd = null;
-              _loadRewarded();
-            },
-          );
-          _rewardAd = ad;
-        },
-        onAdFailedToLoad: (_) => _rewardAd = null,
-      ),
-    );
+    if (_rewardAd != null || _rewardLoading) return;
+    _rewardLoading = true;
+    _loadRewardedAd(
+      (ad) {
+        _rewardLoading = false;
+        ad.fullScreenContentCallback = FullScreenContentCallback(
+          onAdDismissedFullScreenContent: _onRewardedClosed,
+          onAdFailedToShowFullScreenContent: (ad, _) => _onRewardedClosed(ad),
+        );
+        _rewardAd = ad;
+      },
+      // The plugin disposes an ad that failed to load.
+      (_) => _rewardLoading = false,
+    ).catchError((Object _) {
+      // No load callback follows a failed platform call.
+      _rewardLoading = false;
+    });
+  }
+
+  void _onRewardedClosed(RewardedAd ad) {
+    ad.dispose();
+    if (identical(_rewardAd, ad)) _rewardAd = null;
+    _loadRewarded();
   }
 
   @override
@@ -120,11 +168,19 @@ class GoogleAdManager implements AdManager {
       _loadInterstitial();
       return;
     }
-    await ad.show();
+    // Taken before showing, so a repeated call cannot show it twice.
+    _interstitialAd = null;
+    try {
+      await ad.show();
+    } on PlatformException {
+      ad.dispose();
+      _loadInterstitial();
+    }
   }
 
-  /// Shows rewarded ad if loaded. The reward is delivered via [callback],
-  /// so the result is always `false`.
+  /// Shows the rewarded ad and returns `true` if one is loaded; the reward is
+  /// delivered later via [callback]. Returns `false` and starts loading an ad
+  /// when none is ready.
   @override
   Future<bool> showRewarded() async {
     final ad = _rewardAd;
@@ -132,7 +188,15 @@ class GoogleAdManager implements AdManager {
       _loadRewarded();
       return false;
     }
-    await ad.show(onUserEarnedReward: (_, __) => callback());
-    return false;
+    // Taken before showing, so a repeated call cannot show it twice.
+    _rewardAd = null;
+    try {
+      await ad.show(onUserEarnedReward: (_, _) => callback());
+      return true;
+    } on PlatformException {
+      ad.dispose();
+      _loadRewarded();
+      return false;
+    }
   }
 }

@@ -1,5 +1,7 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
-import 'package:lets_play_cities/screens/common/utils.dart';
+import 'package:lets_play_cities/i18n/strings.g.dart';
 
 typedef ConfirmationCallback = void Function(bool isOk);
 
@@ -15,104 +17,122 @@ Future<bool?> showConfirmationDialog(
   required String message,
   VoidCallback? onOk,
   ConfirmationCallback? callback,
-}) =>
-    showDialog<bool>(
-      context: context,
-      builder: (BuildContext context) => buildWithLocalization(
-        context,
-        (l10n) => AlertDialog(
-          title: title == null ? null : Text(title),
-          content: Text(message),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop(false);
-                callback?.call(false);
-              },
-              child: Text(l10n.no.toUpperCase()),
-            ),
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop(true);
-                if (onOk != null) {
-                  onOk();
-                } else {
-                  callback?.call(true);
-                }
-              },
-              child: Text(l10n.yes.toUpperCase()),
-            ),
-          ],
-          elevation: 20.0,
+}) => showDialog<bool>(
+  context: context,
+  builder: (BuildContext context) {
+    final t = context.t;
+    return AlertDialog(
+      title: title == null ? null : Text(title),
+      content: Text(message),
+      actions: [
+        TextButton(
+          onPressed: () {
+            Navigator.of(context).pop(false);
+            callback?.call(false);
+          },
+          child: Text(t.no.toUpperCase()),
         ),
-      ),
+        TextButton(
+          onPressed: () {
+            Navigator.of(context).pop(true);
+            if (onOk != null) {
+              onOk();
+            } else {
+              callback?.call(true);
+            }
+          },
+          child: Text(t.yes.toUpperCase()),
+        ),
+      ],
+      elevation: 20.0,
     );
+  },
+);
 
 /// Shows single choice dialog that can show list of items and cancel button.
 /// When user taps on item according index will returned.
 /// If no items was selected `null` will be emitted.
-Future<int?> showSingleChoiceDialog(BuildContext context, String title,
-        List<String> choices, int currentChoice) =>
-    showDialog(
-        context: context,
-        builder: (context) =>
-            SingleChoiceDialog(title, choices, currentChoice));
+Future<int?> showSingleChoiceDialog(
+  BuildContext context,
+  String title,
+  List<String> choices,
+  int currentChoice,
+) => showDialog(
+  context: context,
+  builder: (context) => SingleChoiceDialog(title, choices, currentChoice),
+);
 
 class SingleChoiceDialog extends StatefulWidget {
   final String _title;
   final List<String> _choicesList;
   final int _currentChoice;
 
-  SingleChoiceDialog(this._title, this._choicesList, this._currentChoice);
+  const SingleChoiceDialog(
+    this._title,
+    this._choicesList,
+    this._currentChoice, {
+    super.key,
+  });
 
   @override
-  _SingleChoiceDialogState createState() =>
-      _SingleChoiceDialogState(_title, _choicesList, _currentChoice);
+  State<SingleChoiceDialog> createState() => _SingleChoiceDialogState();
 }
 
 class _SingleChoiceDialogState extends State<SingleChoiceDialog> {
-  final String _title;
-  final List<String> _choicesList;
-  int _selectedItemId = 0;
+  late int _selectedItemId;
+  Timer? _closeTimer;
 
-  _SingleChoiceDialogState(this._title, this._choicesList, int currentChoice)
-      : _selectedItemId = currentChoice;
+  @override
+  void initState() {
+    super.initState();
+    _selectedItemId = widget._currentChoice;
+  }
+
+  @override
+  void dispose() {
+    _closeTimer?.cancel();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) => AlertDialog(
-        contentPadding: EdgeInsets.fromLTRB(20.0, 18.0, 20.0, 0.0),
-        title: Text(_title),
-        content: RadioGroup<int>(
-          groupValue: _selectedItemId,
-          onChanged: (newValue) {
-            if (newValue != null) {
-              setState(() {
-                _selectedItemId = newValue;
-              });
-              Future.microtask(
-                  () => Future.delayed(Duration(milliseconds: 300))).then((_) {
-                if (context.mounted) Navigator.of(context).pop(newValue);
-              });
+    contentPadding: EdgeInsets.fromLTRB(20.0, 18.0, 20.0, 0.0),
+    title: Text(widget._title),
+    content: RadioGroup<int>(
+      groupValue: _selectedItemId,
+      onChanged: (newValue) {
+        if (newValue != null) {
+          setState(() {
+            _selectedItemId = newValue;
+          });
+          _closeTimer?.cancel();
+          _closeTimer = Timer(Duration(milliseconds: 300), () {
+            // Once the dialog is closing (Cancel, barrier tap, back) it stays
+            // mounted during its exit animation, and pop() would close the
+            // route underneath it instead.
+            if (mounted && (ModalRoute.of(context)?.isCurrent ?? false)) {
+              Navigator.of(context).pop(newValue);
             }
-          },
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: Iterable.generate(_choicesList.length, (i) => i)
-                .map(
-                  (int index) => RadioListTile<int>(
-                    title: Text(_choicesList[index]),
-                    value: index,
-                  ),
-                )
-                .toList(),
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: buildWithLocalization(
-                context, (l10n) => Text(l10n.cancel.toUpperCase())),
-          )
-        ],
-      );
+          });
+        }
+      },
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: Iterable.generate(widget._choicesList.length, (i) => i)
+            .map(
+              (int index) => RadioListTile<int>(
+                title: Text(widget._choicesList[index]),
+                value: index,
+              ),
+            )
+            .toList(),
+      ),
+    ),
+    actions: [
+      TextButton(
+        onPressed: () => Navigator.of(context).pop(),
+        child: Text(context.t.cancel.toUpperCase()),
+      ),
+    ],
+  );
 }

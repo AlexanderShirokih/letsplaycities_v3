@@ -12,9 +12,10 @@ class GameServiceEventsRepository {
       .where((event) => event is OnUserSwitchedEvent)
       .cast<OnUserSwitchedEvent>();
 
-  /// Returns stream that emits timer ticks
-  Stream<String> getTimerTicks() => _eventsStream
+  /// Returns stream that emits the seconds left for the move on every
+  /// timer tick
+  Stream<int> getTimerTicks() => _eventsStream
       .where((event) => (event) is TimeEvent)
       .cast<TimeEvent>()
-      .map((event) => event.currentTime);
+      .map((event) => event.secondsLeft);
 }

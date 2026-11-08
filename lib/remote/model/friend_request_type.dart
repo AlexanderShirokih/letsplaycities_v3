@@ -1,11 +1,16 @@
 /// Describes friendship request type
 enum FriendRequestType {
   /// Sends new friend request
-  SEND,
+  send('SEND'),
 
   /// Accepts input friend request
-  ACCEPT,
+  accept('ACCEPT'),
 
   /// Denies input friend request
-  DENY,
+  deny('DENY');
+
+  const FriendRequestType(this.wireName);
+
+  /// Last segment of the friend request path
+  final String wireName;
 }

@@ -24,10 +24,7 @@ class ScoreController {
     this._onUpdate,
   );
 
-  factory ScoreController.fromPrefs(
-    GamePreferences prefs,
-    GameMode mode,
-  ) =>
+  factory ScoreController.fromPrefs(GamePreferences prefs, GameMode mode) =>
       ScoreController(
         _getScoreData(prefs.scoringData),
         prefs.scoringType,
@@ -35,16 +32,29 @@ class ScoreController {
         (newData) => prefs.scoringData = jsonEncode(newData.toJson()),
       );
 
-  static ScoringSet _getScoreData(dynamic scoringData) => scoringData.isEmpty
-      ? ScoringSet.initial()
-      : ScoringSet.fromJson(jsonDecode(scoringData));
+  static ScoringSet _getScoreData(String scoringData) {
+    if (scoringData.isEmpty) return ScoringSet.initial();
+
+    final stored = ScoringSet.fromJson(jsonDecode(scoringData));
+    final storedNames = stored.groups.map((group) => group.main.name).toSet();
+
+    // Groups this version updates must exist, so missing ones start empty.
+    return ScoringSet(
+      groups: [
+        ...stored.groups,
+        ...ScoringSet.initial().groups.where(
+          (group) => !storedNames.contains(group.main.name),
+        ),
+      ],
+    );
+  }
 
   /// Stores score and all statistic results to the storage by calling
   /// [OnUpdateScoringData] callback
   void commit() => _onUpdate(_allGroups);
 
   /// Used when [user]s move ended by accepting [word] during [moveTimeInMs] from move start
-  /// Also updates combos for current user is player from Map<ComboTypeIndex, ComboValue>
+  /// Also updates combos for current user is player from `Map<ComboTypeIndex, ComboValue>`
   void onMoveFinished(
     User user,
     String word,
@@ -52,7 +62,7 @@ class ScoreController {
     Map<int, int> activeCombos,
   ) {
     if (_mode == GameMode.network) {
-      _allGroups[G_ONLINE][F_TIME].asIntField().add(moveTimeInMs ~/ 1000);
+      _allGroups[groupOnline][fieldTime].asIntField().add(moveTimeInMs ~/ 1000);
     }
 
     user.increaseScore(_getPoints(word, moveTimeInMs));
@@ -68,36 +78,38 @@ class ScoreController {
   void onGameFinished(GameResult gameResult) {
     if (!gameResult.hasScore || gameResult.owner.score <= 0) return;
 
-    _allGroups[G_PARTS].main.asIntField().increase();
-    _allGroups[G_PARTS][_translateGameMode(_mode)].asIntField().increase();
+    _allGroups[groupParts].main.asIntField().increase();
+    _allGroups[groupParts][_translateGameMode(_mode)].asIntField().increase();
 
     if (_mode == GameMode.network) {
       switch (gameResult.matchResult) {
-        case MatchResult.WIN:
-          _allGroups[G_ONLINE][F_WINS].asIntField().increase();
+        case MatchResult.win:
+          _allGroups[groupOnline][fieldWins].asIntField().increase();
           break;
-        case MatchResult.LOSE:
-          _allGroups[G_ONLINE][F_LOSE].asIntField().increase();
+        case MatchResult.lose:
+          _allGroups[groupOnline][fieldLose].asIntField().increase();
           break;
-        case MatchResult.DRAW:
+        case MatchResult.draw:
           break;
       }
     }
   }
 
   void _updateLongestCities(User user, String word) =>
-      _updateTop10By(G_BIG_CITIES, word, (w) => w.length, null);
+      _updateTop10By(groupBigCities, word, (w) => w.length, null);
 
   void _updateMostFrequentCities(String word) => _updateTop10By(
-      G_FRQ_CITIES,
-      word,
-      (_) => 1,
-      (old, current) =>
-          old.clone(value: old.value ?? 0 + (current.value ?? 0)));
+    groupFrequentCities,
+    word,
+    (_) => 1,
+    (old, current) => old.clone(value: (old.value ?? 0) + (current.value ?? 0)),
+  );
 
-  void _updateCombos(Map<int, int> activeCombos) =>
-      activeCombos.entries.forEach((MapEntry<int, int> combo) =>
-          _allGroups[G_COMBO].child[combo.key].asIntField().max(combo.value));
+  void _updateCombos(Map<int, int> activeCombos) {
+    for (final combo in activeCombos.entries) {
+      _allGroups[groupCombo].child[combo.key].asIntField().max(combo.value);
+    }
+  }
 
   void _updateTop10By(
     String group,
@@ -107,24 +119,38 @@ class ScoreController {
       PairedScoringField<String, int> prev,
       PairedScoringField<String, int> curr,
     )?
-        onMerge,
+    onMerge,
   ) {
-    // Recalculate list
-    final newList = (_allGroups[group]
-                .child
-                .cast<PairedScoringField<String, int>>()
-                .where((field) => field.hasValue() && field.key != V_EMPTY_S)
-                .toList() +
-            [PairedScoringField<String, int>('', word, defaultValue(word))])
-        .distinctBy((field) => field.key ?? '', onDuplicate: onMerge)
-        .take(10)
-        .toList(growable: false)
-          ..sort((a, b) => b.value?.compareTo(a.value ?? 0) ?? 0);
+    // Recalculate list. The whole list is ranked before it is cut to 10,
+    // otherwise a new word (appended last) never gets into a full list.
+    final distinct =
+        (_allGroups[group].child
+                    .cast<PairedScoringField<String, int>>()
+                    .where(
+                      (field) =>
+                          field.hasValue() && field.key != emptyFieldValue,
+                    )
+                    .toList() +
+                [PairedScoringField<String, int>('', word, defaultValue(word))])
+            .distinctBy((field) => field.key ?? '', onDuplicate: onMerge)
+            .toList(growable: false);
+
+    // On equal values the word just played ranks first, so a new city can
+    // replace an old one with the same value; other ties keep their order.
+    final order = List.generate(distinct.length, (i) => i)
+      ..sort((i, j) {
+        final a = distinct[i], b = distinct[j];
+        final byValue = (b.value ?? 0).compareTo(a.value ?? 0);
+        if (byValue != 0) return byValue;
+        if ((a.key == word) != (b.key == word)) return a.key == word ? -1 : 1;
+        return i.compareTo(j);
+      });
+    final newList = order.map((i) => distinct[i]).toList(growable: false);
 
     // Update references
     _allGroups[group].child = newList
         .asMap()
-        .map((i, word) => MapEntry(i, word.clone(name: '$F_P$i')))
+        .map((i, word) => MapEntry(i, word.clone(name: '$fieldPairPrefix$i')))
         .values
         .take(10)
         .toList(growable: false);
@@ -132,26 +158,26 @@ class ScoreController {
 
   int _getPoints(String word, int moveTime) {
     switch (_scoringType) {
-      case ScoringType.LAST_MOVE:
+      case ScoringType.lastMove:
         return 0;
-      case ScoringType.BY_SCORE:
+      case ScoringType.byScore:
         return word.length;
-      case ScoringType.BY_TIME:
+      case ScoringType.byTime:
         final dt = ((40000 - moveTime) ~/ 2000);
-        return 2 + dt > 0 ? dt : 0;
+        return 2 + (dt > 0 ? dt : 0);
     }
   }
 
   String _translateGameMode(GameMode mode) {
     switch (mode) {
       case GameMode.playerVsAndroid:
-        return F_ANDROID;
+        return fieldAndroid;
       case GameMode.playerVsPlayer:
-        return F_PLAYER;
+        return fieldPlayer;
       case GameMode.multiplayer:
-        return F_NETWORK;
+        return fieldNetwork;
       case GameMode.network:
-        return F_ONLINE;
+        return fieldOnline;
     }
   }
 }

@@ -11,11 +11,7 @@ class CountryEntity extends Equatable {
   /// `true` if there is a city(capital) with the same name as country
   final bool hasSiblingCity;
 
-  const CountryEntity(
-    this.name,
-    this.countryCode,
-    this.hasSiblingCity,
-  );
+  const CountryEntity(this.name, this.countryCode, this.hasSiblingCity);
 
   @override
   List<Object?> get props => [name, countryCode, hasSiblingCity];

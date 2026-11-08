@@ -29,18 +29,21 @@ class WordCheckingResult extends GameEvent {
   /// Creates word checking result from [WordResult] enum state
   factory WordCheckingResult.of(WordResult result, User owner, String word) {
     switch (result) {
-      case WordResult.ACCEPTED:
+      case WordResult.accepted:
         return Accepted(word, owner);
-      case WordResult.RECEIVED:
-        return Error(WordCheckingException(
-            'WordResult.RECEIVED is unexpected in this case'));
-      case WordResult.ALREADY:
+      case WordResult.received:
+        return Error(
+          WordCheckingException(
+            'WordResult.received is unexpected in this case',
+          ),
+        );
+      case WordResult.already:
         return AlreadyUsed(word);
-      case WordResult.NO_WORD:
+      case WordResult.noWord:
         return NotFound(word);
-      case WordResult.WRONG_MOVE:
+      case WordResult.wrongMove:
         return Error(WrongMoveException());
-      case WordResult.UNKNOWN:
+      case WordResult.unknown:
         return Error(WordCheckingException('Unknown word result!'));
     }
   }
@@ -50,28 +53,28 @@ class WordCheckingResult extends GameEvent {
 class AlreadyUsed extends WordCheckingResult {
   final String word;
 
-  AlreadyUsed(this.word);
+  const AlreadyUsed(this.word);
 }
 
 /// Used when input word starts with different letter then [validLetter].
 class WrongLetter extends WordCheckingResult {
   final String validLetter;
 
-  WrongLetter(this.validLetter);
+  const WrongLetter(this.validLetter);
 }
 
 /// Used when input city is an exclusion and can't be applied.
 class Exclusion extends WordCheckingResult {
   final String description;
 
-  Exclusion(this.description);
+  const Exclusion(this.description);
 }
 
 /// Used after state [NotFound] and contains available corrections for current input
 class Corrections extends WordCheckingResult {
   final Set<String> corrections;
 
-  Corrections(this.corrections);
+  const Corrections(this.corrections);
 
   @override
   bool isDescriptiveError() => false;
@@ -81,7 +84,7 @@ class Corrections extends WordCheckingResult {
 class NotFound extends WordCheckingResult {
   final String word;
 
-  NotFound(this.word);
+  const NotFound(this.word);
 }
 
 /// Used when input [word] can applied without any corrections.
@@ -100,20 +103,22 @@ class Accepted extends WordCheckingResult {
 
   /// Returns `true` if it approved and accepted word result
   @override
-  bool isSuccessful() => status == CityStatus.OK;
+  bool isSuccessful() => status == CityStatus.ok;
 
-  Accepted(this.word, this.owner, {this.status, this.countryCode});
+  const Accepted(this.word, this.owner, {this.status, this.countryCode});
 
   /// Creates deep copy of object and allows to set some fields
-  Accepted clone({CityStatus? status, int? countryCode}) =>
-      Accepted(word, owner,
-          status: status ?? this.status,
-          countryCode: countryCode ?? this.countryCode);
+  Accepted clone({CityStatus? status, int? countryCode}) => Accepted(
+    word,
+    owner,
+    status: status ?? this.status,
+    countryCode: countryCode ?? this.countryCode,
+  );
 }
 
 /// Used when error happens during word processing
 class Error extends WordCheckingResult {
   final Exception exception;
 
-  Error(this.exception);
+  const Error(this.exception);
 }

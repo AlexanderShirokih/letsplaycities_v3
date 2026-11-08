@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:collection';
 import 'dart:convert';
 import 'dart:io';
-import 'dart:typed_data';
 
 import 'package:flutter/services.dart';
 import 'package:lets_play_cities/base/dictionary.dart';
@@ -13,15 +12,16 @@ import 'dictionary_impl.dart';
 
 /// Factory class for creating and loading [DictionaryService] instance
 class DictionaryFactory {
-  static const _EMBEDDED_DICTIONARY_PATH = 'assets/data/data.db2';
-  static const _INTERNAL_DICTIONARY_FILE = '/data-last.db2';
+  static const _embeddedDictionaryPath = 'assets/data/data.db2';
+  static const _internalDictionaryFile = '/data-last.db2';
 
   static _Dictionary? _cachedDictionary;
 
   /// Returns path for internal database file
   static Future<File> get internalDatabaseFile =>
-      getApplicationSupportDirectory()
-          .then((filesDir) => File(filesDir.path + _INTERNAL_DICTIONARY_FILE));
+      getApplicationSupportDirectory().then(
+        (filesDir) => File(filesDir.path + _internalDictionaryFile),
+      );
 
   static Future<List<_DictionaryDescriptor>> _getDescriptors() async {
     final dictionaryDescriptors = await _parseDescriptors();
@@ -32,12 +32,14 @@ class DictionaryFactory {
   }
 
   static Future<_DictionaryDescriptor> _getNewestDescriptor() =>
-      _getDescriptors().then((list) => (list
-            ..sort((a, b) {
-              final vSort = b.version.compareTo(a.version);
-              return vSort == 0 ? a.order.compareTo(b.order) : vSort;
-            }))
-          .first);
+      _getDescriptors().then(
+        (list) =>
+            (list..sort((a, b) {
+                  final vSort = b.version.compareTo(a.version);
+                  return vSort == 0 ? a.order.compareTo(b.order) : vSort;
+                }))
+                .first,
+      );
 
   /// Resets saved dictionary instance and clears underlying data
   static void invalidateCache() {
@@ -49,12 +51,27 @@ class DictionaryFactory {
   static Future<int> latestVersion() =>
       _getNewestDescriptor().then((desc) => desc.version);
 
+  /// Completes with an error unless [file] holds a complete dictionary of
+  /// [expectedVersion].
+  static Future<void> verifyDictionaryFile(
+    File file,
+    int expectedVersion,
+  ) async {
+    final bytes = await file.readAsBytes();
+    _DictionaryVerifier().parseDictionary(
+      ByteData.sublistView(bytes),
+      expectedVersion,
+    );
+  }
+
   static Future<List<_DictionaryDescriptor>> _parseDescriptors() =>
       Stream.fromFutures([
-        _getCachedDescriptor(),
-        internalDatabaseFile.then((file) => _parseDescriptor(file.path, true)),
-        _parseDescriptor(_EMBEDDED_DICTIONARY_PATH, false),
-      ])
+            _getCachedDescriptor(),
+            internalDatabaseFile.then(
+              (file) => _parseDescriptor(file.path, true),
+            ),
+            _parseDescriptor(_embeddedDictionaryPath, false),
+          ])
           .where((desc) => desc != null && desc.isValid())
           .cast<_DictionaryDescriptor>() // Drop nullable part
           .toList();
@@ -62,23 +79,28 @@ class DictionaryFactory {
   static Future<String> _loadDescriptor(bool isInternal, String path) =>
       (isInternal ? File(path).readAsString() : rootBundle.loadString(path));
 
-  static Future<_DictionaryDescriptor> _fromJson(
-      Map<String, dynamic> data, String dbPath, bool isInternal) async {
-    if (isInternal) {
-      return _InternalDescriptor(File(dbPath), data['version']);
-    } else {
-      return _EmbeddedDescriptor(dbPath, data['version']);
-    }
-  } // File
-
+  /// Returns `null` when the meta file next to [dbPath] is missing, unreadable
+  /// or malformed (for example, left empty by an interrupted write), so that
+  /// one broken meta cannot stop the other dictionaries from loading.
   static Future<_DictionaryDescriptor?> _parseDescriptor(
-          String dbPath, bool isInternal) =>
-      _loadDescriptor(isInternal, '$dbPath.meta')
-          .then(jsonDecode)
-          .then<_DictionaryDescriptor?>((data) => _fromJson(data, dbPath, isInternal))
-          .catchError((e) => null,
-              test: (e) => e
-                  is FileSystemException); // File not exists or some parsing error
+    String dbPath,
+    bool isInternal,
+  ) async {
+    try {
+      final data = jsonDecode(
+        await _loadDescriptor(isInternal, '$dbPath.meta'),
+      );
+      final version = data is Map ? data['version'] : null;
+      if (version is! int) return null;
+
+      if (isInternal) return _InternalDescriptor(File(dbPath), version);
+      return _EmbeddedDescriptor(dbPath, version);
+    } on FileSystemException {
+      return null;
+    } on FormatException {
+      return null;
+    }
+  }
 
   static Future<_DictionaryDescriptor?> _getCachedDescriptor() async {
     return _cachedDictionary != null
@@ -148,15 +170,14 @@ class _InternalDescriptor extends _DictionaryDescriptor
   bool isValid() => _internalFile.existsSync();
 
   @override
-  Future<_Dictionary> getDictionary() => _internalFile.exists().then(
-        (isExists) {
-          if (isExists) {
-            return _parse();
-          } else {
-            throw 'Internal dictionary is not exists!';
-          }
-        },
-      );
+  Future<_Dictionary> getDictionary() =>
+      _internalFile.exists().then((isExists) {
+        if (isExists) {
+          return _parse();
+        } else {
+          throw 'Internal dictionary is not exists!';
+        }
+      });
 
   Future<_Dictionary> _parse() async {
     try {
@@ -192,6 +213,10 @@ class _EmbeddedDescriptor extends _DictionaryDescriptor
   bool isValid() => true;
 }
 
+/// Parses a dictionary only to check it, see
+/// [DictionaryFactory.verifyDictionaryFile].
+class _DictionaryVerifier with _DictionaryParserMixin {}
+
 /// Contains common methods for dictionary parsing
 mixin _DictionaryParserMixin {
   _Dictionary parseDictionary(ByteData data, int expectedVersion) {
@@ -202,8 +227,9 @@ mixin _DictionaryParserMixin {
 
     if (version != expectedVersion) {
       throw DictionaryException(
-          "Actual dictionary version $version doesn't match with excepted version $expectedVersion",
-          -1);
+        "Actual dictionary version $version doesn't match with excepted version $expectedVersion",
+        -1,
+      );
     }
     if (magic != 0xFED0) throw DictionaryException('Invalid file header', -1);
     if (settings != 0x01) {

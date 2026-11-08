@@ -25,5 +25,5 @@ class AvatarDoneState extends AvatarState {
   const AvatarDoneState([this.updateRequired = false, this.error]);
 
   @override
-  List<Object> get props => [updateRequired];
+  List<Object?> get props => [updateRequired, error];
 }

@@ -13,17 +13,18 @@ abstract class RemoteConnection {
   factory RemoteConnection.fromMessagePipe(
     MessagePipe<ClientMessage, ServerMessage> pipe,
     UserLookupRepository userLookupRepository,
-  ) =>
-      LpsServerInteractorImpl(pipe, userLookupRepository);
+  ) => LpsServerInteractorImpl(pipe, userLookupRepository);
 
   /// Returns [ProfileInfo] of [RemoteConnection] owner
   ProfileInfo get profile;
 
   /// Authorizes client on the server. Returns `null` if user cannot be authorized
+  /// Throws [ClientDisconnectedException] if the client disconnects first
   Future<ProfileInfo?> authorize();
 
   /// Returns [Future] that completes when 'Play' message received
-  /// Throws [RemoteException] if requested play mode isn't [PlayMode.RANDOM_PAIR]
+  /// Throws [RemoteException] if requested play mode isn't [PlayMode.randomPair]
+  /// and [ClientDisconnectedException] if the client disconnects first
   Future<void> get ready;
 
   /// Closes current connection
@@ -74,14 +75,12 @@ class LpsServerInteractorImpl implements RemoteConnection {
 
     if (5 != version) {
       throw RemoteException(
-          'Incompatible protocol versions(5 != $version)! Please, upgrade your application');
+        'Incompatible protocol versions(5 != $version)! Please, upgrade your application',
+      );
     }
 
     final profileInfo = _userLookupRepository.getUser(
-      Credential(
-        userId: loginRequest.uid,
-        accessToken: loginRequest.hash,
-      ),
+      Credential(userId: loginRequest.uid, accessToken: loginRequest.hash),
     );
 
     if (profileInfo == null) {
@@ -103,24 +102,19 @@ class LpsServerInteractorImpl implements RemoteConnection {
 
   @override
   void sendWord(WordResult wordResult, String city, BaseProfileInfo owner) =>
-      _client.sendMessage(WordMessage(
-        result: wordResult,
-        word: city,
-        ownerId: owner.userId,
-      ));
+      _client.sendMessage(
+        WordMessage(result: wordResult, word: city, ownerId: owner.userId),
+      );
 
   @override
   void sendMessage(String message, BaseProfileInfo owner) =>
-      _client.sendMessage(ChatMessage(
-        message: message,
-        ownerId: owner.userId,
-      ));
+      _client.sendMessage(ChatMessage(message: message, ownerId: owner.userId));
 
   @override
   Future<void> get ready async {
     final playRequest = (await _client.readMessage()) as PlayMessage;
 
-    if (playRequest.mode != PlayMode.RANDOM_PAIR) {
+    if (playRequest.mode != PlayMode.randomPair) {
       throw RemoteException('Protocol error: invalid play mode!');
     }
   }
@@ -130,12 +124,13 @@ class LpsServerInteractorImpl implements RemoteConnection {
     required bool canReceiveMessages,
     required bool youStarter,
     required ProfileInfo opponent,
-  }) async =>
-      _client.sendMessage(JoinMessage(
-        canReceiveMessages: canReceiveMessages,
-        youStarter: youStarter,
-        opponent: opponent,
-      ));
+  }) async => _client.sendMessage(
+    JoinMessage(
+      canReceiveMessages: canReceiveMessages,
+      youStarter: youStarter,
+      opponent: opponent,
+    ),
+  );
 
   @override
   Stream<String> get incomingMessages => _client

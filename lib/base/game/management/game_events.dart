@@ -41,7 +41,7 @@ class OnFirstCharChanged extends GameEvent {
 }
 
 /// Describes reason why users move was ended.
-enum MoveFinishType { Completed, Timeout, Disconnected, Surrender }
+enum MoveFinishType { completed, timeout, disconnected, surrender }
 
 /// Emits when users move ended (completed or failed)
 class OnMoveFinished extends GameEvent {
@@ -56,7 +56,8 @@ class OnMoveFinished extends GameEvent {
 
 /// An event that represents game timer ticks
 class TimeEvent extends GameEvent {
-  final String currentTime;
+  /// Seconds left for the current move.
+  final int secondsLeft;
 
-  const TimeEvent(this.currentTime);
+  const TimeEvent(this.secondsLeft);
 }

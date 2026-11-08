@@ -1,16 +1,16 @@
 import 'dart:async';
 
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:equatable/equatable.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:lets_play_cities/base/bloc/sequential_event_mapping.dart';
 import 'package:lets_play_cities/base/cities_list/cities_list_entry.dart';
 import 'package:lets_play_cities/base/cities_list/cities_list_filter.dart';
+import 'package:lets_play_cities/base/cities_list/city_item.dart';
 import 'package:lets_play_cities/base/dictionary/country_entity.dart';
 import 'package:lets_play_cities/base/repositories/cities/city_repository.dart';
 import 'package:lets_play_cities/base/repositories/cities/country_repository.dart';
-import 'package:lets_play_cities/screens/main/cites/model/city_item.dart';
 import 'package:lets_play_cities/utils/string_utils.dart';
 import 'package:meta/meta.dart';
-import 'package:lets_play_cities/base/bloc/sequential_event_mapping.dart';
 
 part 'cities_list_event.dart';
 
@@ -22,17 +22,13 @@ class CitiesListBloc extends Bloc<CitiesListEvent, CitiesListState>
   final CityRepository _cityRepository;
   final CountryRepository _countryRepository;
 
-  CitiesListBloc(
-    this._cityRepository,
-    this._countryRepository,
-  ) : super(CitiesListInitial()) {
+  CitiesListBloc(this._cityRepository, this._countryRepository)
+    : super(CitiesListInitial()) {
     mapEventsSequentially(_mapEventToState);
     add(CitiesListBeginDataLoadingEvent());
   }
 
-  Stream<CitiesListState> _mapEventToState(
-    CitiesListEvent event,
-  ) async* {
+  Stream<CitiesListState> _mapEventToState(CitiesListEvent event) async* {
     if (event is CitiesListBeginDataLoadingEvent) {
       yield* _loadData();
     } else if (event is CitiesListUpdateNameFilter) {
@@ -56,15 +52,18 @@ class CitiesListBloc extends Bloc<CitiesListEvent, CitiesListState>
     String? nameFilter,
     CountryListFilter? countryFilter,
   }) async* {
-    if (!(state is CitiesListDataState)) return;
+    if (state is! CitiesListDataState) return;
 
     // Update existing filter or create new
     final filter = state is CitiesListFilteredDataState
-        ? (state as CitiesListFilteredDataState)
-            .filter
-            .copy(nameFilter: nameFilter, countryFilter: countryFilter)
+        ? (state as CitiesListFilteredDataState).filter.copy(
+            nameFilter: nameFilter,
+            countryFilter: countryFilter,
+          )
         : CitiesListFilter(
-            nameFilter: nameFilter ?? '', countryFilter: countryFilter);
+            nameFilter: nameFilter ?? '',
+            countryFilter: countryFilter,
+          );
 
     // Keep all-data state
     final original = state is CitiesListFilteredDataState
@@ -78,7 +77,8 @@ class CitiesListBloc extends Bloc<CitiesListEvent, CitiesListState>
     }
 
     // If current filter is more concrete then previous - filter from previous
-    final candidate = state is CitiesListFilteredDataState &&
+    final candidate =
+        state is CitiesListFilteredDataState &&
             filter.isDetailing((state as CitiesListFilteredDataState).filter)
         ? (state as CitiesListFilteredDataState).citiesList
         : original.citiesList;

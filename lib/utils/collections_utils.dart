@@ -6,16 +6,16 @@ extension IteratorExt<T> on Iterable<T> {
   /// or replace with a new value.
   /// If element returning by [onDuplicate] is equals to original element or has
   /// a key that already exists it will be ignored.
-  Iterable<T> distinctBy(Object Function(T) keySelector,
-          {T Function(T old, T current)? onDuplicate}) =>
-      _DistinctIterable(this, keySelector, onDuplicate);
+  Iterable<T> distinctBy(
+    Object Function(T) keySelector, {
+    T Function(T old, T current)? onDuplicate,
+  }) => _DistinctIterable(this, keySelector, onDuplicate);
 }
 
 class _DistinctIterable<T> extends Iterable<T> {
   final Iterable<T> _iterable;
   final Object Function(T) _keySelector;
   final T? Function(T old, T current) _onDuplicate;
-  final Map<Object, T> uniqueElements = {};
 
   _DistinctIterable(
     this._iterable,
@@ -25,7 +25,9 @@ class _DistinctIterable<T> extends Iterable<T> {
 
   @override
   Iterator<T> get iterator {
-    _iterable.forEach((element) {
+    // Fresh on every iteration, so iterating again does not merge again.
+    final uniqueElements = <Object, T>{};
+    for (var element in _iterable) {
       final key = _keySelector(element);
 
       final old = uniqueElements[key];
@@ -35,7 +37,7 @@ class _DistinctIterable<T> extends Iterable<T> {
       } else {
         uniqueElements[key] = element;
       }
-    });
+    }
 
     return uniqueElements.values.iterator;
   }

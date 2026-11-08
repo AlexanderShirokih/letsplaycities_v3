@@ -1,20 +1,20 @@
 import 'package:async/async.dart';
-import 'package:get_it/get_it.dart';
-import 'package:lets_play_cities/app_config.dart';
 import 'package:lets_play_cities/base/preferences.dart';
+import 'package:lets_play_cities/remote/api_repository_factory.dart';
 import 'package:lets_play_cities/remote/auth.dart';
 import 'package:lets_play_cities/remote/model/utils.dart';
 
-import 'client/api_client.dart';
-
 class AccountManagerImpl extends AccountManager {
   final GamePreferences _preferences;
-  final AppConfig _globalAppConfig;
 
-  final AsyncCache<RemoteAccount> _fetchedAccount =
-      AsyncCache(const Duration(minutes: 5));
+  /// Talks to the main server, which keeps the accounts.
+  final ApiRepositoryFactory _apiRepositories;
 
-  AccountManagerImpl(this._preferences, this._globalAppConfig);
+  final AsyncCache<RemoteAccount> _fetchedAccount = AsyncCache(
+    const Duration(minutes: 5),
+  );
+
+  AccountManagerImpl(this._preferences, this._apiRepositories);
 
   @override
   Future<RemoteAccount?> getLastSignedInAccount() async {
@@ -22,12 +22,9 @@ class AccountManagerImpl extends AccountManager {
 
     if (credentials == null) return null;
 
-    return _fetchedAccount.fetch(() async {
-      final profile = await GetIt.instance
-          .get<ApiRepository>(
-            param1: InstancedCredentialsProvider(credentials),
-            param2: _globalAppConfig,
-          )
+    return _fetchOrInvalidate(() async {
+      final profile = await _apiRepositories
+          .forCredential(credentials)
           .getProfileInfo(
             BaseProfileInfo(userId: credentials.userId, login: ''),
             true,
@@ -44,23 +41,50 @@ class AccountManagerImpl extends AccountManager {
     });
   }
 
+  /// [AsyncCache] keeps a failed future until it expires, so drop it here and
+  /// let the next call (e.g. the Reload button) fetch again.
+  Future<RemoteAccount> _fetchOrInvalidate(
+    Future<RemoteAccount> Function() fetch,
+  ) async {
+    try {
+      return await _fetchedAccount.fetch(fetch);
+    } catch (_) {
+      _fetchedAccount.invalidate();
+      rethrow;
+    }
+  }
+
   @override
-  Future<RemoteAccount> signUp(RemoteSignUpData signUpData) =>
-      _fetchedAccount.fetch(() => _signUp(signUpData));
+  Future<RemoteAccount> signUp(RemoteSignUpData signUpData) async {
+    // Not through _fetchedAccount.fetch: it would return whatever account or
+    // error is cached instead of signing up. Dropping the cache makes the
+    // next getLastSignedInAccount load the new account from the server.
+    final account = await _signUp(signUpData);
+    _fetchedAccount.invalidate();
+    return account;
+  }
 
   Future<RemoteAccount> _signUp(RemoteSignUpData signUpData) async {
-    final response = await _createClient(Credential.empty()).signUp(signUpData);
+    final response = await _apiRepositories
+        .clientFor(Credential.empty())
+        .signUp(signUpData);
 
-    final credential =
-        Credential(userId: response.userId, accessToken: response.accessToken);
+    final credential = Credential(
+      userId: response.userId,
+      accessToken: response.accessToken,
+    );
 
     await _preferences.setCurrentCredentials(credential);
+    _apiRepositories.cache.clear();
 
     return RemoteAccount(
       credential: credential,
       name: response.login,
       pictureUri: getPictureUrlOrNull(
-          _globalAppConfig, response.userId, response.pictureHash),
+        _apiRepositories.serverConfig,
+        response.userId,
+        response.pictureHash,
+      ),
       canReceiveMessages: _preferences.onlineChatEnabled,
       role: response.role,
       authType: response.authType,
@@ -69,10 +93,8 @@ class AccountManagerImpl extends AccountManager {
 
   // TODO: Clear cookies here, when we implement cookies management
   @override
-  Future signOut() => _preferences
-      .setCurrentCredentials(null)
-      .then((_) => _fetchedAccount.invalidate());
-
-  LpsApiClient _createClient(Credential credential) => GetIt.instance
-      .get<LpsApiClient>(param1: InstancedCredentialsProvider(credential));
+  Future signOut() => _preferences.setCurrentCredentials(null).then((_) {
+    _fetchedAccount.invalidate();
+    _apiRepositories.cache.clear();
+  });
 }

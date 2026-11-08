@@ -28,14 +28,6 @@ class MainActivity : BaseAsyncActivity() {
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
         val messenger = flutterEngine.dartExecutor.binaryMessenger
-        MethodChannel(messenger, MIGRATION_CHANNEL).setMethodCallHandler { call: MethodCall, result: MethodChannel.Result ->
-            if ("migrateLegacyPreferencesFile" == call.method) {
-                runMigrations()
-                result.success(null)
-            } else {
-                result.notImplemented()
-            }
-        }
         MethodChannel(messenger, SHARING_CHANNEL).setMethodCallHandler { call: MethodCall, result: MethodChannel.Result ->
             if ("share_text" == call.method) {
                 shareText(call.argument("text"))
@@ -51,12 +43,6 @@ class MainActivity : BaseAsyncActivity() {
         NetworkManager(messenger, this)
     }
 
-    private fun runMigrations() {
-        val legacyPrefs = getSharedPreferences(LEGACY_SHARED_PREFERENCES_NAME, MODE_PRIVATE)
-        val flutterPrefs = getSharedPreferences(FLUTTER_SHARED_PREFERENCES_NAME, MODE_PRIVATE)
-        MigrationHelper.runMigrationIfNeeded(legacyPrefs, flutterPrefs)
-    }
-
     private fun shareText(text: String?) {
         val intent = Intent(Intent.ACTION_SEND)
         intent.type = "text/plain"
@@ -66,9 +52,6 @@ class MainActivity : BaseAsyncActivity() {
     }
 
     companion object {
-        private const val MIGRATION_CHANNEL = "ru.aleshi.letsplaycities/sp_migration"
         private const val SHARING_CHANNEL = "ru.aleshi.letsplaycities/share"
-        private const val FLUTTER_SHARED_PREFERENCES_NAME = "FlutterSharedPreferences"
-        private const val LEGACY_SHARED_PREFERENCES_NAME = "letsplaycities"
     }
 }

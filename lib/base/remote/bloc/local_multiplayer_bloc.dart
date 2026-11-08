@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:equatable/equatable.dart';
-import 'package:get_it/get_it.dart';
 import 'package:lets_play_cities/app_config.dart';
 import 'package:lets_play_cities/base/platform/network_manager.dart';
 import 'package:lets_play_cities/remote/account_manager.dart';
@@ -20,10 +19,22 @@ class LocalMultiplayerBloc
     extends Bloc<LocalMultiplayerEvent, LocalMultiplayerState>
     with SequentialEventMapping<LocalMultiplayerEvent, LocalMultiplayerState> {
   final ServerGameController _server;
+  final ErrorLogger _errorLogger;
 
-  LocalMultiplayerBloc(
-    this._server,
-  ) : super(LocalMultiplayerInitial()) {
+  /// Config of the local game server. Its host is replaced with the address
+  /// of the chosen server before the game starts.
+  final AppConfig _localConfig;
+
+  /// Builds the account manager for a game on the server at the given config.
+  /// Called each time a game starts, not when the bloc is created.
+  final AccountManager Function(AppConfig) _createAccountManager;
+
+  LocalMultiplayerBloc({
+    required this._server,
+    required this._errorLogger,
+    required this._localConfig,
+    required this._createAccountManager,
+  }) : super(LocalMultiplayerInitial()) {
     mapEventsSequentially(_mapEventToState);
   }
 
@@ -34,7 +45,8 @@ class LocalMultiplayerBloc
   }
 
   Stream<LocalMultiplayerState> _mapEventToState(
-      LocalMultiplayerEvent event) async* {
+    LocalMultiplayerEvent event,
+  ) async* {
     if (event is LocalMultiplayerCreate) {
       yield* _createConnection();
     } else if (event is LocalMultiplayerConnect) {
@@ -57,21 +69,25 @@ class LocalMultiplayerBloc
         await _server.setUp();
       } catch (e, s) {
         yield LocalMultiplayerErrorState();
-        GetIt.instance<ErrorLogger>().error(e, s);
+        _errorLogger.error(e, s);
         await _server.close();
         yield LocalMultiplayerInitial();
+        return;
       }
 
-      unawaited(_server.runGame().catchError((e, s) {
-        GetIt.instance<ErrorLogger>().error(e, s);
-      }));
+      unawaited(
+        _server.runGame().catchError((e, s) {
+          _errorLogger.error(e, s);
+        }),
+      );
 
       yield await _startGameForHost('localhost');
     }
   }
 
   Stream<LocalMultiplayerState> _connectToServer(
-      RemoteHost selectedHost) async* {
+    RemoteHost selectedHost,
+  ) async* {
     final isNetworkReady = await NetworkManager.ensureWifiConnected();
 
     if (isNetworkReady) {
@@ -83,17 +99,9 @@ class LocalMultiplayerBloc
   }
 
   Future<LocalMultiplayerStartGame> _startGameForHost(String host) async {
-    final getIt = GetIt.instance;
+    final appConfig = _localConfig.copy(host: host);
+    final accMgr = _createAccountManager(appConfig);
 
-    final appConfig =
-        getIt.get<AppConfig>(instanceName: 'local').copy(host: host);
-
-    final accMgr =
-        getIt.get<AccountManager>(instanceName: 'local', param1: appConfig);
-
-    return LocalMultiplayerStartGame(
-      appConfig,
-      accMgr,
-    );
+    return LocalMultiplayerStartGame(appConfig, accMgr);
   }
 }

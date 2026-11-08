@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:lets_play_cities/base/cities_list/city_item.dart';
+import 'package:lets_play_cities/i18n/strings.g.dart';
 import 'package:lets_play_cities/screens/common/utils.dart';
-import 'package:lets_play_cities/screens/main/cites/model/city_item.dart';
 
 /// Shows city with its country. Has submenu activated by tap,
 /// that allows to edit the city.
@@ -12,16 +13,17 @@ class CityListItem extends StatelessWidget {
   final void Function() onRemove;
 
   const CityListItem({
-    Key? key,
+    super.key,
     required this.onTap,
     required this.onEdit,
     required this.onRemove,
     required this.expanded,
     required this.cityItem,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
+    final t = context.t;
     final cityName = cityItem.cityName;
     final countryName = cityItem.country.name;
     final countryCode = cityItem.country.countryCode;
@@ -54,13 +56,13 @@ class CityListItem extends StatelessWidget {
                       // Want edit
                       TextButton.icon(
                         icon: Icon(Icons.edit),
-                        label: Text('Нужно изменить страну или название'),
+                        label: Text(t.citiesList.wantEdit),
                         onPressed: onEdit,
                       ),
                       // Want remove
                       TextButton.icon(
                         icon: Icon(Icons.remove_circle_outline),
-                        label: Text('Нужно удалить'),
+                        label: Text(t.citiesList.wantRemove),
                         onPressed: onRemove,
                       ),
                     ],
