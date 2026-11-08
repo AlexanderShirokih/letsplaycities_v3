@@ -12,6 +12,7 @@ import 'package:lets_play_cities/remote/model/cloud_messages.dart';
 import 'package:lets_play_cities/remote/model/social.dart';
 import 'package:lets_play_cities/remote/protocol/game_messages.dart';
 import 'package:lets_play_cities/screens/common/d2/d2.dart';
+import 'package:lets_play_cities/screens/multiplayer/local_multiplayer_screen.dart';
 import 'package:lets_play_cities/screens/online/game_request_view.dart';
 import 'package:lets_play_cities/screens/online/online_home_screen.dart';
 
@@ -73,7 +74,11 @@ void main() {
     final context = tester.element(find.byType(Scaffold).first);
     showD2Sheet<void>(
       context,
-      builder: (_) => GameRequestView(request: _request),
+      builder: (_) => GameRequestView(
+        request: _request,
+        connection: connection,
+        apiRepositories: apiRepositories,
+      ),
     );
     await settle(tester);
   }
@@ -145,6 +150,19 @@ void main() {
       expect(connection.isConnected, isFalse);
     });
 
+    testWidgets('closes the connection also when the reply fails', (
+      tester,
+    ) async {
+      connection.failSend = true;
+      await pumpPlainApp(tester);
+      await showRequest(tester);
+
+      await tester.tap(find.text(_t.decline));
+      await settle(tester);
+
+      expect(connection.isConnected, isFalse);
+    });
+
     testWidgets('goes through the open home and keeps its connection', (
       tester,
     ) async {
@@ -179,6 +197,46 @@ void main() {
     });
   });
 
+  group('inside a LAN game', () {
+    late FakeGameConnection lanConnection;
+    late FakeApiRepository lanRepository;
+
+    setUp(() {
+      lanConnection = FakeGameConnection();
+      lanRepository = FakeApiRepository();
+      GetIt.instance
+        ..pushNewScope(scopeName: lanGameScopeName)
+        ..registerSingleton<ApiRepositoryFactory>(
+          _PictureFactory(lanRepository),
+        )
+        ..registerSingleton<GameConnection>(lanConnection);
+    });
+
+    testWidgets('decline goes to the main connection and leaves the LAN '
+        'one alone', (tester) async {
+      await pumpPlainApp(tester);
+      await showRequest(tester);
+
+      await tester.tap(find.text(_t.decline));
+      await settle(tester);
+
+      expect(connection.sent, [const InviteReply(2, accept: false)]);
+      expect(connection.isConnected, isFalse);
+      expect(lanConnection.sent, isEmpty);
+      expect(lanConnection.connects, 0);
+      expect(lanRepository.userCalls, isEmpty);
+      expect(repository.userCalls, [false]);
+    });
+
+    testWidgets('accept is hidden', (tester) async {
+      await pumpPlainApp(tester);
+      await showRequest(tester);
+
+      expect(find.text(_t.accept), findsNothing);
+      expect(find.text(_t.decline), findsOneWidget);
+    });
+  });
+
   group('accept', () {
     testWidgets('routes into the open home and replies true on its '
         'connection', (tester) async {
@@ -191,6 +249,7 @@ void main() {
       expect(find.byType(OnlineHomeScreen), findsOneWidget);
       expect(find.byType(GameRequestView), findsNothing);
       expect(connection.sent, [const InviteReply(2, accept: true)]);
+      expect(connection.connects, 1);
       expect(find.text(_t.online.connectingToServer), findsOneWidget);
     });
 
@@ -211,6 +270,7 @@ void main() {
       expect(find.text('friends'), findsNothing);
       expect(find.byType(OnlineHomeScreen), findsOneWidget);
       expect(connection.sent, [const InviteReply(2, accept: true)]);
+      expect(connection.connects, 1);
     });
 
     testWidgets('opens the online home when none is open, once', (
@@ -225,6 +285,7 @@ void main() {
       expect(find.byType(OnlineHomeScreen), findsOneWidget);
       expect(find.byType(GameRequestView), findsNothing);
       expect(connection.sent, [const InviteReply(2, accept: true)]);
+      expect(connection.connects, 1);
     });
 
     testWidgets('an answer to a withdrawn invitation says it is not valid '

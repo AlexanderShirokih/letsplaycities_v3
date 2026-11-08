@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:lets_play_cities/app_config.dart';
@@ -86,13 +87,23 @@ class _RecordingLogger implements ErrorLogger {
 class _FakeRepository extends Fake implements ApiRepository {
   final pictures = <String>[];
 
-  /// When set, an upload waits for it
-  Completer<void>? uploadGate;
+  /// The pictures put as the avatar
+  final puts = <Uint8List>[];
+
+  /// When set, a download waits for it
+  Completer<void>? downloadGate;
 
   @override
-  Future<LpsUser> putAvatarFromUrl(String pictureURL) async {
+  Future<Uint8List> downloadPicture(String pictureURL) async {
     pictures.add(pictureURL);
-    await uploadGate?.future;
+    await downloadGate?.future;
+
+    return Uint8List.fromList([1, 2, 3]);
+  }
+
+  @override
+  Future<LpsUser> putAvatar(Uint8List image) async {
+    puts.add(image);
     return LpsUser.fromJson(userJson);
   }
 }
@@ -454,10 +465,26 @@ void main() {
       expect(server.calls, isNot(contains('PATCH /v1/me')));
     });
 
+    test(
+      'a refreshed fcm token is sent after the account was refreshed',
+      () async {
+        server.on('POST', '/v1/auth/native', 200, _auth('t1'));
+        await manager.signInNative('Мария');
+        await pumpEventQueue();
+
+        // E.g. a new avatar
+        manager.invalidate();
+        messaging.refreshes.add('fcm-2');
+        await pumpEventQueue();
+
+        expect(server.bodyOf('PATCH', '/v1/me'), {'fcmToken': 'fcm-2'});
+      },
+    );
+
     test('the picture of a social sign-in does not refresh the next '
         'account', () async {
       server.on('POST', '/v1/auth/social', 200, _auth('t1', avatarHash: null));
-      final gate = factory.repository.uploadGate = Completer<void>();
+      final gate = factory.repository.downloadGate = Completer<void>();
       await manager.signInSocial(AuthType.vkontakte);
       await manager.signOut();
       server.on('POST', '/v1/auth/native', 200, _auth('t2'));
@@ -470,6 +497,7 @@ void main() {
       gate.complete();
       await pumpEventQueue();
 
+      expect(factory.repository.puts, isEmpty);
       expect(changes, 0);
       await manager.getLastSignedInAccount();
       expect(server.calls, isNot(contains('GET /v1/me')));

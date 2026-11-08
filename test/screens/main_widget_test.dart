@@ -3,11 +3,16 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:get_it/get_it.dart';
 import 'package:lets_play_cities/base/preferences.dart';
 import 'package:lets_play_cities/base/themes/app_theme_mode.dart';
+import 'package:lets_play_cities/remote/api_repository_factory.dart';
+import 'package:lets_play_cities/remote/game_connection.dart';
 import 'package:lets_play_cities/remote/model/cloud_messaging_service.dart';
 import 'package:lets_play_cities/screens/main_widget.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../i18n/translations_harness.dart';
+import '../remote/fake_api_repository_factory.dart';
+import '../remote/fake_game_connection.dart';
+import 'online/online_fakes.dart';
 
 void main() {
   tearDown(GetIt.instance.reset);
@@ -23,7 +28,12 @@ void main() {
       ValueNotifier(prefs.themeMode),
       instanceName: 'themeModeNotifier',
     );
-    getIt.registerSingleton<CloudMessagingService>(StubCloudMessagingService());
+    getIt
+      ..registerSingleton<CloudMessagingService>(StubCloudMessagingService())
+      ..registerSingleton<GameConnection>(FakeGameConnection())
+      ..registerSingleton<ApiRepositoryFactory>(
+        FakeApiRepositoryFactory(FakeApiRepository()),
+      );
 
     await tester.pumpWidget(withTranslations(const LetsPlayCitiesApp()));
     await tester.pump();

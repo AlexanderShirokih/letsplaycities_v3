@@ -160,13 +160,17 @@ class ApiRepository with AvatarResizeMixin {
   }
 
   /// First fetches picture from [pictureURL] and makes it the avatar
-  Future<LpsUser> putAvatarFromUrl(String pictureURL) async {
+  Future<LpsUser> putAvatarFromUrl(String pictureURL) async =>
+      putAvatar(await downloadPicture(pictureURL));
+
+  /// Downloads the picture at [pictureURL]
+  Future<Uint8List> downloadPicture(String pictureURL) async {
     final picture = await _pictureDownloader.get<List<int>>(
       pictureURL,
       options: Options(responseType: ResponseType.bytes),
     );
 
-    return putAvatar(Uint8List.fromList(picture.data!));
+    return Uint8List.fromList(picture.data!);
   }
 
   /// Scales [image] to the size of the avatar and makes it the avatar of

@@ -32,9 +32,12 @@ class FakeGameConnection implements GameConnection {
             lastSeenAt: DateTime(2026),
           );
 
+  /// Makes [send] fail
+  bool failSend = false;
+
   @override
   Future<LpsUser> ensureConnected() async {
-    connects++;
+    if (!_connected) connects++;
     _connected = true;
 
     return user;
@@ -51,7 +54,7 @@ class FakeGameConnection implements GameConnection {
 
   @override
   void send(ClientGameMessage message) {
-    if (!_connected) {
+    if (!_connected || failSend) {
       throw const RemoteIOException('The game connection is not open');
     }
 

@@ -92,6 +92,9 @@ class LocalMultiplayerScreen extends StatelessWidget {
   }
 }
 
+/// Name of the [GetIt] scope of a LAN game
+const lanGameScopeName = 'lan-game';
+
 /// Pushes the [getIt] scope of the LAN game that [game] starts. Inside it the
 /// unnamed [AppConfig], the [AccountManager] and the [ApiRepositoryFactory]
 /// target the LAN server; the factory keeps the picture URLs and the cache of
@@ -100,7 +103,7 @@ class LocalMultiplayerScreen extends StatelessWidget {
 void pushLanGameScope(GetIt getIt, LocalMultiplayerStartGame game) {
   final apiRepositories = getIt.get<ApiRepositoryFactory>();
   getIt
-    ..pushNewScope()
+    ..pushNewScope(scopeName: lanGameScopeName)
     ..registerSingleton<AppConfig>(game.configOverrides)
     ..registerSingleton<AccountManager>(game.accountManagerOverrides)
     ..registerSingleton<ApiRepositoryFactory>(

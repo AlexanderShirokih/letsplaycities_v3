@@ -9,6 +9,8 @@ import 'package:lets_play_cities/base/preferences.dart';
 import 'package:lets_play_cities/screens/common/theme_mode.dart';
 import 'package:lets_play_cities/base/themes/app_theme_mode.dart';
 import 'package:lets_play_cities/i18n/strings.g.dart';
+import 'package:lets_play_cities/remote/api_repository_factory.dart';
+import 'package:lets_play_cities/remote/game_connection.dart';
 import 'package:lets_play_cities/remote/model/cloud_messages.dart';
 import 'package:lets_play_cities/remote/model/cloud_messaging_service.dart';
 import 'package:lets_play_cities/screens/common/d2/d2.dart';
@@ -16,8 +18,18 @@ import 'package:lets_play_cities/screens/root/root_screen.dart';
 import 'package:lets_play_cities/screens/online/game_request_view.dart';
 
 /// Application root class
-class LetsPlayCitiesApp extends StatelessWidget {
+class LetsPlayCitiesApp extends StatefulWidget {
   const LetsPlayCitiesApp({super.key});
+
+  @override
+  State<LetsPlayCitiesApp> createState() => _LetsPlayCitiesAppState();
+}
+
+class _LetsPlayCitiesAppState extends State<LetsPlayCitiesApp> {
+  /// The main server's connection and API, taken from the root scope when
+  /// the app starts: pushes are answered there also inside a LAN game
+  GameConnection? _connection;
+  ApiRepositoryFactory? _apiRepositories;
 
   @override
   Widget build(BuildContext context) => FutureBuilder<void>(
@@ -53,7 +65,18 @@ class LetsPlayCitiesApp extends StatelessWidget {
     },
   );
 
-  Widget _buildAppHome() => Scaffold(
+  Widget _buildAppHome() {
+    final getIt = GetIt.instance;
+    _connection ??= getIt.get<GameConnection>();
+    _apiRepositories ??= getIt.get<ApiRepositoryFactory>();
+
+    return _buildHomeScaffold(_connection!, _apiRepositories!);
+  }
+
+  Widget _buildHomeScaffold(
+    GameConnection connection,
+    ApiRepositoryFactory apiRepositories,
+  ) => Scaffold(
     body: Builder(
       builder: (context) => StreamListener<GameRequest>(
         stream: GetIt.instance
@@ -64,7 +87,11 @@ class LetsPlayCitiesApp extends StatelessWidget {
         onData: (request) {
           showD2Sheet<void>(
             context,
-            builder: (_) => GameRequestView(request: request),
+            builder: (_) => GameRequestView(
+              request: request,
+              connection: connection,
+              apiRepositories: apiRepositories,
+            ),
           );
         },
         child: SafeArea(child: const RootScreen()),

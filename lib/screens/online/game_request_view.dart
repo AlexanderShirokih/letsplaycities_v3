@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:developer' as developer;
 
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
@@ -7,31 +6,40 @@ import 'package:lets_play_cities/base/remote/bloc/waiting_room_bloc.dart';
 import 'package:lets_play_cities/i18n/strings.g.dart';
 import 'package:lets_play_cities/remote/api_repository.dart';
 import 'package:lets_play_cities/remote/api_repository_factory.dart';
-import 'package:lets_play_cities/remote/client/remote_game_client.dart';
 import 'package:lets_play_cities/remote/game_connection.dart';
 import 'package:lets_play_cities/remote/model/cloud_messages.dart';
 import 'package:lets_play_cities/screens/common/d2/d2.dart';
 import 'package:lets_play_cities/screens/online/common_online_widgets.dart';
+import 'package:lets_play_cities/screens/multiplayer/local_multiplayer_screen.dart';
 import 'package:lets_play_cities/screens/online/game_master.dart';
+import 'package:lets_play_cities/screens/online/game_waiting_room_screen.dart';
 import 'package:lets_play_cities/screens/online/online_home_screen.dart';
 
 /// The content of the sheet for the push that invites to a game: who invites
 /// and «Принять» / «Отклонить». Both answers go over the one game
-/// connection: through the open «Онлайн», or, when none is open, accept
-/// opens it and decline connects for the reply alone.
+/// connection of the main server: through the open «Онлайн», or, when none
+/// is open, accept opens it and decline connects for the reply alone.
 class GameRequestView extends StatefulWidget {
   final GameRequest request;
 
-  const GameRequestView({super.key, required this.request});
+  /// The game connection and the API of the main server, also while a LAN
+  /// game runs and the ones in [GetIt] go to the LAN host
+  final GameConnection connection;
+  final ApiRepositoryFactory apiRepositories;
+
+  const GameRequestView({
+    super.key,
+    required this.request,
+    required this.connection,
+    required this.apiRepositories,
+  });
 
   @override
   State<GameRequestView> createState() => _GameRequestViewState();
 }
 
 class _GameRequestViewState extends State<GameRequestView> {
-  final ApiRepository _repository = GetIt.instance
-      .get<ApiRepositoryFactory>()
-      .forUser();
+  late final ApiRepository _repository = widget.apiRepositories.forUser();
 
   // Fetched once: the sheet rebuilds this view while it is dragged. The
   // picture is a nicety, so a failure only leaves the initial.
@@ -75,23 +83,7 @@ class _GameRequestViewState extends State<GameRequestView> {
     if (home != null) {
       home.decline(fromId);
     } else {
-      unawaited(_declineWithoutHome(fromId));
-    }
-  }
-
-  /// Connects for the reply alone and closes the connection after it
-  static Future<void> _declineWithoutHome(int fromId) async {
-    final client = RemoteGameClient(
-      GetIt.instance.get<GameConnection>(),
-      isLocal: false,
-    );
-
-    try {
-      await client.reply(fromId, false);
-      await client.disconnect();
-    } catch (e) {
-      // The invitation expires on the server anyway
-      developer.log('Decline failed: $e', name: 'GameRequestView');
+      unawaited(declineInviteOverConnection(widget.connection, fromId));
     }
   }
 
@@ -102,7 +94,9 @@ class _GameRequestViewState extends State<GameRequestView> {
     final name = widget.request.fromName;
     // A running game cannot take another one: the server would answer
     // invalid_state
-    final canAccept = OnlineHomeHandle.current?.isGameRunning != true;
+    final canAccept =
+        OnlineHomeHandle.current?.isGameRunning != true &&
+        GetIt.instance.currentScopeName != lanGameScopeName;
 
     return SingleChildScrollView(
       padding: const EdgeInsets.fromLTRB(20, 8, 20, 20),

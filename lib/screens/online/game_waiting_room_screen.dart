@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:developer' as developer;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -40,6 +41,24 @@ WaitingRoomBloc createWaitingRoomBloc({
     ),
     clock: clock,
   );
+}
+
+/// Declines the invitation of [fromId] over [connection] when no «Онлайн»
+/// is open to do it, and closes the connection after the reply. A failure
+/// is only logged: the invitation expires on the server anyway.
+Future<void> declineInviteOverConnection(
+  GameConnection connection,
+  int fromId,
+) async {
+  final client = RemoteGameClient(connection, isLocal: false);
+
+  try {
+    await client.reply(fromId, false);
+  } catch (e) {
+    developer.log('Decline failed: $e', name: 'declineInvite');
+  } finally {
+    await client.disconnect();
+  }
 }
 
 /// Pushes the game screen with the repository of the factory current when
