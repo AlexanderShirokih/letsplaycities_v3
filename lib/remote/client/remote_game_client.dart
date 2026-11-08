@@ -184,7 +184,8 @@ class RemoteGame {
       case WordResultMsg(:final by, :final text, :final status)
           when by == _opponentId && status == WordStatus.accepted:
         _addOpponentWord(text);
-      case ChatIn(:final by, :final text) when by == _opponentId:
+      case ChatIn(:final by, :final text)
+          when by == _opponentId && _owner.isMessagesAllowed:
         _events.add(MessageEvent(text, _opponent));
       case GameOver(:final reason, :final loser):
         _end(

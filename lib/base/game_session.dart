@@ -93,16 +93,35 @@ class GameSession {
     this.serverAuthoritative = false,
   }) {
     scoreController.onMoveCombos = _summary.onCombos;
+    _externalEvents = externalEvents;
+  }
 
-    if (externalEvents != null) {
-      unawaited(
-        externalEvents(this).asyncMap((event) async {
-          if (_gameRunning) {
-            await _sendServiceEvent(event);
-          }
-        }).drain(),
-      );
-    }
+  /// Events from outside the game, such as the server; read once the game
+  /// loop listens, so that the events the source keeps until then are not
+  /// lost
+  Stream<GameEvent> Function(GameSession)? _externalEvents;
+
+  /// The end of the game that came from outside. It ends the game even if
+  /// it came while no move listened to the service events.
+  OnMoveFinished? _externalFinish;
+
+  void _listenToExternalEvents() {
+    final externalEvents = _externalEvents;
+    if (externalEvents == null || !_gameRunning) return;
+
+    _externalEvents = null;
+    unawaited(
+      externalEvents(this).asyncMap((event) async {
+        if (!_gameRunning) return;
+
+        if (event is OnMoveFinished &&
+            event.endType != MoveFinishType.completed) {
+          _externalFinish ??= event;
+        }
+
+        await _sendServiceEvent(event);
+      }).drain(),
+    );
   }
 
   /// Returns user attached to the [position]
@@ -228,7 +247,16 @@ class GameSession {
     // otherwise we can lose first [OnUserSwitchedEvent] in UI layer
     await Future.delayed(Duration(milliseconds: 150));
 
+    _listenToExternalEvents();
+
     while (_gameRunning) {
+      final externalFinish = _externalFinish;
+      if (externalFinish != null) {
+        _gameRunning = false;
+        yield externalFinish;
+        return;
+      }
+
       final gate = turnGate;
       if (gate != null) {
         await gate.waitFor(usersList.current);

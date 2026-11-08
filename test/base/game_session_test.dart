@@ -450,6 +450,30 @@ void main() {
       });
     });
 
+    test('server events before the game loop starts are not lost', () {
+      fakeAsync((async) {
+        final game = _ServerGame(timeLimit: 0);
+        final messages = <MessageEvent>[];
+        game.session.inputEvents.listen((event) {
+          if (event is MessageEvent) messages.add(event);
+        });
+
+        // The opponent greets and leaves while the game screen loads
+        game.server
+          ..add(MessageEvent('привет', game.opponent))
+          ..add(OnMoveFinished(MoveFinishType.disconnected, game.opponent));
+        async.elapse(const Duration(seconds: 1));
+
+        GameResult? result;
+        game.session.runMoves().then((value) => result = value);
+        async.elapse(const Duration(seconds: 1));
+
+        expect(messages.single.message, 'привет');
+        expect(result!.finishType, MoveFinishType.disconnected);
+        expect(result!.matchResult, MatchResult.win);
+      });
+    });
+
     test('surrender sends leave and ends on gameOver', () {
       fakeAsync((async) {
         final game = _ServerGame(timeLimit: 0);

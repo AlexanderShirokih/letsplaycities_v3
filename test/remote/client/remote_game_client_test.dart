@@ -160,11 +160,13 @@ void main() {
         isLocal: false,
         chatEnabled: false,
       );
-      await gameClient.find();
+      final (config, events) = await startGame(gameClient: gameClient);
 
-      final config = gameClient.configFor(_match());
+      connection.receive(const ChatIn(_opponentId, 'привет'));
+      await pumpEventQueue();
 
       expect(owner(config).isMessagesAllowed, isFalse);
+      expect(events, isEmpty);
     });
   });
 
