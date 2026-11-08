@@ -282,7 +282,7 @@ class _FriendRow extends StatelessWidget {
               Expanded(
                 child: Semantics(
                   label: online
-                      ? '${user.name}, ${t.online.lastSeen.now}'
+                      ? t.online.friendOnline(name: user.name)
                       : user.name,
                   excludeSemantics: true,
                   child: Text(
