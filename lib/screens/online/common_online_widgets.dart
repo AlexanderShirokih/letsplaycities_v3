@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:lets_play_cities/i18n/strings.g.dart';
+import 'package:lets_play_cities/remote/api_repository.dart';
+import 'package:lets_play_cities/remote/model/lps_user.dart';
+import 'package:lets_play_cities/screens/common/d2/d2.dart';
 import 'package:lets_play_cities/screens/common/error_texts.dart';
 
 /// Shows widget with error messages
@@ -123,3 +127,15 @@ class ConnectionErrorView extends StatelessWidget {
     );
   }
 }
+
+/// Initial of [name] for an avatar without a picture
+String nameInitial(String name) =>
+    name.isEmpty ? '' : name.characters.first.toUpperCase();
+
+/// Avatar of [user] on the server of the [ApiRepository] in the widget tree
+Widget lpsUserAvatar(BuildContext context, LpsUser user, {double size = 44}) =>
+    D2Avatar.user(
+      pictureUrl: context.read<ApiRepository>().avatarUrl(user),
+      initials: nameInitial(user.name),
+      size: size,
+    );

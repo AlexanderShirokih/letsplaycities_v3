@@ -3,19 +3,17 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:lets_play_cities/base/remote/bloc/user_actions_bloc.dart';
 import 'package:lets_play_cities/i18n/strings.g.dart';
-import 'package:lets_play_cities/remote/model/blacklist_item_info.dart';
+import 'package:lets_play_cities/remote/model/lps_user.dart';
 import 'package:lets_play_cities/screens/common/utils.dart';
 import 'package:lets_play_cities/screens/online/profile.dart';
 
 import 'base_list_fetching_screen_mixin.dart';
-import 'network_avatar_building_mixin.dart';
+import 'common_online_widgets.dart';
 
 /// Blocked users list screen
 /// Provides a list of users which was blocked by player and the way to remove users from this list
 class OnlineBanlistScreen extends StatelessWidget
-    with
-        BaseListFetchingScreenMixin<BlackListItemInfo>,
-        NetworkAvatarBuildingMixin {
+    with BaseListFetchingScreenMixin<LpsUser> {
   @override
   UserFetchType get fetchEvent => UserFetchType.getBanlist;
 
@@ -33,7 +31,7 @@ class OnlineBanlistScreen extends StatelessWidget
   );
 
   @override
-  Widget buildItem(BuildContext context, BlackListItemInfo data) {
+  Widget buildItem(BuildContext context, LpsUser data) {
     final t = context.t;
     return Card(
       elevation: 4.0,
@@ -66,7 +64,10 @@ class OnlineBanlistScreen extends StatelessWidget
     Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Text(t.delete, style: Theme.of(context).primaryTextTheme.titleSmall),
+        Text(
+          t.online.unban,
+          style: Theme.of(context).primaryTextTheme.titleSmall,
+        ),
         SizedBox(width: 12.0),
         FaIcon(
           FontAwesomeIcons.xmark,
@@ -77,17 +78,14 @@ class OnlineBanlistScreen extends StatelessWidget
     ),
   );
 
-  Widget _buildListTile(
-    BuildContext context,
-    BlackListItemInfo data,
-    Translations t,
-  ) => ListTile(
-    onTap: () => Navigator.push(
-      context,
-      OnlineProfileView.createRoute(context, target: data),
-    ),
-    contentPadding: EdgeInsets.all(8.0),
-    leading: buildAvatar(data),
-    title: Text(data.login),
-  );
+  Widget _buildListTile(BuildContext context, LpsUser data, Translations t) =>
+      ListTile(
+        onTap: () => Navigator.push(
+          context,
+          OnlineProfileView.createRoute(context, userId: data.id),
+        ),
+        contentPadding: EdgeInsets.all(8.0),
+        leading: lpsUserAvatar(context, data, size: 48),
+        title: Text(data.name),
+      );
 }

@@ -5,6 +5,7 @@ import 'package:lets_play_cities/remote/auth/token_store.dart';
 import 'package:lets_play_cities/remote/client/api_client.dart';
 import 'package:lets_play_cities/remote/client/api_dio.dart';
 import 'package:lets_play_cities/remote/client/remote_api_client.dart';
+import 'package:lets_play_cities/remote/client/social_api.dart';
 
 /// Builds the [LpsApiClient] and [ApiRepository] instances that send their
 /// requests to one server as the user whose token the [tokens] hold.
@@ -71,21 +72,20 @@ class ApiRepositoryFactory {
   ApiRepositoryFactory forServer(AppConfig server, TokenStore tokens) =>
       ApiRepositoryFactory._(server, pictureConfig, cache, tokens, _createDio);
 
-  /// Repository that acts as the signed-in user, [userId] is the id of the
-  /// user, if it is known.
+  /// Repository that acts as the signed-in user. [userId] is not needed
+  /// since protocol v1; callers still pass it until the game screens move
+  /// to it.
+  // replaced in protocol v1 tasks 6-7: the callers drop the argument
   ApiRepository forUser([int userId = 0]) {
     final dio = _createDio(serverConfig, tokens);
-    return ApiRepository(_client(dio, userId), cache, dio);
+    return ApiRepository(SocialApi(dio), cache, pictureConfig, dio);
   }
 
-  /// Client that acts as the signed-in user, [userId] is the id of the user,
-  /// if it is known.
-  LpsApiClient clientFor([int userId = 0]) =>
-      _client(_createDio(serverConfig, tokens), userId);
+  /// Client of the sign-up and the city requests that acts as the signed-in
+  /// user.
+  LpsApiClient clientFor() =>
+      RemoteLpsApiClient(_createDio(serverConfig, tokens), tokens);
 
   /// Dio that sends the requests to [serverConfig] as the signed-in user.
   Dio dio() => _createDio(serverConfig, tokens);
-
-  LpsApiClient _client(Dio dio, int userId) =>
-      RemoteLpsApiClient(pictureConfig, dio, tokens, userId);
 }

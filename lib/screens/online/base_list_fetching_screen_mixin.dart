@@ -5,19 +5,21 @@ import 'package:lets_play_cities/base/achievements/achievements_service.dart';
 import 'package:lets_play_cities/base/remote/bloc/user_actions_bloc.dart';
 import 'package:lets_play_cities/base/remote/bloc/user_list_actions_bloc.dart';
 import 'package:lets_play_cities/i18n/strings.g.dart';
-import 'package:lets_play_cities/remote/auth.dart';
+import 'package:lets_play_cities/remote/api_repository.dart';
 import 'package:lets_play_cities/screens/common/common_widgets.dart';
 
 import 'common_online_widgets.dart';
 
 /// Provides common functionality for all fetching-type screens.
-/// Requires [ApiRepository] to be injected in the widget tree.
+/// Requires the [ApiRepository] of the signed-in user to be injected in the
+/// widget tree.
 mixin BaseListFetchingScreenMixin<T> on StatelessWidget {
   /// Returns appropriate list fetching event type
   UserFetchType get fetchEvent;
 
-  /// Returns target `user` to fetch list from users perspective.
-  BaseProfileInfo? get target => null;
+  /// Id of the user whose games the history shows, `null` for all the games
+  /// of the signed-in user.
+  int? get withUser => null;
 
   /// Returns widget that will be shown when fetched list is empty
   Widget getOnListEmptyPlaceHolder(BuildContext context);
@@ -27,6 +29,12 @@ mixin BaseListFetchingScreenMixin<T> on StatelessWidget {
 
   /// Builds item from fetched [data]
   Widget buildItem(BuildContext context, T data);
+
+  /// Builds the fetched, not empty [data]. [hasMore] is `true` while the
+  /// server has more pages. By default a list of [buildItem] that asks for
+  /// the next page at its end.
+  Widget buildBody(BuildContext context, List<T> data, bool hasMore) =>
+      _showList(context, data, hasMore);
 
   /// Creates slider widget which is [Colors.green] for left position
   /// and [Colors.red] for right.
@@ -49,8 +57,11 @@ mixin BaseListFetchingScreenMixin<T> on StatelessWidget {
   Widget build(BuildContext context) => MultiBlocProvider(
     providers: [
       BlocProvider(
-        create: (ctx) =>
-            UserListActionsBloc(ctx.read<ApiRepository>(), fetchEvent, target),
+        create: (ctx) => UserListActionsBloc(
+          ctx.read<ApiRepository>(),
+          fetchEvent,
+          withUser,
+        ),
       ),
       // Not closed with the screen: the undo snackbar is shown by the
       // app-wide ScaffoldMessenger and may confirm the action after the
@@ -77,7 +88,7 @@ mixin BaseListFetchingScreenMixin<T> on StatelessWidget {
               },
               child: state.data.isEmpty
                   ? _showPlaceholder(context)
-                  : _showList(context, state.data as List<T>),
+                  : buildBody(context, state.data as List<T>, state.hasMore),
             );
           } else if (state is UserActionErrorState) {
             return showError(context, state.error);
@@ -135,11 +146,18 @@ mixin BaseListFetchingScreenMixin<T> on StatelessWidget {
     }
   }
 
-  Widget _showList(BuildContext context, List<T> data) => scrollable
+  Widget _showList(BuildContext context, List<T> data, bool hasMore) =>
+      scrollable
       ? ListView.builder(
           padding: EdgeInsets.all(8.0),
-          itemCount: data.length,
-          itemBuilder: (ctx, i) => buildItem(context, data[i]),
+          itemCount: data.length + (hasMore ? 1 : 0),
+          itemBuilder: (ctx, i) => i < data.length
+              ? buildItem(context, data[i])
+              : _LoadMore(
+                  onVisible: () => context.read<UserListActionsBloc>().add(
+                    const UserFetchMoreEvent(),
+                  ),
+                ),
         )
       : Padding(
           padding: const EdgeInsets.all(8.0),
@@ -161,5 +179,29 @@ mixin BaseListFetchingScreenMixin<T> on StatelessWidget {
         ),
       ),
     ],
+  );
+}
+
+/// The end of a paged list: asks for the next page once it is built
+class _LoadMore extends StatefulWidget {
+  final VoidCallback onVisible;
+
+  const _LoadMore({required this.onVisible});
+
+  @override
+  State<_LoadMore> createState() => _LoadMoreState();
+}
+
+class _LoadMoreState extends State<_LoadMore> {
+  @override
+  void initState() {
+    super.initState();
+    widget.onVisible();
+  }
+
+  @override
+  Widget build(BuildContext context) => const Padding(
+    padding: EdgeInsets.all(16.0),
+    child: Center(child: CircularProgressIndicator()),
   );
 }

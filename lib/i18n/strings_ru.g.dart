@@ -967,11 +967,31 @@ class Translations$online$ru {
 	/// ru: 'Пользователь добавил вас в чёрный список'
 	String get inputBan => 'Пользователь добавил вас в чёрный список';
 
-	/// ru: 'Был(а) в сети {date}'
-	String lastOnline({required Object date}) => 'Был(а) в сети ${date}';
+	/// ru: 'Заявки в друзья'
+	String get friendRequests => 'Заявки в друзья';
 
-	/// ru: 'вчера, в {time}'
-	String yesterday({required Object time}) => 'вчера, в ${time}';
+	/// ru: 'Мои друзья'
+	String get myFriends => 'Мои друзья';
+
+	/// ru: 'Имя или ID'
+	String get searchHint => 'Имя или ID';
+
+	/// ru: 'Заявка отправлена'
+	String get requestSent => 'Заявка отправлена';
+
+	/// ru: 'Пригласить'
+	String get inviteShort => 'Пригласить';
+
+	late final Translations$online$lastSeen$ru lastSeen = Translations$online$lastSeen$ru._(_root);
+	Map<String, String> get apiErrors => {
+		'bad_image': 'Не удалось обработать картинку',
+		'too_large': 'Картинка слишком большая',
+		'blocked': 'Между вами есть блокировка',
+		'self': 'Нельзя выбрать себя',
+		'not_found': 'Пользователь не найден',
+		'banned': 'Аккаунт заблокирован',
+		'too_many_requests': 'Слишком много запросов, попробуйте позже',
+	};
 
 	/// ru: '(one) {{count} слово} (few) {{count} слова} (many) {{count} слов} (other) {{count} слов}'
 	String wordsCount({required num count}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('ru'))(count,
@@ -1299,6 +1319,35 @@ class Translations$settings$themeMode$ru {
 
 	/// ru: 'Как в системе'
 	String get system => 'Как в системе';
+}
+
+// Path: online.lastSeen
+class Translations$online$lastSeen$ru {
+	Translations$online$lastSeen$ru._(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// ru: 'в сети'
+	String get now => 'в сети';
+
+	/// ru: 'в сети в {time}'
+	String today({required Object time}) => 'в сети в ${time}';
+
+	/// ru: 'в сети вчера'
+	String get yesterday => 'в сети вчера';
+
+	/// ru: '(one) {в сети {count} день назад} (few) {в сети {count} дня назад} (many) {в сети {count} дней назад} (other) {в сети {count} дней назад}'
+	String daysAgo({required num count}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('ru'))(count,
+		one: 'в сети ${count} день назад',
+		few: 'в сети ${count} дня назад',
+		many: 'в сети ${count} дней назад',
+		other: 'в сети ${count} дней назад',
+	);
+
+	/// ru: 'в сети {date}'
+	String date({required Object date}) => 'в сети ${date}';
 }
 
 // Path: online.invitationResult

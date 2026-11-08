@@ -25,9 +25,17 @@ class UserFetchListEvent extends UserActionsEvent {
   List<Object> get props => [forceRefresh];
 }
 
+/// Asks for the next page of a paged list, e.g. the history
+class UserFetchMoreEvent extends UserActionsEvent {
+  const UserFetchMoreEvent();
+
+  @override
+  List<Object> get props => [];
+}
+
 class UserEvent extends UserActionsEvent {
   final UserUserAction action;
-  final BaseProfileInfo target;
+  final LpsUser target;
   final String? confirmationMessage;
   final bool undoable;
 

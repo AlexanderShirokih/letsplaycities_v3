@@ -1,16 +1,15 @@
 import 'package:lets_play_cities/app_config.dart';
 
-/// Creates avatar picture url from template.
-/// Returns `null` if [pictureHash] is `null` or an empty string
+/// Creates the avatar URL `{base}/v1/avatars/{id}?v={hash}`. Returns `null`
+/// if [pictureHash] is `null` or an empty string
 String? getPictureUrlOrNull(
   AppConfig appConfig,
   int userId,
   String? pictureHash,
 ) => pictureHash == null || pictureHash.isEmpty
     ? null
-    : '${appConfig.remotePublicApiURL}/user/$userId/picture?hash=$pictureHash';
+    : '${appConfig.restBaseUrl}/avatars/$userId?v=${Uri.encodeQueryComponent(pictureHash)}';
 
-/// Creates avatar picture url from template.
-/// Don't takes into account picture hash code
+/// Creates the avatar URL without the version of the picture
 String? getPictureUrlOrNullNoHash(AppConfig appConfig, String userId) =>
-    '${appConfig.remotePublicApiURL}/user/$userId/picture';
+    '${appConfig.restBaseUrl}/avatars/$userId';

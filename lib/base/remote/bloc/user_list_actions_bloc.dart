@@ -1,19 +1,25 @@
 import 'dart:async';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:lets_play_cities/base/bloc/sequential_event_mapping.dart';
 import 'package:lets_play_cities/base/remote/bloc/user_actions_bloc.dart';
 import 'package:lets_play_cities/remote/api_repository.dart';
-import 'package:lets_play_cities/remote/model/profile_info.dart';
-import 'package:lets_play_cities/base/bloc/sequential_event_mapping.dart';
+import 'package:lets_play_cities/remote/model/social.dart';
 
-/// BLoC for managing user actions like friends management
+/// BLoC that fetches the lists of the social screens: the friends, the
+/// history and the blocked users. The history comes in pages.
 class UserListActionsBloc extends Bloc<UserActionsEvent, UserActionsState>
     with SequentialEventMapping<UserActionsEvent, UserActionsState> {
   final ApiRepository _apiRepository;
   final UserFetchType fetchType;
-  final BaseProfileInfo? target;
 
-  UserListActionsBloc(this._apiRepository, this.fetchType, [this.target])
+  /// Only for the history: the games with this user, with everybody if `null`
+  final int? withUser;
+
+  final _games = <HistoryGame>[];
+  int? _next;
+
+  UserListActionsBloc(this._apiRepository, this.fetchType, [this.withUser])
     : super(UserActionsInitial()) {
     mapEventsSequentially(_mapEventToState);
     add(UserFetchListEvent(false));
@@ -21,40 +27,65 @@ class UserListActionsBloc extends Bloc<UserActionsEvent, UserActionsState>
 
   Stream<UserActionsState> _mapEventToState(UserActionsEvent event) async* {
     if (event is UserFetchListEvent) {
-      yield* _handleFetchEventSafely(event);
+      yield* _safely(_fetch(event.forceRefresh));
+    } else if (event is UserFetchMoreEvent) {
+      yield* _safely(_fetchMore());
     }
   }
 
-  Stream<UserActionsState> _handleFetchEventSafely(UserFetchListEvent event) {
-    return _handleFetchEvent(event).transform(
+  Stream<UserActionsState> _safely(Stream<UserActionsState> states) {
+    return states.transform(
       StreamTransformer<UserActionsState, UserActionsState>.fromHandlers(
         handleError: (e, s, sink) {
-          // The error itself, not its text: the screen words some errors,
-          // such as AccessDeniedException, for the player.
+          // The error itself, not its text: the screen words some errors
+          // for the player.
           sink.add(UserActionErrorState(e, s));
         },
       ),
     );
   }
 
-  Stream<UserActionsState> _handleFetchEvent(UserFetchListEvent event) async* {
+  Stream<UserActionsState> _fetch(bool forceRefresh) async* {
     yield UserProcessingActionState();
-
-    Future<List> data;
 
     switch (fetchType) {
       case UserFetchType.getFriendsList:
-        data = _apiRepository.getFriendsList(event.forceRefresh);
+        yield UserActionListDataState(
+          await _apiRepository.friends(forceRefresh),
+        );
         break;
       case UserFetchType.getHistoryList:
-        if (target == null) throw 'No target passed!';
-        data = _apiRepository.getHistoryList(event.forceRefresh, target!);
+        final page = await _apiRepository.history(
+          withUser: withUser,
+          forceRefresh: forceRefresh,
+        );
+        _games
+          ..clear()
+          ..addAll(page.games);
+        _next = page.next;
+        yield _historyState();
         break;
       case UserFetchType.getBanlist:
-        data = _apiRepository.getBanlist(event.forceRefresh);
+        yield UserActionListDataState(
+          await _apiRepository.blocks(forceRefresh),
+        );
         break;
     }
-
-    yield UserActionListDataState(await data);
   }
+
+  Stream<UserActionsState> _fetchMore() async* {
+    final cursor = _next;
+    if (fetchType != UserFetchType.getHistoryList || cursor == null) return;
+
+    final page = await _apiRepository.history(
+      withUser: withUser,
+      before: cursor,
+    );
+    _games.addAll(page.games);
+    _next = page.next;
+    yield _historyState();
+  }
+
+  UserActionListDataState<HistoryGame> _historyState() =>
+      UserActionListDataState(List.of(_games), hasMore: _next != null);
 }

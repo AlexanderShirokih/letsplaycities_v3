@@ -389,8 +389,32 @@
     "auth_failed": "Не удалось авторизоваться на сервере",
     "banned": "[Заблокирован]",
     "input_ban": "Пользователь добавил вас в чёрный список",
-    "last_online": "Был(а) в сети {date}",
-    "yesterday": "вчера, в {time}",
+    "friend_requests": "Заявки в друзья",
+    "my_friends": "Мои друзья",
+    "search_hint": "Имя или ID",
+    "request_sent": "Заявка отправлена",
+    "invite_short": "Пригласить",
+    "last_seen": {
+      "now": "в сети",
+      "today": "в сети в {time}",
+      "yesterday": "в сети вчера",
+      "days_ago(param=count)": {
+        "one": "в сети {count} день назад",
+        "few": "в сети {count} дня назад",
+        "many": "в сети {count} дней назад",
+        "other": "в сети {count} дней назад"
+      },
+      "date": "в сети {date}"
+    },
+    "api_errors(map)": {
+      "bad_image": "Не удалось обработать картинку",
+      "too_large": "Картинка слишком большая",
+      "blocked": "Между вами есть блокировка",
+      "self": "Нельзя выбрать себя",
+      "not_found": "Пользователь не найден",
+      "banned": "Аккаунт заблокирован",
+      "too_many_requests": "Слишком много запросов, попробуйте позже"
+    },
     "words_count(param=count)": {
       "one": "{count} слово",
       "few": "{count} слова",

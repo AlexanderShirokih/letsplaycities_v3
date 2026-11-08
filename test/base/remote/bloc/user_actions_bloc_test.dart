@@ -1,7 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:lets_play_cities/base/achievements/achievements.dart';
 import 'package:lets_play_cities/base/remote/bloc/user_actions_bloc.dart';
-import 'package:lets_play_cities/remote/model/profile_info.dart';
 
 import '../../../screens/online/online_fakes.dart';
 
@@ -11,8 +10,8 @@ void main() {
   late UserActionsBloc bloc;
   late List<UserActionsState> states;
 
-  const unban = UserEvent(
-    BaseProfileInfo(userId: 1, login: 'Bob'),
+  final unban = UserEvent(
+    lpsUser(1, 'Bob'),
     UserUserAction.unbanUser,
     confirmationMessage: 'removed',
     undoable: true,
@@ -43,7 +42,7 @@ void main() {
       UserProcessingActionState(),
       UserActionDoneState(unban),
     ]);
-    expect(repository.log, ['removeFromBanlist(1)']);
+    expect(repository.log, ['deleteBlock(1)']);
   });
 
   test('after a reset the same undoable action asks again', () async {
@@ -59,23 +58,20 @@ void main() {
     expect(repository.log, isEmpty);
   });
 
-  UserEvent answer(UserUserAction action) => UserEvent(
-    const BaseProfileInfo(userId: 2, login: 'Ann'),
-    action,
-    confirmationMessage: 'done',
-  );
+  UserEvent answer(UserUserAction action) =>
+      UserEvent(lpsUser(2, 'Ann'), action, confirmationMessage: 'done');
 
   test('an accepted friend request unlocks add1Friend', () async {
     await send(answer(UserUserAction.acceptRequest));
 
-    expect(repository.log, ['sendFriendRequestAcceptance(2, true)']);
+    expect(repository.log, ['putFriend(2)']);
     expect(achievements.unlocked, [Achievement.add1Friend]);
   });
 
   test('a declined friend request unlocks nothing', () async {
     await send(answer(UserUserAction.declineRequest));
 
-    expect(repository.log, ['sendFriendRequestAcceptance(2, false)']);
+    expect(repository.log, ['deleteFriend(2)']);
     expect(achievements.unlocked, isEmpty);
   });
 
@@ -87,4 +83,21 @@ void main() {
     expect(states.last, isA<UserActionErrorState>());
     expect(achievements.unlocked, isEmpty);
   });
+
+  const wire = {
+    UserUserAction.addToFriends: 'putFriend(2)',
+    UserUserAction.removeFromFriends: 'deleteFriend(2)',
+    UserUserAction.cancelRequest: 'deleteFriend(2)',
+    UserUserAction.declineRequest: 'deleteFriend(2)',
+    UserUserAction.acceptRequest: 'putFriend(2)',
+    UserUserAction.banUser: 'putBlock(2)',
+    UserUserAction.unbanUser: 'deleteBlock(2)',
+  };
+  for (final MapEntry(key: action, value: call) in wire.entries) {
+    test('$action calls $call', () async {
+      await send(answer(action));
+
+      expect(repository.log, [call]);
+    });
+  }
 }

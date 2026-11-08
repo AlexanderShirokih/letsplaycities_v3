@@ -22,8 +22,16 @@ class AvatarDoneState extends AvatarState {
   final bool updateRequired;
   final String? error;
 
-  const AvatarDoneState([this.updateRequired = false, this.error]);
+  /// The answer of the server when it refused the picture, e.g. `bad_image`
+  /// or `too_large`
+  final ApiException? apiError;
+
+  const AvatarDoneState([
+    this.updateRequired = false,
+    this.error,
+    this.apiError,
+  ]);
 
   @override
-  List<Object?> get props => [updateRequired, error];
+  List<Object?> get props => [updateRequired, error, apiError];
 }

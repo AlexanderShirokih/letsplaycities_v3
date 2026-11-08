@@ -5,7 +5,8 @@ import 'package:equatable/equatable.dart';
 
 import 'package:lets_play_cities/base/achievements/achievements.dart';
 import 'package:lets_play_cities/base/achievements/achievements_service.dart';
-import 'package:lets_play_cities/remote/auth.dart';
+import 'package:lets_play_cities/remote/api_repository.dart';
+import 'package:lets_play_cities/remote/model/lps_user.dart';
 import 'package:lets_play_cities/base/bloc/sequential_event_mapping.dart';
 
 part 'user_actions_event.dart';
@@ -58,24 +59,22 @@ class UserActionsBloc extends Bloc<UserActionsEvent, UserActionsState>
 
     switch (sourceEvent.action) {
       case UserUserAction.addToFriends:
-        await _apiRepository.sendNewFriendshipRequest(target);
+        await _apiRepository.putFriend(target.id);
         break;
       case UserUserAction.removeFromFriends:
       case UserUserAction.cancelRequest:
-        await _apiRepository.deleteFriend(target);
+      case UserUserAction.declineRequest:
+        await _apiRepository.deleteFriend(target.id);
         break;
       case UserUserAction.acceptRequest:
-        await _apiRepository.sendFriendRequestAcceptance(target, true);
+        await _apiRepository.putFriend(target.id);
         await _achievements.unlockAchievement(Achievement.add1Friend);
         break;
-      case UserUserAction.declineRequest:
-        await _apiRepository.sendFriendRequestAcceptance(target, false);
-        break;
       case UserUserAction.banUser:
-        await _apiRepository.addToBanlist(target);
+        await _apiRepository.putBlock(target.id);
         break;
       case UserUserAction.unbanUser:
-        await _apiRepository.removeFromBanlist(target);
+        await _apiRepository.deleteBlock(target.id);
         break;
     }
 

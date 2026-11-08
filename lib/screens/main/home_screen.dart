@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
 import 'package:lets_play_cities/base/game/game_config.dart';
@@ -60,7 +62,16 @@ class HomeScreen extends StatelessWidget {
   /// [AccountManager] of GetIt does
   final Future<RemoteAccount?> Function()? loadAccount;
 
-  const HomeScreen({super.key, this.actions, this.loadAccount});
+  /// Tells that the account changed and has to be loaded again; by default
+  /// the [AccountManager] of GetIt does
+  final Stream<void>? accountChanges;
+
+  const HomeScreen({
+    super.key,
+    this.actions,
+    this.loadAccount,
+    this.accountChanges,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -102,6 +113,7 @@ class HomeScreen extends StatelessWidget {
                               () => GetIt.instance
                                   .get<AccountManager>()
                                   .getLastSignedInAccount(),
+                          changes: accountChanges,
                           fallbackName: t.players.player,
                         ),
                       ),
@@ -153,9 +165,14 @@ class HomeScreen extends StatelessWidget {
 /// Avatar of the signed-in account, or the initial of [fallbackName]
 class _AccountAvatar extends StatefulWidget {
   final Future<RemoteAccount?> Function() load;
+  final Stream<void>? changes;
   final String fallbackName;
 
-  const _AccountAvatar({required this.load, required this.fallbackName});
+  const _AccountAvatar({
+    required this.load,
+    required this.changes,
+    required this.fallbackName,
+  });
 
   @override
   State<_AccountAvatar> createState() => _AccountAvatarState();
@@ -163,23 +180,47 @@ class _AccountAvatar extends StatefulWidget {
 
 class _AccountAvatarState extends State<_AccountAvatar> {
   RemoteAccount? _account;
+  StreamSubscription<void>? _changes;
+
+  /// Tells a stale load from the current one
+  int _loads = 0;
 
   @override
   void initState() {
     super.initState();
     _load();
+    _changes = _changeStream()?.listen((_) => _load());
+  }
+
+  @override
+  void dispose() {
+    _changes?.cancel();
+    super.dispose();
+  }
+
+  Stream<void>? _changeStream() {
+    if (widget.changes != null) return widget.changes;
+
+    try {
+      return GetIt.instance.get<AccountManager>().accountChanges;
+    } catch (_) {
+      // No account manager: the avatar never changes.
+      return null;
+    }
   }
 
   Future<void> _load() async {
+    final load = ++_loads;
     RemoteAccount? account;
     try {
       account = await widget.load();
     } catch (_) {
-      // Offline or signed out: the home screen shows the local player.
+      // Offline: the home screen keeps what it shows.
       return;
     }
 
-    if (mounted) setState(() => _account = account);
+    // A sign-out gives `null`: the home screen shows the local player.
+    if (mounted && load == _loads) setState(() => _account = account);
   }
 
   @override

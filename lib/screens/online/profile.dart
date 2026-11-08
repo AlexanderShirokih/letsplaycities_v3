@@ -1,12 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get_it/get_it.dart';
-import 'package:intl/intl.dart';
 import 'package:lets_play_cities/base/achievements/achievements_service.dart';
 import 'package:lets_play_cities/base/remote/bloc/user_actions_bloc.dart';
 import 'package:lets_play_cities/i18n/strings.g.dart';
+import 'package:lets_play_cities/i18n/last_seen.dart';
+import 'package:lets_play_cities/remote/account_manager.dart';
+import 'package:lets_play_cities/remote/account.dart';
+import 'package:lets_play_cities/remote/api_repository.dart';
 import 'package:lets_play_cities/remote/api_repository_factory.dart';
-import 'package:lets_play_cities/remote/auth.dart';
+import 'package:lets_play_cities/remote/model/lps_user.dart';
+import 'package:lets_play_cities/remote/model/profile_info.dart';
+import 'package:lets_play_cities/remote/model/social.dart';
 import 'package:lets_play_cities/remote/exceptions.dart';
 import 'package:lets_play_cities/remote/model/friend_game_request.dart';
 import 'package:lets_play_cities/screens/common/common_widgets.dart';
@@ -21,31 +26,26 @@ import 'package:lets_play_cities/screens/online/history.dart';
 
 import 'avatars/avatar_chooser.dart';
 
-final DateFormat _dateFormat = DateFormat('dd.MM.yyyy');
-final DateFormat _timeFormat = DateFormat('HH:mm');
+/// Opens the waiting room that invites [friend] to a game.
+// replaced in protocol v1 task 6: the online home sends the invitation
+void openLegacyInvite(BuildContext context, LpsUser friend) {
+  final repository = context.read<ApiRepository>();
 
-/// Describes when a user was last online, as seen at [now]: the time for
-/// today, "yesterday" and the time for the day before, the date otherwise.
-@visibleForTesting
-String formatLastVisit(Translations t, DateTime date, DateTime now) {
-  // Compares calendar dates; UTC keeps a daylight saving change from making
-  // a day shorter than 24 hours.
-  final daysAgo = DateTime.utc(
-    now.year,
-    now.month,
-    now.day,
-  ).difference(DateTime.utc(date.year, date.month, date.day)).inDays;
-
-  switch (daysAgo) {
-    case 0:
-      return t.online.lastOnline(date: _timeFormat.format(date));
-    case 1:
-      return t.online.lastOnline(
-        date: t.online.yesterday(time: _timeFormat.format(date)),
-      );
-    default:
-      return t.online.lastOnline(date: _dateFormat.format(date));
-  }
+  Navigator.push(
+    context,
+    MaterialPageRoute(
+      builder: (_) => GameWaitingRoomScreenStandalone(
+        request: FriendGameRequest(
+          mode: FriendGameRequestType.invite,
+          target: BaseProfileInfo(
+            userId: friend.id,
+            login: friend.name,
+            pictureUrl: repository.avatarUrl(friend),
+          ),
+        ),
+      ),
+    ),
+  );
 }
 
 /// The message for an account that could not be fetched, or `null` for the
@@ -68,9 +68,9 @@ Widget _divider(BuildContext context) =>
 
 /// Shows user profile independently from already injected providers
 class OnlineProfileViewStandalone extends StatefulWidget {
-  final BaseProfileInfo target;
+  final int userId;
 
-  const OnlineProfileViewStandalone(this.target, {super.key});
+  const OnlineProfileViewStandalone(this.userId, {super.key});
 
   @override
   State<OnlineProfileViewStandalone> createState() =>
@@ -114,12 +114,10 @@ class _OnlineProfileViewStandaloneState
               // Inside a LAN game's GetIt scope this is the factory for
               // the LAN server.
               RepositoryProvider<ApiRepository>.value(
-                value: GetIt.instance.get<ApiRepositoryFactory>().forUser(
-                  lastSignedInAccount.requireData!.userId,
-                ),
+                value: GetIt.instance.get<ApiRepositoryFactory>().forUser(),
               ),
             ],
-            child: OnlineProfileView(target: widget.target),
+            child: OnlineProfileView(userId: widget.userId),
           ),
         );
       },
@@ -130,9 +128,13 @@ class _OnlineProfileViewStandaloneState
 /// Shows user profile
 class OnlineProfileView extends StatefulWidget {
   /// Profile owner. If `null` then current authorized user will be used
-  final BaseProfileInfo? target;
+  final int? userId;
 
-  const OnlineProfileView({this.target, super.key});
+  /// Called when the user invites the shown friend to a game. By default
+  /// the waiting room opens.
+  final void Function(LpsUser friend)? onInvite;
+
+  const OnlineProfileView({this.userId, this.onInvite, super.key});
 
   @override
   State<OnlineProfileView> createState() => _OnlineProfileViewState();
@@ -140,18 +142,19 @@ class OnlineProfileView extends StatefulWidget {
   /// Creates navigation route for [OnlineProfileView] wrapped in [Scaffold].
   /// [context] must contain [ApiRepository] injected using
   /// [RepositoryProvider] in the widget tree.
-  static Route createRoute(BuildContext context, {BaseProfileInfo? target}) =>
-      MaterialPageRoute(
-        builder: (ctx) => Scaffold(
-          appBar: AppBar(title: Text(ctx.t.online.profileTab)),
-          body: MultiRepositoryProvider(
-            providers: [
-              RepositoryProvider.value(value: context.read<ApiRepository>()),
-            ],
-            child: OnlineProfileView(target: target),
-          ),
-        ),
-      );
+  static Route createRoute(
+    BuildContext context, {
+    int? userId,
+    void Function(LpsUser friend)? onInvite,
+  }) => MaterialPageRoute(
+    builder: (ctx) => Scaffold(
+      appBar: AppBar(title: Text(ctx.t.online.profileTab)),
+      body: RepositoryProvider.value(
+        value: context.read<ApiRepository>(),
+        child: OnlineProfileView(userId: userId, onInvite: onInvite),
+      ),
+    ),
+  );
 }
 
 class _OnlineProfileViewState extends State<OnlineProfileView> {
@@ -200,6 +203,9 @@ class _OnlineProfileViewState extends State<OnlineProfileView> {
         );
       }
 
+      final owner = account.requireData!;
+      final isOwner = _isOwner(owner);
+
       return withData<Widget, ApiRepository>(
         context.watch<ApiRepository>(),
         (repo) => RefreshIndicator(
@@ -207,29 +213,35 @@ class _OnlineProfileViewState extends State<OnlineProfileView> {
           child: Stack(
             children: [
               Positioned.fill(
-                child: FutureBuilder<ProfileInfo>(
-                  future: repo.getProfileInfo(
-                    widget.target ?? account.requireData!.baseProfileInfo,
-                    _shouldUpdate,
-                  ),
-                  builder: (context, snap) {
-                    if (snap.hasData) {
-                      _shouldUpdate = false;
-                      return _buildProfileView(
-                        snap.requireData.friendshipStatus ==
-                            FriendshipStatus.owner,
+                child: isOwner
+                    ? _buildProfileView(
+                        true,
                         context,
-                        snap.requireData,
-                      );
-                    } else if (snap.hasError) {
-                      return showError(context, snap.error!);
-                    } else {
-                      return showLoadingWidget(context);
-                    }
-                  },
-                ),
+                        UserProfile(
+                          user: owner.user,
+                          friendship: Friendship.none,
+                          blocked: Blocked.none,
+                        ),
+                      )
+                    : FutureBuilder<UserProfile>(
+                        future: repo.user(widget.userId!, _shouldUpdate),
+                        builder: (context, snap) {
+                          if (snap.hasData) {
+                            _shouldUpdate = false;
+                            return _buildProfileView(
+                              false,
+                              context,
+                              snap.requireData,
+                            );
+                          } else if (snap.hasError) {
+                            return showError(context, snap.error!);
+                          } else {
+                            return showLoadingWidget(context);
+                          }
+                        },
+                      ),
               ),
-              if (_isOwner(account.requireData!))
+              if (isOwner)
                 Align(
                   alignment: Alignment.bottomRight,
                   child: Padding(
@@ -258,7 +270,7 @@ class _OnlineProfileViewState extends State<OnlineProfileView> {
   Widget _buildProfileView(
     bool isOwner,
     BuildContext context,
-    ProfileInfo data,
+    UserProfile data,
   ) {
     final t = context.t;
     return ListView(
@@ -267,19 +279,20 @@ class _OnlineProfileViewState extends State<OnlineProfileView> {
         ..._buildTopBlock(isOwner, data, context, t),
         ..._buildIdBlock(data, context),
         ..._buildActionsBlock(isOwner, data, context, t),
-        ..._buildNavigationBlock(isOwner, data, context, t),
-        ..._buildRelatedHistoryBlock(isOwner, data, context, t),
+        ..._buildNavigationBlock(isOwner, context, t),
+        ..._buildRelatedHistoryBlock(isOwner, context, t),
       ],
     );
   }
 
   Iterable<Widget> _buildTopBlock(
     bool isOwner,
-    ProfileInfo data,
+    UserProfile data,
     BuildContext context,
     Translations t,
   ) sync* {
     final c = D2Colors.of(context);
+    final user = data.user;
     yield Container(
       padding: EdgeInsets.all(24.0),
       child: Row(
@@ -292,17 +305,11 @@ class _OnlineProfileViewState extends State<OnlineProfileView> {
                     context: context,
                     builder: (_) => AvatarChooserView(
                       context.read<ApiRepository>(),
-                      onAvatarUpdated: () => _update(),
+                      onAvatarUpdated: _reloadAccount,
                     ),
                   )
                 : null,
-            child: D2Avatar.user(
-              size: 72.0,
-              pictureUrl: data.pictureUrl,
-              initials: data.login.isEmpty
-                  ? ''
-                  : data.login.substring(0, 1).toUpperCase(),
-            ),
+            child: lpsUserAvatar(context, user, size: 72.0),
           ),
           Flexible(
             child: Padding(
@@ -311,13 +318,12 @@ class _OnlineProfileViewState extends State<OnlineProfileView> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    data.login,
+                    user.name,
                     style: D2Text.title.copyWith(color: c.ink),
                     overflow: TextOverflow.clip,
                   ),
                   const SizedBox(height: 12.0),
-                  _showOnlineStatus(isOwner, t, data),
-                  ..._showRole(t, data),
+                  _showOnlineStatus(isOwner, t, user),
                 ],
               ),
             ),
@@ -330,23 +336,11 @@ class _OnlineProfileViewState extends State<OnlineProfileView> {
 
   Iterable<Widget> _buildActionsBlock(
     bool isOwner,
-    ProfileInfo data,
+    UserProfile data,
     BuildContext context,
     Translations t,
   ) sync* {
     if (isOwner) return;
-
-    if (data.banStatus == BanStatus.inputBan) {
-      yield Container(
-        alignment: Alignment.center,
-        child: Text(
-          t.online.inputBan,
-          style: D2Text.body.copyWith(color: D2Colors.of(context).error),
-        ),
-      );
-      yield _divider(context);
-      return;
-    }
 
     final userActionsBloc = _userActionsBloc;
 
@@ -357,23 +351,29 @@ class _OnlineProfileViewState extends State<OnlineProfileView> {
           return showError(context, state.error);
         }
         final isProcessing = state is UserProcessingActionState;
-        return Row(
-          mainAxisSize: MainAxisSize.min,
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        return Column(
           children: [
-            _getFriendshipButton(
-              data,
-              context,
-              userActionsBloc,
-              t,
-              isProcessing,
-            ),
-            _getFriendRequestButton(
-              data,
-              context,
-              userActionsBloc,
-              t,
-              isProcessing,
+            if (data.blocked.isBlockingMe)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 12.0),
+                child: Text(
+                  t.online.inputBan,
+                  style: D2Text.body.copyWith(
+                    color: D2Colors.of(context).error,
+                  ),
+                ),
+              ),
+            Wrap(
+              alignment: WrapAlignment.center,
+              spacing: 12.0,
+              runSpacing: 12.0,
+              children: _actionButtons(
+                data,
+                context,
+                userActionsBloc,
+                t,
+                isProcessing,
+              ),
             ),
           ],
         );
@@ -404,11 +404,66 @@ class _OnlineProfileViewState extends State<OnlineProfileView> {
     yield _divider(context);
   }
 
-  Iterable<Widget> _buildIdBlock(ProfileInfo data, BuildContext context) sync* {
+  /// The buttons of the profile by [UserProfile.friendship] and
+  /// [UserProfile.blocked]. Nobody can be invited or asked to be a friend
+  /// while either user blocks the other.
+  List<Widget> _actionButtons(
+    UserProfile data,
+    BuildContext context,
+    UserActionsBloc bloc,
+    Translations t,
+    bool disabled,
+  ) {
+    final user = data.user;
+
+    Widget unblock() => _createButton(
+      t.online.unban,
+      disabled
+          ? null
+          : () => bloc.add(
+              UserEvent(
+                user,
+                UserUserAction.unbanUser,
+                confirmationMessage: t.online.userUnbanned,
+              ),
+            ),
+    );
+
+    if (data.blocked.isBlockedByMe) return [unblock()];
+    if (data.blocked.isBlockingMe) return const [];
+
+    return [
+      _getFriendshipButton(data, bloc, t, disabled),
+      if (data.friendship == Friendship.friends)
+        _createButton(
+          t.online.invite,
+          disabled
+              ? null
+              : () => (widget.onInvite ?? (u) => openLegacyInvite(context, u))(
+                  user,
+                ),
+        )
+      else
+        _createButton(
+          t.online.ban,
+          disabled
+              ? null
+              : () => bloc.add(
+                  UserEvent(
+                    user,
+                    UserUserAction.banUser,
+                    confirmationMessage: t.online.userBanned,
+                  ),
+                ),
+        ),
+    ];
+  }
+
+  Iterable<Widget> _buildIdBlock(UserProfile data, BuildContext context) sync* {
     yield Container(
       alignment: Alignment.center,
       child: Text(
-        'ID ${data.userId}',
+        'ID ${data.user.id}',
         style: D2Text.body.copyWith(color: D2Colors.of(context).inkSoft),
       ),
     );
@@ -417,7 +472,6 @@ class _OnlineProfileViewState extends State<OnlineProfileView> {
 
   Iterable<Widget> _buildNavigationBlock(
     bool isOwner,
-    ProfileInfo data,
     BuildContext context,
     Translations t,
   ) sync* {
@@ -425,12 +479,12 @@ class _OnlineProfileViewState extends State<OnlineProfileView> {
     yield _buildNavigationButton(
       D2Glyph.friends,
       t.online.friendsTab,
-      () => OnlineFriendsScreen(),
+      () => OnlineFriendsScreen(onInvite: widget.onInvite),
     );
     yield _buildNavigationButton(
       D2Glyph.history,
       t.online.historyTab,
-      () => OnlineHistoryScreen(target: data),
+      () => OnlineHistoryScreen(),
     );
     yield _buildNavigationButton(
       D2Glyph.ban,
@@ -476,108 +530,50 @@ class _OnlineProfileViewState extends State<OnlineProfileView> {
   );
 
   Widget _getFriendshipButton(
-    ProfileInfo data,
-    BuildContext context,
+    UserProfile data,
     UserActionsBloc bloc,
     Translations t,
     bool disabled,
   ) {
-    switch (data.friendshipStatus) {
-      case FriendshipStatus.notFriends:
+    final user = data.user;
+
+    switch (data.friendship) {
+      case Friendship.none:
         return _createButton(
           t.online.addToFriend,
           disabled
               ? null
-              : () => bloc.add(UserEvent(data, UserUserAction.addToFriends)),
+              : () => bloc.add(UserEvent(user, UserUserAction.addToFriends)),
         );
-      case FriendshipStatus.friends:
+      case Friendship.friends:
         return _createButton(
           t.online.removeFromFriends,
           disabled
               ? null
               : () =>
-                    bloc.add(UserEvent(data, UserUserAction.removeFromFriends)),
+                    bloc.add(UserEvent(user, UserUserAction.removeFromFriends)),
         );
-
-      case FriendshipStatus.inputRequest:
+      case Friendship.outgoing:
         return _createButton(
           t.online.cancelFriendshipRequest,
           disabled
               ? null
-              : () => bloc.add(UserEvent(data, UserUserAction.cancelRequest)),
+              : () => bloc.add(UserEvent(user, UserUserAction.cancelRequest)),
         );
-      case FriendshipStatus.outputRequest:
+      case Friendship.incoming:
         return _AcceptOrDeclineButton(
           t,
           onResult: disabled
               ? null
               : (isAccepted) => bloc.add(
                   UserEvent(
-                    data,
+                    user,
                     isAccepted
                         ? UserUserAction.acceptRequest
                         : UserUserAction.declineRequest,
                   ),
                 ),
         );
-      default:
-        throw ('Can\'t show friendship button for itself');
-    }
-  }
-
-  Widget _getFriendRequestButton(
-    ProfileInfo data,
-    BuildContext context,
-    UserActionsBloc bloc,
-    Translations t,
-    bool disabled,
-  ) {
-    switch (data.banStatus) {
-      case BanStatus.outputBan:
-        return _createButton(
-          t.online.unban,
-          disabled
-              ? null
-              : () => bloc.add(
-                  UserEvent(
-                    data,
-                    UserUserAction.unbanUser,
-                    confirmationMessage: t.online.userUnbanned,
-                  ),
-                ),
-        );
-      case BanStatus.notBanned:
-        return data.friendshipStatus == FriendshipStatus.friends
-            ? _createButton(
-                t.online.invite,
-                disabled
-                    ? null
-                    : () => Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => GameWaitingRoomScreenStandalone(
-                            request: FriendGameRequest(
-                              mode: FriendGameRequestType.invite,
-                              target: data,
-                            ),
-                          ),
-                        ),
-                      ),
-              )
-            : _createButton(
-                t.online.ban,
-                disabled
-                    ? null
-                    : () => bloc.add(
-                        UserEvent(
-                          data,
-                          UserUserAction.banUser,
-                          confirmationMessage: t.online.userBanned,
-                        ),
-                      ),
-              );
-      default:
-        return Container();
     }
   }
 
@@ -586,37 +582,11 @@ class _OnlineProfileViewState extends State<OnlineProfileView> {
     side: BorderSide.none,
   );
 
-  Iterable<Widget> _showRole(Translations t, ProfileInfo data) sync* {
-    switch (data.role) {
-      case Role.banned:
-        yield const SizedBox(height: 10.0);
-        yield Text(
-          t.online.banned,
-          style: D2Text.bodyRegular.copyWith(color: D2Colors.of(context).error),
-        );
-        break;
-      case Role.admin:
-        yield const SizedBox(height: 10.0);
-        yield Row(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            const D2Icon(D2Glyph.star, size: 18.0),
-            const SizedBox(width: 8.0),
-            Text(t.online.admin, style: D2Text.bodyRegular),
-          ],
-        );
-        break;
-      case Role.regular:
-        break;
-    }
-  }
+  Widget _showOnlineStatus(bool isOwner, Translations t, LpsUser user) {
+    final now = DateTime.now();
+    final online = isOwner || user.isOnline(now);
 
-  Widget _showOnlineStatus(bool isOwner, Translations t, ProfileInfo data) {
-    bool isOnline(ProfileInfo info) =>
-        DateTime.now().difference(info.lastVisitDate) < Duration(minutes: 10) ||
-        isOwner;
-
-    return (isOnline(data))
+    return online
         ? Row(
             children: [
               Container(
@@ -628,11 +598,11 @@ class _OnlineProfileViewState extends State<OnlineProfileView> {
                 ),
               ),
               const SizedBox(width: 6.0),
-              Text(t.online.title, style: D2Text.bodyRegular),
+              Text(t.online.lastSeen.now, style: D2Text.bodyRegular),
             ],
           )
         : Text(
-            formatLastVisit(t, data.lastVisitDate, DateTime.now()),
+            formatLastSeen(t, user.lastSeenAt, now),
             style: D2Text.bodyRegular.copyWith(
               color: D2Colors.of(context).inkSoft,
             ),
@@ -641,7 +611,6 @@ class _OnlineProfileViewState extends State<OnlineProfileView> {
 
   Iterable<Widget> _buildRelatedHistoryBlock(
     bool isOwner,
-    ProfileInfo data,
     BuildContext context,
     Translations t,
   ) sync* {
@@ -653,7 +622,7 @@ class _OnlineProfileViewState extends State<OnlineProfileView> {
         style: D2Text.section.copyWith(color: D2Colors.of(context).ink),
       ),
     );
-    yield OnlineHistoryScreen(target: widget.target, embedded: true);
+    yield OnlineHistoryScreen(withUser: widget.userId, embedded: true);
     yield _divider(context);
   }
 
@@ -668,7 +637,7 @@ class _OnlineProfileViewState extends State<OnlineProfileView> {
   }
 
   bool _isOwner(RemoteAccount account) =>
-      widget.target == null || widget.target!.userId == account.userId;
+      widget.userId == null || widget.userId == account.userId;
 }
 
 class _AcceptOrDeclineButton extends StatefulWidget {

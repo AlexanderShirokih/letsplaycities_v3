@@ -28,11 +28,14 @@ class _FakeServer implements HttpClientAdapter {
     return ResponseBody.fromString(
       jsonEncode([
         {
-          'userId': 2,
-          'login': 'Alice',
-          'accepted': true,
-          'sender': false,
-          'pictureHash': 'abc',
+          'user': {
+            'id': 2,
+            'name': 'Alice',
+            'avatarHash': 'abc',
+            'provider': 'native',
+            'lastSeenAt': 1700000000000,
+          },
+          'status': 'friends',
         },
       ]),
       200,
@@ -100,19 +103,20 @@ void main() {
 
     await apiRepositories.tokens.write('lan');
 
-    final friends = await apiRepositories.forUser(9).getFriendsList(true);
+    final repository = apiRepositories.forUser();
+    final friends = await repository.friends(true);
 
     final request = server.requests.single;
-    expect(request.uri.toString(), 'http://192.168.1.5:8988/friend/');
+    expect(request.uri.toString(), 'http://192.168.1.5:8988/friends');
     // The LAN game has its own token, the main one stays out of it.
     expect(request.headers['Authorization'], 'Bearer lan');
     expect(await mainTokens.read(), 'main');
     expect(
-      friends.single.pictureUrl,
-      'https://main.test:443/user/2/picture?hash=abc',
+      repository.avatarUrl(friends.single.user),
+      'https://main.test:443/v1/avatars/2?v=abc',
     );
     expect(apiRepositories.cache, same(cache));
-    expect(cache.cachedFriendsList, friends);
+    expect(cache.cachedFriends, friends);
   });
 
   test('popping the scope brings the main server factory back', () async {

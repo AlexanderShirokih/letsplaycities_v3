@@ -1,12 +1,14 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:lets_play_cities/remote/model/lps_user.dart';
+import 'package:lets_play_cities/remote/model/social.dart';
 import 'package:lets_play_cities/app_config.dart';
 import 'package:lets_play_cities/remote/api_repository_factory.dart';
 import 'package:lets_play_cities/remote/auth/token_store.dart';
 import 'package:lets_play_cities/remote/client/api_dio.dart';
 import 'package:lets_play_cities/remote/client/api_exception.dart';
 
-import '../fake_lps_api_client.dart';
+import '../auth/auth_api_test.dart' show userJson;
 import '../fake_server.dart';
 
 /// A store whose token cannot be deleted
@@ -82,14 +84,16 @@ void main() {
       tokens,
       onError: (e, s) => errors.add(e),
     );
-    factory.cache.cachedFriendsList = [friend(1)];
+    factory.cache.cachedFriends = [
+      FriendEntry(LpsUser.fromJson(userJson), FriendStatus.friends),
+    ];
 
     await expectUnauthorized(
       (factory.dio()..httpClientAdapter = server).get('/me'),
     );
 
     expect(await tokens.read(), isNull);
-    expect(factory.cache.cachedFriendsList, isNull);
+    expect(factory.cache.cachedFriends, isNull);
     expect(errors, isEmpty);
   });
 }

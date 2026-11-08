@@ -45,13 +45,14 @@ class _FakeServer implements HttpClientAdapter {
 void main() {
   final mainServer = AppConfig.forHost('main.test');
   final lanServer = AppConfig.lan('192.168.1.5');
-  final aliceWithPicture = {
-    'userId': 2,
-    'login': 'Alice',
-    'accepted': true,
-    'sender': false,
-    'pictureHash': 'abc',
+  final alice = {
+    'id': 2,
+    'name': 'Alice',
+    'avatarHash': 'abc',
+    'provider': 'native',
+    'lastSeenAt': 1700000000000,
   };
+  final aliceWithPicture = {'user': alice, 'status': 'friends'};
 
   late _FakeServer server;
   late List<AppConfig> dioConfigs;
@@ -78,21 +79,25 @@ void main() {
     test('sends repository requests to the main server as the user', () async {
       server.respond = (_) => [aliceWithPicture];
 
-      final friends = await factory.forUser(1).getFriendsList(true);
+      final repository = factory.forUser();
+      final friends = await repository.friends(true);
 
       final request = server.requests.single;
-      expect(request.uri.toString(), 'https://main.test/v1/friend/');
+      expect(request.uri.toString(), 'https://main.test/v1/friends');
       expect(request.headers['Authorization'], 'Bearer token');
-      expect(friends.single.pictureUrl, startsWith('https://main.test:443/'));
+      expect(
+        repository.avatarUrl(friends.single.user),
+        startsWith('https://main.test:443/'),
+      );
       expect(factory.serverConfig, mainServer);
     });
 
     test('clientFor signs the requests with the current token', () async {
       final client = factory.clientFor();
 
-      await client.getBanList();
+      await client.getCityRequests();
       await tokens.write('second');
-      await client.getBanList();
+      await client.getCityRequests();
 
       expect(server.requests.map((r) => r.headers['Authorization']), [
         'Bearer token',
@@ -105,19 +110,18 @@ void main() {
       () async {
         final png = img.encodePng(img.Image(width: 2, height: 2));
         server.respond = (request) =>
-            request.uri.host == 'pictures.example' ? png : <String, Object>{};
+            request.uri.host == 'pictures.example' ? png : alice;
 
-        await factory
-            .forUser(1)
-            .updatePictureFromURL('https://pictures.example/avatar.png');
+        await factory.forUser().putAvatarFromUrl(
+          'https://pictures.example/avatar.png',
+        );
 
         final [download, upload] = server.requests;
         expect(download.uri.toString(), 'https://pictures.example/avatar.png');
-        expect(
-          upload.uri.toString(),
-          'https://main.test/v1/user/picture/upload',
-        );
+        expect(upload.uri.toString(), 'https://main.test/v1/me/avatar');
+        expect(upload.method, 'PUT');
         expect(upload.headers['Authorization'], 'Bearer token');
+        expect(upload.headers['content-type'], 'image/png');
         // The token stays with the API: the picture host never sees it.
         expect(download.headers, isNot(contains('Authorization')));
         // One Dio serves both the API requests and the picture download.
@@ -130,11 +134,11 @@ void main() {
     test('sends the requests to that server with its own token', () async {
       await factory
           .forServer(lanServer, MemoryTokenStore('lan'))
-          .forUser(1)
-          .getBanlist(true);
+          .forUser()
+          .blocks(true);
 
       final request = server.requests.single;
-      expect(request.uri.toString(), 'http://192.168.1.5:8988/blacklist/');
+      expect(request.uri.toString(), 'http://192.168.1.5:8988/blocks');
       expect(request.headers['Authorization'], 'Bearer lan');
       expect(dioConfigs, [lanServer]);
     });
@@ -142,15 +146,15 @@ void main() {
     test('keeps the picture URLs on the main server', () async {
       server.respond = (_) => [aliceWithPicture];
 
-      final friends = await factory
+      final repository = factory
           .forServer(lanServer, MemoryTokenStore('lan'))
-          .clientFor()
-          .getFriendsList();
+          .forUser();
+      final friends = await repository.friends(true);
 
       expect(server.requests.single.uri.host, '192.168.1.5');
       expect(
-        friends.single.pictureUrl,
-        'https://main.test:443/user/2/picture?hash=abc',
+        repository.avatarUrl(friends.single.user),
+        'https://main.test:443/v1/avatars/2?v=abc',
       );
     });
 
@@ -158,18 +162,18 @@ void main() {
       server.respond = (_) => [aliceWithPicture];
       final lanFactory = factory.forServer(lanServer, MemoryTokenStore('lan'));
 
-      await lanFactory.forUser(1).getFriendsList(true);
-      final cached = await factory.forUser(1).getFriendsList(false);
+      await lanFactory.forUser().friends(true);
+      final cached = await factory.forUser().friends(false);
 
       expect(lanFactory.cache, same(cache));
-      expect(cache.cachedFriendsList, cached);
+      expect(cache.cachedFriends, cached);
       expect(server.requests, hasLength(1));
     });
 
     test('leaves the original factory on its server', () async {
       factory.forServer(lanServer, MemoryTokenStore('lan'));
 
-      await factory.clientFor().getBanList();
+      await factory.clientFor().getCityRequests();
 
       expect(factory.serverConfig, mainServer);
       expect(server.requests.single.uri.host, 'main.test');

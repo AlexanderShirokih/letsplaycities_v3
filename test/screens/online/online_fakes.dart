@@ -1,50 +1,47 @@
 import 'dart:async';
+import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:get_it/get_it.dart';
-import 'package:lets_play_cities/app_config.dart';
 import 'package:lets_play_cities/base/achievements/achievements.dart';
 import 'package:lets_play_cities/base/achievements/achievements_service.dart';
 import 'package:lets_play_cities/remote/auth.dart';
-import 'package:lets_play_cities/remote/model/blacklist_item_info.dart';
-import 'package:lets_play_cities/remote/model/friend_info.dart';
-import 'package:lets_play_cities/remote/model/history_info.dart';
 import 'package:lets_play_cities/remote/model/lps_user.dart';
+import 'package:lets_play_cities/remote/model/social.dart';
 
 import '../../i18n/translations_harness.dart';
 
-final _appConfig = AppConfig.forHost('localhost');
+LpsUser lpsUser(
+  int id,
+  String name, {
+  DateTime? lastSeenAt,
+  String? avatarHash,
+}) => LpsUser(
+  id: id,
+  name: name,
+  avatarHash: avatarHash,
+  provider: 'native',
+  lastSeenAt: lastSeenAt ?? DateTime(2026, 1, 1),
+);
 
-FriendInfo friendInfo(
-  int userId,
-  String login, {
-  required bool accepted,
-  bool sender = false,
-}) => FriendInfo.fromJson(_appConfig, {
-  'userId': userId,
-  'login': login,
-  'accepted': accepted,
-  'sender': sender,
-});
+FriendEntry friendEntry(
+  int id,
+  String name,
+  FriendStatus status, {
+  DateTime? lastSeenAt,
+}) => FriendEntry(lpsUser(id, name, lastSeenAt: lastSeenAt), status);
 
-BlackListItemInfo bannedUser(int userId, String login) =>
-    BlackListItemInfo.fromJson(_appConfig, {'userId': userId, 'login': login});
-
-ProfileInfo profileInfo(
-  int userId,
-  String login, {
-  FriendshipStatus friendshipStatus = FriendshipStatus.notFriends,
-}) => ProfileInfo(
-  userId: userId,
-  login: login,
-  pictureUrl: null,
-  role: Role.regular,
-  lastVisitDate: DateTime(2026, 1, 1),
-  banStatus: BanStatus.notBanned,
-  friendshipStatus: friendshipStatus,
-  authType: AuthType.native,
+UserProfile userProfile(
+  int id,
+  String name, {
+  Friendship friendship = Friendship.none,
+  Blocked blocked = Blocked.none,
+}) => UserProfile(
+  user: lpsUser(id, name),
+  friendship: friendship,
+  blocked: blocked,
 );
 
 /// Keeps the achievements it was asked to unlock.
@@ -68,9 +65,13 @@ FakeAchievementsService registerFakeAchievements() {
 
 /// Records the calls it gets in [log]; the fields play the server's data.
 class FakeApiRepository extends Fake implements ApiRepository {
-  List<FriendInfo> friends = [];
-  List<BlackListItemInfo> banlist = [];
-  Map<int, ProfileInfo> profiles = {};
+  List<FriendEntry> friendEntries = [];
+  List<LpsUser> blocked = [];
+  Map<int, UserProfile> profiles = {};
+  List<HistoryGame> games = [];
+
+  /// Games on a page of the history
+  int pageSize = 50;
 
   /// When set, user actions wait for it to complete.
   Completer<void>? actionsGate;
@@ -83,27 +84,38 @@ class FakeApiRepository extends Fake implements ApiRepository {
 
   final log = <String>[];
 
+  /// The history requests, kept apart: a profile shows the history too
+  final historyCalls = <String>[];
+
   @override
-  Future<List<FriendInfo>> getFriendsList(bool forceRefresh) async {
-    log.add('getFriendsList(forceRefresh: $forceRefresh)');
+  String? avatarUrl(LpsUser user) => null;
+
+  @override
+  Future<List<FriendEntry>> friends(bool forceRefresh) async {
+    log.add('friends(forceRefresh: $forceRefresh)');
     _failListIfSet();
-    return List.of(friends);
+    return List.of(friendEntries);
   }
 
   @override
-  Future<List<BlackListItemInfo>> getBanlist(bool forceRefresh) async {
-    log.add('getBanlist(forceRefresh: $forceRefresh)');
+  Future<List<LpsUser>> blocks(bool forceRefresh) async {
+    log.add('blocks(forceRefresh: $forceRefresh)');
     _failListIfSet();
-    return List.of(banlist);
+    return List.of(blocked);
   }
 
   @override
-  Future<List<HistoryInfo>> getHistoryList(
-    bool forceRefresh,
-    BaseProfileInfo target,
-  ) async {
+  Future<HistoryPage> history({
+    int? withUser,
+    int? before,
+    bool forceRefresh = false,
+  }) async {
+    historyCalls.add('history(withUser: $withUser, before: $before)');
     _failListIfSet();
-    return [];
+    final rest = games.where((g) => before == null || g.id < before).toList();
+    final page = rest.take(pageSize).toList();
+
+    return HistoryPage(page, rest.length > page.length ? page.last.id : null);
   }
 
   void _failListIfSet() {
@@ -112,50 +124,74 @@ class FakeApiRepository extends Fake implements ApiRepository {
   }
 
   @override
+  Future<UserProfile> user(int id, [bool forceRefresh = false]) async =>
+      profiles[id]!;
+
+  /// The profile for the invite push, which still uses the old model
+  @override
   Future<ProfileInfo> getProfileInfo(
     BaseProfileInfo target, [
     bool forceRefresh = false,
-  ]) async => profiles[target.userId]!;
+  ]) async {
+    final profile = profiles[target.userId]!;
 
-  @override
-  Future sendNewFriendshipRequest(BaseProfileInfo target) async {
-    await _act('sendNewFriendshipRequest(${target.userId})');
-    profiles[target.userId] = profileInfo(
-      target.userId,
-      target.login,
-      friendshipStatus: FriendshipStatus.inputRequest,
+    return ProfileInfo(
+      userId: profile.user.id,
+      login: profile.user.name,
+      pictureUrl: null,
+      role: Role.regular,
+      lastVisitDate: profile.user.lastSeenAt,
+      banStatus: BanStatus.notBanned,
+      friendshipStatus: FriendshipStatus.friends,
+      authType: AuthType.native,
     );
   }
 
   @override
-  Future deleteFriend(BaseProfileInfo friend) async {
-    await _act('deleteFriend(${friend.userId})');
-    friends.removeWhere((f) => f.userId == friend.userId);
-  }
-
-  @override
-  Future sendFriendRequestAcceptance(
-    BaseProfileInfo friend,
-    bool isAccepted,
-  ) async {
-    await _act('sendFriendRequestAcceptance(${friend.userId}, $isAccepted)');
-    friends = [
-      for (final f in friends)
-        if (f.userId != friend.userId)
-          f
-        else if (isAccepted)
-          f.copy(accepted: true),
+  Future<void> putFriend(int userId) async {
+    await _act('putFriend($userId)');
+    final profile = profiles[userId];
+    if (profile != null) {
+      profiles[userId] = userProfile(
+        userId,
+        profile.user.name,
+        friendship: profile.friendship == Friendship.incoming
+            ? Friendship.friends
+            : Friendship.outgoing,
+      );
+    }
+    friendEntries = [
+      for (final e in friendEntries)
+        if (e.user.id == userId && e.status == FriendStatus.incoming)
+          FriendEntry(e.user, FriendStatus.friends)
+        else
+          e,
     ];
   }
 
   @override
-  Future removeFromBanlist(BaseProfileInfo user) async {
-    await _act('removeFromBanlist(${user.userId})');
-    banlist.removeWhere((u) => u.userId == user.userId);
+  Future<void> deleteFriend(int userId) async {
+    await _act('deleteFriend($userId)');
+    friendEntries.removeWhere((f) => f.user.id == userId);
   }
 
   @override
-  Future<void> removePicture() => _act('removePicture()');
+  Future<void> putBlock(int userId) => _act('putBlock($userId)');
+
+  @override
+  Future<void> deleteBlock(int userId) async {
+    await _act('deleteBlock($userId)');
+    blocked.removeWhere((u) => u.id == userId);
+  }
+
+  @override
+  Future<void> deleteAvatar() => _act('deleteAvatar()');
+
+  @override
+  Future<LpsUser> putAvatar(Uint8List image) async {
+    await _act('putAvatar(${image.length})');
+    return lpsUser(1, 'Bob', avatarHash: 'new');
+  }
 
   Future<void> _act(String call) async {
     log.add(call);
@@ -179,6 +215,18 @@ class FakeAccountManager extends Fake implements AccountManager {
     final error = this.error;
     if (error != null) throw error;
     return account;
+  }
+
+  final changes = StreamController<void>.broadcast();
+  int invalidations = 0;
+
+  @override
+  Stream<void> get accountChanges => changes.stream;
+
+  @override
+  void invalidate() {
+    invalidations++;
+    changes.add(null);
   }
 }
 

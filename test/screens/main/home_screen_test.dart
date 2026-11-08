@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:lets_play_cities/remote/auth.dart';
@@ -107,5 +109,54 @@ void main() {
       ),
     );
     expect(avatar.initials, 'М');
+  });
+
+  testWidgets('home loads the account again when it changes', (tester) async {
+    final changes = StreamController<void>.broadcast();
+    addTearDown(changes.close);
+    var loads = 0;
+    RemoteAccount? account;
+
+    await tester.pumpWidget(
+      withTranslations(
+        MaterialApp(
+          theme: buildD2Theme(Brightness.light),
+          home: Scaffold(
+            body: HomeScreen(
+              actions: _noop,
+              accountChanges: changes.stream,
+              loadAccount: () async {
+                loads++;
+                return account;
+              },
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(loads, 1);
+    expect(find.text('М'), findsNothing);
+
+    account = RemoteAccount(
+      LpsUser(
+        id: 1,
+        name: 'Мария',
+        provider: 'native',
+        lastSeenAt: DateTime(2026),
+      ),
+    );
+    changes.add(null);
+    await tester.pumpAndSettle();
+
+    expect(loads, 2);
+    expect(find.text('М'), findsOneWidget);
+
+    account = null;
+    changes.add(null);
+    await tester.pumpAndSettle();
+
+    expect(loads, 3);
+    expect(find.text('М'), findsNothing);
   });
 }

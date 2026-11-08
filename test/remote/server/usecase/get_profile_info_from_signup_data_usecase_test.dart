@@ -25,7 +25,7 @@ void main() {
     final result = useCase.execute(buildRequest());
 
     expect(result.login, equals('abc'));
-    expect(result.pictureUrl, equals('http://host:443/user/1234/picture'));
+    expect(result.pictureUrl, equals('http://host:443/v1/avatars/1234'));
     expect(result.role, equals(Role.regular));
     expect(result.authType, equals(AuthType.native));
     expect(result.banStatus, equals(BanStatus.notBanned));

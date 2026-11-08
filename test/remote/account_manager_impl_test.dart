@@ -12,12 +12,13 @@ import 'package:lets_play_cities/remote/client/api_dio.dart';
 import 'package:lets_play_cities/remote/exceptions.dart';
 import 'package:lets_play_cities/remote/model/cloud_messages.dart';
 import 'package:lets_play_cities/remote/model/cloud_messaging_service.dart';
+import 'package:lets_play_cities/remote/model/lps_user.dart';
+import 'package:lets_play_cities/remote/model/social.dart';
 import 'package:lets_play_cities/remote/social/social_network_data.dart';
 import 'package:lets_play_cities/remote/social/social_networks_service.dart';
 import 'package:lets_play_cities/utils/error_logger.dart';
 
 import 'auth/auth_api_test.dart' show userJson;
-import 'fake_lps_api_client.dart';
 import 'fake_server.dart';
 
 class _FakePreferences extends Fake implements GamePreferences {
@@ -86,8 +87,10 @@ class _FakeRepository extends Fake implements ApiRepository {
   final pictures = <String>[];
 
   @override
-  Future<void> updatePictureFromURL(String pictureURL) async =>
-      pictures.add(pictureURL);
+  Future<LpsUser> putAvatarFromUrl(String pictureURL) async {
+    pictures.add(pictureURL);
+    return LpsUser.fromJson(userJson);
+  }
 }
 
 class _FakeFactory extends Fake implements ApiRepositoryFactory {
@@ -107,6 +110,11 @@ class _FakeFactory extends Fake implements ApiRepositoryFactory {
   @override
   ApiRepository forUser([int userId = 0]) => repository;
 }
+
+FriendEntry friendEntry(int id) => FriendEntry(
+  LpsUser.fromJson({...userJson, 'id': id}),
+  FriendStatus.friends,
+);
 
 Map<String, Object?> _auth(String token, {Object? avatarHash = 'hash'}) => {
   'token': token,
@@ -263,6 +271,24 @@ void main() {
       },
     );
 
+    test('the uploaded social picture refreshes the account', () async {
+      var changes = 0;
+      final subscription = manager.accountChanges.listen((_) => changes++);
+      addTearDown(subscription.cancel);
+      server
+        ..on('POST', '/v1/auth/social', 200, _auth('t1', avatarHash: null))
+        ..on('GET', '/v1/me', 200, userJson);
+
+      await manager.signInSocial(AuthType.vkontakte);
+      await Future<void>.delayed(Duration.zero);
+      await Future<void>.delayed(Duration.zero);
+
+      // The sign-in and the upload of the picture
+      expect(changes, 2);
+      await manager.getLastSignedInAccount();
+      expect(server.calls, contains('GET /v1/me'));
+    });
+
     test('the signed-in account is served without GET /v1/me', () async {
       server.on('POST', '/v1/auth/native', 200, _auth('new-token'));
       final signedIn = await manager.signInNative('Мария');
@@ -282,13 +308,49 @@ void main() {
       expect(server.calls, isNot(contains('GET /v1/me')));
     });
 
+    test('invalidate makes the next account request ask the server', () async {
+      server.on('POST', '/v1/auth/native', 200, _auth('new-token'));
+      await manager.signInNative('Мария');
+      server.on('GET', '/v1/me', 200, {...userJson, 'avatarHash': 'changed'});
+
+      manager.invalidate();
+      final account = await manager.getLastSignedInAccount();
+
+      expect(account?.user.avatarHash, 'changed');
+      expect(server.calls, contains('GET /v1/me'));
+    });
+
+    test(
+      'accountChanges tells about sign-in, invalidate and sign-out',
+      () async {
+        var changes = 0;
+        final subscription = manager.accountChanges.listen((_) => changes++);
+        addTearDown(subscription.cancel);
+        server
+          ..on('POST', '/v1/auth/native', 200, _auth('new-token'))
+          ..on('POST', '/v1/auth/logout', 204);
+
+        await manager.signInNative('Мария');
+        await Future<void>.delayed(Duration.zero);
+        expect(changes, 1);
+
+        manager.invalidate();
+        await Future<void>.delayed(Duration.zero);
+        expect(changes, 2);
+
+        await manager.signOut();
+        await Future<void>.delayed(Duration.zero);
+        expect(changes, 3);
+      },
+    );
+
     test('sign-in drops the API cache of the previous account', () async {
-      factory.cache.cachedFriendsList = [friend(10)];
+      factory.cache.cachedFriends = [friendEntry(10)];
       server.on('POST', '/v1/auth/native', 200, _auth('new-token'));
 
       await manager.signInNative('Мария');
 
-      expect(factory.cache.cachedFriendsList, isNull);
+      expect(factory.cache.cachedFriends, isNull);
     });
   });
 
@@ -431,7 +493,7 @@ void main() {
       server.on('POST', '/v1/auth/native', 200, _auth('session'));
       await manager.signInNative('Мария');
       await pumpEventQueue();
-      factory.cache.cachedFriendsList = [friend(10)];
+      factory.cache.cachedFriends = [friendEntry(10)];
       server.requests.clear();
     });
 
@@ -448,7 +510,7 @@ void main() {
           'Bearer session',
         );
         expect(await tokens.read(), isNull);
-        expect(factory.cache.cachedFriendsList, isNull);
+        expect(factory.cache.cachedFriends, isNull);
         expect(await manager.getLastSignedInAccount(), isNull);
       },
     );

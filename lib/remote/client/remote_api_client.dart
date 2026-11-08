@@ -1,144 +1,24 @@
-import 'package:crypto/crypto.dart' as crypto;
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
-import 'package:lets_play_cities/app_config.dart';
 import 'package:lets_play_cities/base/cities_list/city_request.dart';
 import 'package:lets_play_cities/remote/auth.dart';
 import 'package:lets_play_cities/remote/auth/token_store.dart';
 import 'package:lets_play_cities/remote/client/api_exception.dart';
 import 'package:lets_play_cities/remote/client/api_client.dart';
 import 'package:lets_play_cities/remote/exceptions.dart';
-import 'package:lets_play_cities/remote/models.dart';
 import 'package:lets_play_cities/remote/usecase/signup_user.dart';
 
-/// Remote server REST-api client
+/// Remote server REST-api client: the sign-up of the LAN server and the
+/// city requests
 class RemoteLpsApiClient extends LpsApiClient {
   final Dio _httpClient;
-  final AppConfig _globalAppConfig;
   final TokenStore _tokens;
 
-  /// Id of the signed-in user, `0` if it is not known.
-  // replaced in protocol v1 task 3
-  final int _ownerId;
-
-  const RemoteLpsApiClient(
-    this._globalAppConfig,
-    this._httpClient,
-    this._tokens, [
-    this._ownerId = 0,
-  ]);
+  const RemoteLpsApiClient(this._httpClient, this._tokens);
 
   @override
   Future<RemoteSignUpResponse> signUp(RemoteSignUpData data) =>
       SignUpUser(_httpClient).execute(data);
-
-  @override
-  Future<List<FriendInfo>> getFriendsList() => _fetchList('friend').then(
-    (list) =>
-        list.map((e) => FriendInfo.fromJson(_globalAppConfig, e)).toList(),
-  );
-
-  @override
-  Future<List<HistoryInfo>> getHistoryList([int? targetId]) =>
-      _fetchList('history', targetId).then(
-        (list) =>
-            list.map((e) => HistoryInfo.fromJson(_globalAppConfig, e)).toList(),
-      );
-
-  @override
-  Future<List<BlackListItemInfo>> getBanList() => _fetchList('blacklist').then(
-    (list) => list
-        .map((e) => BlackListItemInfo.fromJson(_globalAppConfig, e))
-        .toList(),
-  );
-
-  Future<List<dynamic>> _fetchList(String urlPostfix, [int? targetId]) async {
-    await _requireCredential();
-    final isOwner = _ownerId == targetId;
-
-    return await _decodeJson(
-      () => _httpClient.get(
-        targetId == null || isOwner
-            ? '/$urlPostfix/'
-            : '/$urlPostfix/$targetId',
-      ),
-    ) as List<dynamic>;
-  }
-
-  @override
-  Future addToBanlist(int userId) async {
-    await _requireCredential();
-
-    await _requireOK(() => _httpClient.put('/blacklist/$userId'));
-  }
-
-  @override
-  Future removeFromBanlist(int userId) async {
-    await _requireCredential();
-
-    await _requireOK(() => _httpClient.delete('/blacklist/$userId'));
-  }
-
-  @override
-  Future deleteFriend(int friendId) async {
-    await _requireCredential();
-
-    await _requireOK(() => _httpClient.delete('/friend/$friendId'));
-  }
-
-  @override
-  Future sendFriendRequest(int friendId, FriendRequestType requestType) async {
-    await _requireCredential();
-
-    await _requireOK(
-      () =>
-          _httpClient.put('/friend/request/$friendId/${requestType.wireName}'),
-    );
-  }
-
-  @override
-  Future<void> declineGameRequest(int requesterId) async {
-    await _requireCredential();
-    await _requireOK(() => _httpClient.put('/user/request/$requesterId/DENY'));
-  }
-
-  @override
-  Future<ProfileInfo> getProfileInfo(int? targetId) async {
-    await _requireCredential();
-
-    targetId ??= _ownerId;
-
-    return ProfileInfo.fromJson(
-      _globalAppConfig,
-      await _decodeJson(() => _httpClient.get('/user/$targetId')),
-    );
-  }
-
-  @override
-  Future removePicture() async {
-    await _requireCredential();
-    await _requireOK(() => _httpClient.delete('/user/picture'));
-  }
-
-  @override
-  Future updatePicture(List<int> thumbnail, String contentType) async {
-    await _requireCredential();
-
-    final hash = _getHash(thumbnail);
-    final extension = contentType.replaceAll('/', '').replaceAll('image', '');
-    final form = FormData.fromMap({
-      'hash': hash,
-      'imageFile': MultipartFile.fromBytes(
-        thumbnail,
-        filename: '$hash.$extension',
-        contentType: DioMediaType.parse(contentType),
-      ),
-    });
-
-    await _requireOK(
-      () => _httpClient.post('/user/picture/upload', data: form),
-    );
-  }
 
   @override
   Future<List<CityRequest>> getCityRequests() async {
@@ -149,12 +29,6 @@ class RemoteLpsApiClient extends LpsApiClient {
     return (data as List<dynamic>)
         .map((e) => CityRequest.fromJson(e))
         .toList(growable: false);
-  }
-
-  String _getHash(List<int> data) {
-    var md5 = crypto.md5;
-    var digest = md5.convert(data);
-    return digest.toString();
   }
 
   Future<void> _requireCredential() async {
@@ -189,16 +63,10 @@ class RemoteLpsApiClient extends LpsApiClient {
         description = '${apiError.code}: ${apiError.message}';
       } else if (response == null) {
         description = 'No response!';
+      } else if (response.data is String) {
+        description = response.data;
       } else {
-        if (response.statusCode == 401) {
-          throw AccessDeniedException();
-        }
-
-        if (response.data is String) {
-          description = response.data;
-        } else {
-          description = 'Response if empty or invalid';
-        }
+        description = 'Response if empty or invalid';
       }
 
       throw FetchingException(

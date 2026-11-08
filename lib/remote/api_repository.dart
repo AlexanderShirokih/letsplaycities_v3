@@ -1,197 +1,216 @@
 import 'dart:typed_data';
 
 import 'package:dio/dio.dart';
-import 'package:lets_play_cities/remote/auth.dart';
-import 'package:lets_play_cities/remote/client/api_client.dart';
-import 'package:lets_play_cities/remote/model/blacklist_item_info.dart';
-import 'package:lets_play_cities/remote/model/friend_info.dart';
-import 'package:lets_play_cities/remote/model/friend_request_type.dart';
-import 'package:lets_play_cities/remote/model/history_info.dart';
+import 'package:lets_play_cities/app_config.dart';
+import 'package:lets_play_cities/remote/client/social_api.dart';
+import 'package:lets_play_cities/remote/model/auth_type.dart';
+import 'package:lets_play_cities/remote/model/lps_user.dart';
 import 'package:lets_play_cities/remote/model/profile_info.dart';
+import 'package:lets_play_cities/remote/model/social.dart';
 import 'package:lets_play_cities/utils/avatar_resize_mixin.dart';
 import 'package:lets_play_cities/utils/cache_list.dart';
 
-/// A cached [data] list that belongs to the user with id [targetId].
-class TargetedList<T> {
-  final int targetId;
-  final List<T> data;
+/// The first page of the history of the games with [withUser], `null` for
+/// the games with everybody
+class CachedHistory {
+  final int? withUser;
+  final HistoryPage firstPage;
 
-  const TargetedList(this.targetId, this.data);
+  const CachedHistory(this.withUser, this.firstPage);
 }
 
 class ApiRepositoryCacheHolder {
   static const _kMaxProfilesCacheSize = 12;
 
-  final CacheList<ProfileInfo> cachedProfilesInfo = CacheList(
+  final CacheList<UserProfile> cachedProfiles = CacheList(
     _kMaxProfilesCacheSize,
   );
-  final CacheList<TargetedList<HistoryInfo>> cachedHistoriesInfo = CacheList(
+  final CacheList<CachedHistory> cachedHistories = CacheList(
     _kMaxProfilesCacheSize,
   );
 
-  List<BlackListItemInfo>? cachedBanList;
-  List<FriendInfo>? cachedFriendsList;
+  List<LpsUser>? cachedBlocks;
+  List<FriendEntry>? cachedFriends;
 
   /// Drops all cached data. Call it when the signed-in account changes: the
-  /// lists and the friendship and ban statuses belong to one account.
+  /// lists and the friendship and block statuses belong to one account.
   void clear() {
-    cachedProfilesInfo.clear();
-    cachedHistoriesInfo.clear();
-    cachedBanList = null;
-    cachedFriendsList = null;
+    cachedProfiles.clear();
+    cachedHistories.clear();
+    cachedBlocks = null;
+    cachedFriends = null;
   }
 }
 
-/// Repository class wrapping [LpsApiClient]
+/// Repository class wrapping [SocialApi]
 class ApiRepository with AvatarResizeMixin {
-  final LpsApiClient _client;
+  final SocialApi _api;
 
   final ApiRepositoryCacheHolder _cache;
 
-  /// Downloads the picture for [updatePictureFromURL].
+  /// The server that serves the avatars
+  final AppConfig _pictureConfig;
+
+  /// Downloads the picture for [putAvatarFromUrl].
   final Dio _pictureDownloader;
 
-  ApiRepository(this._client, this._cache, this._pictureDownloader);
+  ApiRepository(
+    this._api,
+    this._cache,
+    this._pictureConfig,
+    this._pictureDownloader,
+  );
 
-  /// Gets user friends list.
+  /// URL of the avatar of [user], `null` if the user has none
+  String? avatarUrl(LpsUser user) => user.avatarUrl(_pictureConfig);
+
+  /// Gets the friends and the friend requests.
   /// Network request will used only first time or when [forceRefresh] is `true`
-  /// in all the other cases cached instance of friends list will be used.
-  Future<List<FriendInfo>> getFriendsList(bool forceRefresh) async {
-    if (_cache.cachedFriendsList == null || forceRefresh) {
-      _cache.cachedFriendsList = await _client.getFriendsList();
+  /// in all the other cases cached instance of the list will be used.
+  Future<List<FriendEntry>> friends(bool forceRefresh) async {
+    if (_cache.cachedFriends == null || forceRefresh) {
+      _cache.cachedFriends = await _api.friends();
     }
-    return _cache.cachedFriendsList!;
+    return _cache.cachedFriends!;
   }
 
-  void _invalidateFriendsList() {
-    _cache.cachedFriendsList = null;
-  }
+  /// Drops the cached profile of [userId]: its friendship and block statuses
+  /// change after any friend or block list action.
+  void _forgetProfile(int userId) =>
+      _cache.cachedProfiles.removeWhere((p) => p.user.id == userId);
 
-  /// Drops the cached profile of [user]: its friendship and ban statuses
-  /// change after any friend or ban list action.
-  void _forgetProfile(BaseProfileInfo user) =>
-      _cache.cachedProfilesInfo.removeWhere((p) => p.userId == user.userId);
+  /// Sends a friend request to [userId] or accepts the request of [userId]
+  Future<void> putFriend(int userId) => _api.putFriend(userId).then((_) {
+    _cache.cachedFriends = null;
+    _forgetProfile(userId);
+  });
 
-  /// Deletes friend from friend list.
-  Future deleteFriend(BaseProfileInfo friend) =>
-      _client.deleteFriend(friend.userId).then((_) {
-        // [friend] may be a ProfileInfo, which never equals a FriendInfo.
-        _cache.cachedFriendsList?.removeWhere((f) => f.userId == friend.userId);
-        _forgetProfile(friend);
-      });
+  /// Declines or cancels the request, or removes the friend [userId]
+  Future<void> deleteFriend(int userId) => _api.deleteFriend(userId).then((_) {
+    _cache.cachedFriends?.removeWhere((f) => f.user.id == userId);
+    _forgetProfile(userId);
+  });
 
-  /// Sends negative result to the game request sent by [requester]
-  Future<void> declineGameRequest(BaseProfileInfo requester) =>
-      _client.declineGameRequest(requester.userId);
-
-  /// Accepts or denies input friendship request from user [friendId]
-  Future sendFriendRequestAcceptance(BaseProfileInfo friend, bool isAccepted) =>
-      _client
-          .sendFriendRequest(
-            friend.userId,
-            isAccepted ? FriendRequestType.accept : FriendRequestType.deny,
-          )
-          .then((_) {
-            _invalidateFriendsList();
-            _forgetProfile(friend);
-          });
-
-  /// Sends new friendship request
-  Future sendNewFriendshipRequest(BaseProfileInfo target) => _client
-      .sendFriendRequest(target.userId, FriendRequestType.send)
-      .then((_) {
-        _invalidateFriendsList();
-        _forgetProfile(target);
-      });
-
-  /// Gets user battle history.
-  /// Network request will used only first time or when [forceRefresh] is `true`
-  /// in all the other cases cached instance of history list will be used.
-  Future<List<HistoryInfo>> getHistoryList(
-    bool forceRefresh,
-    BaseProfileInfo target,
-  ) async {
-    bool predicate(TargetedList<HistoryInfo> element) =>
-        element.targetId == target.userId;
-
-    if (forceRefresh) {
-      _cache.cachedHistoriesInfo.removeWhere(predicate);
-    }
-
-    var battleHistory = await _cache.cachedHistoriesInfo.getOrFetch(
-      predicate,
-      () async => TargetedList(
-        target.userId,
-        await _client.getHistoryList(target.userId),
-      ),
-    );
-
-    return battleHistory.data;
-  }
-
-  /// Gets user which was blocked by player.
+  /// Gets users which was blocked by player.
   /// Network request will used only first time or when [forceRefresh] is `true`
   /// in all the other cases cached instance of blocked users list will be used.
-  Future<List<BlackListItemInfo>> getBanlist(bool forceRefresh) async {
-    if (_cache.cachedBanList == null || forceRefresh) {
-      _cache.cachedBanList = await _client.getBanList();
+  Future<List<LpsUser>> blocks(bool forceRefresh) async {
+    if (_cache.cachedBlocks == null || forceRefresh) {
+      _cache.cachedBlocks = await _api.blocks();
     }
-    return _cache.cachedBanList!;
+    return _cache.cachedBlocks!;
   }
 
-  /// Removes a user with [user] from players ban list
-  Future removeFromBanlist(BaseProfileInfo user) =>
-      _client.removeFromBanlist(user.userId).then((_) {
-        _cache.cachedBanList?.removeWhere((b) => b.userId == user.userId);
-        _forgetProfile(user);
-      });
+  /// Blocks [userId]. The server ends their friendship, so the friends list
+  /// is dropped too.
+  Future<void> putBlock(int userId) => _api.putBlock(userId).then((_) {
+    // A block list entry cannot be built from the id, so refetch the list.
+    _cache.cachedBlocks = null;
+    _cache.cachedFriends = null;
+    _forgetProfile(userId);
+  });
 
-  /// Adds a user with [user] to players ban list
-  Future addToBanlist(BaseProfileInfo user) =>
-      _client.addToBanlist(user.userId).then((_) {
-        // A ban list entry cannot be built from [user], so refetch the list.
-        _cache.cachedBanList = null;
-        _forgetProfile(user);
-      });
+  Future<void> deleteBlock(int userId) => _api.deleteBlock(userId).then((_) {
+    _cache.cachedBlocks?.removeWhere((b) => b.id == userId);
+    _forgetProfile(userId);
+  });
 
-  /// Fetches information about user profile
-  /// If [target] is passed profile info about that user will be fetched.
-  /// If [target] is `null` info about current user will be fetched
-  /// Network request will used either on first time or when [forceRefresh] is
-  /// `true` in all the other cases cached instance of profile info list will
-  /// be used.
-  Future<ProfileInfo> getProfileInfo(
-    BaseProfileInfo target, [
+  /// A page of the history, from the newest game: the games with [withUser]
+  /// if it is set, the games with everybody otherwise. The first page
+  /// ([before] is `null`) is requested only first time or when
+  /// [forceRefresh] is `true`; the next ones follow [HistoryPage.next]
+  /// and are not cached.
+  Future<HistoryPage> history({
+    int? withUser,
+    int? before,
     bool forceRefresh = false,
-  ]) async {
-    bool predicate(element) => element.userId == target.userId;
-
-    if (forceRefresh) {
-      _cache.cachedProfilesInfo.removeWhere(predicate);
+  }) async {
+    if (before != null) {
+      return _api.history(withUser: withUser, before: before);
     }
 
-    return await _cache.cachedProfilesInfo.getOrFetch(
+    bool predicate(CachedHistory element) => element.withUser == withUser;
+
+    if (forceRefresh) {
+      _cache.cachedHistories.removeWhere(predicate);
+    }
+
+    final cached = await _cache.cachedHistories.getOrFetch(
       predicate,
-      () => _client.getProfileInfo(target.userId),
+      () async =>
+          CachedHistory(withUser, await _api.history(withUser: withUser)),
+    );
+
+    return cached.firstPage;
+  }
+
+  /// Fetches the user [id] with the friendship and the block between the
+  /// users.
+  /// Network request will used either on first time or when [forceRefresh] is
+  /// `true` in all the other cases cached instance will be used.
+  Future<UserProfile> user(int id, [bool forceRefresh = false]) async {
+    bool predicate(UserProfile element) => element.user.id == id;
+
+    if (forceRefresh) {
+      _cache.cachedProfiles.removeWhere(predicate);
+    }
+
+    return await _cache.cachedProfiles.getOrFetch(
+      predicate,
+      () => _api.user(id),
     );
   }
 
-  /// First fetches picture from [pictureURL] and updates picture on server
-  Future<void> updatePictureFromURL(String pictureURL) {
-    final picture = _pictureDownloader.get(
+  /// First fetches picture from [pictureURL] and makes it the avatar
+  Future<LpsUser> putAvatarFromUrl(String pictureURL) async {
+    final picture = await _pictureDownloader.get<List<int>>(
       pictureURL,
       options: Options(responseType: ResponseType.bytes),
     );
 
-    return updatePicture(picture.then((resp) => resp.data));
+    return putAvatar(Uint8List.fromList(picture.data!));
   }
 
-  /// Updates picture for currently logged account
-  Future<void> updatePicture(Future<Uint8List> imageData) async {
-    final thumbnail = await createThumbnail(await imageData);
-    await _client.updatePicture(thumbnail, 'image/png');
+  /// Scales [image] to the size of the avatar and makes it the avatar of
+  /// the signed-in user
+  Future<LpsUser> putAvatar(Uint8List image) async =>
+      _api.putAvatar(await createAvatarPng(image));
+
+  /// Removes the avatar of the signed-in user
+  Future<void> deleteAvatar() => _api.deleteAvatar();
+
+  /// The profile of [target] in the old model of the invite push.
+  // replaced in protocol v1 task 7: the push shows an LpsUser
+  Future<ProfileInfo> getProfileInfo(
+    BaseProfileInfo target, [
+    bool forceRefresh = false,
+  ]) async {
+    final profile = await user(target.userId, forceRefresh);
+    final other = profile.user;
+
+    return ProfileInfo(
+      userId: other.id,
+      login: other.name,
+      pictureUrl: avatarUrl(other),
+      role: Role.regular,
+      lastVisitDate: other.lastSeenAt,
+      banStatus: switch (profile.blocked) {
+        Blocked.none => BanStatus.notBanned,
+        Blocked.byMe || Blocked.both => BanStatus.outputBan,
+        Blocked.me => BanStatus.inputBan,
+      },
+      friendshipStatus: switch (profile.friendship) {
+        Friendship.none => FriendshipStatus.notFriends,
+        Friendship.friends => FriendshipStatus.friends,
+        Friendship.outgoing => FriendshipStatus.inputRequest,
+        Friendship.incoming => FriendshipStatus.outputRequest,
+      },
+      authType: AuthType.native,
+    );
   }
 
-  /// Removes user picture from currently logged account
-  Future<void> removePicture() => _client.removePicture();
+  /// Protocol v1 has no REST call to decline a game request: the invitation
+  /// expires on its own.
+  // replaced in protocol v1 task 7: the decline goes through the game socket
+  Future<void> declineGameRequest(BaseProfileInfo requester) async {}
 }

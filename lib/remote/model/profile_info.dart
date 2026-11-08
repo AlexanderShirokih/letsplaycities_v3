@@ -1,38 +1,23 @@
 import 'package:equatable/equatable.dart';
-import 'package:lets_play_cities/app_config.dart';
-import 'package:lets_play_cities/remote/model/utils.dart';
 
 import 'auth_type.dart';
 
-/// Describes user roles
+/// Describes user roles. Legacy of the old protocol: the LAN host and the
+/// game messages still use it until they move to protocol v1.
 enum Role {
   /// Used when user is banned
-  banned('BANNED_USER', 'banned'),
+  banned('banned'),
 
   /// Default user state
-  regular('REGULAR_USER', 'ready'),
+  regular('ready'),
 
   /// Used when user has admin privileges
-  admin('ADMIN', 'admin');
+  admin('admin');
 
-  const Role(this.wireName, this.signUpState);
-
-  /// Name of the role in a profile of the REST API ('role')
-  final String wireName;
+  const Role(this.signUpState);
 
   /// Name of the role in the sign-up response ('state')
   final String signUpState;
-
-  /// Converts string role representation to [Role] value.
-  /// Throws a [String] when there is no such role.
-  static Role fromString(String role) {
-    for (final value in values) {
-      if (value.wireName == role) {
-        return value;
-      }
-    }
-    throw ('Bad state! role=$role');
-  }
 
   /// Converts the sign-up response 'state' to [Role] value.
   /// Throws a [String] when there is no such role.
@@ -92,11 +77,6 @@ enum BanStatus {
 
   /// Name of the status in a REST profile
   final String wireName;
-
-  /// Returns the status named [s] by its [wireName].
-  /// Throws a [StateError] when there is no such status.
-  static BanStatus fromString(String s) =>
-      values.singleWhere((element) => element.wireName == s);
 }
 
 /// A data class containing base user info
@@ -147,24 +127,6 @@ class ProfileInfo extends BaseProfileInfo {
     required this.friendshipStatus,
     required this.authType,
   });
-
-  ProfileInfo.fromJson(AppConfig appConfig, Map<String, dynamic> data)
-    : this(
-        login: data['login'],
-        userId: data['userId'],
-        friendshipStatus: FriendshipStatus.fromString(data['friendshipStatus']),
-        banStatus: BanStatus.fromString(data['banStatus']),
-        role: Role.fromString(data['role']),
-        authType: AuthType.fromString(data['authType']),
-        lastVisitDate: DateTime.fromMillisecondsSinceEpoch(
-          data['lastVisitDate'],
-        ),
-        pictureUrl: getPictureUrlOrNull(
-          appConfig,
-          data['userId'],
-          data['pictureHash'],
-        ),
-      );
 
   @override
   List<Object?> get props => [

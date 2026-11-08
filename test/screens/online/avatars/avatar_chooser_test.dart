@@ -2,6 +2,9 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:get_it/get_it.dart';
+import 'package:lets_play_cities/remote/account_manager.dart';
+import 'package:lets_play_cities/remote/client/api_exception.dart';
 import 'package:lets_play_cities/i18n/strings.g.dart';
 import 'package:lets_play_cities/screens/online/avatars/avatar_chooser.dart';
 
@@ -15,6 +18,8 @@ void main() {
 
   setUp(() {
     repository = FakeApiRepository();
+    GetIt.instance.registerSingleton<AccountManager>(FakeAccountManager(null));
+    addTearDown(GetIt.instance.reset);
     updates = 0;
   });
 
@@ -55,6 +60,18 @@ void main() {
     expect(find.byType(AvatarChooserView), findsNothing);
     expect(find.text('Не удалось изменить аватар'), findsOneWidget);
     expect(updates, 0);
+  });
+
+  testWidgets('a refused picture shows the text of the error code', (
+    tester,
+  ) async {
+    repository.actionError = const ApiException(400, 'too_large');
+    await openChooser(tester);
+
+    await tester.tap(find.text(t.delete));
+    await tester.pumpAndSettle();
+
+    expect(find.text(t.online.apiErrors['too_large']!), findsOneWidget);
   });
 
   testWidgets('dragging the sheet keeps it waiting for the removal', (

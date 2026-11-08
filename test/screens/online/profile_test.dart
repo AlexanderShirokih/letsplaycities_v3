@@ -5,66 +5,13 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:get_it/get_it.dart';
 import 'package:lets_play_cities/i18n/strings.g.dart';
 import 'package:lets_play_cities/remote/auth.dart';
+import 'package:lets_play_cities/remote/model/lps_user.dart';
+import 'package:lets_play_cities/remote/model/social.dart';
 import 'package:lets_play_cities/screens/online/profile.dart';
 
 import 'online_fakes.dart';
 
 void main() {
-  group('formatLastVisit', () {
-    final t = AppLocale.ru.buildSync();
-
-    String lastVisit(DateTime date, {required DateTime now}) =>
-        formatLastVisit(t, date, now);
-
-    test('shows the time for a visit today', () {
-      expect(
-        lastVisit(
-          DateTime(2026, 3, 1, 0, 5),
-          now: DateTime(2026, 3, 1, 23, 50),
-        ),
-        'Был(а) в сети 00:05',
-      );
-    });
-
-    test('shows "yesterday" for the previous day of another month', () {
-      expect(
-        lastVisit(
-          DateTime(2026, 2, 28, 23, 50),
-          now: DateTime(2026, 3, 1, 0, 10),
-        ),
-        'Был(а) в сети вчера, в 23:50',
-      );
-    });
-
-    test('shows "yesterday" for the last day of the previous year', () {
-      expect(
-        lastVisit(DateTime(2025, 12, 31, 22, 0), now: DateTime(2026, 1, 1, 8)),
-        'Был(а) в сети вчера, в 22:00',
-      );
-    });
-
-    test('shows "yesterday" across a daylight saving change', () {
-      expect(
-        lastVisit(DateTime(2026, 3, 28, 10, 0), now: DateTime(2026, 3, 29, 23)),
-        'Был(а) в сети вчера, в 10:00',
-      );
-    });
-
-    test('shows the date for the same day of an earlier month', () {
-      expect(
-        lastVisit(DateTime(2026, 1, 7, 10, 0), now: DateTime(2026, 2, 7, 12)),
-        'Был(а) в сети 07.01.2026',
-      );
-    });
-
-    test('shows the date for a visit two days ago', () {
-      expect(
-        lastVisit(DateTime(2026, 3, 5, 12, 0), now: DateTime(2026, 3, 7, 9)),
-        'Был(а) в сети 05.03.2026',
-      );
-    });
-  });
-
   group('OnlineProfileView', () {
     final t = AppLocale.ru.buildSync();
     late FakeApiRepository repository;
@@ -72,17 +19,14 @@ void main() {
 
     setUp(() {
       registerFakeAchievements();
-      repository = FakeApiRepository()..profiles = {2: profileInfo(2, 'Alice')};
+      repository = FakeApiRepository()..profiles = {2: userProfile(2, 'Alice')};
       accountManager = FakeAccountManager(remoteAccount(1, 'Bob'));
       GetIt.instance.registerSingleton<AccountManager>(accountManager);
     });
 
     Future<void> showAlicesProfile(WidgetTester tester) async {
       await tester.pumpWidget(
-        hostScreen(
-          OnlineProfileView(target: profileInfo(2, 'Alice')),
-          repository: repository,
-        ),
+        hostScreen(const OnlineProfileView(userId: 2), repository: repository),
       );
       await tester.pumpAndSettle();
     }
@@ -134,8 +78,70 @@ void main() {
       request.complete();
       await tester.pumpAndSettle();
 
-      expect(repository.log, ['sendNewFriendshipRequest(2)']);
+      expect(repository.log, ['putFriend(2)']);
       expect(find.text(t.online.cancelFriendshipRequest), findsOne);
+    });
+
+    group('actions by friendship and block', () {
+      Future<void> show(
+        WidgetTester tester, {
+        Friendship friendship = Friendship.none,
+        Blocked blocked = Blocked.none,
+        void Function(LpsUser)? onInvite,
+      }) async {
+        repository.profiles = {
+          2: userProfile(2, 'Alice', friendship: friendship, blocked: blocked),
+        };
+        await tester.pumpWidget(
+          hostScreen(
+            OnlineProfileView(userId: 2, onInvite: onInvite),
+            repository: repository,
+          ),
+        );
+        await tester.pumpAndSettle();
+      }
+
+      for (final blocked in [Blocked.me, Blocked.both]) {
+        testWidgets('profile hides invite when blocked is ${blocked.name}', (
+          tester,
+        ) async {
+          await show(tester, friendship: Friendship.friends, blocked: blocked);
+
+          expect(find.text(t.online.invite), findsNothing);
+          expect(find.text(t.online.addToFriend), findsNothing);
+          expect(find.text(t.online.inputBan), findsOneWidget);
+        });
+      }
+
+      testWidgets('blocked by me offers only to unblock', (tester) async {
+        await show(tester, blocked: Blocked.byMe);
+
+        expect(find.text(t.online.unban), findsOneWidget);
+        expect(find.text(t.online.addToFriend), findsNothing);
+        expect(find.text(t.online.invite), findsNothing);
+      });
+
+      testWidgets('a friend can be invited', (tester) async {
+        final invited = <int>[];
+        await show(
+          tester,
+          friendship: Friendship.friends,
+          onInvite: (u) => invited.add(u.id),
+        );
+
+        await tester.tap(find.text(t.online.invite));
+
+        expect(invited, [2]);
+      });
+
+      testWidgets('an outgoing request can be cancelled', (tester) async {
+        await show(tester, friendship: Friendship.outgoing);
+
+        await tester.tap(find.text(t.online.cancelFriendshipRequest));
+        await tester.pumpAndSettle();
+
+        expect(repository.log, ['deleteFriend(2)']);
+      });
     });
   });
 }

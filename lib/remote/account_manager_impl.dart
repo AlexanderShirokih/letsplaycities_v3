@@ -46,8 +46,22 @@ class AccountManagerImpl implements AccountManager {
   /// older session is not kept.
   int _session = 0;
 
+  final _changes = StreamController<void>.broadcast();
+
   /// Sends the refreshed FCM tokens while a session is known
   StreamSubscription<String>? _fcmRefreshes;
+
+  @override
+  Stream<void> get accountChanges => _changes.stream;
+
+  @override
+  void invalidate() {
+    // An answer to a request that was sent before is not kept
+    _session++;
+    _forgetAccount();
+    _accountRequest = null;
+    _changes.add(null);
+  }
 
   @override
   Future<RemoteAccount?> getLastSignedInAccount() async {
@@ -150,6 +164,7 @@ class AccountManagerImpl implements AccountManager {
     _fcmRefreshes = null;
     await _apiRepositories.tokens.clear();
     _apiRepositories.cache.clear();
+    _changes.add(null);
   }
 
   Future<RemoteAccount> _startSession(AuthResult result) async {
@@ -163,6 +178,7 @@ class AccountManagerImpl implements AccountManager {
 
     // A slow FCM must not hold the sign-in; the errors are logged.
     unawaited(_startFcmSync());
+    _changes.add(null);
 
     return account;
   }
@@ -195,9 +211,8 @@ class AccountManagerImpl implements AccountManager {
   /// Uploads the picture of the social network as the avatar
   Future<void> _uploadPicture(String pictureUri) async {
     try {
-      // replaced in protocol v1 task 3: updatePicture sends PUT /v1/me/avatar
-      await _apiRepositories.forUser().updatePictureFromURL(pictureUri);
-      _forgetAccount();
+      await _apiRepositories.forUser().putAvatarFromUrl(pictureUri);
+      invalidate();
     } catch (e, s) {
       _logger.error(e, s);
     }

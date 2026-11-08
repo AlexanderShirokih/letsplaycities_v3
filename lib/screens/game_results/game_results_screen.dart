@@ -278,7 +278,7 @@ class _GameResultsScreenState extends State<GameResultsScreen> {
           context,
           MaterialPageRoute(
             builder: (_) => OnlineProfileViewStandalone(
-              (opp.accountInfo as AdvancedAccountInfo).profileInfo,
+              (opp.accountInfo as AdvancedAccountInfo).profileInfo.userId,
             ),
           ),
         ),

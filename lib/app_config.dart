@@ -21,12 +21,6 @@ class AppConfig extends Equatable {
   String get gameSocketUrl =>
       '${isSecure ? 'wss' : 'ws'}://$host:$port$_path/game';
 
-  /// Server origin without the protocol path. Picture URLs of the old
-  /// protocol are built from it.
-  // replaced in protocol v1 task 3
-  String get remotePublicApiURL =>
-      '${isSecure ? 'https' : 'http'}://$host:$port';
-
   /// `true` is server uses HTTPS or WSS connection, `false` is HTTP or WS
   final bool isSecure;
 

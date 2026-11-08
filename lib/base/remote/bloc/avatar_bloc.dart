@@ -4,7 +4,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:equatable/equatable.dart';
 
 import 'package:image_picker/image_picker.dart';
+import 'package:lets_play_cities/remote/account_manager.dart';
 import 'package:lets_play_cities/remote/api_repository.dart';
+import 'package:lets_play_cities/remote/client/api_exception.dart';
 import 'package:lets_play_cities/base/bloc/sequential_event_mapping.dart';
 
 part 'avatar_event.dart';
@@ -16,8 +18,10 @@ class AvatarBloc extends Bloc<AvatarEvent, AvatarState>
     with SequentialEventMapping<AvatarEvent, AvatarState> {
   final picker = ImagePicker();
   final ApiRepository _apiRepository;
+  final AccountManager _accountManager;
 
-  AvatarBloc(this._apiRepository) : super(AvatarInitial()) {
+  AvatarBloc(this._apiRepository, this._accountManager)
+    : super(AvatarInitial()) {
     mapEventsSequentially(_mapEventToState);
   }
 
@@ -41,7 +45,8 @@ class AvatarBloc extends Bloc<AvatarEvent, AvatarState>
 
       if (pickedFile != null) {
         yield AvatarLoadingState();
-        await _apiRepository.updatePicture(pickedFile.readAsBytes());
+        await _apiRepository.putAvatar(await pickedFile.readAsBytes());
+        _accountManager.invalidate();
         yield AvatarDoneState(true);
       } else {
         yield AvatarDoneState();
@@ -54,7 +59,8 @@ class AvatarBloc extends Bloc<AvatarEvent, AvatarState>
   Stream<AvatarState> removeImage() async* {
     yield AvatarLoadingState();
     try {
-      await _apiRepository.removePicture();
+      await _apiRepository.deleteAvatar();
+      _accountManager.invalidate();
       yield AvatarDoneState(true);
     } catch (error, stackTrace) {
       yield* _fail(error, stackTrace);
@@ -64,6 +70,10 @@ class AvatarBloc extends Bloc<AvatarEvent, AvatarState>
   /// Ends the action with an error, so the view stops waiting for it.
   Stream<AvatarState> _fail(Object error, StackTrace stackTrace) async* {
     addError(error, stackTrace);
-    yield AvatarDoneState(false, error.toString());
+    yield AvatarDoneState(
+      false,
+      error.toString(),
+      error is ApiException ? error : null,
+    );
   }
 }

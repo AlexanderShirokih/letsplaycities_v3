@@ -72,6 +72,7 @@ void main() {
 
   late FakeApiRepository repository;
   late _Prefs fakePrefs;
+  late FakeAccountManager accounts;
 
   void register({
     RemoteAccount? account,
@@ -79,9 +80,11 @@ void main() {
     Map<String, int> progress = const {},
   }) {
     final prefs = _Prefs(scoring ?? _scoring(), progress);
-    repository = FakeApiRepository()..profiles = {2: profileInfo(2, 'Alice')};
+    repository = FakeApiRepository()..profiles = {2: userProfile(2, 'Alice')};
     final getIt = GetIt.instance;
-    getIt.registerSingleton<AccountManager>(FakeAccountManager(account));
+    accounts = FakeAccountManager(account);
+    getIt.registerSingleton<AccountManager>(accounts);
+    getIt.registerSingleton<GamePreferences>(prefs);
     getIt.registerSingleton<ApiRepositoryFactory>(_Factory(repository));
     getIt.registerSingleton<CountryRepository>(_Countries());
     final local = LocalAchievementsService(
@@ -104,18 +107,15 @@ void main() {
     }
 
     await tester.pumpWidget(
-      RepositoryProvider<GamePreferences>.value(
-        value: fakePrefs,
-        child: withTranslations(
-          MaterialApp(
-            theme: buildD2Theme(Brightness.light),
-            builder: (context, child) => MediaQuery(
-              data: MediaQuery.of(context)
-                  .copyWith(textScaler: TextScaler.linear(narrow ? 1.3 : 1)),
-              child: child!,
-            ),
-            home: const Scaffold(body: ProfileTab()),
+      withTranslations(
+        MaterialApp(
+          theme: buildD2Theme(Brightness.light),
+          builder: (context, child) => MediaQuery(
+            data: MediaQuery.of(context)
+                .copyWith(textScaler: TextScaler.linear(narrow ? 1.3 : 1)),
+            child: child!,
           ),
+          home: const Scaffold(body: ProfileTab()),
         ),
       ),
     );
@@ -258,5 +258,20 @@ void main() {
 
     expect(locked, findsNothing);
     expect(find.bySemanticsLabel(title), findsOneWidget);
+  });
+
+  testWidgets('profile shows the new account after an avatar change', (
+    tester,
+  ) async {
+    register(account: remoteAccount(2, 'Alice'));
+    await pump(tester);
+    expect(find.text('Alice'), findsOneWidget);
+
+    accounts.account = remoteAccount(2, 'Alice B');
+    accounts.invalidate();
+    await tester.pumpAndSettle();
+
+    expect(find.text('Alice B'), findsOneWidget);
+    expect(accounts.fetches, 2);
   });
 }

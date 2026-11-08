@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
@@ -11,8 +12,10 @@ import 'package:lets_play_cities/base/preferences.dart';
 import 'package:lets_play_cities/base/repositories/cities/country_repository.dart';
 import 'package:lets_play_cities/base/scoring.dart';
 import 'package:lets_play_cities/i18n/strings.g.dart';
+import 'package:lets_play_cities/remote/account_manager.dart';
+import 'package:lets_play_cities/remote/account.dart';
+import 'package:lets_play_cities/remote/api_repository.dart';
 import 'package:lets_play_cities/remote/api_repository_factory.dart';
-import 'package:lets_play_cities/remote/auth.dart';
 import 'package:lets_play_cities/screens/common/d2/d2.dart';
 import 'package:lets_play_cities/screens/online/avatars/avatar_chooser.dart';
 import 'package:lets_play_cities/screens/online/banlist.dart';
@@ -88,6 +91,7 @@ class _ProfileTabState extends State<ProfileTab> {
   Future<Map<int, String>>? _names;
   _LocalProfile? _local;
   _OnlineProfile? _online;
+  StreamSubscription<void>? _accountChanges;
 
   /// `true` until the account is known
   bool _loading = true;
@@ -105,16 +109,23 @@ class _ProfileTabState extends State<ProfileTab> {
       _visibleTab = listenable?..addListener(_onTabChanged);
     }
 
+    // Signing in or out and a new avatar change the header
+    _accountChanges ??= GetIt.instance
+        .get<AccountManager>()
+        .accountChanges
+        .listen((_) => _loadAccount());
+
     _names ??= _loadNames();
     // The achievements and statistics do not notify, so they are read again
     // each time the tab is shown.
-    _local = _LocalProfile.read(context.read<GamePreferences>());
+    _local = _LocalProfile.read(GetIt.instance.get<GamePreferences>());
     if (_loads == 0) _loadAccount();
   }
 
   @override
   void dispose() {
     _visibleTab?.removeListener(_onTabChanged);
+    _accountChanges?.cancel();
     super.dispose();
   }
 
@@ -122,7 +133,7 @@ class _ProfileTabState extends State<ProfileTab> {
     if (_visibleTab?.value != profileTabIndex) return;
 
     setState(() {
-      _local = _LocalProfile.read(context.read<GamePreferences>());
+      _local = _LocalProfile.read(GetIt.instance.get<GamePreferences>());
     });
     _loadAccount();
   }
@@ -242,10 +253,7 @@ class _ProfileTabState extends State<ProfileTab> {
         _NavigationRow(
           glyph: D2Glyph.history,
           label: t.profile.history,
-          onTap: () => _openOnline(
-            t.profile.history,
-            OnlineHistoryScreen(target: online.account.baseProfileInfo),
-          ),
+          onTap: () => _openOnline(t.profile.history, OnlineHistoryScreen()),
         ),
         _NavigationRow(
           glyph: D2Glyph.ban,

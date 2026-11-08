@@ -12,7 +12,7 @@ void main() {
   setUp(() {
     registerFakeAchievements();
     removedMessage = t.online.banlistEntryRemoved;
-    repository = FakeApiRepository()..banlist = [bannedUser(1, 'Bob')];
+    repository = FakeApiRepository()..blocked = [lpsUser(1, 'Bob')];
   });
 
   Future<void> showBanlist(WidgetTester tester) async {
@@ -39,15 +39,15 @@ void main() {
 
     await swipeAway(tester, 'Bob');
     expect(find.text(removedMessage), findsOneWidget);
-    expect(repository.log, isNot(contains('removeFromBanlist(1)')));
+    expect(repository.log, isNot(contains('deleteBlock(1)')));
 
     await letUndoSnackbarTimeOut(tester);
 
     expect(
-      repository.log.where((call) => call == 'removeFromBanlist(1)'),
+      repository.log.where((call) => call == 'deleteBlock(1)'),
       hasLength(1),
     );
-    expect(repository.log.last, 'getBanlist(forceRefresh: true)');
+    expect(repository.log.last, 'blocks(forceRefresh: true)');
     expect(find.text('Bob'), findsNothing);
     // The undo snackbar has already said it, so it is not repeated.
     expect(find.text(removedMessage), findsNothing);
@@ -63,13 +63,13 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Bob'), findsOneWidget);
-    expect(repository.log, isNot(contains('removeFromBanlist(1)')));
+    expect(repository.log, isNot(contains('deleteBlock(1)')));
 
     await swipeAway(tester, 'Bob');
     expect(find.text(removedMessage), findsOneWidget);
 
     await letUndoSnackbarTimeOut(tester);
-    expect(repository.log, contains('removeFromBanlist(1)'));
+    expect(repository.log, contains('deleteBlock(1)'));
   });
 
   testWidgets('a failed unban is reported and the user comes back', (
@@ -82,7 +82,7 @@ void main() {
     await letUndoSnackbarTimeOut(tester);
 
     expect(find.text('Не удалось выполнить действие'), findsOneWidget);
-    expect(repository.log.last, 'getBanlist(forceRefresh: false)');
+    expect(repository.log.last, 'blocks(forceRefresh: false)');
     expect(find.text('Bob'), findsOneWidget);
   });
 }

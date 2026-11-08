@@ -17,4 +17,14 @@ abstract class AccountManager {
 
   /// Signs out from the currently logged account
   Future<void> signOut();
+
+  /// Emits each time the signed-in account changes: after a sign-in, a
+  /// sign-out and [invalidate]. A listener asks [getLastSignedInAccount]
+  /// for the new account.
+  Stream<void> get accountChanges;
+
+  /// Drops the cached account, e.g. after the avatar changed, so the next
+  /// [getLastSignedInAccount] asks the server, and notifies the listeners of
+  /// [accountChanges].
+  void invalidate();
 }

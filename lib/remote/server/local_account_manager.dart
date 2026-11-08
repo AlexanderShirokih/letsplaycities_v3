@@ -76,6 +76,12 @@ class LocalAccountManager implements AccountManager {
   Future<void> signOut() => Future.value();
 
   @override
+  Stream<void> get accountChanges => const Stream.empty();
+
+  @override
+  void invalidate() {}
+
+  @override
   Future<RemoteAccount?> trySilentNative() => _unsupported();
 
   @override

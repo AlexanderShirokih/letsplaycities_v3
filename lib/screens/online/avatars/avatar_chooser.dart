@@ -3,7 +3,10 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:lets_play_cities/base/remote/bloc/avatar_bloc.dart';
 import 'package:lets_play_cities/i18n/strings.g.dart';
+import 'package:get_it/get_it.dart';
+import 'package:lets_play_cities/remote/account_manager.dart';
 import 'package:lets_play_cities/remote/api_repository.dart';
+import 'package:lets_play_cities/screens/common/error_texts.dart';
 
 /// Used to update or delete user avatar
 class AvatarChooserView extends StatefulWidget {
@@ -23,7 +26,10 @@ class AvatarChooserView extends StatefulWidget {
 class _AvatarChooserViewState extends State<AvatarChooserView> {
   // Lives as long as the sheet: the sheet builds a new view while it is
   // dragged, and a new bloc would lose the upload in progress.
-  late final AvatarBloc _avatarBloc = AvatarBloc(widget.apiRepository);
+  late final AvatarBloc _avatarBloc = AvatarBloc(
+    widget.apiRepository,
+    GetIt.instance.get<AccountManager>(),
+  );
 
   @override
   void dispose() {
@@ -71,8 +77,15 @@ class _AvatarChooserViewState extends State<AvatarChooserView> {
         listener: (context, state) {
           if (state is AvatarDoneState) {
             if (state.error != null) {
+              final apiError = state.apiError;
               ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text(t.online.avatarChangeFailed)),
+                SnackBar(
+                  content: Text(
+                    apiError == null
+                        ? t.online.avatarChangeFailed
+                        : errorText(t, apiError),
+                  ),
+                ),
               );
             }
             if (state.updateRequired) widget.onAvatarUpdated();

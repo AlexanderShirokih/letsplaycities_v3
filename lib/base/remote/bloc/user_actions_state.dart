@@ -49,8 +49,11 @@ class UserActionDoneState extends UserActionsState {
 class UserActionListDataState<T> extends UserActionsState {
   final List<T> data;
 
-  const UserActionListDataState(this.data);
+  /// `true` while the server has more pages after [data]
+  final bool hasMore;
+
+  const UserActionListDataState(this.data, {this.hasMore = false});
 
   @override
-  List<Object> get props => [data];
+  List<Object> get props => [data, hasMore];
 }

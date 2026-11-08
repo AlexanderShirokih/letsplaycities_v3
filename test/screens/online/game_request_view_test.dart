@@ -7,6 +7,7 @@ import 'package:lets_play_cities/i18n/strings.g.dart';
 import 'package:lets_play_cities/remote/api_repository_factory.dart';
 import 'package:lets_play_cities/remote/auth.dart';
 import 'package:lets_play_cities/remote/model/cloud_messages.dart';
+import 'package:lets_play_cities/remote/model/social.dart';
 import 'package:lets_play_cities/screens/online/game_request_view.dart';
 import 'package:lets_play_cities/utils/error_logger.dart';
 
@@ -72,7 +73,7 @@ void main() {
     addTearDown(tester.view.resetPhysicalSize);
 
     final repository = _RequestsApiRepository()
-      ..profiles[2] = profileInfo(2, 'Alice');
+      ..profiles[2] = userProfile(2, 'Alice', friendship: Friendship.friends);
     final accountManager = FakeAccountManager(remoteAccount(1, 'Bob'));
     final apiRepositories = FakeApiRepositoryFactory(repository);
     GetIt.instance

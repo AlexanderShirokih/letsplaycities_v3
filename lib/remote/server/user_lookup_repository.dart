@@ -2,8 +2,8 @@ import 'package:lets_play_cities/remote/auth.dart';
 
 /// Authorized user registry
 abstract class UserLookupRepository {
-  /// Lookups previously added user by its [userId].
   // The LAN server never checked the access hash; replaced in protocol v1 task 6
+  /// Lookups previously added user by its [userId].
   /// Returns [ProfileInfo] if user was found or `null` if not.
   ProfileInfo? getUser(int userId);
 
