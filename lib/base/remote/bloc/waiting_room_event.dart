@@ -1,64 +1,97 @@
 part of 'waiting_room_bloc.dart';
 
 /// Base event for [WaitingRoomBloc]
-abstract class WaitingRoomEvent extends Equatable {
+sealed class WaitingRoomEvent extends Equatable {
   const WaitingRoomEvent();
-}
-
-/// Starts connection sequence
-class NewGameRequestEvent extends WaitingRoomEvent {
-  /// Optional friend-mode request
-  final FriendGameRequest? request;
-
-  const NewGameRequestEvent([this.request]);
 
   @override
-  List<Object?> get props => [request];
+  List<Object?> get props => [];
 }
 
-/// Event that used to cancel connection
-class CancelEvent extends WaitingRoomEvent {
-  const CancelEvent();
+/// Looks for a random opponent
+class FindPressed extends WaitingRoomEvent {
+  const FindPressed();
+}
+
+/// Invites [friend] to a game
+class InvitePressed extends WaitingRoomEvent {
+  final LpsUser friend;
+
+  const InvitePressed(this.friend);
 
   @override
-  List<Object> get props => [];
+  List<Object?> get props => [friend];
 }
 
-/// Used when connection rejected (SocketException catch)
-class OnConnectionFailedEvent extends WaitingRoomEvent {
-  const OnConnectionFailedEvent();
+/// Leaves the queue or withdraws the invitation
+class CancelPressed extends WaitingRoomEvent {
+  const CancelPressed();
+}
+
+/// Answers the invitation of user [fromId]; an accepted one waits for the
+/// match
+class ReplyToInvite extends WaitingRoomEvent {
+  final int fromId;
+  final bool accept;
+
+  const ReplyToInvite(this.fromId, this.accept);
 
   @override
-  List<Object> get props => [];
+  List<Object?> get props => [fromId, accept];
 }
 
-/// Used internally to start awaiting for game request
-class WaitForOpponentsEvent extends WaitingRoomEvent {
-  final FriendGameRequest? request;
+/// The connection of request [request] is open: the request is sent
+class _Connected extends WaitingRoomEvent {
+  final int request;
+  final WaitingRoomEvent source;
 
-  const WaitForOpponentsEvent(this.request);
+  const _Connected(this.request, this.source);
 
   @override
-  List<Object?> get props => [request];
+  List<Object?> get props => [request, source];
 }
 
-/// Used internally to signal negative invitation result
-class InvitationNegativeResult extends WaitingRoomEvent {
-  final InviteResultType result;
-  final BaseProfileInfo target;
+/// The request [request] failed with [error]
+class _RequestFailed extends WaitingRoomEvent {
+  final int request;
+  final WaitingRoomEvent source;
+  final Exception error;
 
-  const InvitationNegativeResult(this.result, this.target);
+  const _RequestFailed(this.request, this.source, this.error);
 
   @override
-  List<Object> get props => [result, target];
+  List<Object?> get props => [request, source, error];
 }
 
-/// Used internally to start the game
-class StartGameEvent extends WaitingRoomEvent {
+/// The server answered request [request]
+class _ServerSaid extends WaitingRoomEvent {
+  final int request;
+  final protocol.WaitingEvent message;
+
+  const _ServerSaid(this.request, this.message);
+
+  @override
+  List<Object?> get props => [request, message];
+}
+
+/// The match of request [request] built the game of [config]
+class _Matched extends WaitingRoomEvent {
+  final int request;
   final GameConfig config;
 
-  const StartGameEvent(this.config);
+  const _Matched(this.request, this.config);
 
   @override
-  List<Object> get props => [config];
+  List<Object?> get props => [request, config];
+}
+
+/// The connection ended while request [request] waited
+class _Closed extends WaitingRoomEvent {
+  final int request;
+  final GameConnectionClose close;
+
+  const _Closed(this.request, this.close);
+
+  @override
+  List<Object?> get props => [request, close];
 }

@@ -1,265 +1,339 @@
+@Timeout(Duration(seconds: 5))
+library;
+
 import 'dart:async';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:lets_play_cities/base/game/game_config.dart';
 import 'package:lets_play_cities/base/game/game_mode.dart';
 import 'package:lets_play_cities/base/remote/bloc/waiting_room_bloc.dart';
-import 'package:lets_play_cities/remote/api_repository.dart';
-import 'package:lets_play_cities/remote/api_repository_factory.dart';
+import 'package:lets_play_cities/remote/client/api_exception.dart';
 import 'package:lets_play_cities/remote/client/remote_game_client.dart';
 import 'package:lets_play_cities/remote/exceptions.dart';
 import 'package:lets_play_cities/remote/game_connection.dart';
 import 'package:lets_play_cities/remote/model/lps_user.dart';
 import 'package:lets_play_cities/remote/model/social.dart';
-import 'package:lets_play_cities/remote/protocol/game_messages.dart';
+import 'package:lets_play_cities/remote/protocol/game_messages.dart'
+    as protocol;
 
-import '../../../remote/fake_api_repository_factory.dart';
+import '../../../remote/fake_game_connection.dart';
 
-/// Lets the test decide when [connect] finishes and what the server says
-/// while the user waits.
-class _FakeGameClient implements RemoteGameClient {
-  final connectResult = Completer<void>();
-  final _waiting = StreamController<WaitingEvent>.broadcast();
-  final _closes = StreamController<GameConnectionClose>.broadcast();
-  bool connected = false;
-  int playCalls = 0;
-  int cancels = 0;
-
-  /// What [configFor] returns
-  GameConfig config = const GameConfig(gameMode: GameMode.network);
+/// Opens only when the test completes [opened], or fails with its error
+class _SlowConnection extends FakeGameConnection {
+  final opened = Completer<void>();
 
   @override
-  Future<LpsUser> connect() async {
-    await connectResult.future;
-    connected = true;
+  Future<LpsUser> ensureConnected() async {
+    await opened.future;
 
-    return LpsUser(
-      id: _owner,
-      name: 'owner',
-      provider: 'native',
-      lastSeenAt: DateTime(2026),
-    );
+    return super.ensureConnected();
   }
-
-  @override
-  Future<void> find() async {
-    playCalls++;
-    if (!connected) {
-      throw const RemoteIOException('Socket channel is not opened');
-    }
-  }
-
-  @override
-  Stream<WaitingEvent> get waiting => _waiting.stream;
-
-  @override
-  Stream<GameConnectionClose> get closes => _closes.stream;
-
-  @override
-  GameConfig configFor(Match match) => config;
-
-  @override
-  void cancel() => cancels++;
-
-  /// The server pairs the user with an opponent
-  void match() => _waiting.add(
-    const Match(
-      gameId: 1,
-      opponent: MatchOpponent(
-        id: 2,
-        name: 'opponent',
-        friendship: Friendship.none,
-      ),
-      youStart: true,
-      moveTimeSec: 30,
-    ),
-  );
-
-  /// The socket breaks
-  void drop() => _closes.add((code: null, reason: 'lost'));
-
-  @override
-  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
-/// Runs [body] in its own error zone and returns the errors nobody handled.
-/// The fake and the bloc have to be created inside [body]: a future does not
-/// deliver its error into a different error zone.
-Future<List<Object>> _uncaughtErrorsOf(Future<void> Function() body) async {
-  final uncaught = <Object>[];
-  await runZonedGuarded(body, (error, _) => uncaught.add(error));
-  return uncaught;
-}
-
-class _FakeApiRepository extends Fake implements ApiRepository {}
-
-const _owner = 1;
-
-WaitingRoomBloc _createBloc(
-  _FakeGameClient client, {
-  ApiRepositoryFactory Function()? apiRepositories,
-}) => WaitingRoomBloc(
-  client,
-  _owner,
-  apiRepositories:
-      apiRepositories ?? () => throw StateError('No game is started'),
+final _friend = LpsUser(
+  id: 2,
+  name: 'Пётр',
+  provider: 'native',
+  lastSeenAt: DateTime(2026),
 );
 
+const _match = protocol.Match(
+  gameId: 5,
+  opponent: protocol.MatchOpponent(
+    id: 2,
+    name: 'Пётр',
+    friendship: Friendship.friends,
+  ),
+  youStart: true,
+  moveTimeSec: 30,
+);
+
+final _now = DateTime(2026, 11, 9, 12);
+
 void main() {
-  test('a connected random request waits for opponents', () async {
-    late WaitingRoomState state;
-    late int playCalls;
+  late FakeGameConnection connection;
+  late WaitingRoomBloc bloc;
+  late List<WaitingRoomState> states;
 
-    final uncaught = await _uncaughtErrorsOf(() async {
-      final client = _FakeGameClient();
-      final bloc = _createBloc(client);
-
-      bloc.add(const NewGameRequestEvent());
-      client.connectResult.complete();
-      await pumpEventQueue();
-
-      state = bloc.state;
-      playCalls = client.playCalls;
-      await bloc.close();
-    });
-
-    expect(uncaught, isEmpty);
-    expect(state, const WaitingForOpponentsState(null));
-    expect(playCalls, 1);
-  });
-
-  test('a started game carries a repository for the owner from the factory '
-      'current when the game starts', () async {
-    const config = GameConfig(gameMode: GameMode.network);
-    final repository = _FakeApiRepository();
-    final apiRepositories = FakeApiRepositoryFactory(repository);
-    var lookups = 0;
-    late int lookupsBeforeStart;
-    final states = <WaitingRoomState>[];
-
-    final uncaught = await _uncaughtErrorsOf(() async {
-      final client = _FakeGameClient()..config = config;
-      final bloc = _createBloc(
-        client,
-        apiRepositories: () {
-          lookups++;
-          return apiRepositories;
-        },
-      );
-      final subscription = bloc.stream.listen(states.add);
-
-      bloc.add(const NewGameRequestEvent());
-      client.connectResult.complete();
-      await pumpEventQueue();
-      lookupsBeforeStart = lookups;
-
-      client.match();
-      await pumpEventQueue();
-
-      await subscription.cancel();
-      await bloc.close();
-    });
-
-    expect(uncaught, isEmpty);
-    expect(lookupsBeforeStart, 0);
-    expect(lookups, 1);
-    expect(apiRepositories.userIds, [_owner]);
-    expect(
-      states.whereType<StartGameState>().single,
-      isA<StartGameState>()
-          .having((s) => s.config, 'config', same(config))
-          .having((s) => s.apiRepository, 'apiRepository', same(repository)),
+  WaitingRoomBloc createBloc([FakeGameConnection? custom]) {
+    connection = custom ?? connection;
+    final created = WaitingRoomBloc(
+      RemoteGameClient(connection, isLocal: false),
+      clock: () => _now,
     );
-    expect(states.last, isA<WaitingRoomInitial>());
+    created.stream.listen(states.add);
+
+    return created;
+  }
+
+  setUp(() {
+    connection = FakeGameConnection();
+    states = [];
+    bloc = createBloc();
   });
 
-  test('Cancel tapped while connecting is not followed by find()', () async {
-    late WaitingRoomState stateAfterCancel;
-    late int playCalls;
-
-    final uncaught = await _uncaughtErrorsOf(() async {
-      final client = _FakeGameClient();
-      final bloc = _createBloc(client);
-
-      bloc.add(const NewGameRequestEvent());
-      await pumpEventQueue();
-      // Cancel waits in the queue until connect() returns.
-      bloc.add(const CancelEvent());
-      client.connectResult.complete();
-      await pumpEventQueue();
-
-      stateAfterCancel = bloc.state;
-      playCalls = client.playCalls;
-      await bloc.close();
-    });
-
-    expect(uncaught, isEmpty);
-    expect(stateAfterCancel, isA<WaitingRoomInitial>());
-    expect(playCalls, 0);
+  tearDown(() async {
+    if (!bloc.isClosed) await bloc.close();
   });
 
-  test('a connection failure after close() does not add events', () async {
-    final uncaught = await _uncaughtErrorsOf(() async {
-      final client = _FakeGameClient();
-      final bloc = _createBloc(client);
+  test('find → queued → match → starting', () async {
+    bloc.add(const FindPressed());
+    await pumpEventQueue();
+    connection.receive(const protocol.Queued());
+    await pumpEventQueue();
+    connection.receive(_match);
+    await pumpEventQueue();
 
-      bloc.add(const NewGameRequestEvent());
-      await pumpEventQueue();
+    expect(states, [
+      const Connecting(),
+      Queued(_now),
+      isA<Starting>().having(
+        (s) => s.config.gameMode,
+        'gameMode',
+        GameMode.network,
+      ),
+      const Idle(),
+    ]);
+    expect(connection.sent, [const protocol.Find()]);
+  });
 
-      // The screen goes away while connect() is still pending.
-      final closing = bloc.close();
+  test('invite → sent stays inviting → declined finishes', () async {
+    bloc.add(InvitePressed(_friend));
+    await pumpEventQueue();
+    connection.receive(
+      const protocol.InviteStatus(2, protocol.InviteStatusKind.sent),
+    );
+    await pumpEventQueue();
+    connection.receive(
+      const protocol.InviteStatus(2, protocol.InviteStatusKind.declined),
+    );
+    await pumpEventQueue();
+    await bloc.close();
+
+    expect(states, [
+      Inviting(_friend),
+      Inviting(_friend, sent: true),
+      InviteFinished(_friend, protocol.InviteStatusKind.declined),
+    ]);
+    // A finished invitation has nothing to cancel
+    expect(connection.sent, [const protocol.Invite(2)]);
+  });
+
+  test('invite expired finishes with expired', () async {
+    bloc.add(InvitePressed(_friend));
+    await pumpEventQueue();
+    connection.receive(
+      const protocol.InviteStatus(2, protocol.InviteStatusKind.expired),
+    );
+    await pumpEventQueue();
+
+    expect(
+      bloc.state,
+      InviteFinished(_friend, protocol.InviteStatusKind.expired),
+    );
+  });
+
+  test('cancel while queued sends cancel and returns idle', () async {
+    bloc.add(const FindPressed());
+    await pumpEventQueue();
+    connection.receive(const protocol.Queued());
+    await pumpEventQueue();
+
+    bloc.add(const CancelPressed());
+    await pumpEventQueue();
+    connection.receive(const protocol.Queued());
+    await pumpEventQueue();
+
+    expect(bloc.state, const Idle());
+    expect(connection.sent, [const protocol.Find(), const protocol.Cancel()]);
+  });
+
+  test('rate_limited shows wait message', () async {
+    bloc.add(InvitePressed(_friend));
+    await pumpEventQueue();
+    connection.receive(
+      const protocol.ProtocolError(protocol.ProtocolError.rateLimited),
+    );
+    await pumpEventQueue();
+
+    expect(bloc.state, RateLimited(_friend));
+  });
+
+  test('invalid_state while queued changes nothing', () async {
+    bloc.add(const FindPressed());
+    await pumpEventQueue();
+    connection.receive(const protocol.Queued());
+    await pumpEventQueue();
+    connection.receive(
+      const protocol.ProtocolError(protocol.ProtocolError.invalidState),
+    );
+    await pumpEventQueue();
+
+    expect(bloc.state, Queued(_now));
+  });
+
+  test(
+    'replaced fails with replaced, the close after it changes nothing',
+    () async {
+      bloc.add(const FindPressed());
       await pumpEventQueue();
-      client.connectResult.completeError(
-        const ConnectionException('Connection refused'),
+      connection.receive(
+        const protocol.ProtocolError(protocol.ProtocolError.replaced),
       );
-      await closing;
       await pumpEventQueue();
-    });
+      connection.drop(code: 1001);
+      await pumpEventQueue();
 
-    expect(uncaught, isEmpty);
+      expect(states.whereType<Failed>(), hasLength(1));
+      expect(
+        bloc.state,
+        isA<Failed>().having(
+          (s) => s.error,
+          'error',
+          isA<ProtocolErrorException>().having(
+            (e) => e.code,
+            'code',
+            'replaced',
+          ),
+        ),
+      );
+    },
+  );
+
+  test('a close for a replacement fails with replaced', () async {
+    bloc.add(const FindPressed());
+    await pumpEventQueue();
+    connection.drop(code: 1001, reason: 'replaced');
+    await pumpEventQueue();
+
+    expect(
+      bloc.state,
+      isA<Failed>().having(
+        (s) => s.error,
+        'error',
+        isA<ProtocolErrorException>().having((e) => e.code, 'code', 'replaced'),
+      ),
+    );
   });
 
-  test('a lost socket while waiting shows the connection error', () async {
-    late WaitingRoomState state;
+  test('a lost socket fails with a connection error that retries', () async {
+    bloc.add(const FindPressed());
+    await pumpEventQueue();
+    connection.receive(const protocol.Queued());
+    await pumpEventQueue();
+    connection.drop();
+    await pumpEventQueue();
 
-    final uncaught = await _uncaughtErrorsOf(() async {
-      final client = _FakeGameClient();
-      final bloc = _createBloc(client);
+    final failed = bloc.state as Failed;
+    expect(failed.error, isA<ConnectionException>());
+    expect(failed.retry, const FindPressed());
 
-      bloc.add(const NewGameRequestEvent());
-      client.connectResult.complete();
-      await pumpEventQueue();
-
-      client.drop();
-      await pumpEventQueue();
-
-      state = bloc.state;
-      await bloc.close();
-    });
-
-    expect(uncaught, isEmpty);
-    expect(state, const WaitingRoomConnectionError());
+    bloc.add(failed.retry!);
+    await pumpEventQueue();
+    expect(connection.sent, [const protocol.Find(), const protocol.Find()]);
   });
 
-  test('closing while waiting cancels the search, socket stays', () async {
-    late int cancels;
+  test('a refused upgrade fails with the error of the server', () async {
+    final refused = _SlowConnection();
+    bloc = createBloc(refused);
 
-    final uncaught = await _uncaughtErrorsOf(() async {
-      final client = _FakeGameClient();
-      final bloc = _createBloc(client);
+    bloc.add(InvitePressed(_friend));
+    await pumpEventQueue();
+    refused.opened.completeError(
+      const UnauthorizedException(401, 'unauthorized'),
+    );
+    await pumpEventQueue();
 
-      bloc.add(const NewGameRequestEvent());
-      client.connectResult.complete();
+    expect(
+      bloc.state,
+      Failed(
+        const UnauthorizedException(401, 'unauthorized'),
+        retry: InvitePressed(_friend),
+      ),
+    );
+  });
+
+  test('cancel while connecting is not followed by find', () async {
+    final slow = _SlowConnection();
+    bloc = createBloc(slow);
+
+    bloc.add(const FindPressed());
+    await pumpEventQueue();
+    bloc.add(const CancelPressed());
+    await pumpEventQueue();
+    slow.opened.complete();
+    await pumpEventQueue();
+
+    expect(bloc.state, const Idle());
+    expect(slow.sent, isEmpty);
+  });
+
+  test(
+    'closing while queued cancels, a match that crosses it is left',
+    () async {
+      bloc.add(const FindPressed());
+      await pumpEventQueue();
+      connection.receive(const protocol.Queued());
       await pumpEventQueue();
 
       await bloc.close();
-      client.drop();
+      connection.receive(_match);
       await pumpEventQueue();
 
-      cancels = client.cancels;
-    });
+      expect(states.whereType<Starting>(), isEmpty);
+      expect(connection.sent, [
+        const protocol.Find(),
+        const protocol.Cancel(),
+        const protocol.Leave(),
+      ]);
+    },
+  );
 
-    expect(uncaught, isEmpty);
-    expect(cancels, 1);
+  test('invite while queued leaves the queue first', () async {
+    bloc.add(const FindPressed());
+    await pumpEventQueue();
+    connection.receive(const protocol.Queued());
+    await pumpEventQueue();
+
+    bloc.add(InvitePressed(_friend));
+    await pumpEventQueue();
+
+    expect(bloc.state, Inviting(_friend));
+    expect(connection.sent, [
+      const protocol.Find(),
+      const protocol.Cancel(),
+      const protocol.Invite(2),
+    ]);
+  });
+
+  test('an accepted invitation starts the game of its match', () async {
+    bloc.add(const ReplyToInvite(3, true));
+    await pumpEventQueue();
+    connection.receive(_match);
+    await pumpEventQueue();
+
+    expect(states, [const Connecting(), isA<Starting>(), const Idle()]);
+    expect(connection.sent, [const protocol.InviteReply(3, accept: true)]);
+  });
+
+  test('an answer to a withdrawn invitation finishes with expired', () async {
+    bloc.add(const ReplyToInvite(3, true));
+    await pumpEventQueue();
+    connection.receive(
+      const protocol.InviteStatus(3, protocol.InviteStatusKind.expired),
+    );
+    await pumpEventQueue();
+
+    expect(
+      bloc.state,
+      const InviteFinished(null, protocol.InviteStatusKind.expired),
+    );
+  });
+
+  test('a declined invitation is answered and stays idle', () async {
+    bloc.add(const ReplyToInvite(3, false));
+    await pumpEventQueue();
+
+    expect(bloc.state, const Idle());
+    expect(connection.sent, [const protocol.InviteReply(3, accept: false)]);
   });
 }

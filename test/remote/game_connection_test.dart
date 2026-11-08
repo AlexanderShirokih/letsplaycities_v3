@@ -215,4 +215,67 @@ void main() {
 
     await failure;
   });
+
+  group('with its own settings', () {
+    GameConnection connectionWith({
+      Duration welcomeTimeout = const Duration(seconds: 10),
+      void Function(Map<String, String> headers)? onUnauthorized,
+    }) => GameConnection(
+      url: 'wss://test/v1/game',
+      headers: () async => {'Authorization': 'Bearer t'},
+      clientName: 'lps-flutter/3.1.0',
+      playerName: () => name,
+      welcomeTimeout: welcomeTimeout,
+      onUnauthorized: onUnauthorized,
+      connectorFactory: (url, headers) {
+        final connector = _FakeConnector(url, headers)
+          ..autoWelcome = autoWelcome;
+        connectors.add(connector);
+
+        return connector;
+      },
+    );
+
+    test('no welcome in time fails ensureConnected, a retry opens a new '
+        'socket', () async {
+      autoWelcome = false;
+      final connection = connectionWith(
+        welcomeTimeout: const Duration(milliseconds: 20),
+      );
+
+      await expectLater(
+        connection.ensureConnected(),
+        throwsA(isA<ConnectionException>()),
+      );
+      await pumpEventQueue();
+      expect(connectors.single.closed, isTrue);
+
+      autoWelcome = true;
+      await connection.ensureConnected();
+      expect(connectors, hasLength(2));
+    });
+
+    test('a refused upgrade gives onUnauthorized the sent headers', () async {
+      autoWelcome = false;
+      final refusals = <Map<String, String>>[];
+      final connection = connectionWith(onUnauthorized: refusals.add);
+
+      final first = connection.ensureConnected();
+      await pumpEventQueue();
+      connectors.last.controller.addError(const BannedException(403, 'banned'));
+      await expectLater(first, throwsA(isA<BannedException>()));
+      expect(refusals, isEmpty);
+
+      final second = connection.ensureConnected();
+      await pumpEventQueue();
+      connectors.last.controller.addError(
+        const UnauthorizedException(401, 'unauthorized'),
+      );
+      await expectLater(second, throwsA(isA<UnauthorizedException>()));
+
+      expect(refusals, [
+        {'Authorization': 'Bearer t'},
+      ]);
+    });
+  });
 }

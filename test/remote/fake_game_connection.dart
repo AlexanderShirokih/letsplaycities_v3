@@ -64,9 +64,9 @@ class FakeGameConnection implements GameConnection {
   /// The server sends [message]
   void receive(ServerGameMessage message) => _messages.add(message);
 
-  /// The socket breaks
-  void drop() {
+  /// The socket breaks, or the server closes it with [reason]
+  void drop({int? code, String reason = 'connection lost'}) {
     _connected = false;
-    _closes.add((code: null, reason: 'connection lost'));
+    _closes.add((code: code, reason: reason));
   }
 }

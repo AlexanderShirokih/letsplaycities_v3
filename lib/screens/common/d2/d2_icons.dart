@@ -45,6 +45,7 @@ enum D2Glyph {
   wand,
   sound,
   moon,
+  chevron,
 }
 
 /// One stroked (or filled) path of a glyph, in a 24x24 view box
@@ -259,6 +260,7 @@ final _glyphs = <D2Glyph, List<_Shape>>{
   D2Glyph.moon: [
     const _Shape('M19.5 14.6A8 8 0 0 1 9.4 4.5a8 8 0 1 0 10.1 10.1z'),
   ],
+  D2Glyph.chevron: [const _Shape('M9.5 6l6 6-6 6')],
 };
 
 final _paths = <D2Glyph, List<(Path, _Shape)>>{};

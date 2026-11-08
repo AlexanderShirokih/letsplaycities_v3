@@ -72,7 +72,8 @@ class LocalMultiplayerScreen extends StatelessWidget {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (_) => GameWaitingRoomScreenStandalone(),
+                    builder: (_) =>
+                        const GameWaitingRoomScreenStandalone(isLocal: true),
                   ),
                 ).then((value) => getIt.popScope());
               } else if (state is LocalMultiplayerNoWifiState) {

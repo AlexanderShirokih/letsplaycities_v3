@@ -243,6 +243,18 @@ class GameOver extends ServerGameMessage {
 /// The server rejected a message: `bad_message`, `hello_required`,
 /// `invalid_state`, `unsupported_protocol`, `replaced`, `rate_limited`
 class ProtocolError extends ServerGameMessage implements WaitingEvent {
+  /// Another connection of the same user ousted this one
+  static const replaced = 'replaced';
+
+  /// An invitation came sooner than 2 s after the previous one
+  static const rateLimited = 'rate_limited';
+
+  /// The message does not fit the state of the user on the server
+  static const invalidState = 'invalid_state';
+
+  /// The server does not speak the protocol of `hello`
+  static const unsupportedProtocol = 'unsupported_protocol';
+
   final String code;
 
   const ProtocolError(this.code);

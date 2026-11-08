@@ -82,6 +82,7 @@ extension MoveFinishTypeLabel on MoveFinishType {
     MoveFinishType.timeout => t.gameResults.descTimeout(name: name),
     MoveFinishType.disconnected => t.gameResults.descDisconnected(name: name),
     MoveFinishType.surrender => t.gameResults.descSurrender(name: name),
+    MoveFinishType.replaced => t.online.replaced,
     MoveFinishType.completed => throw StateError('Unknown move finish type!'),
   };
 }

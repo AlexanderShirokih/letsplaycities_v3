@@ -10,10 +10,8 @@ import 'package:lets_play_cities/remote/account.dart';
 import 'package:lets_play_cities/remote/api_repository.dart';
 import 'package:lets_play_cities/remote/api_repository_factory.dart';
 import 'package:lets_play_cities/remote/model/lps_user.dart';
-import 'package:lets_play_cities/remote/model/profile_info.dart';
 import 'package:lets_play_cities/remote/model/social.dart';
 import 'package:lets_play_cities/remote/exceptions.dart';
-import 'package:lets_play_cities/remote/model/friend_game_request.dart';
 import 'package:lets_play_cities/screens/common/common_widgets.dart';
 import 'package:lets_play_cities/screens/common/d2/d2.dart';
 import 'package:lets_play_cities/screens/common/error_texts.dart';
@@ -21,14 +19,14 @@ import 'package:lets_play_cities/screens/common/utils.dart';
 import 'package:lets_play_cities/screens/online/banlist.dart';
 import 'package:lets_play_cities/screens/online/common_online_widgets.dart';
 import 'package:lets_play_cities/screens/online/friends.dart';
-import 'package:lets_play_cities/screens/online/game_waiting_room_screen.dart';
+import 'package:lets_play_cities/screens/online/game_master.dart';
 import 'package:lets_play_cities/screens/online/history.dart';
 
 import 'avatars/avatar_chooser.dart';
 
-/// Invites [friend] to a game with [onInvite], or by the waiting room when
-/// there is no callback.
-// replaced in protocol v1 task 6: the online home sends the invitation
+/// Invites [friend] to a game with [onInvite], the invitation of the open
+/// «Онлайн». Without it «Онлайн» opens and invites the friend over the same
+/// game connection.
 void inviteFriend(
   BuildContext context,
   LpsUser friend,
@@ -36,22 +34,9 @@ void inviteFriend(
 ) {
   if (onInvite != null) return onInvite(friend);
 
-  final repository = context.read<ApiRepository>();
-
   Navigator.push(
     context,
-    MaterialPageRoute(
-      builder: (_) => GameWaitingRoomScreenStandalone(
-        request: FriendGameRequest(
-          mode: FriendGameRequestType.invite,
-          target: BaseProfileInfo(
-            userId: friend.id,
-            login: friend.name,
-            pictureUrl: repository.avatarUrl(friend),
-          ),
-        ),
-      ),
-    ),
+    OnlineGameMasterScreen.createNavigationRoute(invite: friend),
   );
 }
 
@@ -138,7 +123,7 @@ class OnlineProfileView extends StatefulWidget {
   final int? userId;
 
   /// Called when the user invites the shown friend to a game. By default
-  /// the waiting room opens.
+  /// «Онлайн» opens and invites the friend.
   final void Function(LpsUser friend)? onInvite;
 
   const OnlineProfileView({this.userId, this.onInvite, super.key});
@@ -207,7 +192,6 @@ class _OnlineProfileViewState extends State<OnlineProfileView> {
         return ConnectionErrorView(
           onReload: _reloadAccount,
           errorMessage: _describeAccountError(context.t, account),
-          showAppBar: false,
         );
       }
 

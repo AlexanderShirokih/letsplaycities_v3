@@ -41,7 +41,15 @@ class OnFirstCharChanged extends GameEvent {
 }
 
 /// Describes reason why users move was ended.
-enum MoveFinishType { completed, timeout, disconnected, surrender }
+enum MoveFinishType {
+  completed,
+  timeout,
+  disconnected,
+  surrender,
+
+  /// The account signed in on another device and the server ended the game
+  replaced,
+}
 
 /// Emits when users move ended (completed or failed)
 class OnMoveFinished extends GameEvent {

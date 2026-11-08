@@ -844,23 +844,11 @@ class Translations$online$ru {
 	/// ru: 'Выйти'
 	String get signOut => 'Выйти';
 
-	/// ru: 'Игра начнётся сразу после того, как вам найдётся оппонент. Не забывайте, что на ответ у вас есть полторы минуты'
-	String get gameDesc => 'Игра начнётся сразу после того, как вам найдётся оппонент. Не забывайте, что на\nответ у вас есть полторы минуты';
+	/// ru: 'Найти соперника'
+	String get connect => 'Найти соперника';
 
-	/// ru: 'Игра'
-	String get gameTab => 'Игра';
-
-	/// ru: 'Подключиться'
-	String get connect => 'Подключиться';
-
-	/// ru: 'Подключено'
-	String get connected => 'Подключено';
-
-	/// ru: 'Подключение к серверу...'
-	String get connectingToServer => 'Подключение к серверу...';
-
-	/// ru: 'Не удалось подключиться к серверу.'
-	String get connectionError => 'Не удалось подключиться к серверу.';
+	/// ru: 'Подключаемся…'
+	String get connectingToServer => 'Подключаемся…';
 
 	/// ru: 'Загрузка профиля...'
 	String get fetchingProfile => 'Загрузка профиля...';
@@ -868,11 +856,25 @@ class Translations$online$ru {
 	/// ru: 'Авторизация...'
 	String get authorization => 'Авторизация...';
 
-	/// ru: 'Ожидание оппонента...'
-	String get awaitingForOpp => 'Ожидание оппонента...';
+	/// ru: 'Ищем соперника'
+	String get awaitingForOpp => 'Ищем соперника';
 
-	/// ru: 'Ожидание пользователя {login}'
-	String awaitingForInvite({required Object login}) => 'Ожидание пользователя ${login}';
+	/// ru: 'Ждём ответа {login}…'
+	String awaitingForInvite({required Object login}) => 'Ждём ответа ${login}…';
+
+	/// ru: 'Приглашение отправлено'
+	String get inviteSent => 'Приглашение отправлено';
+
+	/// ru: 'Отменить'
+	String get cancelInvite => 'Отменить';
+
+	/// ru: '(one) {Ищем {count} секунду} (few) {Ищем {count} секунды} (many) {Ищем {count} секунд} (other) {Ищем {count} секунды}'
+	String searchingFor({required num count}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('ru'))(count,
+		one: 'Ищем ${count} секунду',
+		few: 'Ищем ${count} секунды',
+		many: 'Ищем ${count} секунд',
+		other: 'Ищем ${count} секунды',
+	);
 
 	/// ru: 'Друзья'
 	String get friendsTab => 'Друзья';
@@ -925,8 +927,26 @@ class Translations$online$ru {
 	/// ru: 'Разблокировать'
 	String get unban => 'Разблокировать';
 
-	/// ru: 'Перезагрузить'
-	String get reload => 'Перезагрузить';
+	/// ru: 'Повторить'
+	String get reload => 'Повторить';
+
+	/// ru: 'В меню'
+	String get toMenu => 'В меню';
+
+	/// ru: 'Нет связи с сервером'
+	String get noConnection => 'Нет связи с сервером';
+
+	/// ru: 'Проверьте интернет и попробуйте ещё раз'
+	String get noConnectionHint => 'Проверьте интернет и попробуйте ещё раз';
+
+	/// ru: 'Вход с другого устройства'
+	String get replaced => 'Вход с другого устройства';
+
+	/// ru: 'Подождите пару секунд'
+	String get rateLimited => 'Подождите пару секунд';
+
+	/// ru: 'Обновите приложение'
+	String get updateApp => 'Обновите приложение';
 
 	/// ru: '{login} удален из друзей'
 	String removedFromFriends({required Object login}) => '${login} удален из друзей';
@@ -961,9 +981,6 @@ class Translations$online$ru {
 	/// ru: 'Администратор'
 	String get admin => 'Администратор';
 
-	/// ru: 'Не удалось авторизоваться на сервере'
-	String get authFailed => 'Не удалось авторизоваться на сервере';
-
 	/// ru: '[Заблокирован]'
 	String get banned => '[Заблокирован]';
 
@@ -984,6 +1001,9 @@ class Translations$online$ru {
 
 	/// ru: 'Пригласить'
 	String get inviteShort => 'Пригласить';
+
+	/// ru: 'Все друзья'
+	String get allFriends => 'Все друзья';
 
 	late final Translations$online$lastSeen$ru lastSeen = Translations$online$lastSeen$ru._(_root);
 	Map<String, String> get apiErrors => {
@@ -1361,17 +1381,26 @@ class Translations$online$invitationResult$ru {
 
 	// Translations
 
+	/// ru: 'Пользователь отклонил ваше приглашение'
+	String get declined => 'Пользователь отклонил ваше приглашение';
+
 	/// ru: 'Пользователь уже занят'
 	String get busy => 'Пользователь уже занят';
 
-	/// ru: 'Пользователь отклонил ваше приглашение'
-	String get denied => 'Пользователь отклонил ваше приглашение';
-
 	/// ru: 'Приглашение не может быть доставлено'
-	String get noUser => 'Приглашение не может быть доставлено';
+	String get offline => 'Приглашение не может быть доставлено';
 
-	/// ru: 'Пользователь должен быть у вас в друзьях!'
-	String get notFriend => 'Пользователь должен быть у вас в друзьях!';
+	/// ru: 'Пользователь должен быть у вас в друзьях'
+	String get notFriends => 'Пользователь должен быть у вас в друзьях';
+
+	/// ru: 'Между вами есть блокировка'
+	String get blocked => 'Между вами есть блокировка';
+
+	/// ru: 'Пользователь не ответил на приглашение'
+	String get expired => 'Пользователь не ответил на приглашение';
+
+	/// ru: 'Приглашение уже недействительно'
+	String get replyExpired => 'Приглашение уже недействительно';
 }
 
 // Path: d2.nav

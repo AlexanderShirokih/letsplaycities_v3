@@ -21,6 +21,11 @@ class RemoteGameClient {
   /// The longest chat message the server accepts, in code points
   static const maxChatLength = 200;
 
+  /// Per connection: answers with `leave` the match that the server made
+  /// before it got a `cancel`. Shared by the clients of one connection, so
+  /// that a new request of any of them keeps its own match.
+  static final _lateMatchGuards = Expando<StreamSubscription<Object?>>();
+
   final GameConnection _connection;
 
   /// Whether the server is a LAN host rather than the main server: a local
@@ -61,18 +66,48 @@ class RemoteGameClient {
       _sendWhenConnected(InviteReply(userId, accept: accept));
 
   Future<void> _sendWhenConnected(ClientGameMessage message) async {
+    // The next match answers this request
+    _disarmLateMatchGuard();
+
     await connect();
 
     _connection.send(message);
   }
 
-  /// Leaves the queue or withdraws the invitation. Does nothing without a
-  /// connection or while a game runs.
+  /// Leaves the queue or withdraws the invitation. A match that crosses the
+  /// `cancel` is left at once, so no game runs that nobody plays. Does
+  /// nothing without a connection or while a game runs.
   void cancel() {
     if (!_connection.isConnected || _game?.isRunning == true) return;
 
+    _armLateMatchGuard();
     _connection.send(const Cancel());
   }
+
+  void _armLateMatchGuard() {
+    _disarmLateMatchGuard();
+
+    _lateMatchGuards[_connection] = _connection.messages.listen((message) {
+      if (message is! Match) return;
+
+      _disarmLateMatchGuard();
+      try {
+        _connection.send(const Leave());
+      } on RemoteIOException {
+        // The server ends the game of a lost connection itself
+      }
+    });
+  }
+
+  void _disarmLateMatchGuard() {
+    final guard = _lateMatchGuards[_connection];
+    _lateMatchGuards[_connection] = null;
+    unawaited(guard?.cancel());
+  }
+
+  /// Leaves the game of the last match unless it is over and stops
+  /// listening to it, e.g. when no screen is left to play it
+  Future<void> quitGame() async => _game?.quit();
 
   /// What the server says while the client waits: listen before [find],
   /// [invite] or [reply], the connection keeps nothing for later listeners.
@@ -171,7 +206,13 @@ class RemoteGame {
     _opponent = opponent;
     _subscriptions
       ..add(_connection.messages.listen(_onMessage))
-      ..add(_connection.closes.listen((_) => _lose()));
+      ..add(
+        _connection.closes.listen(
+          (close) => close.reason == ProtocolError.replaced
+              ? _end(OnMoveFinished(MoveFinishType.replaced, _owner))
+              : _lose(),
+        ),
+      );
   }
 
   /// `false` once the game is over
@@ -193,12 +234,16 @@ class RemoteGame {
           OnMoveFinished(switch (reason) {
             GameOverReason.timeout => MoveFinishType.timeout,
             GameOverReason.surrender => MoveFinishType.surrender,
+            // Only the connection that another device ousted hears that its
+            // own user left
+            GameOverReason.opponentLeft when loser == _me =>
+              MoveFinishType.replaced,
             GameOverReason.opponentLeft => MoveFinishType.disconnected,
           }, loser == _opponentId ? _opponent : _owner),
         );
-      case ProtocolError(code: 'replaced'):
+      case ProtocolError(code: ProtocolError.replaced):
         // Another device signed in: the server counts the game as lost
-        _lose();
+        _end(OnMoveFinished(MoveFinishType.replaced, _owner));
       case ProtocolError(:final code):
         developer.log('Game server error: $code', name: 'RemoteGame');
       default:
@@ -255,8 +300,9 @@ class RemoteGame {
 
       if (message is WordResultMsg && message.by == _me) {
         verdict.complete(message);
-      } else if (message is ProtocolError) {
-        // E.g. invalid_state: the server did not take the word as a move
+      } else if (message case ProtocolError(code: ProtocolError.invalidState)) {
+        // The server did not take the word as a move. Other errors, like
+        // rate_limited of an invitation, are not about the word.
         verdict.complete(null);
       }
     });

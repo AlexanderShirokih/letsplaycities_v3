@@ -1,79 +1,88 @@
 part of 'waiting_room_bloc.dart';
 
 /// Base state class for [WaitingRoomBloc]
-abstract class WaitingRoomState extends Equatable {
+sealed class WaitingRoomState extends Equatable {
   const WaitingRoomState();
-}
-
-/// Default state used when no any tasks are running
-class WaitingRoomInitial extends WaitingRoomState {
-  @override
-  List<Object> get props => [];
-}
-
-/// Describes connection sequence stages
-enum ConnectionStage { awaitingConnection, authorization, done }
-
-/// State that indicates connection process
-class WaitingRoomConnectingState extends WaitingRoomState {
-  final ConnectionStage connectionStage;
-
-  const WaitingRoomConnectingState(this.connectionStage);
 
   @override
-  List<Object> get props => [connectionStage];
+  List<Object?> get props => [];
 }
 
-/// State used when user waits for available opponents in random pair mode
-class WaitingForOpponentsState extends WaitingRoomState {
-  /// Target opponent to play with. `null` for random pair mode
-  final FriendGameRequest? request;
+/// Nothing is asked of the server
+class Idle extends WaitingRoomState {
+  const Idle();
+}
 
-  const WaitingForOpponentsState(this.request);
+/// The connection opens, or the request waits for its first answer
+class Connecting extends WaitingRoomState {
+  const Connecting();
+}
+
+/// In the queue of random matching since [since]
+class Queued extends WaitingRoomState {
+  final DateTime since;
+
+  const Queued(this.since);
 
   @override
-  List<Object?> get props => [request];
+  List<Object?> get props => [since];
 }
 
-/// State used to tell negative invitation result.
-class WaitingRoomInvitationNegativeResult extends WaitingRoomState {
-  final InviteResultType result;
-  final BaseProfileInfo target;
+/// Waits for [target] to answer the invitation; [sent] once the push has
+/// gone out
+class Inviting extends WaitingRoomState {
+  final LpsUser target;
+  final bool sent;
 
-  const WaitingRoomInvitationNegativeResult(this.result, this.target);
+  const Inviting(this.target, {this.sent = false});
 
   @override
-  List<Object> get props => [result, target];
+  List<Object?> get props => [target, sent];
 }
 
-/// Used when user authorization was failed
-class WaitingRoomAuthorizationFailed extends WaitingRoomState {
-  final String? description;
+/// The invitation ended with [status] without a game. [target] is the
+/// invited friend, `null` when the user answered an invitation.
+class InviteFinished extends WaitingRoomState {
+  final LpsUser? target;
+  final protocol.InviteStatusKind status;
 
-  const WaitingRoomAuthorizationFailed(this.description);
+  const InviteFinished(this.target, this.status);
 
   @override
-  List<Object?> get props => [description];
+  List<Object?> get props => [target, status];
 }
 
-/// Used when user authorization was failed
-class WaitingRoomConnectionError extends WaitingRoomState {
-  const WaitingRoomConnectionError();
+/// The server refused to invite [target] so soon after the previous
+/// invitation
+class RateLimited extends WaitingRoomState {
+  final LpsUser target;
+
+  const RateLimited(this.target);
 
   @override
-  List<Object> get props => [];
+  List<Object?> get props => [target];
 }
 
-/// State used when opponents was found and game should starts
-class StartGameState extends WaitingRoomState {
-  /// Ready to start network game config
+/// The opponent is found: the screen starts the game of [config]
+class Starting extends WaitingRoomState {
   final GameConfig config;
 
-  /// [ApiRepository] instance for logged user
-  final ApiRepository apiRepository;
-
-  const StartGameState(this.config, this.apiRepository);
+  const Starting(this.config);
 
   @override
-  List<Object> get props => [config, apiRepository];
+  List<Object?> get props => [config];
+}
+
+/// The request failed. [error] is an `ApiException` of a refused upgrade, a
+/// [ConnectionException] or [RemoteIOException] of a lost connection, or a
+/// [ProtocolErrorException] (`replaced`, `unsupported_protocol`). [retry]
+/// sends the request again.
+class Failed extends WaitingRoomState {
+  final Exception error;
+  final WaitingRoomEvent? retry;
+
+  const Failed(this.error, {this.retry});
+
+  @override
+  List<Object?> get props => [error, retry];
 }

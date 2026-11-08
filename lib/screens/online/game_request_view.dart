@@ -78,6 +78,7 @@ class GameRequestView extends StatelessWidget with NetworkAvatarBuildingMixin {
                         MaterialPageRoute(
                           builder: (_) => GameWaitingRoomScreenStandalone(
                             request: state.data.request,
+                            isLocal: false,
                           ),
                         ),
                       );

@@ -105,6 +105,36 @@ void main() {
         ]);
       },
     );
+
+    test('a match that crosses the cancel is left at once', () async {
+      await client.find();
+      client.cancel();
+
+      connection.receive(_match());
+      await pumpEventQueue();
+
+      expect(connection.sent, [const Find(), const Cancel(), const Leave()]);
+    });
+
+    test('a new request after the cancel keeps its match', () async {
+      await client.find();
+      client.cancel();
+
+      final next = RemoteGameClient(connection, isLocal: false);
+      await next.find();
+      connection.receive(_match());
+      await pumpEventQueue();
+
+      expect(connection.sent, [const Find(), const Cancel(), const Find()]);
+    });
+
+    test('quitGame leaves the game of the last match', () async {
+      await startGame();
+
+      await client.quitGame();
+
+      expect(connection.sent.last, const Leave());
+    });
   });
 
   group('configFor', () {
@@ -181,6 +211,11 @@ void main() {
 
       for (final MapEntry(key: reason, value: type) in types.entries) {
         for (final loser in [_me, _opponentId]) {
+          // Only the ousted connection hears that the owner left
+          final expectedType =
+              reason == GameOverReason.opponentLeft && loser == _me
+              ? MoveFinishType.replaced
+              : type;
           final gameClient = RemoteGameClient(connection, isLocal: false);
           final (config, events) = await startGame(gameClient: gameClient);
 
@@ -193,7 +228,7 @@ void main() {
           expect(
             events.single,
             isA<OnMoveFinished>()
-                .having((e) => e.endType, 'endType', type)
+                .having((e) => e.endType, 'endType', expectedType)
                 .having(
                   (e) => e.finishRequester,
                   'finishRequester',
@@ -293,13 +328,27 @@ void main() {
       expect(await verdict, isNull);
     });
 
-    test('sendWord ends without a verdict on a protocol error', () async {
+    test('sendWord ends without a verdict on invalid_state', () async {
       await startGame();
 
       final verdict = client.sendWord('москва');
       connection.receive(const ProtocolError('invalid_state'));
 
       expect(await verdict, isNull);
+    });
+
+    test('sendWord waits for its verdict through an unrelated error', () async {
+      await startGame();
+
+      final verdict = client.sendWord('москва');
+      connection
+        ..receive(const ProtocolError('rate_limited'))
+        ..receive(const WordResultMsg(_me, 'москва', WordStatus.accepted));
+
+      expect(
+        await verdict,
+        const WordResultMsg(_me, 'москва', WordStatus.accepted),
+      );
     });
 
     test('leaving while the opponent moves ends that move', () async {
@@ -355,7 +404,7 @@ void main() {
         expect(
           events.single,
           isA<OnMoveFinished>()
-              .having((e) => e.endType, 'endType', MoveFinishType.disconnected)
+              .having((e) => e.endType, 'endType', MoveFinishType.replaced)
               .having(
                 (e) => e.finishRequester,
                 'finishRequester',
@@ -364,6 +413,24 @@ void main() {
         );
       },
     );
+
+    test('a close for a replacement ends the game as replaced', () async {
+      final (config, events) = await startGame();
+
+      connection.drop(reason: 'replaced');
+      await pumpEventQueue();
+
+      expect(
+        events.single,
+        isA<OnMoveFinished>()
+            .having((e) => e.endType, 'endType', MoveFinishType.replaced)
+            .having(
+              (e) => e.finishRequester,
+              'finishRequester',
+              same(owner(config)),
+            ),
+      );
+    });
 
     test('closing the opponent mid-game leaves, socket stays', () async {
       final (config, _) = await startGame();

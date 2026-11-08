@@ -10,6 +10,7 @@ enum FriendGameRequestType {
 }
 
 /// Struct that describes friend game request
+// replaced in protocol v1 task 7: the invite push answers with ReplyToInvite
 class FriendGameRequest {
   /// Request envelope target
   final BaseProfileInfo target;

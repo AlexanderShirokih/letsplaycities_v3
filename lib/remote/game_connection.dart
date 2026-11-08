@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:lets_play_cities/base/platform/app_version.dart';
+import 'package:lets_play_cities/remote/client/api_exception.dart';
 import 'package:lets_play_cities/remote/client/base_socket_connector.dart';
 import 'package:lets_play_cities/remote/client/web_socket_connector.dart';
 import 'package:lets_play_cities/remote/exceptions.dart';
@@ -35,12 +36,19 @@ class GameConnection {
   /// The protocol version of `hello`
   static const protocolVersion = 1;
 
+  /// How long [ensureConnected] waits for the `welcome` by default
+  static const defaultWelcomeTimeout = Duration(seconds: 10);
+
   final String _url;
   final Future<Map<String, String>> Function() _headers;
   final String _clientName;
   final String Function() _playerName;
   final GameConnectorFactory _connectorFactory;
   final ErrorLogger? _logger;
+  final Duration _welcomeTimeout;
+
+  /// Gets the headers of an upgrade that the server refused with 401
+  final void Function(Map<String, String> headers)? _onUnauthorized;
   final GameMessageCodec _codec = const GameMessageCodec();
 
   final _messages = StreamController<ServerGameMessage>.broadcast();
@@ -50,6 +58,7 @@ class GameConnection {
   StreamSubscription<SocketMessage>? _subscription;
   Completer<LpsUser>? _ready;
   bool _welcomed = false;
+  Timer? _welcomeTimer;
 
   /// `error` message received before the `welcome`
   ProtocolError? _rejection;
@@ -61,6 +70,8 @@ class GameConnection {
     required this._playerName,
     GameConnectorFactory? connectorFactory,
     this._logger,
+    this._welcomeTimeout = defaultWelcomeTimeout,
+    this._onUnauthorized,
   }) : _connectorFactory = connectorFactory ?? _webSocketConnector;
 
   /// Connection that says `hello` as the app: `lps-flutter/<version>`
@@ -69,12 +80,14 @@ class GameConnection {
     required Future<Map<String, String>> Function() headers,
     required String Function() playerName,
     ErrorLogger? logger,
+    void Function(Map<String, String> headers)? onUnauthorized,
   }) => GameConnection(
     url: url,
     headers: headers,
     clientName: 'lps-flutter/${_appVersion()}',
     playerName: playerName,
     logger: logger,
+    onUnauthorized: onUnauthorized,
   );
 
   static String _appVersion() {
@@ -102,7 +115,9 @@ class GameConnection {
   /// Opens the socket and says `hello` unless that is already done. Returns
   /// the user that the server welcomed; the answer is kept for the life of
   /// the socket. Fails with the error of the upgrade (`UnauthorizedException`,
-  /// `BannedException`, `ConnectionException`) and then allows a retry.
+  /// `BannedException`, `ConnectionException`), or with a
+  /// [ConnectionException] when no `welcome` comes in the welcome timeout,
+  /// and then allows a retry.
   Future<LpsUser> ensureConnected() {
     final ready = _ready;
     if (ready != null) return ready.future;
@@ -114,6 +129,15 @@ class GameConnection {
   }
 
   Future<void> _open(Completer<LpsUser> completer) async {
+    _welcomeTimer = Timer(_welcomeTimeout, () {
+      if (_ready != completer || completer.isCompleted) return;
+
+      _reset(completer);
+      completer.completeError(
+        const ConnectionException('The server sent no welcome in time'),
+      );
+    });
+
     try {
       final headers = await _headers();
       if (_ready != completer) return;
@@ -121,8 +145,12 @@ class GameConnection {
       final connector = _connector = _connectorFactory(_url, headers);
       _subscription = connector.messageStream.listen(
         (event) => _onEvent(connector, completer, event),
-        onError: (Object error, StackTrace stackTrace) =>
-            _fail(completer, error, stackTrace),
+        onError: (Object error, StackTrace stackTrace) {
+          if (error is UnauthorizedException && _ready == completer) {
+            _onUnauthorized?.call(headers);
+          }
+          _fail(completer, error, stackTrace);
+        },
       );
       connector.connect();
     } catch (error, stackTrace) {
@@ -161,6 +189,7 @@ class GameConnection {
         }
         if (message is Welcome && !completer.isCompleted) {
           _welcomed = true;
+          _welcomeTimer?.cancel();
           completer.complete(message.user);
         }
         _messages.add(message);
@@ -207,6 +236,7 @@ class GameConnection {
     _subscription = null;
     _welcomed = false;
     _rejection = null;
+    _welcomeTimer?.cancel();
     unawaited(() async {
       await subscription?.cancel();
       await connector?.close();
@@ -233,6 +263,7 @@ class GameConnection {
     _connector = null;
     _subscription = null;
     _welcomed = false;
+    _welcomeTimer?.cancel();
 
     if (completer != null && !completer.isCompleted) {
       completer.completeError(

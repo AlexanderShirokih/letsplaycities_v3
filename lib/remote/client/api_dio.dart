@@ -16,17 +16,12 @@ Dio createApiDio(
   void Function()? onSignedOut,
   required void Function(Object error, StackTrace stackTrace) onError,
 }) {
-  Future<void> dropToken(String? sentToken) async {
-    try {
-      final current = await tokens.read();
-      if (sentToken == null || current != sentToken) return;
-
-      await tokens.clear();
-      onSignedOut?.call();
-    } catch (e, s) {
-      onError(e, s);
-    }
-  }
+  Future<void> dropToken(String? sentToken) => dropSentToken(
+    tokens,
+    sentToken,
+    onSignedOut: onSignedOut,
+    onError: onError,
+  );
 
   return Dio(
     BaseOptions(
@@ -35,4 +30,25 @@ Dio createApiDio(
       receiveTimeout: const Duration(milliseconds: 5000),
     ),
   )..interceptors.add(ApiInterceptor(tokens, onUnauthorized: dropToken));
+}
+
+/// Drops the token of [tokens] that the server rejected, if it is still
+/// [sentToken], and runs [onSignedOut]. A late answer to a request sent with
+/// an older token keeps the token of a newer sign-in. [onError] gets the
+/// errors of dropping the token.
+Future<void> dropSentToken(
+  TokenStore tokens,
+  String? sentToken, {
+  void Function()? onSignedOut,
+  required void Function(Object error, StackTrace stackTrace) onError,
+}) async {
+  try {
+    final current = await tokens.read();
+    if (sentToken == null || current != sentToken) return;
+
+    await tokens.clear();
+    onSignedOut?.call();
+  } catch (e, s) {
+    onError(e, s);
+  }
 }

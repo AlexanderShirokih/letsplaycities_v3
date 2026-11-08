@@ -153,6 +153,14 @@ Future<void> injectRootDependencies(AppConfig appConfig) async {
       },
       playerName: () => getIt.get<GamePreferences>().lastNativeLogin,
       logger: getIt.get<ErrorLogger>(),
+      // Like a 401 of the REST API: the token is dropped and the next
+      // screen asks the user to sign in
+      onUnauthorized: (headers) => dropSentToken(
+        getIt.get<TokenStore>(),
+        _bearerToken(headers),
+        onSignedOut: getIt.get<ApiRepositoryFactory>().cache.clear,
+        onError: _logError,
+      ),
     ),
     dispose: (connection) => connection.close(),
   );
@@ -219,6 +227,8 @@ Future<void> injectRootDependencies(AppConfig appConfig) async {
       socialNetworks: getIt.get<SocialNetworksService>(),
       messaging: getIt.get<CloudMessagingService>(),
       logger: getIt.get<ErrorLogger>(),
+      // The socket of the old account must not stay open
+      onSignedOut: () => getIt.get<GameConnection>().close(),
     );
   }, dependsOn: [GamePreferences, CloudMessagingService]);
 
@@ -308,3 +318,12 @@ Future<void> injectRootDependencies(AppConfig appConfig) async {
 /// of the error: it waits for Firebase on the phones.
 void _logError(Object error, StackTrace stackTrace) =>
     GetIt.instance.get<ErrorLogger>().error(error, stackTrace);
+
+/// The token of the `Authorization: Bearer` header in [headers], if any
+String? _bearerToken(Map<String, String> headers) {
+  const prefix = 'Bearer ';
+  final authorization = headers['Authorization'];
+  if (authorization == null || !authorization.startsWith(prefix)) return null;
+
+  return authorization.substring(prefix.length);
+}

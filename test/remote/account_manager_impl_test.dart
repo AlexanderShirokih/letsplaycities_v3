@@ -522,5 +522,26 @@ void main() {
 
       expect(await tokens.read(), isNull);
     });
+
+    test('signOut closes the game connection', () async {
+      var closes = 0;
+      final manager = AccountManagerImpl(
+        preferences: preferences,
+        apiRepositories: factory,
+        auth: AuthApi(
+          createApiDio(config, tokens, onError: logger.error)
+            ..httpClientAdapter = server,
+        ),
+        socialNetworks: social,
+        messaging: messaging,
+        logger: logger,
+        onSignedOut: () async => closes++,
+      );
+
+      await manager.signOut();
+
+      expect(closes, 1);
+      expect(await tokens.read(), isNull);
+    });
   });
 }

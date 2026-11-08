@@ -73,9 +73,8 @@ class ApiRepositoryFactory {
       ApiRepositoryFactory._(server, pictureConfig, cache, tokens, _createDio);
 
   /// Repository that acts as the signed-in user. [userId] is not needed
-  /// since protocol v1; callers still pass it until the game screens move
-  /// to it.
-  // replaced in protocol v1 tasks 6-7: the callers drop the argument
+  /// since protocol v1; the use cases of the invite push still pass it.
+  // replaced in protocol v1 task 7: the callers drop the argument
   ApiRepository forUser([int userId = 0]) {
     final dio = _createDio(serverConfig, tokens);
     return ApiRepository(SocialApi(dio), cache, pictureConfig, dio);

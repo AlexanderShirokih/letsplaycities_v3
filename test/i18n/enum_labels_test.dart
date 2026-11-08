@@ -82,6 +82,13 @@ void main() {
       );
     });
 
+    test('a replacement names the other device', () {
+      expect(
+        MoveFinishType.replaced.finishDescription(t, 'Вася'),
+        'Вход с другого устройства',
+      );
+    });
+
     test('do not exist for a completed move', () {
       expect(
         () => MoveFinishType.completed.finishDescription(t, 'Вася'),

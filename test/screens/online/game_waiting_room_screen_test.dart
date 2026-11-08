@@ -1,219 +1,174 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:get_it/get_it.dart';
 import 'package:lets_play_cities/app_config.dart';
+import 'package:lets_play_cities/base/game/game_config.dart';
+import 'package:lets_play_cities/base/game/game_mode.dart';
 import 'package:lets_play_cities/base/preferences.dart';
-import 'package:lets_play_cities/base/remote/bloc/waiting_room_bloc.dart';
+import 'package:lets_play_cities/base/remote/bloc/waiting_room_bloc.dart'
+    show WaitingRoomBloc, WaitingRoomState;
 import 'package:lets_play_cities/i18n/strings.g.dart';
 import 'package:lets_play_cities/remote/api_repository_factory.dart';
 import 'package:lets_play_cities/remote/auth.dart';
-import 'package:lets_play_cities/remote/auth/token_store.dart';
-import 'package:lets_play_cities/remote/client/remote_game_client.dart';
-import 'package:lets_play_cities/remote/exceptions.dart';
 import 'package:lets_play_cities/remote/game_connection.dart';
-import 'package:lets_play_cities/remote/model/cloud_messaging_service.dart';
 import 'package:lets_play_cities/remote/model/friend_game_request.dart';
-import 'package:lets_play_cities/remote/model/lps_user.dart';
-import 'package:lets_play_cities/screens/common/common_widgets.dart';
-import 'package:lets_play_cities/screens/online/common_online_widgets.dart';
+import 'package:lets_play_cities/remote/model/social.dart';
 import 'package:lets_play_cities/remote/protocol/game_messages.dart';
 import 'package:lets_play_cities/screens/online/game_waiting_room_screen.dart';
 
 import '../../i18n/translations_harness.dart';
+import '../../remote/fake_api_repository_factory.dart';
 import '../../remote/fake_game_connection.dart';
+import 'online_fakes.dart';
 
-/// Returns the queued results one per call and repeats the last one.
-class _FakeAccountManager implements AccountManager {
-  final List<Future<RemoteAccount?> Function()> results;
-  int calls = 0;
-
-  _FakeAccountManager(this.results);
-
-  @override
-  Future<RemoteAccount?> getLastSignedInAccount() {
-    final result = results[calls.clamp(0, results.length - 1)];
-    calls++;
-    return result();
-  }
-
-  @override
-  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
-}
-
-class _FakePreferences implements GamePreferences {
+class _FakePreferences extends Fake implements GamePreferences {
   @override
   bool get onlineChatEnabled => true;
-
-  @override
-  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
-/// The first connect() fails like an unreachable server, later ones work.
-class _FlakyGameClient implements RemoteGameClient {
-  int connectCalls = 0;
-  int playCalls = 0;
-  final invites = <int>[];
+class _PictureFactory extends FakeApiRepositoryFactory {
+  _PictureFactory() : super(FakeApiRepository());
 
   @override
-  Future<LpsUser> connect() async {
-    if (connectCalls++ == 0) {
-      throw const ConnectionException('Connection refused');
-    }
-
-    return _account.user;
-  }
-
-  @override
-  Future<void> find() async => playCalls++;
-
-  @override
-  Future<void> invite(int userId) async => invites.add(userId);
-
-  @override
-  Stream<WaitingEvent> get waiting => const Stream.empty();
-
-  @override
-  Stream<GameConnectionClose> get closes => const Stream.empty();
-
-  @override
-  void cancel() {}
-
-  @override
-  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+  AppConfig get pictureConfig => AppConfig.forHost('lps.test');
 }
 
-final _account = RemoteAccount(
-  LpsUser(id: 1, name: 'user', provider: 'native', lastSeenAt: DateTime(2026)),
+const _match = Match(
+  gameId: 1,
+  opponent: MatchOpponent(id: 2, name: 'Пётр', friendship: Friendship.none),
+  youStart: false,
+  moveTimeSec: 30,
 );
 
 final _t = AppLocale.ru.buildSync();
 
-void _registerServices(AccountManager accountManager) {
-  final config = AppConfig.forHost('localhost');
-  GetIt.instance
-    ..registerSingleton<AccountManager>(accountManager)
-    ..registerSingleton<CloudMessagingService>(StubCloudMessagingService())
-    ..registerSingleton<GamePreferences>(_FakePreferences())
-    ..registerSingleton<GameConnection>(FakeGameConnection())
-    ..registerSingleton<AppConfig>(config)
-    ..registerSingleton<ApiRepositoryFactory>(
-      ApiRepositoryFactory.main(
-        config,
-        MemoryTokenStore(),
-        onError: (e, s) => fail('$e'),
-      ),
-    );
-}
-
-Widget _app(Widget child) =>
-    withTranslations(MaterialApp(home: Scaffold(body: child)));
-
-WaitingRoomBloc _blocOf(WidgetTester tester) => tester
-    .element(find.byType(BlocConsumer<WaitingRoomBloc, WaitingRoomState>))
-    .read<WaitingRoomBloc>();
-
 void main() {
+  late FakeGameConnection connection;
+
+  setUp(() {
+    GetIt.instance
+      ..registerSingleton<GameConnection>(connection = FakeGameConnection())
+      ..registerSingleton<GamePreferences>(_FakePreferences())
+      ..registerSingleton<ApiRepositoryFactory>(_PictureFactory());
+  });
+
   tearDown(() => GetIt.instance.reset());
 
-  testWidgets('a failed account fetch shows an error and reload retries it', (
+  Widget app(Widget child) =>
+      withTranslations(MaterialApp(home: Scaffold(body: child)));
+
+  WaitingRoomBloc blocOf(WidgetTester tester) => tester
+      .element(find.byType(BlocConsumer<WaitingRoomBloc, WaitingRoomState>))
+      .read<WaitingRoomBloc>();
+
+  Future<void> settle(WidgetTester tester) async {
+    for (var i = 0; i < 5; i++) {
+      await tester.pump();
+    }
+  }
+
+  for (final (isLocal, mode) in [
+    (true, GameMode.multiplayer),
+    (false, GameMode.network),
+  ]) {
+    testWidgets('isLocal $isLocal plays a ${mode.name} game', (tester) async {
+      final started = <GameConfig>[];
+      await tester.pumpWidget(
+        app(
+          GameWaitingRoomScreen(
+            isLocal: isLocal,
+            onStarting: (_, config) => started.add(config),
+          ),
+        ),
+      );
+      await settle(tester);
+
+      await tester.tap(find.text(_t.online.connect));
+      await settle(tester);
+      connection.receive(_match);
+      await settle(tester);
+
+      expect(started.single.gameMode, mode);
+    });
+  }
+
+  testWidgets('an accepted invitation is answered over the connection', (
     tester,
   ) async {
-    final accountManager = _FakeAccountManager([
-      () => Future.error(FetchingException('offline', Uri())),
-      () async => _account,
-    ]);
-    _registerServices(accountManager);
-
-    await tester.pumpWidget(_app(const GameWaitingRoomScreen()));
-    await tester.pump();
-
-    expect(find.byType(LoadingView), findsNothing);
-    expect(find.byType(ConnectionErrorView), findsOneWidget);
-
-    await tester.tap(find.text(_t.online.reload));
-    await tester.pump();
-    await tester.pump();
-
-    expect(accountManager.calls, 2);
-    expect(find.byType(ConnectionErrorView), findsNothing);
-    expect(find.text(_t.online.connect), findsOneWidget);
-  });
-
-  testWidgets('a missing account shows an error instead of loading', (
-    tester,
-  ) async {
-    _registerServices(_FakeAccountManager([() async => null]));
-
-    await tester.pumpWidget(_app(const GameWaitingRoomScreen()));
-    await tester.pump();
-
-    expect(find.byType(LoadingView), findsNothing);
-    expect(find.byType(ConnectionErrorView), findsOneWidget);
-  });
-
-  testWidgets('a rebuild keeps the same waiting room bloc', (tester) async {
-    _registerServices(_FakeAccountManager([() async => _account]));
-
-    await tester.pumpWidget(_app(GameWaitingRoomScreen()));
-    await tester.pump();
-    final bloc = _blocOf(tester);
-
-    await tester.pumpWidget(_app(GameWaitingRoomScreen()));
-    await tester.pump();
-
-    expect(_blocOf(tester), same(bloc));
-  });
-
-  testWidgets('leaving the screen closes the waiting room bloc', (
-    tester,
-  ) async {
-    _registerServices(_FakeAccountManager([() async => _account]));
-
-    await tester.pumpWidget(_app(const GameWaitingRoomScreen()));
-    await tester.pump();
-    final bloc = _blocOf(tester);
-
-    await tester.pumpWidget(_app(const SizedBox()));
-    await tester.pump();
-
-    expect(bloc.isClosed, isTrue);
-  });
-
-  testWidgets('Connect after a failed friend invite invites the friend again', (
-    tester,
-  ) async {
-    final client = _FlakyGameClient();
-    const request = FriendGameRequest(
-      target: BaseProfileInfo(userId: 2, login: 'friend'),
-      mode: FriendGameRequestType.invite,
-    );
-
     await tester.pumpWidget(
-      _app(
-        BlocProvider<WaitingRoomBloc>(
-          create: (_) => WaitingRoomBloc(
-            client,
-            1,
-            apiRepositories: () => throw StateError('No game is started'),
-          )..add(const NewGameRequestEvent(request)),
-          child: const WaitingRoomView(request: request),
+      app(
+        const GameWaitingRoomScreen(
+          isLocal: false,
+          request: FriendGameRequest(
+            target: BaseProfileInfo(userId: 3, login: 'Пётр'),
+            mode: FriendGameRequestType.join,
+          ),
         ),
       ),
     );
-    await tester.pump();
-    expect(find.text(_t.online.connectionError), findsOneWidget);
+    await settle(tester);
 
+    expect(connection.sent, [const InviteReply(3, accept: true)]);
+    expect(find.text(_t.online.connectingToServer), findsOneWidget);
+
+    connection.receive(const InviteStatus(3, InviteStatusKind.expired));
+    await settle(tester);
+
+    expect(find.text(_t.online.invitationResult.replyExpired), findsOneWidget);
+  });
+
+  testWidgets('a rebuild keeps the same waiting room bloc', (tester) async {
+    await tester.pumpWidget(app(const GameWaitingRoomScreen(isLocal: true)));
+    final bloc = blocOf(tester);
+
+    await tester.pumpWidget(app(const GameWaitingRoomScreen(isLocal: true)));
+
+    expect(blocOf(tester), same(bloc));
+  });
+
+  testWidgets('leaving the screen while queued cancels the search', (
+    tester,
+  ) async {
+    await tester.pumpWidget(app(const GameWaitingRoomScreen(isLocal: true)));
+    final bloc = blocOf(tester);
     await tester.tap(find.text(_t.online.connect));
-    await tester.pump();
+    await settle(tester);
+    connection.receive(const Queued());
+    await settle(tester);
 
-    expect(client.connectCalls, 2);
-    expect(client.invites, [2]);
-    expect(client.playCalls, 0);
+    await tester.pumpWidget(app(const SizedBox()));
+    await settle(tester);
 
-    // Disposes the waiting animation and closes the bloc.
-    await tester.pumpWidget(const SizedBox());
+    expect(connection.sent, [const Find(), const Cancel()]);
+    expect(bloc.isClosed, isTrue);
+  });
+
+  testWidgets('a lost connection shows no connection, retry finds again', (
+    tester,
+  ) async {
+    await tester.pumpWidget(app(const GameWaitingRoomScreen(isLocal: true)));
+    await tester.tap(find.text(_t.online.connect));
+    await settle(tester);
+
+    connection.drop();
+    await settle(tester);
+    expect(find.text(_t.online.noConnection), findsOneWidget);
+
+    await tester.tap(find.text(_t.online.reload));
+    await settle(tester);
+
+    expect(connection.sent, [const Find(), const Find()]);
+  });
+
+  testWidgets('another device shows the replaced text', (tester) async {
+    await tester.pumpWidget(app(const GameWaitingRoomScreen(isLocal: false)));
+    await tester.tap(find.text(_t.online.connect));
+    await settle(tester);
+
+    connection.drop(code: 1001, reason: 'replaced');
+    await settle(tester);
+
+    expect(find.text(_t.online.replaced), findsOneWidget);
   });
 }

@@ -164,7 +164,7 @@ class _ProfileTabState extends State<ProfileTab> {
       if (account != null) {
         online = _OnlineProfile(
           account,
-          getIt.get<ApiRepositoryFactory>().forUser(account.userId),
+          getIt.get<ApiRepositoryFactory>().forUser(),
         );
       }
     } catch (_) {

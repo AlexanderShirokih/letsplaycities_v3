@@ -25,6 +25,9 @@ class AccountManagerImpl implements AccountManager {
   final ErrorLogger _logger;
   final DateTime Function() _clock;
 
+  /// Runs after a sign-out, e.g. to close the game connection
+  final Future<void> Function()? _onSignedOut;
+
   AccountManagerImpl({
     required this._preferences,
     required this._apiRepositories,
@@ -33,6 +36,7 @@ class AccountManagerImpl implements AccountManager {
     required this._messaging,
     required this._logger,
     DateTime Function()? clock,
+    this._onSignedOut,
   }) : _clock = clock ?? DateTime.now;
 
   RemoteAccount? _account;
@@ -164,6 +168,11 @@ class AccountManagerImpl implements AccountManager {
     _fcmRefreshes = null;
     await _apiRepositories.tokens.clear();
     _apiRepositories.cache.clear();
+    try {
+      await _onSignedOut?.call();
+    } catch (e, s) {
+      _logger.error(e, s);
+    }
     _changes.add(null);
   }
 

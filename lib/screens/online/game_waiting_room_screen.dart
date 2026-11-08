@@ -1,293 +1,107 @@
-import 'dart:math';
+import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get_it/get_it.dart';
-import 'package:lets_play_cities/app_config.dart';
+import 'package:lets_play_cities/base/game/game_config.dart';
 import 'package:lets_play_cities/base/preferences.dart';
 import 'package:lets_play_cities/base/remote/bloc/waiting_room_bloc.dart';
 import 'package:lets_play_cities/i18n/strings.g.dart';
-import 'package:lets_play_cities/remote/account.dart';
-import 'package:lets_play_cities/remote/account_manager.dart';
+import 'package:lets_play_cities/remote/api_repository.dart';
 import 'package:lets_play_cities/remote/api_repository_factory.dart';
+import 'package:lets_play_cities/remote/client/api_exception.dart';
 import 'package:lets_play_cities/remote/client/remote_game_client.dart';
-import 'package:lets_play_cities/remote/exceptions.dart';
 import 'package:lets_play_cities/remote/game_connection.dart';
 import 'package:lets_play_cities/remote/model/friend_game_request.dart';
-import 'package:lets_play_cities/remote/model/server_messages.dart';
-import 'package:lets_play_cities/remote/models.dart';
-import 'package:lets_play_cities/screens/common/common_widgets.dart';
+import 'package:lets_play_cities/remote/protocol/game_messages.dart'
+    show InviteStatusKind, ProtocolError;
+import 'package:lets_play_cities/screens/common/d2/d2.dart';
 import 'package:lets_play_cities/screens/common/error_texts.dart';
 import 'package:lets_play_cities/screens/game/game_screen.dart';
 import 'package:lets_play_cities/screens/online/common_online_widgets.dart';
-import 'package:lets_play_cities/screens/online/network_avatar_building_mixin.dart';
 
-/// Screen used to start the
-class GameWaitingRoomScreenStandalone extends StatelessWidget {
-  /// If present, invitation or joining result will send to the
-  /// [FriendGameRequest.target] user
-  final FriendGameRequest? request;
+/// Starts the game that a match built
+typedef StartGame = void Function(BuildContext context, GameConfig config);
 
-  const GameWaitingRoomScreenStandalone({super.key, this.request});
+/// A [WaitingRoomBloc] over the [GameConnection] of the current GetIt scope.
+/// [isLocal] says whether that connection goes to a LAN host.
+WaitingRoomBloc createWaitingRoomBloc({
+  required bool isLocal,
+  DateTime Function()? clock,
+}) {
+  final getIt = GetIt.instance;
 
-  @override
-  Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(),
-    body: GameWaitingRoomScreen(request: request),
+  return WaitingRoomBloc(
+    RemoteGameClient(
+      getIt.get<GameConnection>(),
+      isLocal: isLocal,
+      // The pictures are on the main server, also in a LAN game.
+      pictureConfig: getIt.get<ApiRepositoryFactory>().pictureConfig,
+      chatEnabled: getIt.get<GamePreferences>().onlineChatEnabled,
+    ),
+    clock: clock,
   );
 }
 
-/// Initial screen where user resides until game starts
-class GameWaitingRoomScreen extends StatefulWidget {
-  /// If present, invitation or joining result will send to the
-  /// [FriendGameRequest.target] user
-  final FriendGameRequest? request;
+/// Pushes the game screen with the repository of the factory current when
+/// the game starts: in a LAN game the factory of the LAN scope.
+void pushGameScreen(BuildContext context, GameConfig config) {
+  final ApiRepository repository = GetIt.instance
+      .get<ApiRepositoryFactory>()
+      .forUser();
 
-  const GameWaitingRoomScreen({super.key, this.request});
-
-  @override
-  State<GameWaitingRoomScreen> createState() => _GameWaitingRoomScreenState();
-}
-
-class _GameWaitingRoomScreenState extends State<GameWaitingRoomScreen> {
-  late Future<RemoteAccount?> _account;
-
-  @override
-  void initState() {
-    super.initState();
-    _account = _fetchAccount();
-  }
-
-  Future<RemoteAccount?> _fetchAccount() =>
-      GetIt.instance.get<AccountManager>().getLastSignedInAccount();
-
-  @override
-  Widget build(BuildContext context) {
-    final getIt = GetIt.instance;
-    final request = widget.request;
-
-    return FutureBuilder<RemoteAccount?>(
-      future: _account,
-      builder: (context, account) {
-        final t = context.t;
-        if (account.connectionState != ConnectionState.done) {
-          return LoadingView(t.online.fetchingProfile);
-        }
-
-        final remoteAccount = account.data;
-        if (remoteAccount == null) {
-          return ConnectionErrorView(
-            onReload: () => setState(() {
-              _account = _fetchAccount();
-            }),
-            errorMessage: switch (account.error) {
-              AuthorizationException error => authorizationErrorText(t, error),
-              null => t.online.authFailed,
-              _ => null,
-            },
-          );
-        }
-
-        // The provider creates the bloc once for this screen and closes it,
-        // and with it the socket, when the screen goes away.
-        return BlocProvider<WaitingRoomBloc>(
-          create: (_) {
-            final waitingBloc = WaitingRoomBloc(
-              RemoteGameClient(
-                getIt<GameConnection>(),
-                isLocal: !getIt<AppConfig>().isSecure,
-                // The pictures are on the main server, also in a LAN game.
-                pictureConfig: getIt<ApiRepositoryFactory>().pictureConfig,
-                chatEnabled: getIt<GamePreferences>().onlineChatEnabled,
-              ),
-              remoteAccount.userId,
-              apiRepositories: () => getIt<ApiRepositoryFactory>(),
-            );
-
-            if (request != null) {
-              waitingBloc.add(NewGameRequestEvent(request));
-            }
-            return waitingBloc;
-          },
-          child: WaitingRoomView(request: request),
-        );
-      },
-    );
-  }
-}
-
-/// Shows the state of the [WaitingRoomBloc] provided above it.
-class WaitingRoomView extends StatelessWidget {
-  /// Friend-mode request the screen was opened with, `null` in random mode.
-  /// Connect buttons send it again, so a retry stays a friend game.
-  final FriendGameRequest? request;
-
-  const WaitingRoomView({super.key, this.request});
-
-  @override
-  Widget build(BuildContext context) =>
-      BlocConsumer<WaitingRoomBloc, WaitingRoomState>(
-        builder: (context, state) {
-          if (state is WaitingRoomInitial) {
-            return _ReadyToConnectView(request);
-          } else if (state is WaitingRoomConnectingState) {
-            return _WaitingForConnectionView(state.connectionStage);
-          } else if (state is WaitingForOpponentsState) {
-            return _WaitingForOpponentsView(request: state.request);
-          } else if (state is WaitingRoomAuthorizationFailed) {
-            return _TextWithBigIconView(
-              icon: FaIcon(FontAwesomeIcons.userSlash),
-              message: state.description ?? context.t.online.authFailed,
-            );
-          } else if (state is WaitingRoomConnectionError) {
-            return _TextWithBigIconView(
-              icon: Icon(Icons.wifi_off),
-              message: context.t.online.connectionError,
-              buttonType: ButtonType.connect,
-              request: request,
-            );
-          } else if (state is WaitingRoomInvitationNegativeResult) {
-            return _InvitationNegativeResult(
-              result: state.result,
-              target: state.target,
-            );
-          } else {
-            return _TextWithBigIconView(
-              icon: Icon(Icons.timer),
-              message: '...',
-              buttonType: ButtonType.cancel,
-            );
-          }
-        },
-        listener: (context, state) {
-          if (state is StartGameState) {
-            Navigator.of(context).push(
-              MaterialPageRoute(
-                builder: (_) => RepositoryProvider.value(
-                  value: state.apiRepository,
-                  child: GameScreen(state.config),
-                ),
-              ),
-            );
-          }
-        },
-      );
-}
-
-/// Initial view that shows 'connect' button
-class _ReadyToConnectView extends StatelessWidget {
-  /// Sent by the connect button, `null` in random mode.
-  final FriendGameRequest? request;
-
-  const _ReadyToConnectView(this.request);
-
-  @override
-  Widget build(BuildContext context) => Center(
-    child: Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Padding(
-          padding: const EdgeInsets.all(18.0),
-          child: Text(
-            context.t.online.gameDesc,
-            textAlign: TextAlign.center,
-            style: Theme.of(context).textTheme.titleLarge,
-          ),
-        ),
-        const SizedBox(height: 18.0),
-        _createConnectButton(context, request),
-      ],
+  Navigator.of(context).push(
+    MaterialPageRoute(
+      builder: (_) => RepositoryProvider.value(
+        value: repository,
+        child: GameScreen(config),
+      ),
     ),
   );
 }
 
-/// View, used until user connects to the server
-class _WaitingForConnectionView extends StatelessWidget {
-  final ConnectionStage _connectionStage;
+/// The text of a failed request under «Нет связи с сервером», `null` for the
+/// hint to check the internet
+String? waitingFailureText(Translations t, Exception error) => switch (error) {
+  ProtocolErrorException(code: ProtocolError.replaced) => t.online.replaced,
+  ProtocolErrorException(code: ProtocolError.unsupportedProtocol) =>
+    t.online.updateApp,
+  ApiException() => errorText(t, error),
+  _ => null,
+};
 
-  const _WaitingForConnectionView(this._connectionStage);
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(
-            _getStateDescription(context.t),
-            style: Theme.of(context).textTheme.titleLarge,
-          ),
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: 24.0),
-            child: CircularProgressIndicator(),
-          ),
-          _createCancelButton(context),
-        ],
-      ),
-    );
-  }
-
-  String _getStateDescription(Translations t) {
-    switch (_connectionStage) {
-      case ConnectionStage.awaitingConnection:
-        return t.online.connectingToServer;
-      case ConnectionStage.authorization:
-        return t.online.authorization;
-      case ConnectionStage.done:
-        return t.online.connected;
-    }
-  }
-}
-
-enum ButtonType { connect, cancel }
-
-/// Shows text and big icon on center
-class _TextWithBigIconView extends StatelessWidget {
-  final String message;
-  final Widget icon;
-  final ButtonType? buttonType;
-
-  /// Sent by the connect button, `null` in random mode.
+/// The waiting room of a LAN game and of an accepted invitation
+class GameWaitingRoomScreenStandalone extends StatelessWidget {
+  /// The invitation that the user accepted, if any
   final FriendGameRequest? request;
 
-  const _TextWithBigIconView({
-    required this.message,
-    required this.icon,
-    this.buttonType,
+  /// Whether the game connection goes to a LAN host
+  final bool isLocal;
+
+  const GameWaitingRoomScreenStandalone({
+    super.key,
     this.request,
+    required this.isLocal,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
+    final c = D2Colors.of(context);
+
+    return Scaffold(
+      backgroundColor: c.bg,
+      body: SafeArea(
         child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: IconTheme(
-                data: IconThemeData(
-                  color: Theme.of(context).hintColor,
-                  size: 64.0,
-                ),
-                child: icon,
-              ),
+            D2ScreenHeader(
+              title: isLocal
+                  ? context.t.multiplayer.wifiTitle
+                  : context.t.online.title,
+              onBack: () => Navigator.of(context).maybePop(),
             ),
-            Text(message, textAlign: TextAlign.center),
-            if (buttonType == ButtonType.connect)
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 24.0),
-                child: _createConnectButton(context, request),
-              )
-            else if (buttonType == ButtonType.cancel)
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 24.0),
-                child: _createCancelButton(context),
-              ),
+            Expanded(
+              child: GameWaitingRoomScreen(request: request, isLocal: isLocal),
+            ),
           ],
         ),
       ),
@@ -295,173 +109,247 @@ class _TextWithBigIconView extends StatelessWidget {
   }
 }
 
-/// Used when waiting for opponents. Shows animation and text.
-class _WaitingForOpponentsView extends StatefulWidget {
-  static List<FaIconData> dices = [
-    FontAwesomeIcons.diceOne,
-    FontAwesomeIcons.diceTwo,
-    FontAwesomeIcons.diceThree,
-    FontAwesomeIcons.diceFour,
-    FontAwesomeIcons.diceFive,
-    FontAwesomeIcons.diceSix,
-  ];
-
-  /// Used in friend game mode. In random mode mode will be `null`.
+/// The search card alone: the waiting room until the game starts
+class GameWaitingRoomScreen extends StatelessWidget {
+  /// The invitation that the user accepted: the screen answers it
   final FriendGameRequest? request;
 
-  const _WaitingForOpponentsView({this.request});
+  /// Whether the game connection goes to a LAN host
+  final bool isLocal;
+
+  /// Starts the game; by default pushes the game screen
+  final StartGame? onStarting;
+
+  const GameWaitingRoomScreen({
+    super.key,
+    this.request,
+    required this.isLocal,
+    @visibleForTesting this.onStarting,
+  });
 
   @override
-  State<_WaitingForOpponentsView> createState() =>
-      __WaitingForOpponentsViewState();
+  Widget build(BuildContext context) => BlocProvider<WaitingRoomBloc>(
+    // Created once for this screen and closed with it; the connection stays
+    create: (_) {
+      final bloc = createWaitingRoomBloc(isLocal: isLocal);
+      final accepted = request;
+      if (accepted != null) {
+        bloc.add(ReplyToInvite(accepted.target.userId, true));
+      }
+
+      return bloc;
+    },
+    child: WaitingRoomView(
+      onStarting: onStarting,
+      child: ListView(
+        padding: const EdgeInsets.fromLTRB(16, 4, 16, 16),
+        children: const [WaitingRoomCard()],
+      ),
+    ),
+  );
 }
 
-class __WaitingForOpponentsViewState extends State<_WaitingForOpponentsView>
-    with TickerProviderStateMixin, NetworkAvatarBuildingMixin {
-  late final FaIconData _dice;
+/// Shows [child] while the [WaitingRoomBloc] above works and «Нет связи»
+/// when it failed; starts the game of a match.
+class WaitingRoomView extends StatelessWidget {
+  final Widget child;
 
-  late AnimationController _controller;
-  late Animation<double> _scaleAnimation;
+  /// Starts the game; by default pushes the game screen
+  final StartGame? onStarting;
+
+  /// The server refused the token of the user; without it the failure is
+  /// shown like any other
+  final VoidCallback? onUnauthorized;
+
+  const WaitingRoomView({
+    super.key,
+    required this.child,
+    this.onStarting,
+    this.onUnauthorized,
+  });
+
+  @override
+  Widget build(BuildContext context) =>
+      BlocConsumer<WaitingRoomBloc, WaitingRoomState>(
+        listener: (context, state) {
+          if (state is Starting) {
+            (onStarting ?? pushGameScreen)(context, state.config);
+          } else if (state case Failed(error: UnauthorizedException())
+              when onUnauthorized != null) {
+            onUnauthorized!();
+          }
+        },
+        builder: (context, state) {
+          if (state is! Failed) return child;
+
+          final bloc = context.read<WaitingRoomBloc>();
+
+          return ConnectionErrorView(
+            errorMessage: waitingFailureText(context.t, state.error),
+            onReload: () => bloc.add(state.retry ?? const FindPressed()),
+          );
+        },
+      );
+}
+
+/// The search card: «Найти соперника» at rest, «Подключаемся…», the radar
+/// of the queue, or the status of the invitation
+class WaitingRoomCard extends StatelessWidget {
+  /// The player, in the middle of the radar
+  final Widget? avatar;
+
+  /// Time of the queue timer
+  final DateTime Function()? clock;
+
+  const WaitingRoomCard({super.key, this.avatar, this.clock});
+
+  @override
+  Widget build(BuildContext context) =>
+      BlocBuilder<WaitingRoomBloc, WaitingRoomState>(
+        builder: (context, state) => D2Card(
+          padding: const EdgeInsets.fromLTRB(16, 18, 16, 16),
+          child: Semantics(liveRegion: true, child: _content(context, state)),
+        ),
+      );
+
+  Widget _content(BuildContext context, WaitingRoomState state) {
+    final t = context.t;
+    final c = D2Colors.of(context);
+    final bloc = context.read<WaitingRoomBloc>();
+
+    Widget find() => D2Button(
+      label: t.online.connect,
+      icon: D2Glyph.search,
+      size: D2ButtonSize.large,
+      expand: true,
+      onPressed: () => bloc.add(const FindPressed()),
+    );
+
+    Widget cancel(String label) => D2Button(
+      label: label,
+      kind: D2ButtonKind.secondary,
+      expand: true,
+      onPressed: () => bloc.add(const CancelPressed()),
+    );
+
+    Widget title(String text) => Text(
+      text,
+      textAlign: TextAlign.center,
+      style: D2Text.title.copyWith(color: c.ink),
+    );
+
+    Widget note(String text) => Text(
+      text,
+      textAlign: TextAlign.center,
+      style: D2Text.bodyRegular.copyWith(color: c.inkSoft),
+    );
+
+    final children = switch (state) {
+      Idle() || Starting() || Failed() => [find()],
+      Connecting() => [
+        D2Radar(size: 120, center: avatar),
+        title(t.online.connectingToServer),
+        cancel(t.cancel),
+      ],
+      Queued(:final since) => [
+        D2Radar(size: 176, center: avatar),
+        title(t.online.awaitingForOpp),
+        _QueueTimer(since: since, clock: clock ?? DateTime.now),
+        cancel(t.cancel),
+      ],
+      Inviting(:final target, :final sent) => [
+        D2Radar(size: 176, center: lpsUserAvatar(context, target, size: 64)),
+        title(t.online.awaitingForInvite(login: target.name)),
+        if (sent) note(t.online.inviteSent),
+        cancel(t.online.cancelInvite),
+      ],
+      InviteFinished(:final target, :final status) => [
+        if (target != null) lpsUserAvatar(context, target, size: 64),
+        note(_inviteResult(t, status, invited: target != null)),
+        find(),
+      ],
+      RateLimited() => [note(t.online.rateLimited), find()],
+    };
+
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        for (var i = 0; i < children.length; i++) ...[
+          if (i > 0) const SizedBox(height: 10),
+          if (children[i] is D2Radar || children[i] is D2Avatar)
+            Center(child: children[i])
+          else
+            children[i],
+        ],
+      ],
+    );
+  }
+
+  static String _inviteResult(
+    Translations t,
+    InviteStatusKind status, {
+    required bool invited,
+  }) {
+    final results = t.online.invitationResult;
+
+    return switch (status) {
+      InviteStatusKind.expired when !invited => results.replyExpired,
+      InviteStatusKind.sent || InviteStatusKind.declined => results.declined,
+      InviteStatusKind.busy => results.busy,
+      InviteStatusKind.offline => results.offline,
+      InviteStatusKind.notFriends => results.notFriends,
+      InviteStatusKind.blocked => results.blocked,
+      InviteStatusKind.expired => results.expired,
+    };
+  }
+}
+
+/// `m:ss` since [since], once a second
+class _QueueTimer extends StatefulWidget {
+  final DateTime since;
+  final DateTime Function() clock;
+
+  const _QueueTimer({required this.since, required this.clock});
+
+  @override
+  State<_QueueTimer> createState() => _QueueTimerState();
+}
+
+class _QueueTimerState extends State<_QueueTimer> {
+  late final Timer _ticks;
 
   @override
   void initState() {
     super.initState();
-    final dices = _WaitingForOpponentsView.dices;
-    _dice = dices[Random().nextInt(dices.length)];
-    _controller = AnimationController(
-      duration: const Duration(seconds: 2),
-      vsync: this,
-    )..repeat(reverse: true);
-    _scaleAnimation = CurvedAnimation(
-      parent: _controller,
-      curve: Curves.easeInOut,
-    ).drive(Tween<double>(begin: 0.5, end: 1.0));
+    _ticks = Timer.periodic(const Duration(seconds: 1), (_) => setState(() {}));
   }
 
   @override
   void dispose() {
-    _controller.dispose();
+    _ticks.cancel();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            Padding(
-              padding: const EdgeInsets.all(24.0),
-              child: ScaleTransition(
-                scale: _scaleAnimation,
-                child: IconTheme(
-                  data: IconThemeData(
-                    color: Theme.of(context).hintColor,
-                    size: 64.0,
-                  ),
-                  child: FaIcon(_dice),
-                ),
-              ),
-            ),
-            if (widget.request != null)
-              Padding(
-                padding: const EdgeInsets.all(12.0),
-                child: buildAvatar(widget.request!.target),
-              ),
-            Text(
-              widget.request == null
-                  ? context.t.online.awaitingForOpp
-                  : context.t.online.awaitingForInvite(
-                      login: widget.request!.target.login,
-                    ),
-              textAlign: TextAlign.center,
-              style: Theme.of(context).textTheme.titleLarge,
-            ),
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 64.0),
-              child: widget.request != null
-                  ? _createBackButton(context)
-                  : _createCancelButton(context),
-            ),
-          ],
-        ),
+    final c = D2Colors.of(context);
+    final elapsed = widget.clock().difference(widget.since);
+    final seconds = elapsed.isNegative ? 0 : elapsed.inSeconds;
+    final text =
+        '${seconds ~/ 60}:${(seconds % 60).toString().padLeft(2, '0')}';
+
+    return Semantics(
+      label: context.t.online.searchingFor(count: seconds),
+      excludeSemantics: true,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          D2Icon(D2Glyph.timer, size: 16, color: c.inkSoft),
+          const SizedBox(width: 6),
+          Text(text, style: D2Text.section.copyWith(color: c.inkSoft)),
+        ],
       ),
     );
   }
 }
-
-/// Creates view with invitation result message
-class _InvitationNegativeResult extends StatelessWidget
-    with NetworkAvatarBuildingMixin {
-  final InviteResultType result;
-  final BaseProfileInfo target;
-
-  const _InvitationNegativeResult({required this.result, required this.target});
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Card(
-        elevation: 6.0,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(12.0, 12.0, 12.0, 24.0),
-              child: buildAvatar(target, 60.0),
-            ),
-            Text(
-              _describeResult(context),
-              style: Theme.of(context).textTheme.titleLarge,
-            ),
-            Padding(
-              padding: const EdgeInsets.all(12.0),
-              child: _createBackButton(context),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  String _describeResult(BuildContext context) {
-    final results = context.t.online.invitationResult;
-    return switch (result) {
-      InviteResultType.busy => results.busy,
-      InviteResultType.denied => results.denied,
-      InviteResultType.noUser => results.noUser,
-      InviteResultType.notFriend => results.notFriend,
-    };
-  }
-}
-
-Widget _createBackButton(BuildContext context) => createStyledMaterialButton(
-  context,
-  FaIcon(FontAwesomeIcons.angleLeft),
-  context.t.back,
-  () => Navigator.of(context).pop(),
-);
-
-Widget _createCancelButton(BuildContext context) => ElevatedButton(
-  style: ElevatedButton.styleFrom(
-    backgroundColor: Theme.of(context).primaryColor,
-    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.0)),
-  ),
-  onPressed: () => context.read<WaitingRoomBloc>().add(CancelEvent()),
-  child: Padding(
-    padding: const EdgeInsets.all(12.0),
-    child: Text(context.t.cancel),
-  ),
-);
-
-Widget _createConnectButton(BuildContext context, FriendGameRequest? request) =>
-    createStyledMaterialButton(
-      context,
-      FaIcon(FontAwesomeIcons.dice),
-      context.t.online.connect,
-      () => context.read<WaitingRoomBloc>().add(NewGameRequestEvent(request)),
-    );

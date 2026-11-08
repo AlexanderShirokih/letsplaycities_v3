@@ -96,4 +96,34 @@ void main() {
     expect(factory.cache.cachedFriends, isNull);
     expect(errors, isEmpty);
   });
+
+  group('dropSentToken', () {
+    test('drops the token that was sent', () async {
+      final tokens = MemoryTokenStore('t');
+
+      await dropSentToken(
+        tokens,
+        't',
+        onSignedOut: () => signOuts++,
+        onError: (e, s) => errors.add(e),
+      );
+
+      expect(await tokens.read(), isNull);
+      expect(signOuts, 1);
+    });
+
+    test('keeps the token of a newer sign-in', () async {
+      final tokens = MemoryTokenStore('new');
+
+      await dropSentToken(
+        tokens,
+        'old',
+        onSignedOut: () => signOuts++,
+        onError: (e, s) => errors.add(e),
+      );
+
+      expect(await tokens.read(), 'new');
+      expect(signOuts, 0);
+    });
+  });
 }

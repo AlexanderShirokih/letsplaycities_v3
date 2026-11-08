@@ -103,7 +103,7 @@ class _FriendsBodyState extends State<_FriendsBody> {
           ),
           const SizedBox(height: 8),
           for (final request in requests) ...[
-            _RequestCard(entry: request),
+            _RequestCard(entry: request, onInvite: widget.onInvite),
             const SizedBox(height: 8),
           ],
         ],
@@ -187,7 +187,10 @@ class _SearchField extends StatelessWidget {
 class _RequestCard extends StatelessWidget {
   final FriendEntry entry;
 
-  const _RequestCard({required this.entry});
+  /// Passed to the profile, which can invite once the request is accepted
+  final void Function(LpsUser friend)? onInvite;
+
+  const _RequestCard({required this.entry, required this.onInvite});
 
   @override
   Widget build(BuildContext context) {
@@ -205,7 +208,11 @@ class _RequestCard extends StatelessWidget {
           InkWell(
             onTap: () => Navigator.push(
               context,
-              OnlineProfileView.createRoute(context, userId: user.id),
+              OnlineProfileView.createRoute(
+                context,
+                userId: user.id,
+                onInvite: onInvite,
+              ),
             ),
             child: Row(
               children: [
@@ -302,7 +309,11 @@ class _FriendRow extends StatelessWidget {
     return InkWell(
       onTap: () => Navigator.push(
         context,
-        OnlineProfileView.createRoute(context, userId: user.id),
+        OnlineProfileView.createRoute(
+          context,
+          userId: user.id,
+          onInvite: onInvite,
+        ),
       ),
       child: Padding(
         padding: const EdgeInsets.fromLTRB(12, 10, 4, 10),
