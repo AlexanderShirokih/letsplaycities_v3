@@ -24,7 +24,8 @@ class SignUpUser
     try {
       final response = await _httpClient.post('/user/', data: responseBody);
 
-      if (response.statusCode != 200) {
+      final status = response.statusCode ?? 0;
+      if (status < 200 || status >= 300) {
         throw AuthorizationException.fromStatus(
           response.statusMessage ?? 'No status message',
           response.statusCode ?? 0,

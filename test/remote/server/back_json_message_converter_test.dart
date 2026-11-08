@@ -197,7 +197,7 @@ void main() {
             canReceiveMessages: true,
             youStarter: false,
             opponent: opponent(
-              pictureUrl: 'https://lps.test:8443/user/42/picture?hash=abc',
+              pictureUrl: 'https://lps.test:443/user/42/picture?hash=abc',
               role: Role.admin,
               banStatus: BanStatus.outputBan,
               friendshipStatus: FriendshipStatus.inputRequest,
@@ -400,7 +400,7 @@ void main() {
           canReceiveMessages: true,
           youStarter: false,
           opponent: opponent(
-            pictureUrl: 'https://lps.test:8443/user/42/picture?hash=abc',
+            pictureUrl: 'https://lps.test:443/user/42/picture?hash=abc',
             role: Role.admin,
             banStatus: BanStatus.outputBan,
             lastVisitDate: DateTime(2020),

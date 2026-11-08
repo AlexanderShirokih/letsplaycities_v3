@@ -2,9 +2,10 @@ import 'package:lets_play_cities/remote/auth.dart';
 
 /// Authorized user registry
 abstract class UserLookupRepository {
-  /// Lookups previously added user by its [Credential]s.
+  /// Lookups previously added user by its [userId].
+  // The LAN server never checked the access hash; replaced in protocol v1 task 6
   /// Returns [ProfileInfo] if user was found or `null` if not.
-  ProfileInfo? getUser(Credential d);
+  ProfileInfo? getUser(int userId);
 
   /// Adds users [ProfileInfo] to registry
   void addUser(ProfileInfo profile);
@@ -18,10 +19,10 @@ class UserLookupRepositoryImpl implements UserLookupRepository {
   final List<ProfileInfo> _authorizedUsers = [];
 
   @override
-  ProfileInfo? getUser(Credential d) {
+  ProfileInfo? getUser(int userId) {
     try {
       return _authorizedUsers
-          .where((element) => element.userId == d.userId)
+          .where((element) => element.userId == userId)
           .first;
     } on StateError {
       return null;

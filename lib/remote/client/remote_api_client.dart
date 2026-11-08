@@ -4,6 +4,8 @@ import 'package:flutter/foundation.dart';
 import 'package:lets_play_cities/app_config.dart';
 import 'package:lets_play_cities/base/cities_list/city_request.dart';
 import 'package:lets_play_cities/remote/auth.dart';
+import 'package:lets_play_cities/remote/auth/token_store.dart';
+import 'package:lets_play_cities/remote/client/api_exception.dart';
 import 'package:lets_play_cities/remote/client/api_client.dart';
 import 'package:lets_play_cities/remote/exceptions.dart';
 import 'package:lets_play_cities/remote/models.dart';
@@ -13,13 +15,18 @@ import 'package:lets_play_cities/remote/usecase/signup_user.dart';
 class RemoteLpsApiClient extends LpsApiClient {
   final Dio _httpClient;
   final AppConfig _globalAppConfig;
-  final CredentialsProvider _credentialsProvider;
+  final TokenStore _tokens;
+
+  /// Id of the signed-in user, `0` if it is not known.
+  // replaced in protocol v1 task 3
+  final int _ownerId;
 
   const RemoteLpsApiClient(
     this._globalAppConfig,
     this._httpClient,
-    this._credentialsProvider,
-  );
+    this._tokens, [
+    this._ownerId = 0,
+  ]);
 
   @override
   Future<RemoteSignUpResponse> signUp(RemoteSignUpData data) =>
@@ -45,114 +52,77 @@ class RemoteLpsApiClient extends LpsApiClient {
         .toList(),
   );
 
-  Credential getCredentials() {
-    return _credentialsProvider.getCredentials();
-  }
-
   Future<List<dynamic>> _fetchList(String urlPostfix, [int? targetId]) async {
-    _requireCredential();
-    final isOwner = getCredentials().userId == targetId;
+    await _requireCredential();
+    final isOwner = _ownerId == targetId;
 
     return await _decodeJson(
       () => _httpClient.get(
         targetId == null || isOwner
             ? '/$urlPostfix/'
             : '/$urlPostfix/$targetId',
-        options: Options(headers: getCredentials().asAuthorizationHeader()),
       ),
     ) as List<dynamic>;
   }
 
   @override
   Future addToBanlist(int userId) async {
-    _requireCredential();
+    await _requireCredential();
 
-    await _requireOK(
-      () => _httpClient.put(
-        '/blacklist/$userId',
-        options: Options(headers: getCredentials().asAuthorizationHeader()),
-      ),
-    );
+    await _requireOK(() => _httpClient.put('/blacklist/$userId'));
   }
 
   @override
   Future removeFromBanlist(int userId) async {
-    _requireCredential();
+    await _requireCredential();
 
-    await _requireOK(
-      () => _httpClient.delete(
-        '/blacklist/$userId',
-        options: Options(headers: getCredentials().asAuthorizationHeader()),
-      ),
-    );
+    await _requireOK(() => _httpClient.delete('/blacklist/$userId'));
   }
 
   @override
   Future deleteFriend(int friendId) async {
-    _requireCredential();
+    await _requireCredential();
 
-    await _requireOK(
-      () => _httpClient.delete(
-        '/friend/$friendId',
-        options: Options(headers: getCredentials().asAuthorizationHeader()),
-      ),
-    );
+    await _requireOK(() => _httpClient.delete('/friend/$friendId'));
   }
 
   @override
   Future sendFriendRequest(int friendId, FriendRequestType requestType) async {
-    _requireCredential();
+    await _requireCredential();
 
     await _requireOK(
-      () => _httpClient.put(
-        '/friend/request/$friendId/${requestType.wireName}',
-        options: Options(headers: getCredentials().asAuthorizationHeader()),
-      ),
+      () =>
+          _httpClient.put('/friend/request/$friendId/${requestType.wireName}'),
     );
   }
 
   @override
   Future<void> declineGameRequest(int requesterId) async {
-    _requireCredential();
-    await _requireOK(
-      () => _httpClient.put(
-        '/user/request/$requesterId/DENY',
-        options: Options(headers: getCredentials().asAuthorizationHeader()),
-      ),
-    );
+    await _requireCredential();
+    await _requireOK(() => _httpClient.put('/user/request/$requesterId/DENY'));
   }
 
   @override
   Future<ProfileInfo> getProfileInfo(int? targetId) async {
-    _requireCredential();
+    await _requireCredential();
 
-    targetId ??= getCredentials().userId;
+    targetId ??= _ownerId;
 
     return ProfileInfo.fromJson(
       _globalAppConfig,
-      await _decodeJson(
-        () => _httpClient.get(
-          '/user/$targetId',
-          options: Options(headers: getCredentials().asAuthorizationHeader()),
-        ),
-      ),
+      await _decodeJson(() => _httpClient.get('/user/$targetId')),
     );
   }
 
   @override
   Future removePicture() async {
-    _requireCredential();
-    await _requireOK(
-      () => _httpClient.delete(
-        '/user/picture',
-        options: Options(headers: getCredentials().asAuthorizationHeader()),
-      ),
-    );
+    await _requireCredential();
+    await _requireOK(() => _httpClient.delete('/user/picture'));
   }
 
   @override
   Future updatePicture(List<int> thumbnail, String contentType) async {
-    _requireCredential();
+    await _requireCredential();
 
     final hash = _getHash(thumbnail);
     final extension = contentType.replaceAll('/', '').replaceAll('image', '');
@@ -166,24 +136,15 @@ class RemoteLpsApiClient extends LpsApiClient {
     });
 
     await _requireOK(
-      () => _httpClient.post(
-        '/user/picture/upload',
-        options: Options(headers: getCredentials().asAuthorizationHeader()),
-        data: form,
-      ),
+      () => _httpClient.post('/user/picture/upload', data: form),
     );
   }
 
   @override
   Future<List<CityRequest>> getCityRequests() async {
-    _requireCredential();
+    await _requireCredential();
 
-    final data = await _decodeJson(
-      () => _httpClient.get(
-        '/cities/edit',
-        options: Options(headers: getCredentials().asAuthorizationHeader()),
-      ),
-    );
+    final data = await _decodeJson(() => _httpClient.get('/cities/edit'));
 
     return (data as List<dynamic>)
         .map((e) => CityRequest.fromJson(e))
@@ -196,8 +157,9 @@ class RemoteLpsApiClient extends LpsApiClient {
     return digest.toString();
   }
 
-  void _requireCredential() {
-    if (getCredentials().userId == 0 && getCredentials().accessToken.isEmpty) {
+  Future<void> _requireCredential() async {
+    final token = await _tokens.read();
+    if (token == null || token.isEmpty) {
       throw NotAuthorizedException();
     }
   }
@@ -208,7 +170,8 @@ class RemoteLpsApiClient extends LpsApiClient {
     try {
       final response = await responseSupplier();
 
-      if (response.statusCode != 200) {
+      final status = response.statusCode ?? 0;
+      if (status < 200 || status >= 300) {
         throw AuthorizationException.fromStatus(
           response.statusMessage ?? 'No message',
           response.statusCode ?? 0,
@@ -218,8 +181,13 @@ class RemoteLpsApiClient extends LpsApiClient {
     } on DioException catch (e) {
       var description = 'no description';
 
+      final apiError = e.error;
       final response = e.response;
-      if (response == null) {
+      if (apiError is UnauthorizedException) {
+        throw AccessDeniedException();
+      } else if (apiError is ApiException) {
+        description = '${apiError.code}: ${apiError.message}';
+      } else if (response == null) {
         description = 'No response!';
       } else {
         if (response.statusCode == 401) {
@@ -228,10 +196,6 @@ class RemoteLpsApiClient extends LpsApiClient {
 
         if (response.data is String) {
           description = response.data;
-        } else if (response.data is Map<String, dynamic>) {
-          final mappedData = response.data as Map<String, dynamic>;
-          final error = mappedData['error'];
-          description = error ?? 'Description is not provided';
         } else {
           description = 'Response if empty or invalid';
         }
@@ -284,14 +248,10 @@ class RemoteLpsApiClient extends LpsApiClient {
 
   @override
   Future<void> sendCityRequest(SendCityRequest request) async {
-    _requireCredential();
+    await _requireCredential();
 
     await _requireOK(
-      () => _httpClient.post(
-        '/cities/edit',
-        options: Options(headers: getCredentials().asAuthorizationHeader()),
-        data: request.toJson(),
-      ),
+      () => _httpClient.post('/cities/edit', data: request.toJson()),
     );
   }
 }

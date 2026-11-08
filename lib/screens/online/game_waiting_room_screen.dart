@@ -103,13 +103,13 @@ class _GameWaitingRoomScreenState extends State<GameWaitingRoomScreen> {
                 preferences: getIt<GamePreferences>(),
                 isLocal: () => !getIt<AppConfig>().isSecure,
                 socketApi: SocketApi(
-                  WebSocketConnector(getIt<AppConfig>().remoteWebSocketURL),
+                  WebSocketConnector(getIt<AppConfig>().gameSocketUrl),
                   JsonMessageConverter(
                     getIt.get<AppConfig>(instanceName: 'api'),
                   ),
                 ),
               ),
-              remoteAccount.credential,
+              remoteAccount.userId,
               apiRepositories: () => getIt<ApiRepositoryFactory>(),
             );
 

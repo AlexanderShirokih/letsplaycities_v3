@@ -75,7 +75,7 @@ void main() {
 
     when(mainAccountManager.getLastSignedInAccount()).thenAnswer(
       (_) async => RemoteAccount(
-        credential: Credential(userId: 4321, accessToken: 'tkn'),
+        userId: 4321,
         name: 'test_remote',
         canReceiveMessages: false,
         role: Role.regular,
@@ -89,8 +89,7 @@ void main() {
     verify(mainAccountManager.getLastSignedInAccount()).called(1);
     verify(signUp.execute(any)).called(1);
 
-    expect(result.credential.accessToken, equals('native_access'));
-    expect(result.credential.userId, equals(1234));
+    expect(result.userId, equals(1234));
     expect(result.authType, equals(AuthType.native));
     expect(result.name, equals('test_remote'));
     expect(result.canReceiveMessages, isTrue);
@@ -129,7 +128,7 @@ void main() {
       expect(sentData.login, equals('offline_login'));
       expect(sentData.snUID, isEmpty);
       expect(result.name, equals('offline_login'));
-      expect(result.credential.userId, equals(77));
+      expect(result.userId, equals(77));
     },
   );
 
@@ -151,8 +150,7 @@ void main() {
 
     verify(signUp.execute(any)).called(1);
 
-    expect(result.credential.accessToken, equals(response.accessToken));
-    expect(result.credential.userId, equals(response.userId));
+    expect(result.userId, equals(response.userId));
     expect(result.authType, equals(response.authType));
     expect(result.name, equals(response.login));
     expect(result.canReceiveMessages, isTrue);

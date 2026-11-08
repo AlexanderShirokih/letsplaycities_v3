@@ -45,7 +45,7 @@ class _Factory extends Fake implements ApiRepositoryFactory {
   _Factory(this.repository);
 
   @override
-  ApiRepository forCredential(Credential credential) => repository;
+  ApiRepository forUser([int userId = 0]) => repository;
 }
 
 String _scoring({

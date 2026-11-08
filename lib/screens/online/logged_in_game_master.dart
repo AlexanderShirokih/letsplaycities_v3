@@ -30,8 +30,8 @@ class _LoggedInOnlineGameMasterScreenState
   Widget build(BuildContext context) {
     final t = context.t;
     return RepositoryProvider<ApiRepository>.value(
-      value: GetIt.instance.get<ApiRepositoryFactory>().forCredential(
-        context.watch<RemoteAccount>().credential,
+      value: GetIt.instance.get<ApiRepositoryFactory>().forUser(
+        context.watch<RemoteAccount>().userId,
       ),
       child: Scaffold(
         appBar: AppBar(

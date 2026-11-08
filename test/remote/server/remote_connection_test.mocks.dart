@@ -79,8 +79,8 @@ class MockMessagePipe extends _i1.Mock
 class MockUserLookupRepository extends _i1.Mock
     implements _i6.UserLookupRepository {
   @override
-  _i7.ProfileInfo? getUser(_i7.Credential? d) => (super.noSuchMethod(
-    Invocation.method(#getUser, [d]),
+  _i7.ProfileInfo? getUser(int? userId) => (super.noSuchMethod(
+    Invocation.method(#getUser, [userId]),
     returnValueForMissingStub: null,
   ) as _i7.ProfileInfo?);
 

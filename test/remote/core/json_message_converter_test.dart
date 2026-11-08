@@ -97,7 +97,7 @@ void main() {
             opponent: ProfileInfo(
               userId: 42,
               login: 'Opponent',
-              pictureUrl: 'https://lps.test:8443/user/42/picture?hash=abc123',
+              pictureUrl: 'https://lps.test:443/user/42/picture?hash=abc123',
               role: Role.regular,
               lastVisitDate: joinedAt,
               banStatus: BanStatus.notBanned,

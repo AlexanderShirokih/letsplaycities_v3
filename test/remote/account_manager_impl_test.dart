@@ -1,4 +1,3 @@
-import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:lets_play_cities/app_config.dart';
 import 'package:lets_play_cities/base/data.dart';
@@ -6,6 +5,7 @@ import 'package:lets_play_cities/base/preferences.dart';
 import 'package:lets_play_cities/remote/account_manager_impl.dart';
 import 'package:lets_play_cities/remote/api_repository_factory.dart';
 import 'package:lets_play_cities/remote/auth.dart';
+import 'package:lets_play_cities/remote/auth/token_store.dart';
 import 'package:lets_play_cities/remote/client/api_client.dart';
 import 'package:lets_play_cities/remote/exceptions.dart';
 
@@ -13,18 +13,10 @@ import 'fake_lps_api_client.dart';
 
 class _FakePreferences extends Fake implements GamePreferences {
   @override
-  Credential? currentCredentials;
-
-  @override
   bool get onlineChatEnabled => true;
-
-  @override
-  Future setCurrentCredentials(Credential? newCredentials) async =>
-      currentCredentials = newCredentials;
 }
 
-/// Builds everything on [client] and records the credentials it was asked
-/// for.
+/// Builds everything on [client] and counts the clients it was asked for.
 class _FakeApiRepositoryFactory extends Fake implements ApiRepositoryFactory {
   _FakeApiRepositoryFactory(this.client);
 
@@ -34,20 +26,16 @@ class _FakeApiRepositoryFactory extends Fake implements ApiRepositoryFactory {
   final cache = ApiRepositoryCacheHolder();
 
   @override
-  final serverConfig = AppConfig.forHost('main.test');
-
-  final repositoryCredentials = <Credential>[];
-  final clientCredentials = <Credential>[];
+  final serverConfig = AppConfig.forHost('main.test', port: 8443);
 
   @override
-  ApiRepository forCredential(Credential credential) {
-    repositoryCredentials.add(credential);
-    return ApiRepository(client, cache, Dio());
-  }
+  final tokens = MemoryTokenStore();
+
+  var clientRequests = 0;
 
   @override
-  LpsApiClient clientFor(Credential credential) {
-    clientCredentials.add(credential);
+  LpsApiClient clientFor([int userId = 0]) {
+    clientRequests++;
     return client;
   }
 }
@@ -77,52 +65,20 @@ void main() {
     accountManager = AccountManagerImpl(preferences, apiRepositories);
   });
 
-  group('getLastSignedInAccount', () {
-    test('fetches the profile as the stored account', () async {
-      const stored = Credential(userId: 1, accessToken: 'a');
-      preferences.currentCredentials = stored;
+  // replaced in protocol v1 task 2: the account comes from `GET /v1/me`
+  test(
+    'nobody is signed in until the account is loaded from the server',
+    () async {
+      await apiRepositories.tokens.write('stored');
 
-      final account = await accountManager.getLastSignedInAccount();
-
-      expect(account?.credential, stored);
-      expect(apiRepositories.repositoryCredentials, [stored]);
-      expect(client.profileInfoCalls, [1]);
-    });
-
-    test('asks nothing from the server when nobody is signed in', () async {
       expect(await accountManager.getLastSignedInAccount(), isNull);
-      expect(apiRepositories.repositoryCredentials, isEmpty);
-    });
-
-    test('fetches again after a failed fetch', () async {
-      preferences.currentCredentials = Credential(userId: 1, accessToken: 'a');
-      client.onGetProfileInfo = (_) => throw _offline;
-
-      await expectLater(
-        accountManager.getLastSignedInAccount(),
-        throwsA(isA<FetchingException>()),
-      );
-
-      client.onGetProfileInfo = (id) => profile(id, login: 'restored');
-      final account = await accountManager.getLastSignedInAccount();
-
-      expect(account?.name, 'restored');
-      expect(client.profileInfoCalls, [1, 1]);
-    });
-
-    test('reuses a successful fetch', () async {
-      preferences.currentCredentials = Credential(userId: 1, accessToken: 'a');
-
-      await accountManager.getLastSignedInAccount();
-      await accountManager.getLastSignedInAccount();
-
-      expect(client.profileInfoCalls, [1]);
-    });
-  });
+      expect(client.profileInfoCalls, isEmpty);
+    },
+  );
 
   group('signUp', () {
-    test('signs up without credentials and stores the new ones', () async {
-      preferences.currentCredentials = Credential(userId: 1, accessToken: 'a');
+    test('stores the token of the new account', () async {
+      await apiRepositories.tokens.write('old');
       client.onSignUp = (data) async => RemoteSignUpResponse(
         userId: 5,
         login: data.login,
@@ -134,11 +90,8 @@ void main() {
 
       final account = await accountManager.signUp(_signUpData('new'));
 
-      expect(apiRepositories.clientCredentials, [const Credential.empty()]);
-      expect(
-        preferences.currentCredentials,
-        const Credential(userId: 5, accessToken: 'new-token'),
-      );
+      expect(account.userId, 5);
+      expect(await apiRepositories.tokens.read(), 'new-token');
       expect(
         (account.picture as NetworkPictureSource).pictureURL,
         'https://main.test:8443/user/5/picture?hash=hash',
@@ -168,26 +121,13 @@ void main() {
       final account = await accountManager.signUp(_signUpData('second'));
 
       expect(account.name, 'second');
-      expect(account.credential.userId, 2);
-      expect(preferences.currentCredentials?.userId, 2);
-    });
-
-    test('replaces an account cached by getLastSignedInAccount', () async {
-      preferences.currentCredentials = Credential(userId: 1, accessToken: 'a');
-      await accountManager.getLastSignedInAccount();
-      client.onSignUp = (data) async => signUpResponse(7, login: data.login);
-
-      final signedUp = await accountManager.signUp(_signUpData('new'));
-      final lastSignedIn = await accountManager.getLastSignedInAccount();
-
-      expect(signedUp.credential.userId, 7);
-      expect(lastSignedIn?.credential.userId, 7);
+      expect(account.userId, 2);
     });
   });
 
   group('API cache of the previous account', () {
-    setUp(() {
-      preferences.currentCredentials = Credential(userId: 1, accessToken: 'a');
+    setUp(() async {
+      await apiRepositories.tokens.write('a');
       cache.cachedFriendsList = [friend(10)];
       cache.cachedBanList = [banned(11)];
       cache.cachedProfilesInfo.put(
@@ -204,7 +144,7 @@ void main() {
     test('is cleared on sign-out', () async {
       await accountManager.signOut();
 
-      expect(preferences.currentCredentials, isNull);
+      expect(await apiRepositories.tokens.read(), isNull);
       expectCacheCleared();
     });
 
@@ -225,7 +165,7 @@ void main() {
       );
 
       expect(cache.cachedFriendsList, isNotEmpty);
-      expect(preferences.currentCredentials?.userId, 1);
+      expect(await apiRepositories.tokens.read(), 'a');
     });
   });
 }

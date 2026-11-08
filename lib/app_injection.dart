@@ -19,13 +19,14 @@ import 'package:lets_play_cities/base/stt/voice_recognition_service.dart';
 import 'package:lets_play_cities/base/stt/voice_recognition_service_impl.dart';
 import 'package:lets_play_cities/base/themes/app_theme_mode.dart';
 import 'package:lets_play_cities/i18n/strings.g.dart';
-import 'package:lets_play_cities/remote/account.dart';
 import 'package:lets_play_cities/screens/common/theme_mode.dart';
 import 'package:lets_play_cities/remote/account_manager.dart';
 import 'package:lets_play_cities/remote/account_manager_impl.dart';
 import 'package:lets_play_cities/remote/api_repository.dart';
 import 'package:lets_play_cities/remote/api_repository_factory.dart';
+import 'package:lets_play_cities/remote/auth/token_store.dart';
 import 'package:lets_play_cities/remote/city_requests_repository.dart';
+import 'package:lets_play_cities/remote/client/api_interceptor.dart';
 import 'package:lets_play_cities/remote/firebase/firebase_service.dart';
 import 'package:lets_play_cities/remote/google_services_achievements.dart';
 import 'package:lets_play_cities/remote/http_overrides.dart';
@@ -50,7 +51,7 @@ import 'base/repositories/cities/country_repository.dart';
 /// Instance name of the theme mode notifier in GetIt
 /// Registers root app dependencies. Should be called before
 /// all app initializations
-Future<void> injectRootDependencies({required String serverHost}) async {
+Future<void> injectRootDependencies(AppConfig appConfig) async {
   if (kDebugMode) {
     EquatableConfig.stringify = true;
   }
@@ -74,21 +75,21 @@ Future<void> injectRootDependencies({required String serverHost}) async {
   );
 
   // Global app config
-  getIt.registerSingleton<AppConfig>(AppConfig.forHost(serverHost));
+  getIt.registerSingleton<AppConfig>(appConfig);
 
   // [AppConfig] used for API requests
   getIt.registerSingleton(getIt<AppConfig>(), instanceName: 'api');
 
   // [AppConfig] used in local multiplayer mode
   getIt.registerSingleton<AppConfig>(
-    AppConfig.forHost('localhost', isSecure: false, port: 8988),
+    AppConfig.lan('localhost'),
     instanceName: 'local',
   );
 
   // Game preferences
   getIt.registerSingletonAsync<GamePreferences>(
     () async =>
-        SharedPreferencesGamePrefs(await SharedPreferences.getInstance()),
+        SharedPreferencesGamePrefs.open(await SharedPreferences.getInstance()),
   );
 
   // Theme mode, initialized from the preferences. Use [setThemeMode] to change.
@@ -98,23 +99,34 @@ Future<void> injectRootDependencies({required String serverHost}) async {
     dependsOn: [GamePreferences],
   );
 
-  // PEM Certificate
-  getIt.registerSingletonAsync(
-    () => rootBundle.loadString('assets/cert/lps.pem'),
-    instanceName: 'lpsPemCertificate',
-  );
+  // The certificate of a self-hosted server is trusted only if it is pinned
+  if (appConfig.pinCertificate) {
+    // PEM Certificate
+    getIt.registerSingletonAsync(
+      () => rootBundle.loadString('assets/cert/lps.pem'),
+      instanceName: 'lpsPemCertificate',
+    );
 
-  // Global HTTP Overrides Used by HTTP Clients
-  getIt.registerSingletonAsync<HttpOverrides>(
-    () => getIt.getAsync<String>(instanceName: 'lpsPemCertificate').then((pem) {
-      final newOverrides = MyHttpOverrides(pem);
-      HttpOverrides.global = newOverrides;
-      return newOverrides;
-    }),
-  );
+    // Global HTTP Overrides Used by HTTP Clients
+    getIt.registerSingletonAsync<HttpOverrides>(
+      () =>
+          getIt.getAsync<String>(instanceName: 'lpsPemCertificate').then((pem) {
+            final newOverrides = MyHttpOverrides(pem);
+            HttpOverrides.global = newOverrides;
+            return newOverrides;
+          }),
+    );
+  }
+
+  // Access token of the signed-in user on the main server
+  getIt.registerSingleton<TokenStore>(const SecureTokenStore());
 
   // DIO client for the unnamed AppConfig current at the time of the call
-  getIt.registerFactory<Dio>(() => _createDio(getIt.get<AppConfig>()));
+  getIt.registerFactory<Dio>(
+    () => _createDio(getIt.get<AppConfig>(), getIt.get<TokenStore>()),
+  );
+
+  final apiCache = ApiRepositoryCacheHolder();
 
   // API clients for the main server. A LAN game registers its own factory in
   // its GetIt scope, which shares this one's cache. The 'api' config is the
@@ -122,8 +134,10 @@ Future<void> injectRootDependencies({required String serverHost}) async {
   getIt.registerSingleton<ApiRepositoryFactory>(
     ApiRepositoryFactory(
       getIt.get<AppConfig>(instanceName: 'api'),
-      ApiRepositoryCacheHolder(),
-      _createDio,
+      apiCache,
+      getIt.get<TokenStore>(),
+      (config, tokens) =>
+          _createDio(config, tokens, onUnauthorized: apiCache.clear),
     ),
   );
 
@@ -141,7 +155,7 @@ Future<void> injectRootDependencies({required String serverHost}) async {
     (localConfig, _) => LocalAccountManager(
       getIt.get<AccountManager>(),
       getIt.get<GamePreferences>(),
-      SignUpUser(_createDio(localConfig!)),
+      SignUpUser(_createDio(localConfig!, MemoryTokenStore())),
       t.players.player,
     ),
     instanceName: 'local',
@@ -180,19 +194,9 @@ Future<void> injectRootDependencies({required String serverHost}) async {
     ],
   );
 
-  // Credentials of the signed-in user, read on every request
-  getIt.registerSingletonWithDependencies<CredentialsProvider>(
-    () => GamePreferencesCredentialsProvider(getIt.get<GamePreferences>()),
-    dependsOn: [GamePreferences],
-  );
-
   /// City requests repository
   getIt.registerFactory<CityRequestsRepository>(
-    () => CityRequestsRepository(
-      getIt.get<ApiRepositoryFactory>().clientWith(
-        getIt.get<CredentialsProvider>(),
-      ),
-    ),
+    () => CityRequestsRepository(getIt.get<ApiRepositoryFactory>().clientFor()),
   );
 
   /// Achievements kept on the device and reported to Google Game Services.
@@ -271,11 +275,27 @@ Future<void> injectRootDependencies({required String serverHost}) async {
   );
 }
 
-/// Returns DIO client instance
-Dio _createDio(AppConfig appConfig) => Dio(
-  BaseOptions(
-    baseUrl: appConfig.remotePublicApiURL,
-    connectTimeout: const Duration(milliseconds: 8000),
-    receiveTimeout: const Duration(milliseconds: 5000),
-  ),
-);
+/// Returns DIO client instance that signs the requests with the token of
+/// [tokens]. [onUnauthorized] runs after the token is rejected, and the
+/// token is dropped then.
+Dio _createDio(
+  AppConfig appConfig,
+  TokenStore tokens, {
+  void Function()? onUnauthorized,
+}) =>
+    Dio(
+        BaseOptions(
+          baseUrl: appConfig.restBaseUrl,
+          connectTimeout: const Duration(milliseconds: 8000),
+          receiveTimeout: const Duration(milliseconds: 5000),
+        ),
+      )
+      ..interceptors.add(
+        ApiInterceptor(
+          tokens,
+          onUnauthorized: () {
+            tokens.clear();
+            onUnauthorized?.call();
+          },
+        ),
+      );

@@ -52,7 +52,7 @@ class HandleRequestResultUseCase
     }
 
     await _apiRepositories()
-        .forCredential(account.credential)
+        .forUser(account.userId)
         .declineGameRequest(requester);
   }
 }

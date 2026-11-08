@@ -182,7 +182,7 @@ class FakeAccountManager extends Fake implements AccountManager {
 }
 
 RemoteAccount remoteAccount(int userId, String name) => RemoteAccount(
-  credential: Credential(userId: userId, accessToken: 'token'),
+  userId: userId,
   name: name,
   canReceiveMessages: false,
   role: Role.regular,

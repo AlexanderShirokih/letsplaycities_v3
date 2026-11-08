@@ -90,10 +90,10 @@ class _FakeApiRepository extends Fake implements ApiRepository {
   }
 }
 
-const _signedUpCredential = Credential(userId: 1, accessToken: 'token');
+const _signedUpUserId = 1;
 
 RemoteAccount _signedUpAccount(String name) => RemoteAccount(
-  credential: _signedUpCredential,
+  userId: _signedUpUserId,
   name: name,
   canReceiveMessages: false,
   role: Role.regular,
@@ -225,7 +225,7 @@ void main() {
       ]);
       // The picture is uploaded as the new account, through the factory
       // looked up after the sign-up.
-      expect(apiRepositories.credentials, [_signedUpCredential]);
+      expect(apiRepositories.userIds, [_signedUpUserId]);
       expect(lookupsAtSignUp, 0);
       expect(factoryLookups, 1);
       expect(preferences.lastNativeLoginWrites, isEmpty);

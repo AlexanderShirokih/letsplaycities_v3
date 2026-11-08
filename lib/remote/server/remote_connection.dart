@@ -79,9 +79,7 @@ class LpsServerInteractorImpl implements RemoteConnection {
       );
     }
 
-    final profileInfo = _userLookupRepository.getUser(
-      Credential(userId: loginRequest.uid, accessToken: loginRequest.hash),
-    );
+    final profileInfo = _userLookupRepository.getUser(loginRequest.uid);
 
     if (profileInfo == null) {
       _client.sendMessage(

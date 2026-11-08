@@ -4,6 +4,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:lets_play_cities/app_config.dart';
 import 'package:lets_play_cities/remote/auth.dart';
+import 'package:lets_play_cities/remote/auth/token_store.dart';
 import 'package:lets_play_cities/remote/model/friend_request_type.dart';
 
 /// Records each request and answers it with an empty 200 response.
@@ -43,9 +44,8 @@ void main() {
         AppConfig.forHost('api.test'),
         Dio(BaseOptions(baseUrl: 'https://api.test'))
           ..httpClientAdapter = server,
-        const InstancedCredentialsProvider(
-          Credential(userId: 1, accessToken: 'token'),
-        ),
+        MemoryTokenStore('token'),
+        1,
       );
     });
 

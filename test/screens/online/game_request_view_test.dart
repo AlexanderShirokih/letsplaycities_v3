@@ -102,7 +102,7 @@ void main() {
     expect(accountManager.fetches, 1);
 
     // The profile was fetched through the factory registered then.
-    expect(apiRepositories.credentials, [remoteAccount(1, 'Bob').credential]);
+    expect(apiRepositories.userIds, [1]);
 
     // Stands in for the GetIt scope of a LAN game: the decline has to look
     // the manager and the factory up when it is sent, not when the sheet
@@ -122,9 +122,7 @@ void main() {
     expect(lanAccountManager.fetches, 1);
     expect(repository.log, isNot(contains('declineGameRequest(2)')));
     expect(lanRepository.log, ['declineGameRequest(2)']);
-    expect(lanApiRepositories.credentials, [
-      remoteAccount(3, 'Bob').credential,
-    ]);
+    expect(lanApiRepositories.userIds, [3]);
     expect(find.byType(GameRequestView), findsNothing);
   });
 }

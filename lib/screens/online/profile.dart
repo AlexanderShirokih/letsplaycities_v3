@@ -119,11 +119,9 @@ class _OnlineProfileViewStandaloneState
                 // Inside a LAN game's GetIt scope this is the factory for
                 // the LAN server.
                 RepositoryProvider<ApiRepository>.value(
-                  value: GetIt.instance
-                      .get<ApiRepositoryFactory>()
-                      .forCredential(
-                        lastSignedInAccount.requireData!.credential,
-                      ),
+                  value: GetIt.instance.get<ApiRepositoryFactory>().forUser(
+                    lastSignedInAccount.requireData!.userId,
+                  ),
                 ),
               ],
               child: OnlineProfileView(target: widget.target),
@@ -679,8 +677,7 @@ class _OnlineProfileViewState extends State<OnlineProfileView> {
   }
 
   bool _isOwner(RemoteAccount account) =>
-      widget.target == null ||
-      widget.target!.userId == account.credential.userId;
+      widget.target == null || widget.target!.userId == account.userId;
 }
 
 class _AcceptOrDeclineButton extends StatefulWidget {

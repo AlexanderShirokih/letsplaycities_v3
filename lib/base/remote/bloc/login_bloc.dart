@@ -109,7 +109,7 @@ class LoginBloc extends Bloc<LoginEvent, LoginState>
 
       yield LoginAuthUpdateAvatarState();
       await _apiRepositories()
-          .forCredential(remoteAccount.credential)
+          .forUser(remoteAccount.userId)
           .updatePictureFromURL(result.pictureUri);
 
       yield LoginAuthCompletedState();

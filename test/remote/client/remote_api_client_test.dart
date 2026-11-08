@@ -5,6 +5,8 @@ import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:lets_play_cities/app_config.dart';
 import 'package:lets_play_cities/remote/auth.dart';
+import 'package:lets_play_cities/remote/auth/token_store.dart';
+import 'package:lets_play_cities/remote/client/api_interceptor.dart';
 import 'package:lets_play_cities/remote/exceptions.dart';
 
 /// Answers each path in [responses] with its JSON body, anything else with
@@ -45,7 +47,7 @@ void main() {
   // The picture host differs from the Dio host, so the tests show which one
   // the picture URLs come from.
   final config = AppConfig.forHost('pictures.test');
-  const picturePrefix = 'https://pictures.test:8443/user';
+  const picturePrefix = 'https://pictures.test:443/user';
 
   late _FakeServer server;
 
@@ -53,13 +55,7 @@ void main() {
     server = _FakeServer(responses);
     final dio = Dio(BaseOptions(baseUrl: 'https://api.test'))
       ..httpClientAdapter = server;
-    return RemoteLpsApiClient(
-      config,
-      dio,
-      InstancedCredentialsProvider(
-        Credential(userId: ownerId, accessToken: 'token'),
-      ),
-    );
+    return RemoteLpsApiClient(config, dio, MemoryTokenStore('token'), ownerId);
   }
 
   test('a 401 response throws AccessDeniedException', () {
@@ -67,9 +63,8 @@ void main() {
     final api = RemoteLpsApiClient(
       config,
       Dio(BaseOptions(baseUrl: 'https://api.test'))..httpClientAdapter = server,
-      InstancedCredentialsProvider(
-        Credential(userId: ownerId, accessToken: 'token'),
-      ),
+      MemoryTokenStore('token'),
+      ownerId,
     );
 
     expect(api.getFriendsList(), throwsA(isA<AccessDeniedException>()));
@@ -150,6 +145,44 @@ void main() {
       await api.getHistoryList(5);
 
       expect(server.requests, ['/history/5']);
+    });
+  });
+
+  group('with the API interceptor', () {
+    RemoteLpsApiClient apiWith(int missingStatus, [String? token = 'token']) {
+      server = _FakeServer(const {}, missingStatus: missingStatus);
+      final tokens = MemoryTokenStore(token);
+      final dio = Dio(BaseOptions(baseUrl: 'https://api.test/v1'))
+        ..httpClientAdapter = server
+        ..interceptors.add(ApiInterceptor(tokens, onUnauthorized: () {}));
+      return RemoteLpsApiClient(config, dio, tokens, ownerId);
+    }
+
+    test('204 No Content is a success', () async {
+      await apiWith(204).deleteFriend(5);
+
+      expect(server.requests, ['/friend/5']);
+    });
+
+    test('401 throws AccessDeniedException', () {
+      expect(
+        apiWith(401).getFriendsList(),
+        throwsA(isA<AccessDeniedException>()),
+      );
+    });
+
+    test('an error answer throws FetchingException', () {
+      expect(apiWith(403).deleteFriend(5), throwsA(isA<FetchingException>()));
+    });
+
+    test('a request without a token fails before it is sent', () async {
+      final api = apiWith(200, null);
+
+      await expectLater(
+        api.getFriendsList(),
+        throwsA(isA<NotAuthorizedException>()),
+      );
+      expect(server.requests, isEmpty);
     });
   });
 }

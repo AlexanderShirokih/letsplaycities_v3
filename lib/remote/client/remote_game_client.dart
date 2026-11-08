@@ -49,7 +49,9 @@ class RemoteGameClient {
   /// Does the authorization sequence.
   /// Throws [AuthorizationException] if user cannot be authorized on server.
   /// Throws any other kinds of [RemoteException] if some error happens
-  Future<void> logIn(Credential credential) async {
+  // replaced in protocol v1 task 4: the socket upgrade carries the token and there is no
+  // login message. Until then only the LAN host, which checks the id alone, accepts it.
+  Future<void> logIn() async {
     final fbToken = await firebaseToken;
     final version = VersionInfoService.instance;
 
@@ -59,8 +61,8 @@ class RemoteGameClient {
         clientVersion: version.name,
         canReceiveMessages: preferences.onlineChatEnabled,
         firebaseToken: fbToken,
-        uid: credential.userId,
-        hash: credential.accessToken,
+        uid: account.userId,
+        hash: '',
       ),
     );
 
@@ -224,7 +226,7 @@ class RemoteGameClient {
 
   int _extractId(ClientAccountInfo account) {
     if (account is RemoteAccount) {
-      return account.credential.userId;
+      return account.userId;
     } else if (account is AdvancedAccountInfo) {
       return account.profileInfo.userId;
     } else {

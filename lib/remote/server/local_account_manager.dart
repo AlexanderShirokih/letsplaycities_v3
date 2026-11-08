@@ -43,7 +43,7 @@ class LocalAccountManager implements AccountManager {
         firebaseToken: '',
         accessToken: 'native_access',
         // we passing remote ID as snUID
-        snUID: remoteAccount.credential.userId.toString(),
+        snUID: remoteAccount.userId.toString(),
       );
     } else {
       signUpData = RemoteSignUpData(
@@ -60,10 +60,7 @@ class LocalAccountManager implements AccountManager {
     final response = await _signUpUseCase.execute(signUpData);
 
     return RemoteAccount(
-      credential: Credential(
-        userId: response.userId,
-        accessToken: response.accessToken,
-      ),
+      userId: response.userId,
       name: response.login,
       pictureUri: (remoteAccount?.picture as NetworkPictureSource?)?.pictureURL,
       canReceiveMessages: _preferences.onlineChatEnabled,

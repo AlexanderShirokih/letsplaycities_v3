@@ -18,7 +18,7 @@ part 'waiting_room_state.dart';
 class WaitingRoomBloc extends Bloc<WaitingRoomEvent, WaitingRoomState>
     with SequentialEventMapping<WaitingRoomEvent, WaitingRoomState> {
   final RemoteGameClient _gameClient;
-  final Credential _ownerCredentials;
+  final int _ownerId;
 
   /// Called when a game starts, so the caller decides which factory is
   /// current at that moment.
@@ -26,7 +26,7 @@ class WaitingRoomBloc extends Bloc<WaitingRoomEvent, WaitingRoomState>
 
   WaitingRoomBloc(
     this._gameClient,
-    this._ownerCredentials, {
+    this._ownerId, {
     required this._apiRepositories,
   }) : super(WaitingRoomInitial()) {
     mapEventsSequentially(_mapEventToState);
@@ -69,7 +69,7 @@ class WaitingRoomBloc extends Bloc<WaitingRoomEvent, WaitingRoomState>
     } else if (event is WaitForOpponentsEvent) {
       yield* _play(event.request);
     } else if (event is StartGameEvent) {
-      final apiRepository = _apiRepositories().forCredential(_ownerCredentials);
+      final apiRepository = _apiRepositories().forUser(_ownerId);
 
       yield StartGameState(event.config, apiRepository);
 
@@ -85,7 +85,7 @@ class WaitingRoomBloc extends Bloc<WaitingRoomEvent, WaitingRoomState>
 
     yield WaitingRoomConnectingState(ConnectionStage.authorization);
     try {
-      await _gameClient.logIn(_ownerCredentials);
+      await _gameClient.logIn();
     } on AuthorizationException catch (e) {
       yield* _stopConnection();
       yield WaitingRoomAuthorizationFailed(e.description);

@@ -4,14 +4,13 @@
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
 
-import 'dart:async' as _i8;
+import 'dart:async' as _i9;
 
-import 'package:lets_play_cities/base/data.dart' as _i9;
 import 'package:lets_play_cities/base/dictionary.dart' as _i4;
 import 'package:lets_play_cities/base/preferences.dart' as _i3;
 import 'package:lets_play_cities/base/scoring.dart' as _i6;
 import 'package:lets_play_cities/base/themes/app_theme_mode.dart' as _i5;
-import 'package:lets_play_cities/base/usecases.dart' as _i10;
+import 'package:lets_play_cities/base/usecases.dart' as _i8;
 import 'package:lets_play_cities/remote/auth.dart' as _i2;
 import 'package:mockito/mockito.dart' as _i1;
 import 'package:mockito/src/dummies.dart' as _i7;
@@ -152,6 +151,27 @@ class MockGamePreferences extends _i1.Mock implements _i3.GamePreferences {
   ) as String);
 
   @override
+  List<String> get hotseatNames => (super.noSuchMethod(
+    Invocation.getter(#hotseatNames),
+    returnValue: <String>[],
+    returnValueForMissingStub: <String>[],
+  ) as List<String>);
+
+  @override
+  List<int> get recentCountries => (super.noSuchMethod(
+    Invocation.getter(#recentCountries),
+    returnValue: <int>[],
+    returnValueForMissingStub: <int>[],
+  ) as List<int>);
+
+  @override
+  Map<String, int> get achievementsProgress => (super.noSuchMethod(
+    Invocation.getter(#achievementsProgress),
+    returnValue: <String, int>{},
+    returnValueForMissingStub: <String, int>{},
+  ) as Map<String, int>);
+
+  @override
   set themeMode(_i5.AppThemeMode? mode) => super.noSuchMethod(
     Invocation.setter(#themeMode, mode),
     returnValueForMissingStub: null,
@@ -219,12 +239,22 @@ class MockGamePreferences extends _i1.Mock implements _i3.GamePreferences {
   );
 
   @override
-  _i8.Future<dynamic> setCurrentCredentials(_i9.Credential? newCredentials) =>
-      (super.noSuchMethod(
-        Invocation.method(#setCurrentCredentials, [newCredentials]),
-        returnValue: _i8.Future<dynamic>.value(),
-        returnValueForMissingStub: _i8.Future<dynamic>.value(),
-      ) as _i8.Future<dynamic>);
+  set hotseatNames(List<String>? names) => super.noSuchMethod(
+    Invocation.setter(#hotseatNames, names),
+    returnValueForMissingStub: null,
+  );
+
+  @override
+  set recentCountries(List<int>? codes) => super.noSuchMethod(
+    Invocation.setter(#recentCountries, codes),
+    returnValueForMissingStub: null,
+  );
+
+  @override
+  set achievementsProgress(Map<String, int>? progress) => super.noSuchMethod(
+    Invocation.setter(#achievementsProgress, progress),
+    returnValueForMissingStub: null,
+  );
 }
 
 /// A class which mocks [RemoteSignUpData].
@@ -287,22 +317,19 @@ class MockRemoteSignUpData extends _i1.Mock implements _i2.RemoteSignUpData {
 /// See the documentation for Mockito's code generation for more information.
 class MockSignUp extends _i1.Mock
     implements
-        _i10.SingleAsyncUseCase<
-          _i2.RemoteSignUpData,
-          _i2.RemoteSignUpResponse
-        > {
+        _i8.SingleAsyncUseCase<_i2.RemoteSignUpData, _i2.RemoteSignUpResponse> {
   @override
-  _i8.Future<_i2.RemoteSignUpResponse> execute(
+  _i9.Future<_i2.RemoteSignUpResponse> execute(
     _i2.RemoteSignUpData? request,
   ) => (super.noSuchMethod(
     Invocation.method(#execute, [request]),
-    returnValue: _i8.Future<_i2.RemoteSignUpResponse>.value(
+    returnValue: _i9.Future<_i2.RemoteSignUpResponse>.value(
       _FakeRemoteSignUpResponse_1(this, Invocation.method(#execute, [request])),
     ),
-    returnValueForMissingStub: _i8.Future<_i2.RemoteSignUpResponse>.value(
+    returnValueForMissingStub: _i9.Future<_i2.RemoteSignUpResponse>.value(
       _FakeRemoteSignUpResponse_1(this, Invocation.method(#execute, [request])),
     ),
-  ) as _i8.Future<_i2.RemoteSignUpResponse>);
+  ) as _i9.Future<_i2.RemoteSignUpResponse>);
 }
 
 /// A class which mocks [AccountManager].
@@ -310,29 +337,29 @@ class MockSignUp extends _i1.Mock
 /// See the documentation for Mockito's code generation for more information.
 class MockAccountManager extends _i1.Mock implements _i2.AccountManager {
   @override
-  _i8.Future<_i2.RemoteAccount?> getLastSignedInAccount() =>
+  _i9.Future<_i2.RemoteAccount?> getLastSignedInAccount() =>
       (super.noSuchMethod(
         Invocation.method(#getLastSignedInAccount, []),
-        returnValue: _i8.Future<_i2.RemoteAccount?>.value(),
-        returnValueForMissingStub: _i8.Future<_i2.RemoteAccount?>.value(),
-      ) as _i8.Future<_i2.RemoteAccount?>);
+        returnValue: _i9.Future<_i2.RemoteAccount?>.value(),
+        returnValueForMissingStub: _i9.Future<_i2.RemoteAccount?>.value(),
+      ) as _i9.Future<_i2.RemoteAccount?>);
 
   @override
-  _i8.Future<_i2.RemoteAccount> signUp(_i2.RemoteSignUpData? signInData) =>
+  _i9.Future<_i2.RemoteAccount> signUp(_i2.RemoteSignUpData? signInData) =>
       (super.noSuchMethod(
         Invocation.method(#signUp, [signInData]),
-        returnValue: _i8.Future<_i2.RemoteAccount>.value(
+        returnValue: _i9.Future<_i2.RemoteAccount>.value(
           _FakeRemoteAccount_2(this, Invocation.method(#signUp, [signInData])),
         ),
-        returnValueForMissingStub: _i8.Future<_i2.RemoteAccount>.value(
+        returnValueForMissingStub: _i9.Future<_i2.RemoteAccount>.value(
           _FakeRemoteAccount_2(this, Invocation.method(#signUp, [signInData])),
         ),
-      ) as _i8.Future<_i2.RemoteAccount>);
+      ) as _i9.Future<_i2.RemoteAccount>);
 
   @override
-  _i8.Future<dynamic> signOut() => (super.noSuchMethod(
+  _i9.Future<dynamic> signOut() => (super.noSuchMethod(
     Invocation.method(#signOut, []),
-    returnValue: _i8.Future<dynamic>.value(),
-    returnValueForMissingStub: _i8.Future<dynamic>.value(),
-  ) as _i8.Future<dynamic>);
+    returnValue: _i9.Future<dynamic>.value(),
+    returnValueForMissingStub: _i9.Future<dynamic>.value(),
+  ) as _i9.Future<dynamic>);
 }

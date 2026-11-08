@@ -9,7 +9,7 @@ void main() {
     test('builds the avatar URL with the picture hash', () {
       expect(
         getPictureUrlOrNull(remote, 42, 'abc123'),
-        'https://lps.test:8443/user/42/picture?hash=abc123',
+        'https://lps.test:443/user/42/picture?hash=abc123',
       );
     });
 
@@ -31,7 +31,7 @@ void main() {
   test('getPictureUrlOrNullNoHash builds the avatar URL without a hash', () {
     expect(
       getPictureUrlOrNullNoHash(remote, '42'),
-      'https://lps.test:8443/user/42/picture',
+      'https://lps.test:443/user/42/picture',
     );
   });
 }

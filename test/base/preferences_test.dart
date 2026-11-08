@@ -1,5 +1,4 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:lets_play_cities/base/data.dart';
 import 'package:lets_play_cities/base/dictionary.dart';
 import 'package:lets_play_cities/base/preferences.dart';
 import 'package:lets_play_cities/base/scoring.dart';
@@ -64,7 +63,6 @@ void main() {
       expect(prefs.lastDictionaryCheckDate.millisecondsSinceEpoch, 0);
       expect(prefs.dictionaryUpdatePeriod, DictionaryUpdatePeriod.threeHours);
       expect(prefs.themeMode, AppThemeMode.system);
-      expect(prefs.currentCredentials, isNull);
       expect(prefs.lastNativeLogin, isEmpty);
       expect(prefs.hotseatNames, isEmpty);
       expect(prefs.recentCountries, isEmpty);
@@ -229,7 +227,6 @@ void main() {
         'soundEnabled': false,
         'firstLaunch': false,
         'wordsDifficulty': 2,
-        'uid': 12345,
         'timeLimit': 180,
         'scoringType': 2,
         'dictionaryUpdatePeriod': 2,
@@ -237,7 +234,6 @@ void main() {
         'scoringData':
             'eyJzY29yaW5nR3JvdXBzIjpbeyJtYWluIjp7InR5cGUiOiAiaW50IiwgIm5hbWUi'
             'OiAidHciLCAidmFsdWUiOiA0Mn19XX0=',
-        'uhash': 'access-hash',
         'lastNativeLogin': 'Игрок',
       });
 
@@ -258,17 +254,7 @@ void main() {
         '{"scoringGroups":[{"main":'
         '{"type": "int", "name": "tw", "value": 42}}]}',
       );
-      expect(
-        prefs.currentCredentials,
-        const Credential(userId: 12345, accessToken: 'access-hash'),
-      );
       expect(prefs.lastNativeLogin, 'Игрок');
-    });
-
-    test('a player stored as signed out has no credentials', () async {
-      // Signed-out players are stored as uid 0 and an empty hash.
-      await launch({'uid': 0, 'uhash': ''});
-      expect(prefs.currentCredentials, isNull);
     });
 
     test('empty stored score data reads as no score data', () async {
@@ -282,44 +268,21 @@ void main() {
     });
   });
 
-  group('credentials', () {
-    const credential = Credential(userId: 42, accessToken: 'secret-hash');
+  group('old credentials', () {
+    test('old uid/uhash keys are removed on first start', () async {
+      SharedPreferences.setMockInitialValues({
+        'uid': 42,
+        'uhash': 'secret-hash',
+        'lastNativeLogin': 'Игрок',
+      });
+      store = await SharedPreferences.getInstance();
 
-    setUp(launch);
+      prefs = await SharedPreferencesGamePrefs.open(store);
 
-    test('are stored as uid and uhash and survive a restart', () async {
-      await prefs.setCurrentCredentials(credential);
-
-      expect(prefs.currentCredentials, credential);
-      expect(await stored('uid'), 42);
-      expect(await stored('uhash'), 'secret-hash');
-      expect((await relaunch()).currentCredentials, credential);
-    });
-
-    test('signing in again replaces the previous user', () async {
-      await prefs.setCurrentCredentials(credential);
-      const other = Credential(userId: 7, accessToken: 'other-hash');
-      await prefs.setCurrentCredentials(other);
-
-      expect((await relaunch()).currentCredentials, other);
-    });
-
-    test('null signs out and removes both keys', () async {
-      await prefs.setCurrentCredentials(credential);
-      await prefs.setCurrentCredentials(null);
-
-      expect(prefs.currentCredentials, isNull);
       await store.reload();
       expect(store.containsKey('uid'), isFalse);
       expect(store.containsKey('uhash'), isFalse);
-    });
-
-    test('are absent when only half of them is stored', () async {
-      await launch({'uid': 42});
-      expect(prefs.currentCredentials, isNull);
-
-      await launch({'uhash': 'secret-hash'});
-      expect(prefs.currentCredentials, isNull);
+      expect(prefs.lastNativeLogin, 'Игрок');
     });
   });
 }

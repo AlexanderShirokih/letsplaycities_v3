@@ -57,7 +57,7 @@ class _FlakyGameClient implements RemoteGameClient {
   }
 
   @override
-  Future<void> logIn(Credential credential) async {}
+  Future<void> logIn() async {}
 
   @override
   Future<GameConfig> play() {
@@ -79,7 +79,7 @@ class _FlakyGameClient implements RemoteGameClient {
 }
 
 final _account = RemoteAccount(
-  credential: const Credential(userId: 1, accessToken: 'token'),
+  userId: 1,
   name: 'user',
   canReceiveMessages: false,
   role: Role.regular,
@@ -187,7 +187,7 @@ void main() {
         BlocProvider<WaitingRoomBloc>(
           create: (_) => WaitingRoomBloc(
             client,
-            const Credential(userId: 1, accessToken: 'token'),
+            1,
             apiRepositories: () => throw StateError('No game is started'),
           )..add(const NewGameRequestEvent(request)),
           child: const WaitingRoomView(request: request),

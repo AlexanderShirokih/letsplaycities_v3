@@ -152,8 +152,8 @@ class _ProfileTabState extends State<ProfileTab> {
           .get<AccountManager>()
           .getLastSignedInAccount();
       if (account != null) {
-        final repository = getIt.get<ApiRepositoryFactory>().forCredential(
-          account.credential,
+        final repository = getIt.get<ApiRepositoryFactory>().forUser(
+          account.userId,
         );
         var info = account.baseProfileInfo;
         try {
@@ -390,7 +390,7 @@ class _Header extends StatelessWidget {
                   crossAxisAlignment: WrapCrossAlignment.center,
                   children: [
                     Text(
-                      'ID ${online!.account.credential.userId}',
+                      'ID ${online!.account.userId}',
                       style: D2Text.caption.copyWith(color: c.inkSoft),
                     ),
                     Row(

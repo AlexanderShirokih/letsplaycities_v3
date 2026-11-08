@@ -27,7 +27,7 @@ void main() {
       ProfileInfo(
         userId: 42,
         login: 'Player',
-        pictureUrl: 'https://lps.test:8443/user/42/picture?hash=abc123',
+        pictureUrl: 'https://lps.test:443/user/42/picture?hash=abc123',
         role: Role.regular,
         lastVisitDate: DateTime.fromMillisecondsSinceEpoch(1700000000000),
         banStatus: BanStatus.notBanned,

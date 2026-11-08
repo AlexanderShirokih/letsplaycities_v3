@@ -49,7 +49,7 @@ void main() {
     isLocal = false;
     client = RemoteGameClient(
       account: RemoteAccount(
-        credential: const Credential(userId: 1, accessToken: 'a'),
+        userId: 1,
         name: 'user',
         canReceiveMessages: true,
         role: Role.regular,

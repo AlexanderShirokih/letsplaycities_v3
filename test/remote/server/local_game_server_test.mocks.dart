@@ -160,8 +160,8 @@ class MockLpsServerInteractor extends _i1.Mock implements _i6.RemoteConnection {
 class MockUserLookupRepository extends _i1.Mock
     implements _i8.UserLookupRepository {
   @override
-  _i2.ProfileInfo? getUser(_i2.Credential? d) => (super.noSuchMethod(
-    Invocation.method(#getUser, [d]),
+  _i2.ProfileInfo? getUser(int? userId) => (super.noSuchMethod(
+    Invocation.method(#getUser, [userId]),
     returnValueForMissingStub: null,
   ) as _i2.ProfileInfo?);
 

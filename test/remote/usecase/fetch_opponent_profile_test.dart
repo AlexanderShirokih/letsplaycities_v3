@@ -34,11 +34,10 @@ class _FakeApiRepository extends Fake implements ApiRepository {
 }
 
 class _FakeAccount extends Fake implements RemoteAccount {
-  _FakeAccount(int userId)
-    : credential = Credential(userId: userId, accessToken: 'token');
+  _FakeAccount(this.userId);
 
   @override
-  final Credential credential;
+  final int userId;
 }
 
 class _FakeAccountManager extends Fake implements AccountManager {
@@ -76,7 +75,7 @@ void main() {
 
     expect(profile, _alice);
     expect(repository.requestedProfiles, [_request.requester]);
-    expect(apiRepositories.credentials, [account.credential]);
+    expect(apiRepositories.userIds, [account.userId]);
     expect(factoryLookups, 1);
   });
 

@@ -6,7 +6,6 @@
 
 import 'dart:async' as _i3;
 
-import 'package:lets_play_cities/base/data.dart' as _i10;
 import 'package:lets_play_cities/base/dictionary.dart' as _i6;
 import 'package:lets_play_cities/base/preferences.dart' as _i5;
 import 'package:lets_play_cities/base/scoring.dart' as _i8;
@@ -174,6 +173,27 @@ class MockGamePreferences extends _i1.Mock implements _i5.GamePreferences {
   ) as String);
 
   @override
+  List<String> get hotseatNames => (super.noSuchMethod(
+    Invocation.getter(#hotseatNames),
+    returnValue: <String>[],
+    returnValueForMissingStub: <String>[],
+  ) as List<String>);
+
+  @override
+  List<int> get recentCountries => (super.noSuchMethod(
+    Invocation.getter(#recentCountries),
+    returnValue: <int>[],
+    returnValueForMissingStub: <int>[],
+  ) as List<int>);
+
+  @override
+  Map<String, int> get achievementsProgress => (super.noSuchMethod(
+    Invocation.getter(#achievementsProgress),
+    returnValue: <String, int>{},
+    returnValueForMissingStub: <String, int>{},
+  ) as Map<String, int>);
+
+  @override
   set themeMode(_i7.AppThemeMode? mode) => super.noSuchMethod(
     Invocation.setter(#themeMode, mode),
     returnValueForMissingStub: null,
@@ -241,10 +261,20 @@ class MockGamePreferences extends _i1.Mock implements _i5.GamePreferences {
   );
 
   @override
-  _i3.Future<dynamic> setCurrentCredentials(_i10.Credential? newCredentials) =>
-      (super.noSuchMethod(
-        Invocation.method(#setCurrentCredentials, [newCredentials]),
-        returnValue: _i3.Future<dynamic>.value(),
-        returnValueForMissingStub: _i3.Future<dynamic>.value(),
-      ) as _i3.Future<dynamic>);
+  set hotseatNames(List<String>? names) => super.noSuchMethod(
+    Invocation.setter(#hotseatNames, names),
+    returnValueForMissingStub: null,
+  );
+
+  @override
+  set recentCountries(List<int>? codes) => super.noSuchMethod(
+    Invocation.setter(#recentCountries, codes),
+    returnValueForMissingStub: null,
+  );
+
+  @override
+  set achievementsProgress(Map<String, int>? progress) => super.noSuchMethod(
+    Invocation.setter(#achievementsProgress, progress),
+    returnValueForMissingStub: null,
+  );
 }

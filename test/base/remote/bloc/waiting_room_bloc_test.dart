@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:lets_play_cities/base/data.dart';
 import 'package:lets_play_cities/base/game/game_config.dart';
 import 'package:lets_play_cities/base/game/game_mode.dart';
 import 'package:lets_play_cities/base/remote/bloc/waiting_room_bloc.dart';
@@ -27,7 +26,7 @@ class _FakeGameClient implements RemoteGameClient {
   }
 
   @override
-  Future<void> logIn(Credential credential) async {}
+  Future<void> logIn() async {}
 
   @override
   Future<GameConfig> play() async {
@@ -56,7 +55,7 @@ Future<List<Object>> _uncaughtErrorsOf(Future<void> Function() body) async {
 
 class _FakeApiRepository extends Fake implements ApiRepository {}
 
-const _owner = Credential(userId: 1, accessToken: 'token');
+const _owner = 1;
 
 WaitingRoomBloc _createBloc(
   _FakeGameClient client, {
@@ -126,7 +125,7 @@ void main() {
     expect(uncaught, isEmpty);
     expect(lookupsBeforeStart, 0);
     expect(lookups, 1);
-    expect(apiRepositories.credentials, [_owner]);
+    expect(apiRepositories.userIds, [_owner]);
     expect(
       states.whereType<StartGameState>().single,
       isA<StartGameState>()

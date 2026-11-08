@@ -1,12 +1,12 @@
 import 'package:dio/dio.dart';
 import 'package:lets_play_cities/app_config.dart';
-import 'package:lets_play_cities/remote/account.dart';
 import 'package:lets_play_cities/remote/api_repository.dart';
+import 'package:lets_play_cities/remote/auth/token_store.dart';
 import 'package:lets_play_cities/remote/client/api_client.dart';
 import 'package:lets_play_cities/remote/client/remote_api_client.dart';
 
 /// Builds the [LpsApiClient] and [ApiRepository] instances that send their
-/// requests to one server.
+/// requests to one server as the user whose token the [tokens] hold.
 class ApiRepositoryFactory {
   /// Server that receives the requests.
   final AppConfig serverConfig;
@@ -18,46 +18,46 @@ class ApiRepositoryFactory {
   /// copies build.
   final ApiRepositoryCacheHolder cache;
 
-  final Dio Function(AppConfig) _createDio;
+  /// Token of the user that the requests act as. The Dio from
+  /// [_createDio] signs the requests with it.
+  final TokenStore tokens;
+
+  final Dio Function(AppConfig, TokenStore) _createDio;
 
   /// Builds clients for the server at [config], which also serves the
   /// pictures.
   ApiRepositoryFactory(
     AppConfig config,
     ApiRepositoryCacheHolder cache,
-    Dio Function(AppConfig) createDio,
-  ) : this._(config, config, cache, createDio);
+    TokenStore tokens,
+    Dio Function(AppConfig, TokenStore) createDio,
+  ) : this._(config, config, cache, tokens, createDio);
 
   ApiRepositoryFactory._(
     this.serverConfig,
     this._pictureConfig,
     this.cache,
+    this.tokens,
     this._createDio,
   );
 
   /// A factory that sends the requests to [server] and keeps the picture
-  /// URLs and the cache of this one.
-  ApiRepositoryFactory forServer(AppConfig server) =>
-      ApiRepositoryFactory._(server, _pictureConfig, cache, _createDio);
+  /// URLs and the cache of this one. [tokens] belong to that server.
+  ApiRepositoryFactory forServer(AppConfig server, TokenStore tokens) =>
+      ApiRepositoryFactory._(server, _pictureConfig, cache, tokens, _createDio);
 
-  /// Repository that acts as the user with [credential].
-  ApiRepository forCredential(Credential credential) {
-    final dio = _createDio(serverConfig);
-    return ApiRepository(
-      _client(dio, InstancedCredentialsProvider(credential)),
-      cache,
-      dio,
-    );
+  /// Repository that acts as the signed-in user, [userId] is the id of the
+  /// user, if it is known.
+  ApiRepository forUser([int userId = 0]) {
+    final dio = _createDio(serverConfig, tokens);
+    return ApiRepository(_client(dio, userId), cache, dio);
   }
 
-  /// Client that acts as the user with [credential].
-  LpsApiClient clientFor(Credential credential) =>
-      clientWith(InstancedCredentialsProvider(credential));
+  /// Client that acts as the signed-in user, [userId] is the id of the user,
+  /// if it is known.
+  LpsApiClient clientFor([int userId = 0]) =>
+      _client(_createDio(serverConfig, tokens), userId);
 
-  /// Client that asks [credentials] for the user on every request.
-  LpsApiClient clientWith(CredentialsProvider credentials) =>
-      _client(_createDio(serverConfig), credentials);
-
-  LpsApiClient _client(Dio dio, CredentialsProvider credentials) =>
-      RemoteLpsApiClient(_pictureConfig, dio, credentials);
+  LpsApiClient _client(Dio dio, int userId) =>
+      RemoteLpsApiClient(_pictureConfig, dio, tokens, userId);
 }

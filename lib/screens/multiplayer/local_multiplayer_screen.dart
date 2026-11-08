@@ -6,6 +6,7 @@ import 'package:lets_play_cities/base/platform/device_name.dart';
 import 'package:lets_play_cities/base/remote/bloc/local_multiplayer_bloc.dart';
 import 'package:lets_play_cities/i18n/strings.g.dart';
 import 'package:lets_play_cities/remote/account_manager.dart';
+import 'package:lets_play_cities/remote/auth/token_store.dart';
 import 'package:lets_play_cities/remote/api_repository_factory.dart';
 import 'package:lets_play_cities/remote/remote_host.dart';
 import 'package:lets_play_cities/remote/server/server_game_controller.dart';
@@ -100,7 +101,7 @@ void pushLanGameScope(GetIt getIt, LocalMultiplayerStartGame game) {
     ..registerSingleton<AppConfig>(game.configOverrides)
     ..registerSingleton<AccountManager>(game.accountManagerOverrides)
     ..registerSingleton<ApiRepositoryFactory>(
-      apiRepositories.forServer(game.configOverrides),
+      apiRepositories.forServer(game.configOverrides, MemoryTokenStore()),
     )
     ..registerSingleton<UserLookupRepository>(UserLookupRepositoryImpl());
 }

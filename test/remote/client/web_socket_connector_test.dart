@@ -23,7 +23,7 @@ class _FakeWebSocket extends Fake implements WebSocket {
 
 class _FakePreferences extends Fake implements GamePreferences {}
 
-const _uri = 'wss://test:8443/game';
+const _uri = 'wss://test:443/game';
 
 void main() {
   group('connect() reports a failed connection as ConnectionException', () {
@@ -102,7 +102,7 @@ void main() {
   test('RemoteGameClient.connect() fails instead of waiting forever', () async {
     final client = RemoteGameClient(
       account: RemoteAccount(
-        credential: const Credential(userId: 1, accessToken: 'a'),
+        userId: 1,
         name: 'user',
         canReceiveMessages: true,
         role: Role.regular,

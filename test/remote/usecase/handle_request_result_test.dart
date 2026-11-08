@@ -19,11 +19,10 @@ class _FakeApiRepository extends Fake implements ApiRepository {
 }
 
 class _FakeAccount extends Fake implements RemoteAccount {
-  _FakeAccount(int userId)
-    : credential = Credential(userId: userId, accessToken: 'token');
+  _FakeAccount(this.userId);
 
   @override
-  final Credential credential;
+  final int userId;
 }
 
 class _FakeAccountManager extends Fake implements AccountManager {
@@ -75,9 +74,7 @@ void main() {
 
     expect(result, isNull);
     expect(repository.declined, [_request.requester]);
-    expect(apiRepositories.credentials, [
-      const Credential(userId: 1, accessToken: 'token'),
-    ]);
+    expect(apiRepositories.userIds, [1]);
   });
 
   test('declining while signed out throws AuthorizationException', () {
@@ -102,8 +99,6 @@ void main() {
     expect(factoryLookups, 1);
     expect(repository.declined, isEmpty);
     expect(laterRepository.declined, [_request.requester]);
-    expect(laterFactory.credentials, [
-      const Credential(userId: 5, accessToken: 'token'),
-    ]);
+    expect(laterFactory.userIds, [5]);
   });
 }

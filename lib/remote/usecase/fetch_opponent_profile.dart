@@ -25,11 +25,11 @@ class FetchOpponentProfileUseCase
       throw AuthorizationException('User is unauthorized now');
     }
 
-    if (user.credential.userId != request.targetId) {
+    if (user.userId != request.targetId) {
       throw WrongAccountException();
     }
 
-    final apiRepository = _apiRepositories().forCredential(user.credential);
+    final apiRepository = _apiRepositories().forUser(user.userId);
 
     var target = BaseProfileInfo(userId: request.userId, login: request.login);
     return apiRepository.getProfileInfo(target);

@@ -1,6 +1,5 @@
 import 'dart:convert';
 
-import 'package:lets_play_cities/base/data.dart';
 import 'package:lets_play_cities/base/dictionary.dart';
 import 'package:lets_play_cities/base/scoring.dart';
 import 'package:lets_play_cities/base/themes/app_theme_mode.dart';
@@ -67,12 +66,6 @@ abstract class GamePreferences {
   /// After first calls sets to false
   bool get isFirstLaunch;
 
-  /// Gets currently logged in user credentials
-  Credential? get currentCredentials;
-
-  /// Updates current credentials. Pass `null` to log out user.
-  Future setCurrentCredentials(Credential? newCredentials);
-
   String get lastNativeLogin;
 
   set lastNativeLogin(String newLogin);
@@ -100,6 +93,17 @@ class SharedPreferencesGamePrefs extends GamePreferences {
   final SharedPreferences _prefs;
 
   SharedPreferencesGamePrefs(this._prefs);
+
+  /// Opens the preferences of an app launch. The old Basic-auth keys are
+  /// erased without migration: the access token lives in the secure storage
+  /// now, so a signed-in user signs in once more.
+  static Future<SharedPreferencesGamePrefs> open(
+    SharedPreferences prefs,
+  ) async {
+    await prefs.remove('uid');
+    await prefs.remove('uhash');
+    return SharedPreferencesGamePrefs(prefs);
+  }
 
   @override
   Difficulty get wordsDifficulty =>
@@ -172,27 +176,6 @@ class SharedPreferencesGamePrefs extends GamePreferences {
     final ifFirst = _prefs.getBool('firstLaunch') ?? true;
     if (ifFirst) _prefs.setBool('firstLaunch', false);
     return ifFirst;
-  }
-
-  @override
-  Future setCurrentCredentials(Credential? newCredentials) {
-    return newCredentials == null
-        ? _prefs.remove('uhash').then((_) => _prefs.remove('uid'))
-        : _prefs
-              .setString('uhash', newCredentials.accessToken)
-              .then((_) => _prefs.setInt('uid', newCredentials.userId));
-  }
-
-  @override
-  Credential? get currentCredentials {
-    final userId = _prefs.getInt('uid');
-    final uhash = _prefs.getString('uhash');
-
-    if (userId == null || uhash == null || userId == 0) {
-      return null;
-    }
-
-    return Credential(userId: userId, accessToken: uhash);
   }
 
   @override
