@@ -862,9 +862,6 @@ class Translations$online$ru {
 	/// ru: 'Ждём ответа {login}…'
 	String awaitingForInvite({required Object login}) => 'Ждём ответа ${login}…';
 
-	/// ru: 'Приглашение отправлено'
-	String get inviteSent => 'Приглашение отправлено';
-
 	/// ru: 'Отменить'
 	String get cancelInvite => 'Отменить';
 
@@ -1004,6 +1001,12 @@ class Translations$online$ru {
 
 	/// ru: 'Все друзья'
 	String get allFriends => 'Все друзья';
+
+	/// ru: '{name}, в сети'
+	String friendOnline({required Object name}) => '${name}, в сети';
+
+	/// ru: 'Пригласить в игру: {name}'
+	String inviteNamed({required Object name}) => 'Пригласить в игру: ${name}';
 
 	late final Translations$online$lastSeen$ru lastSeen = Translations$online$lastSeen$ru._(_root);
 	Map<String, String> get apiErrors => {

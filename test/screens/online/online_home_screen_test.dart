@@ -60,6 +60,10 @@ class _FakeConnector implements AbstractSocketConnector {
 
   @override
   Future<void> close() async {}
+
+  /// The server sends [json]
+  void serverSays(String json) =>
+      controller.add(SocketMessage(SocketMessageType.data, json));
 }
 
 ClientGameMessage _decodeClient(String data) => switch (data) {
@@ -268,7 +272,7 @@ void main() {
 
     connection.receive(const InviteStatus(2, InviteStatusKind.sent));
     await settle(tester);
-    expect(find.text(_t.online.inviteSent), findsOneWidget);
+    expect(find.text(_t.online.awaitingForInvite(login: 'Пётр')), findsOne);
 
     connection.receive(const InviteStatus(2, InviteStatusKind.declined));
     await settle(tester);
@@ -453,36 +457,130 @@ void main() {
     expect(find.text(_t.online.noConnection), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
-  testWidgets('the own profile opens from the header and signs out', (
+
+  testWidgets('Пригласить from a history opponent returns to the one home', (
     tester,
   ) async {
-    useFakeConnection();
+    final connection = useFakeConnection();
+    repository
+      ..friendEntries = [
+        friendEntry(
+          2,
+          'Пётр',
+          FriendStatus.friends,
+          lastSeenAt: DateTime.now(),
+        ),
+      ]
+      ..profiles = {
+        2: userProfile(2, 'Пётр', friendship: Friendship.friends),
+        3: userProfile(3, 'Анна', friendship: Friendship.friends),
+      }
+      ..games = [
+        HistoryGame(
+          id: 1,
+          opponent: lpsUser(3, 'Анна'),
+          isFriend: true,
+          startedAt: DateTime(2026, 11, 1),
+          durationSec: 60,
+          words: 4,
+        ),
+      ];
+    await tester.pumpWidget(app(home()));
+    await settle(tester);
+
+    await tester.tap(find.text(_t.online.allFriends));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Пётр'));
+    await tester.pumpAndSettle();
+    await tester.ensureVisible(find.text('Анна'));
+    await tester.tap(find.text('Анна'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text(_t.online.invite));
+    await settle(tester);
+    await tester.pump(const Duration(seconds: 1));
+
+    expect(find.byType(OnlineHomeScreen, skipOffstage: false), findsOneWidget);
+    expect(find.text(_t.online.awaitingForInvite(login: 'Анна')), findsOne);
+    expect(connection.sent, [const Invite(3)]);
+  });
+
+  testWidgets('the background cancels the search and closes the connection', (
+    tester,
+  ) async {
+    final connection = useFakeConnection();
+    await tester.pumpWidget(app(home()));
+    await settle(tester);
+    await tester.tap(find.text(_t.online.connect));
+    await settle(tester);
+    connection.receive(const Queued());
+    await settle(tester);
+
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.paused);
+    await settle(tester);
+
+    expect(connection.sent, [const Find(), const Cancel()]);
+    expect(connection.isConnected, isFalse);
+    expect(find.text(_t.online.connect), findsOneWidget);
+  });
+
+  testWidgets('after a game find again uses the same connection', (
+    tester,
+  ) async {
+    final connectors = <_FakeConnector>[];
+    GetIt.instance.registerSingleton<GameConnection>(
+      GameConnection(
+        url: 'wss://lps.test/v1/game',
+        headers: () async => const {},
+        clientName: 'lps-flutter/test',
+        playerName: () => 'Мария',
+        connectorFactory: (_, _) {
+          final connector = _FakeConnector();
+          connectors.add(connector);
+
+          return connector;
+        },
+      ),
+    );
     await tester.pumpWidget(
       app(
-        Builder(
-          builder: (context) => TextButton(
-            onPressed: () =>
-                Navigator.of(context)
-                    .push(MaterialPageRoute(builder: (_) => home())),
-            child: const Text('menu'),
+        RepositoryProvider<RemoteAccount>.value(
+          value: _me,
+          child: OnlineHomeScreen(
+            onStarting: (context, _) => Navigator.of(context)
+                .push(MaterialPageRoute(builder: (_) => const Text('game'))),
           ),
         ),
       ),
     );
-    await tester.tap(find.text('menu'));
     await settle(tester);
-    await tester.pump(const Duration(seconds: 1));
 
-    await tester.tap(find.byTooltip(_t.online.profileTab));
+    await tester.tap(find.text(_t.online.connect));
     await settle(tester);
-    await tester.pump(const Duration(seconds: 1));
-    await tester.tap(find.text(_t.online.signOut));
-    await settle(tester);
-    await tester.pump(const Duration(seconds: 1));
+    connectors.single
+      ..serverSays('{"type":"queued"}')
+      ..serverSays(
+        '{"type":"match","gameId":1,"opponent":{"id":2,"name":"Пётр",'
+        '"avatarHash":null,"friendship":"none"},"youStart":true,'
+        '"moveTimeSec":30}',
+      );
+    await tester.pumpAndSettle();
+    expect(find.text('game'), findsOneWidget);
 
-    expect(accountManager.signOuts, 1);
-    expect(find.text('menu'), findsOneWidget);
-    expect(find.byType(OnlineHomeScreen), findsNothing);
+    connectors.single.serverSays(
+      '{"type":"gameOver","reason":"surrender","loser":2,"words":0,'
+      '"durationSec":5}',
+    );
+    tester.state<NavigatorState>(find.byType(Navigator)).pop();
+    await tester.pumpAndSettle();
+    await tester.tap(find.text(_t.online.connect));
+    await settle(tester);
+
+    expect(connectors, hasLength(1));
+    expect(connectors.single.sent, [
+      const Hello(protocol: 1, client: ''),
+      const Find(),
+      const Find(),
+    ]);
   });
 }
 

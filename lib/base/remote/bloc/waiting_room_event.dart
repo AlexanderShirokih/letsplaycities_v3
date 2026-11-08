@@ -28,6 +28,12 @@ class CancelPressed extends WaitingRoomEvent {
   const CancelPressed();
 }
 
+/// The app went to the background: the request is withdrawn and the
+/// connection closed unless a game runs on it
+class AppPaused extends WaitingRoomEvent {
+  const AppPaused();
+}
+
 /// Answers the invitation of user [fromId]; an accepted one waits for the
 /// match
 class ReplyToInvite extends WaitingRoomEvent {

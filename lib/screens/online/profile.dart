@@ -202,63 +202,33 @@ class _OnlineProfileViewState extends State<OnlineProfileView> {
         context.watch<ApiRepository>(),
         (repo) => RefreshIndicator(
           onRefresh: () => isOwner ? _refreshOwner() : Future.sync(_update),
-          child: Stack(
-            children: [
-              Positioned.fill(
-                child: isOwner
-                    ? _buildProfileView(
-                        true,
-                        context,
-                        UserProfile(
-                          user: owner.user,
-                          friendship: Friendship.none,
-                          blocked: Blocked.none,
-                        ),
-                      )
-                    : FutureBuilder<UserProfile>(
-                        future: repo.user(widget.userId!, _shouldUpdate),
-                        builder: (context, snap) {
-                          if (snap.hasData) {
-                            _shouldUpdate = false;
-                            return _buildProfileView(
-                              false,
-                              context,
-                              snap.requireData,
-                            );
-                          } else if (snap.hasError) {
-                            return showError(context, snap.error!);
-                          } else {
-                            return showLoadingWidget(context);
-                          }
-                        },
-                      ),
-              ),
-              if (isOwner)
-                Align(
-                  alignment: Alignment.bottomRight,
-                  child: Padding(
-                    padding: const EdgeInsets.only(bottom: 24.0, right: 24.0),
-                    child: FloatingActionButton.extended(
-                      backgroundColor: D2Colors.of(context).orange,
-                      foregroundColor: D2Colors.of(context).shadow,
-                      // Back to the main menu: the online screens below
-                      // belong to the account that signed out
-                      onPressed: () => GetIt.instance
-                          .get<AccountManager>()
-                          .signOut()
-                          .then((_) {
-                            if (!context.mounted) return;
-
-                            Navigator.of(context)
-                                .popUntil((route) => route.isFirst);
-                          }),
-                      icon: const D2Icon(D2Glyph.exit),
-                      label: Text(context.t.online.signOut, style: D2Text.body),
-                    ),
+          child: isOwner
+              ? _buildProfileView(
+                  true,
+                  context,
+                  UserProfile(
+                    user: owner.user,
+                    friendship: Friendship.none,
+                    blocked: Blocked.none,
                   ),
+                )
+              : FutureBuilder<UserProfile>(
+                  future: repo.user(widget.userId!, _shouldUpdate),
+                  builder: (context, snap) {
+                    if (snap.hasData) {
+                      _shouldUpdate = false;
+                      return _buildProfileView(
+                        false,
+                        context,
+                        snap.requireData,
+                      );
+                    } else if (snap.hasError) {
+                      return showError(context, snap.error!);
+                    } else {
+                      return showLoadingWidget(context);
+                    }
+                  },
                 ),
-            ],
-          ),
         ),
       );
     },
@@ -271,7 +241,7 @@ class _OnlineProfileViewState extends State<OnlineProfileView> {
   ) {
     final t = context.t;
     return ListView(
-      padding: const EdgeInsets.only(bottom: 88.0),
+      padding: const EdgeInsets.only(bottom: 16.0),
       children: [
         ..._buildTopBlock(isOwner, data, context, t),
         ..._buildIdBlock(data, context),
@@ -478,7 +448,7 @@ class _OnlineProfileViewState extends State<OnlineProfileView> {
     yield _buildNavigationButton(
       D2Glyph.history,
       t.online.historyTab,
-      () => OnlineHistoryScreen(),
+      () => OnlineHistoryScreen(onInvite: widget.onInvite),
     );
     yield _buildNavigationButton(
       D2Glyph.ban,
@@ -616,7 +586,11 @@ class _OnlineProfileViewState extends State<OnlineProfileView> {
         style: D2Text.section.copyWith(color: D2Colors.of(context).ink),
       ),
     );
-    yield OnlineHistoryScreen(withUser: widget.userId, embedded: true);
+    yield OnlineHistoryScreen(
+      withUser: widget.userId,
+      embedded: true,
+      onInvite: widget.onInvite,
+    );
     yield _divider(context);
   }
 

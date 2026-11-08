@@ -354,7 +354,6 @@
     "authorization": "Авторизация...",
     "awaiting_for_opp": "Ищем соперника",
     "awaiting_for_invite": "Ждём ответа {login}…",
-    "invite_sent": "Приглашение отправлено",
     "cancel_invite": "Отменить",
     "searching_for(param=count)": {
       "one": "Ищем {count} секунду",
@@ -405,6 +404,8 @@
     "request_sent": "Заявка отправлена",
     "invite_short": "Пригласить",
     "all_friends": "Все друзья",
+    "friend_online": "{name}, в сети",
+    "invite_named": "Пригласить в игру: {name}",
     "last_seen": {
       "now": "в сети",
       "today": "в сети в {time}",

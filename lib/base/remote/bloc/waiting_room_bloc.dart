@@ -52,7 +52,8 @@ class WaitingRoomBloc extends Bloc<WaitingRoomEvent, WaitingRoomState>
   Future<void> close() async {
     _closing = true;
 
-    if (_matchPending) {
+    // A match whose game no game screen took: nobody would play it
+    if (_matchPending || _gameClient.hasUnclaimedGame) {
       unawaited(_gameClient.quitGame());
     } else if (_requestSent) {
       _withdraw();
@@ -76,6 +77,11 @@ class WaitingRoomBloc extends Bloc<WaitingRoomEvent, WaitingRoomState>
       case FindPressed():
         yield* _startRequest(event, const Connecting());
       case InvitePressed(:final friend):
+        // Sending it again would withdraw the push the friend already has
+        if (state case Inviting(:final target) when target.id == friend.id) {
+          return;
+        }
+
         yield* _startRequest(event, Inviting(friend));
       case ReplyToInvite(:final fromId, accept: false):
         _endRequest(withdraw: true);
@@ -91,6 +97,13 @@ class WaitingRoomBloc extends Bloc<WaitingRoomEvent, WaitingRoomState>
       case CancelPressed():
         _endRequest(withdraw: true);
         yield const Idle();
+      case AppPaused():
+        final waiting =
+            state is Connecting || state is Queued || state is Inviting;
+        _endRequest(withdraw: true);
+        if (waiting) yield const Idle();
+
+        await _gameClient.disconnect();
       case _Connected(:final request, :final source):
         yield* _send(request, source);
       case _RequestFailed(:final request, :final source, :final error):
@@ -179,7 +192,8 @@ class WaitingRoomBloc extends Bloc<WaitingRoomEvent, WaitingRoomState>
       case protocol.Queued():
         yield Queued(_clock());
       case protocol.InviteStatus(status: protocol.InviteStatusKind.sent):
-        if (current is Inviting) yield Inviting(current.target, sent: true);
+        // The push is out: still waiting for the answer
+        break;
       case protocol.InviteStatus(:final status):
         _endRequest();
         yield InviteFinished(

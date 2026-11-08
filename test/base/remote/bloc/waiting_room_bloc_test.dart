@@ -5,6 +5,7 @@ import 'dart:async';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:lets_play_cities/base/game/game_mode.dart';
+import 'package:lets_play_cities/base/game_session.dart';
 import 'package:lets_play_cities/base/remote/bloc/waiting_room_bloc.dart';
 import 'package:lets_play_cities/remote/client/api_exception.dart';
 import 'package:lets_play_cities/remote/client/remote_game_client.dart';
@@ -48,6 +49,8 @@ const _match = protocol.Match(
 );
 
 final _now = DateTime(2026, 11, 9, 12);
+
+class _FakeSession extends Fake implements GameSession {}
 
 void main() {
   late FakeGameConnection connection;
@@ -111,7 +114,6 @@ void main() {
 
     expect(states, [
       Inviting(_friend),
-      Inviting(_friend, sent: true),
       InviteFinished(_friend, protocol.InviteStatusKind.declined),
     ]);
     // A finished invitation has nothing to cancel
@@ -400,4 +402,81 @@ void main() {
       expect(bloc.state, Inviting(_friend));
     },
   );
+
+  test('a second press for the friend being invited sends nothing', () async {
+    bloc.add(InvitePressed(_friend));
+    await pumpEventQueue();
+    bloc.add(InvitePressed(_friend));
+    await pumpEventQueue();
+
+    expect(bloc.state, Inviting(_friend));
+    expect(connection.sent, [const protocol.Invite(2)]);
+  });
+
+  test('a game that no screen took is left on close', () async {
+    bloc.add(const FindPressed());
+    await pumpEventQueue();
+    connection.receive(_match);
+    await pumpEventQueue();
+    expect(states.whereType<Starting>(), hasLength(1));
+
+    await bloc.close();
+
+    expect(connection.sent, [const protocol.Find(), const protocol.Leave()]);
+  });
+
+  test('a game that the game screen took survives the close', () async {
+    bloc.add(const FindPressed());
+    await pumpEventQueue();
+    connection.receive(_match);
+    await pumpEventQueue();
+    states
+        .whereType<Starting>()
+        .single
+        .config
+        .externalEventSource!(_FakeSession())
+        .listen((_) {});
+
+    await bloc.close();
+
+    expect(connection.sent, [const protocol.Find()]);
+  });
+
+  test('the background cancels the search and closes the connection', () async {
+    bloc.add(const FindPressed());
+    await pumpEventQueue();
+    connection.receive(const protocol.Queued());
+    await pumpEventQueue();
+
+    bloc.add(const AppPaused());
+    await pumpEventQueue();
+
+    expect(bloc.state, const Idle());
+    expect(connection.sent, [const protocol.Find(), const protocol.Cancel()]);
+    expect(connection.isConnected, isFalse);
+
+    // The next search opens the connection again
+    bloc.add(const FindPressed());
+    await pumpEventQueue();
+    expect(connection.isConnected, isTrue);
+    expect(connection.sent.last, const protocol.Find());
+  });
+
+  test('the background keeps the connection of a running game', () async {
+    bloc.add(const FindPressed());
+    await pumpEventQueue();
+    connection.receive(_match);
+    await pumpEventQueue();
+    states
+        .whereType<Starting>()
+        .single
+        .config
+        .externalEventSource!(_FakeSession())
+        .listen((_) {});
+
+    bloc.add(const AppPaused());
+    await pumpEventQueue();
+
+    expect(connection.isConnected, isTrue);
+  });
 }

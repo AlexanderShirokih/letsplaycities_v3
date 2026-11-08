@@ -28,16 +28,14 @@ class Queued extends WaitingRoomState {
   List<Object?> get props => [since];
 }
 
-/// Waits for [target] to answer the invitation; [sent] once the push has
-/// gone out
+/// Waits for [target] to answer the invitation
 class Inviting extends WaitingRoomState {
   final LpsUser target;
-  final bool sent;
 
-  const Inviting(this.target, {this.sent = false});
+  const Inviting(this.target);
 
   @override
-  List<Object?> get props => [target, sent];
+  List<Object?> get props => [target];
 }
 
 /// The invitation ended with [status] without a game. [target] is the

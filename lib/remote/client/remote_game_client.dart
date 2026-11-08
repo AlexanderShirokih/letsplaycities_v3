@@ -115,6 +115,22 @@ class RemoteGameClient {
   /// listening to it, e.g. when no screen is left to play it
   Future<void> quitGame() async => _game?.quit();
 
+  /// `true` while the game of the last match runs but no game screen has
+  /// read its events
+  bool get hasUnclaimedGame {
+    final game = _game;
+
+    return game != null && game.isRunning && !game._claimed;
+  }
+
+  /// Closes the connection unless a game runs on it; the next request opens
+  /// it again
+  Future<void> disconnect() async {
+    if (_game?.isRunning == true) return;
+
+    await _connection.close();
+  }
+
   /// What the server says while the client waits: listen before [find],
   /// [invite] or [reply], the connection keeps nothing for later listeners.
   Stream<WaitingEvent> get waiting =>
@@ -161,7 +177,11 @@ class RemoteGameClient {
         match.youStart ? [owner, opponent] : [opponent, owner],
       ),
       timeLimitOverride: match.moveTimeSec,
-      externalEventSource: (_) => game._events.stream,
+      externalEventSource: (_) {
+        game._claimed = true;
+
+        return game._events.stream;
+      },
       additionalEventHandlers: [NetworkInterceptor(this)],
     );
   }
@@ -205,6 +225,9 @@ class RemoteGame {
   final _ended = Completer<void>();
   final _subscriptions = <StreamSubscription<Object?>>[];
   bool _leaveSent = false;
+
+  /// A game screen reads the events of this game
+  bool _claimed = false;
 
   RemoteGame._(this._connection, this._me, this._owner);
 

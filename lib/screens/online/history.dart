@@ -4,6 +4,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 import 'package:lets_play_cities/base/remote/bloc/user_actions_bloc.dart';
 import 'package:lets_play_cities/i18n/strings.g.dart';
+import 'package:lets_play_cities/remote/model/lps_user.dart';
 import 'package:lets_play_cities/i18n/time_format.dart';
 import 'package:lets_play_cities/remote/model/social.dart';
 import 'package:lets_play_cities/screens/common/utils.dart';
@@ -31,7 +32,16 @@ class OnlineHistoryScreen extends StatelessWidget
   @override
   final int? withUser;
 
-  const OnlineHistoryScreen({super.key, this.withUser, this.embedded = false});
+  /// Passed to the profiles of the opponents: the invitation of the open
+  /// «Онлайн»
+  final void Function(LpsUser friend)? onInvite;
+
+  const OnlineHistoryScreen({
+    super.key,
+    this.withUser,
+    this.embedded = false,
+    this.onInvite,
+  });
 
   @override
   Widget getOnListEmptyPlaceHolder(BuildContext context) => Text(
@@ -50,7 +60,11 @@ class OnlineHistoryScreen extends StatelessWidget
     child: ListTile(
       onTap: () => Navigator.push(
         context,
-        OnlineProfileView.createRoute(context, userId: data.opponent.id),
+        OnlineProfileView.createRoute(
+          context,
+          userId: data.opponent.id,
+          onInvite: onInvite,
+        ),
       ),
       contentPadding: EdgeInsets.all(8.0),
       leading: Stack(

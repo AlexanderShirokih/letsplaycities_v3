@@ -257,10 +257,9 @@ class WaitingRoomCard extends StatelessWidget {
         _QueueTimer(since: since, clock: clock ?? DateTime.now),
         cancel(t.cancel),
       ],
-      Inviting(:final target, :final sent) => [
+      Inviting(:final target) => [
         D2Radar(size: 176, center: lpsUserAvatar(context, target, size: 64)),
         title(t.online.awaitingForInvite(login: target.name)),
-        if (sent) note(t.online.inviteSent),
         cancel(t.online.cancelInvite),
       ],
       InviteFinished(:final target, :final status) => [
