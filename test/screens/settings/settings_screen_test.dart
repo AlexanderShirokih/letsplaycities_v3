@@ -59,6 +59,12 @@ void main() {
     await tester.pump();
 
     expect(prefs.wordsDifficulty, Difficulty.hard);
+    expect(
+      tester
+          .widget<D2Segmented<Difficulty>>(find.byType(D2Segmented<Difficulty>))
+          .selected,
+      Difficulty.hard,
+    );
   });
 
   testWidgets('tapping a theme segment writes the preference and notifier', (
@@ -86,5 +92,37 @@ void main() {
     await tester.pump();
 
     expect(prefs.soundEnabled, isFalse);
+    expect(tester.widget<D2Switch>(find.byType(D2Switch).at(2)).value, isFalse);
+  });
+
+  testWidgets('a stored timer outside the list selects no segment', (
+    tester,
+  ) async {
+    prefs.timeLimit = 300;
+
+    await pumpScreen(tester);
+
+    expect(
+      tester.widget<D2Segmented<int>>(find.byType(D2Segmented<int>)).selected,
+      isNull,
+    );
+    expect(prefs.timeLimit, 300);
+  });
+
+  testWidgets('the dictionary switch toggles never and daily', (tester) async {
+    prefs.dictionaryUpdatePeriod = DictionaryUpdatePeriod.threeHours;
+    await pumpScreen(tester);
+    final dict = find.byType(D2Switch).at(3);
+    expect(tester.widget<D2Switch>(dict).value, isTrue);
+
+    await tester.tap(dict);
+    await tester.pump();
+    expect(prefs.dictionaryUpdatePeriod, DictionaryUpdatePeriod.never);
+    expect(tester.widget<D2Switch>(dict).value, isFalse);
+
+    await tester.tap(dict);
+    await tester.pump();
+    expect(prefs.dictionaryUpdatePeriod, DictionaryUpdatePeriod.daily);
+    expect(tester.widget<D2Switch>(dict).value, isTrue);
   });
 }
