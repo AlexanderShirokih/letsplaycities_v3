@@ -13,6 +13,7 @@ import 'package:lets_play_cities/i18n/strings.g.dart';
 import 'package:lets_play_cities/remote/account.dart';
 import 'package:lets_play_cities/remote/remote_player.dart';
 import 'package:lets_play_cities/screens/game/game_screen.dart';
+import 'package:lets_play_cities/screens/game/hotseat_setup_screen.dart';
 import 'package:lets_play_cities/screens/game/user_avatar.dart';
 import 'package:lets_play_cities/screens/online/profile.dart';
 
@@ -159,7 +160,7 @@ class _GameResultsScreenState extends State<GameResultsScreen> {
                     onPressed: () => _gameConfig.gameMode.isLocal
                         ? Navigator.pushReplacement(
                             context,
-                            GameScreen.createGameScreenRoute(_gameConfig),
+                            _replayRoute(_gameConfig),
                           )
                         : (_gameConfig.gameMode == GameMode.multiplayer
                               ? Navigator.popUntil(
@@ -279,3 +280,10 @@ class _GameResultsScreenState extends State<GameResultsScreen> {
         <RemotePlayer>[];
   }
 }
+
+/// A new local game: two players on one phone confirm their names and who
+/// moves first before it.
+Route<dynamic> _replayRoute(GameConfig config) =>
+    config.gameMode == GameMode.playerVsPlayer
+    ? MaterialPageRoute<void>(builder: (_) => const HotseatSetupScreen())
+    : GameScreen.createGameScreenRoute(config);
