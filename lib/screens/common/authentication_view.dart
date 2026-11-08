@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get_it/get_it.dart';
 import 'package:lets_play_cities/i18n/strings.g.dart';
 import 'package:lets_play_cities/remote/auth.dart';
+import 'package:lets_play_cities/remote/client/api_exception.dart';
 import 'package:lets_play_cities/remote/exceptions.dart';
 import 'package:lets_play_cities/screens/common/common_widgets.dart';
 import 'package:lets_play_cities/screens/common/error_texts.dart';
@@ -49,9 +50,15 @@ class _AuthenticationViewState extends State<AuthenticationView> {
 
         return ConnectionErrorView(
           onReload: _reload,
-          errorMessage: error is AuthorizationException
-              ? authorizationErrorText(context.t, error)
-              : null,
+          errorMessage: switch (error) {
+            AuthorizationException() => authorizationErrorText(
+              context.t,
+              error,
+            ),
+            // E.g. `banned`: the text of the server
+            ApiException(:final message?) => message,
+            _ => null,
+          },
         );
       }
 

@@ -173,13 +173,8 @@ class WaitingRoomView extends StatelessWidget {
           if (state is StartGameState) {
             Navigator.of(context).push(
               MaterialPageRoute(
-                builder: (_) => MultiRepositoryProvider(
-                  providers: [
-                    RepositoryProvider.value(value: state.apiRepository),
-                    RepositoryProvider.value(
-                      value: GetIt.instance.get<AccountManager>(),
-                    ),
-                  ],
+                builder: (_) => RepositoryProvider.value(
+                  value: state.apiRepository,
                   child: GameScreen(state.config),
                 ),
               ),

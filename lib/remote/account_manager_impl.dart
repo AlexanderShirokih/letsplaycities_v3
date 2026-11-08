@@ -37,6 +37,9 @@ class AccountManagerImpl implements AccountManager {
 
   RemoteAccount? _account;
   DateTime? _accountTime;
+
+  /// The token that [_account] was signed in with
+  String? _accountToken;
   Future<RemoteAccount?>? _accountRequest;
 
   /// Changes on every sign-in and sign-out, so the answer to a request of an
@@ -47,32 +50,33 @@ class AccountManagerImpl implements AccountManager {
   StreamSubscription<String>? _fcmRefreshes;
 
   @override
-  Future<RemoteAccount?> getLastSignedInAccount() {
-    final account = _account;
-    final time = _accountTime;
-    if (account != null &&
-        time != null &&
-        _clock().difference(time) < accountLifetime) {
-      return Future.value(account);
-    }
-
-    return _accountRequest ??= _fetchAccount().whenComplete(
-      () => _accountRequest = null,
-    );
-  }
-
-  Future<RemoteAccount?> _fetchAccount() async {
+  Future<RemoteAccount?> getLastSignedInAccount() async {
+    // Any request that gets a 401 drops the token, so the token decides.
     final token = await _apiRepositories.tokens.read();
     if (token == null || token.isEmpty) {
       _forgetAccount();
       return null;
     }
 
+    final account = _account;
+    final time = _accountTime;
+    if (account != null &&
+        time != null &&
+        token == _accountToken &&
+        _clock().difference(time) < accountLifetime) {
+      return account;
+    }
+
+    return _accountRequest ??= _fetchAccount(token)
+        .whenComplete(() => _accountRequest = null);
+  }
+
+  Future<RemoteAccount?> _fetchAccount(String token) async {
     final session = _session;
     try {
       final account = _toAccount(await _auth.me());
       if (session == _session) {
-        _keepAccount(account);
+        _keepAccount(account, token);
         if (_fcmRefreshes == null) unawaited(_startFcmSync());
       }
 
@@ -149,7 +153,7 @@ class AccountManagerImpl implements AccountManager {
     _session++;
 
     final account = _toAccount(result.user);
-    _keepAccount(account);
+    _keepAccount(account, result.token);
     await _startFcmSync();
 
     return account;
@@ -197,13 +201,15 @@ class AccountManagerImpl implements AccountManager {
     canReceiveMessages: _preferences.onlineChatEnabled,
   );
 
-  void _keepAccount(RemoteAccount account) {
+  void _keepAccount(RemoteAccount account, String token) {
     _account = account;
     _accountTime = _clock();
+    _accountToken = token;
   }
 
   void _forgetAccount() {
     _account = null;
     _accountTime = null;
+    _accountToken = null;
   }
 }

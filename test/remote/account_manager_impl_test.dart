@@ -260,6 +260,17 @@ void main() {
       expect(server.calls, isNot(contains('GET /v1/me')));
     });
 
+    test('a token dropped by another request ends the account', () async {
+      server.on('POST', '/v1/auth/native', 200, _auth('new-token'));
+      await manager.signInNative('Мария');
+
+      // What the interceptor does on a 401 of any request
+      await tokens.clear();
+
+      expect(await manager.getLastSignedInAccount(), isNull);
+      expect(server.calls, isNot(contains('GET /v1/me')));
+    });
+
     test('sign-in drops the API cache of the previous account', () async {
       factory.cache.cachedFriendsList = [friend(10)];
       server.on('POST', '/v1/auth/native', 200, _auth('new-token'));
