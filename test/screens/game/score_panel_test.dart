@@ -90,6 +90,26 @@ void main() {
     await tester.pump();
 
     expect(find.text(t.game.letterAny), findsOneWidget);
+    expect(find.bySemanticsLabel(t.game.letterAnySemantics), findsOneWidget);
+  });
+
+  testWidgets('ScorePanel shows no time row without a time limit', (
+    tester,
+  ) async {
+    final first = player('Аня', 0);
+    final second = player('Борис', 0);
+    await pumpPanel(tester, UsersList([first, second]));
+
+    events.add(OnUserSwitchedEvent(first, [first, second]));
+    events.add(const TimeEvent(14));
+    await tester.pump();
+
+    expect(find.text('0:14'), findsNothing);
+    expect(find.textContaining(':'), findsNothing);
+    expect(
+      find.byWidgetPredicate((w) => w is D2Icon && w.glyph == D2Glyph.timer),
+      findsNothing,
+    );
   });
 
   testWidgets('ScorePanel shows the seconds left of the move', (tester) async {

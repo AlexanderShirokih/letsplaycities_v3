@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -113,58 +112,53 @@ class _CityCheckingResultBarState extends State<CityCheckingResultBar>
     return Container();
   }
 
+  /// Lists at most five [corrections]; the box is as tall as its rows.
   Widget _showCorrectionsBox(
     BuildContext context,
     GameSessionRepository repo,
     List<String> corrections,
   ) {
     final c = D2Colors.of(context);
+    final radius = BorderRadius.circular(14);
 
-    return Container(
+    return Padding(
       padding: const EdgeInsets.only(top: 6),
-      height: max(corrections.length * 52.0 + 30.0, 100),
       child: Column(
-        mainAxisSize: MainAxisSize.max,
-        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Text(
             context.t.game.corrections,
             style: D2Text.body.copyWith(fontSize: 13, color: c.inkSoft),
           ),
-          const SizedBox(height: 6),
-          Expanded(
-            child: ListView.builder(
-              padding: EdgeInsets.zero,
-              itemCount: min(corrections.length, 5),
-              itemBuilder: (context, index) => Padding(
-                padding: const EdgeInsets.only(bottom: 6),
-                child: Material(
-                  color: c.bg,
-                  borderRadius: BorderRadius.circular(14),
-                  child: InkWell(
-                    borderRadius: BorderRadius.circular(14),
-                    onTap: () => repo.sendInputWord(corrections[index]),
-                    child: Container(
-                      constraints: const BoxConstraints(minHeight: 44),
-                      padding: const EdgeInsets.symmetric(horizontal: 12),
-                      child: Row(
-                        children: [
-                          D2Icon(D2Glyph.cities, size: 20, color: c.inkSoft),
-                          const SizedBox(width: 10),
-                          Expanded(
-                            child: Text(
-                              corrections[index].toTitleCase(),
-                              style: D2Text.body.copyWith(color: c.ink),
-                            ),
+          for (final correction in corrections.take(5))
+            Padding(
+              padding: const EdgeInsets.only(top: 6),
+              child: Material(
+                color: c.bg,
+                borderRadius: radius,
+                child: InkWell(
+                  borderRadius: radius,
+                  onTap: () => repo.sendInputWord(correction),
+                  child: Container(
+                    constraints: const BoxConstraints(minHeight: 44),
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    child: Row(
+                      children: [
+                        D2Icon(D2Glyph.cities, size: 20, color: c.inkSoft),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Text(
+                            correction.toTitleCase(),
+                            style: D2Text.body.copyWith(color: c.ink),
                           ),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
                   ),
                 ),
               ),
             ),
-          ),
         ],
       ),
     );

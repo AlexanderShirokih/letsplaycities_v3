@@ -1,7 +1,8 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:lets_play_cities/base/game/bloc/game_bloc.dart';
 import 'package:lets_play_cities/base/repos.dart';
 import 'package:lets_play_cities/i18n/strings.g.dart';
 import 'package:lets_play_cities/screens/common/d2/d2.dart';
@@ -10,9 +11,15 @@ import 'package:lets_play_cities/screens/game/voice_recognition_view.dart';
 import 'city_checking_result_bar.dart';
 
 /// Bottom panel with the city input field, the «Send» button and the result
-/// of the word checking under them.
+/// of the word checking under them. When the panel gets less height than it
+/// needs, the result scrolls.
+///
+/// Requires [GameSessionRepository] and [GameServiceEventsRepository].
 class InputFieldsGroup extends StatelessWidget {
-  const InputFieldsGroup({super.key});
+  /// Receives the callback that clears the field when the word is accepted
+  final ValueSetter<VoidCallback> onRegisterInputClear;
+
+  const InputFieldsGroup({super.key, required this.onRegisterInputClear});
 
   @override
   Widget build(BuildContext context) {
@@ -30,7 +37,7 @@ class InputFieldsGroup extends StatelessWidget {
         minimum: const EdgeInsets.only(bottom: 14),
         child: _CityInputField(
           context.watch<GameSessionRepository>(),
-          context.watch<GameBloc>(),
+          onRegisterInputClear,
         ),
       ),
     );
@@ -42,9 +49,9 @@ typedef InputMatcherCallback = void Function(String);
 /// Input field for entering cities
 class _CityInputField extends StatefulWidget {
   final GameSessionRepository _repository;
-  final GameBloc _gameBloc;
+  final ValueSetter<VoidCallback> _onRegisterInputClear;
 
-  const _CityInputField(this._repository, this._gameBloc);
+  const _CityInputField(this._repository, this._onRegisterInputClear);
 
   @override
   State<_CityInputField> createState() => _CityInputFieldState();
@@ -54,13 +61,21 @@ class _CityInputFieldState extends State<_CityInputField> {
   late final InputMatcherCallback _onPressed;
   final inputController = TextEditingController();
   final _errorShown = ValueNotifier(false);
+  late final StreamSubscription<String> _firstChars;
+
+  /// First letter of the move, empty before the first move
+  String _letter = '';
 
   @override
   void initState() {
     super.initState();
     _onPressed = widget._repository.sendInputWord;
     // Register callback hook to be able to clear input when the word is accepted.
-    widget._gameBloc.onUserInputAccepted = _onClear;
+    widget._onRegisterInputClear(_onClear);
+    _firstChars = context
+        .read<GameServiceEventsRepository>()
+        .getFirstChars()
+        .listen((letter) => setState(() => _letter = letter));
   }
 
   void _onSubmit(String value) {
@@ -112,31 +127,46 @@ class _CityInputFieldState extends State<_CityInputField> {
             ),
           ],
         ),
-        CityCheckingResultBar(errorShown: _errorShown),
+        Flexible(
+          child: SingleChildScrollView(
+            child: CityCheckingResultBar(errorShown: _errorShown),
+          ),
+        ),
       ],
     );
   }
 
-  Widget _buildTextField(D2Colors c) => TextField(
-    // No context menu: pasting city names is not allowed.
-    contextMenuBuilder: null,
-    autofocus: true,
-    onSubmitted: _onSubmit,
-    controller: inputController,
-    textCapitalization: TextCapitalization.words,
-    cursorColor: c.violet,
-    style: D2Text.body.copyWith(fontSize: 19, color: c.ink),
-    decoration: const InputDecoration(
-      isCollapsed: true,
-      border: InputBorder.none,
-    ),
-    inputFormatters: [
-      FilteringTextInputFormatter.allow(RegExp("^[А-я-.' ]+\$")),
-    ],
-  );
+  Widget _buildTextField(D2Colors c) {
+    final t = context.t;
+    final style = D2Text.body.copyWith(fontSize: 19, color: c.ink);
+
+    return TextField(
+      // No context menu: pasting city names is not allowed.
+      contextMenuBuilder: null,
+      autofocus: true,
+      onSubmitted: _onSubmit,
+      controller: inputController,
+      textCapitalization: TextCapitalization.words,
+      cursorColor: c.violet,
+      style: style,
+      decoration: InputDecoration(
+        isCollapsed: true,
+        border: InputBorder.none,
+        hintText: _letter.isEmpty
+            ? t.game.cityHint
+            : t.game.cityOnLetterHint(letter: _letter.toUpperCase()),
+        hintStyle: style.copyWith(color: c.inkSoft),
+        hintMaxLines: 1,
+      ),
+      inputFormatters: [
+        FilteringTextInputFormatter.allow(RegExp("^[А-я-.' ]+\$")),
+      ],
+    );
+  }
 
   @override
   void dispose() {
+    _firstChars.cancel();
     inputController.dispose();
     _errorShown.dispose();
     super.dispose();

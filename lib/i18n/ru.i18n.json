@@ -52,7 +52,10 @@
     "surrender_menu": "Сдаться…",
     "hint": "Подсказка",
     "city_on_letter": "Город на букву",
+    "city_on_letter_hint(param=letter)": "Город на {letter}…",
+    "city_hint": "Город…",
     "letter_any": "?",
+    "letter_any_semantics": "Буква хода: любая",
     "chat": "Чат",
     "chat_unread(param=count)": {
       "one": "Чат, {count} новое сообщение",

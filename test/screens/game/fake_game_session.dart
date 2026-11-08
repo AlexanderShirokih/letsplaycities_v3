@@ -36,4 +36,8 @@ class FakeGameSession extends GameSession {
 
   @override
   Stream<GameEvent> get inputEvents => _events;
+
+  @override
+  Stream<WordCheckingResult> get wordCheckingResults =>
+      _events.where((event) => event is WordCheckingResult).cast();
 }

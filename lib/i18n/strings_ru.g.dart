@@ -232,8 +232,17 @@ class Translations$game$ru {
 	/// ru: 'Город на букву'
 	String get cityOnLetter => 'Город на букву';
 
+	/// ru: 'Город на {letter}…'
+	String cityOnLetterHint({required Object letter}) => 'Город на ${letter}…';
+
+	/// ru: 'Город…'
+	String get cityHint => 'Город…';
+
 	/// ru: '?'
 	String get letterAny => '?';
+
+	/// ru: 'Буква хода: любая'
+	String get letterAnySemantics => 'Буква хода: любая';
 
 	/// ru: 'Чат'
 	String get chat => 'Чат';

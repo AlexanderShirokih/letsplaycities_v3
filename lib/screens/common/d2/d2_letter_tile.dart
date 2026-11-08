@@ -10,11 +10,15 @@ class D2LetterTile extends StatelessWidget {
   final double size;
   final D2TileColor color;
 
+  /// Replaces «Буква хода: [letter]» for screen readers
+  final String? semanticLabel;
+
   const D2LetterTile(
     this.letter, {
     super.key,
     this.size = 56,
     this.color = D2TileColor.orange,
+    this.semanticLabel,
   });
 
   @override
@@ -29,7 +33,7 @@ class D2LetterTile extends StatelessWidget {
     final shadow = size >= 48 ? 4.0 : 3.0;
 
     return Semantics(
-      label: t.d2.letterSemantics(letter: letter),
+      label: semanticLabel ?? t.d2.letterSemantics(letter: letter),
       excludeSemantics: true,
       child: Container(
         width: size,
