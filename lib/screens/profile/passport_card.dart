@@ -17,16 +17,20 @@ class ProfileLink extends StatelessWidget {
   final D2Glyph? glyph;
   final VoidCallback onPressed;
 
+  /// Text and glyph color, [D2Colors.violet] by default
+  final Color? color;
+
   const ProfileLink({
     super.key,
     required this.label,
     required this.onPressed,
     this.glyph,
+    this.color,
   });
 
   @override
   Widget build(BuildContext context) {
-    final c = D2Colors.of(context);
+    final color = this.color ?? D2Colors.of(context).violet;
 
     return Semantics(
       button: true,
@@ -42,14 +46,14 @@ class ProfileLink extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               if (glyph != null) ...[
-                D2Icon(glyph!, size: 18, color: c.violet),
+                D2Icon(glyph!, size: 18, color: color),
                 const SizedBox(width: 4),
               ],
-              Text(label, style: D2Text.small.copyWith(color: c.violet)),
+              Text(label, style: D2Text.small.copyWith(color: color)),
               if (glyph == null)
                 RotatedBox(
                   quarterTurns: 2,
-                  child: D2Icon(D2Glyph.back, size: 18, color: c.violet),
+                  child: D2Icon(D2Glyph.back, size: 18, color: color),
                 ),
             ],
           ),

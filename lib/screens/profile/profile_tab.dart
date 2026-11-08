@@ -198,12 +198,25 @@ class _ProfileTabState extends State<ProfileTab> {
             children: [
               SizedBox(
                 height: 48,
-                child: Align(
-                  alignment: Alignment.centerLeft,
-                  child: Text(
-                    t.profile.title,
-                    style: D2Text.display.copyWith(fontSize: 22, color: c.ink),
-                  ),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        t.profile.title,
+                        style: D2Text.display.copyWith(
+                          fontSize: 22,
+                          color: c.ink,
+                        ),
+                      ),
+                    ),
+                    if (_online != null)
+                      ProfileLink(
+                        label: t.online.signOut,
+                        glyph: D2Glyph.exit,
+                        color: c.inkSoft,
+                        onPressed: _signOut,
+                      ),
+                  ],
                 ),
               ),
               const SizedBox(height: 4),
@@ -287,6 +300,9 @@ class _ProfileTabState extends State<ProfileTab> {
 
     if (mounted) _loadAccount();
   }
+
+  /// The header follows through [AccountManager.accountChanges]
+  Future<void> _signOut() => GetIt.instance.get<AccountManager>().signOut();
 
   void _chooseAvatar() {
     final online = _online;

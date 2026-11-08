@@ -150,6 +150,19 @@ void main() {
     expect(find.text(t.profile.signIn), findsNothing);
   });
 
+  testWidgets('sign-out is in the header only when signed in', (tester) async {
+    register(account: remoteAccount(2, 'Alice'));
+    await pump(tester);
+
+    await tester.tap(find.text(t.online.signOut));
+    await tester.pumpAndSettle();
+
+    expect(accounts.signOuts, 1);
+    expect(find.text('ID 2'), findsNothing);
+    expect(find.text(t.profile.signIn), findsOneWidget);
+    expect(find.text(t.online.signOut), findsNothing);
+  });
+
   testWidgets('a failed online profile falls back to the account', (
     tester,
   ) async {

@@ -93,14 +93,6 @@ class _SessionAccountManager extends FakeAccountManager {
 
   @override
   Future<RemoteAccount?> trySilentNative() async => null;
-
-  int signOuts = 0;
-
-  @override
-  Future<void> signOut() async {
-    signOuts++;
-    account = null;
-  }
 }
 
 final _t = AppLocale.ru.buildSync();

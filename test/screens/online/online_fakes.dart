@@ -233,6 +233,15 @@ class FakeAccountManager extends Fake implements AccountManager {
     invalidations++;
     changes.add(null);
   }
+
+  int signOuts = 0;
+
+  @override
+  Future<void> signOut() async {
+    signOuts++;
+    account = null;
+    changes.add(null);
+  }
 }
 
 RemoteAccount remoteAccount(int userId, String name) => RemoteAccount(
