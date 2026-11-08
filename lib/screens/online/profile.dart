@@ -26,9 +26,16 @@ import 'package:lets_play_cities/screens/online/history.dart';
 
 import 'avatars/avatar_chooser.dart';
 
-/// Opens the waiting room that invites [friend] to a game.
+/// Invites [friend] to a game with [onInvite], or by the waiting room when
+/// there is no callback.
 // replaced in protocol v1 task 6: the online home sends the invitation
-void openLegacyInvite(BuildContext context, LpsUser friend) {
+void inviteFriend(
+  BuildContext context,
+  LpsUser friend,
+  void Function(LpsUser friend)? onInvite,
+) {
+  if (onInvite != null) return onInvite(friend);
+
   final repository = context.read<ApiRepository>();
 
   Navigator.push(
@@ -158,7 +165,8 @@ class OnlineProfileView extends StatefulWidget {
 }
 
 class _OnlineProfileViewState extends State<OnlineProfileView> {
-  bool _shouldUpdate = false;
+  // The cached profile shows an old online status
+  bool _shouldUpdate = true;
 
   // Kept between builds: a refresh rebuilds the view, and a new future would
   // fetch the account again and hide the profile behind a spinner.
@@ -209,7 +217,7 @@ class _OnlineProfileViewState extends State<OnlineProfileView> {
       return withData<Widget, ApiRepository>(
         context.watch<ApiRepository>(),
         (repo) => RefreshIndicator(
-          onRefresh: () async => _update(),
+          onRefresh: () => isOwner ? _refreshOwner() : Future.sync(_update),
           child: Stack(
             children: [
               Positioned.fill(
@@ -397,7 +405,8 @@ class _OnlineProfileViewState extends State<OnlineProfileView> {
               ),
             );
           }
-          _update();
+          // The repository dropped the profile the action changed
+          _update(force: false);
         }
       },
     );
@@ -437,11 +446,7 @@ class _OnlineProfileViewState extends State<OnlineProfileView> {
       if (data.friendship == Friendship.friends)
         _createButton(
           t.online.invite,
-          disabled
-              ? null
-              : () => (widget.onInvite ?? (u) => openLegacyInvite(context, u))(
-                  user,
-                ),
+          disabled ? null : () => inviteFriend(context, user, widget.onInvite),
         )
       else
         _createButton(
@@ -626,13 +631,21 @@ class _OnlineProfileViewState extends State<OnlineProfileView> {
     yield _divider(context);
   }
 
-  void _update() {
+  /// Asks the server for the own account again
+  Future<void> _refreshOwner() {
+    GetIt.instance.get<AccountManager>().invalidate();
+    _reloadAccount();
+
+    return _account;
+  }
+
+  void _update({bool force = true}) {
     // The error of the last action replaces the buttons until a refresh.
     if (_userActionsBloc.state is UserActionErrorState) {
       _userActionsBloc.add(const UserActionsResetEvent());
     }
     setState(() {
-      _shouldUpdate = true;
+      _shouldUpdate = force;
     });
   }
 

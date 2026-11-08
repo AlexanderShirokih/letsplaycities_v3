@@ -87,6 +87,9 @@ class FakeApiRepository extends Fake implements ApiRepository {
   /// The history requests, kept apart: a profile shows the history too
   final historyCalls = <String>[];
 
+  /// `forceRefresh` of each request for a user
+  final userCalls = <bool>[];
+
   @override
   String? avatarUrl(LpsUser user) => null;
 
@@ -124,8 +127,10 @@ class FakeApiRepository extends Fake implements ApiRepository {
   }
 
   @override
-  Future<UserProfile> user(int id, [bool forceRefresh = false]) async =>
-      profiles[id]!;
+  Future<UserProfile> user(int id, [bool forceRefresh = false]) async {
+    userCalls.add(forceRefresh);
+    return profiles[id]!;
+  }
 
   /// The profile for the invite push, which still uses the old model
   @override

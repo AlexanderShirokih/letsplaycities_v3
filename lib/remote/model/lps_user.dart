@@ -1,10 +1,11 @@
 import 'package:equatable/equatable.dart';
 import 'package:lets_play_cities/app_config.dart';
+import 'package:lets_play_cities/utils/online_window.dart';
 
 /// User of the game server: the protocol object `user`
 class LpsUser extends Equatable {
   /// How long after [lastSeenAt] a user is shown as online
-  static const onlineWindow = Duration(minutes: 5);
+  static const onlineWindow = userOnlineWindow;
 
   final int id;
   final String name;

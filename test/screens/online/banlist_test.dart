@@ -47,7 +47,7 @@ void main() {
       repository.log.where((call) => call == 'deleteBlock(1)'),
       hasLength(1),
     );
-    expect(repository.log.last, 'blocks(forceRefresh: true)');
+    expect(repository.log.last, 'blocks(forceRefresh: false)');
     expect(find.text('Bob'), findsNothing);
     // The undo snackbar has already said it, so it is not repeated.
     expect(find.text(removedMessage), findsNothing);

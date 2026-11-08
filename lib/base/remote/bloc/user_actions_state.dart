@@ -52,8 +52,16 @@ class UserActionListDataState<T> extends UserActionsState {
   /// `true` while the server has more pages after [data]
   final bool hasMore;
 
-  const UserActionListDataState(this.data, {this.hasMore = false});
+  /// The error of the last request for the next page, `null` if it went
+  /// well. [data] stays what was loaded before.
+  final Object? moreError;
+
+  const UserActionListDataState(
+    this.data, {
+    this.hasMore = false,
+    this.moreError,
+  });
 
   @override
-  List<Object> get props => [data, hasMore];
+  List<Object?> get props => [data, hasMore, moreError];
 }

@@ -82,6 +82,38 @@ void main() {
       expect(find.text(t.online.cancelFriendshipRequest), findsOne);
     });
 
+    testWidgets('opening skips the cache, the reload after an action uses it', (
+      tester,
+    ) async {
+      await showAlicesProfile(tester);
+      expect(repository.userCalls, [true]);
+
+      await tester.tap(find.text(t.online.addToFriend));
+      await tester.pumpAndSettle();
+
+      expect(repository.userCalls, [true, false]);
+
+      await pullToRefresh(tester);
+
+      expect(repository.userCalls, [true, false, true]);
+    });
+
+    testWidgets('a refresh of the own profile asks for the account again', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        hostScreen(const OnlineProfileView(), repository: repository),
+      );
+      await tester.pumpAndSettle();
+      expect(accountManager.fetches, 1);
+
+      await tester.drag(find.text('ID 1'), const Offset(0, 300));
+      await tester.pumpAndSettle();
+
+      expect(accountManager.invalidations, 1);
+      expect(accountManager.fetches, 2);
+    });
+
     group('actions by friendship and block', () {
       Future<void> show(
         WidgetTester tester, {

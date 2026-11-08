@@ -25,6 +25,10 @@ class OnlineFriendsScreen extends StatelessWidget
   @override
   UserFetchType get fetchEvent => UserFetchType.getFriendsList;
 
+  // The cached online status of the friends is old after a while
+  @override
+  bool get refreshOnOpen => true;
+
   @override
   Widget buildItem(BuildContext context, FriendEntry data) =>
       throw UnimplementedError('The friends are built by buildBody');
@@ -34,6 +38,7 @@ class OnlineFriendsScreen extends StatelessWidget
     BuildContext context,
     List<FriendEntry> data,
     bool hasMore,
+    Object? moreError,
   ) => _FriendsBody(entries: data, onInvite: onInvite);
 
   @override
@@ -74,6 +79,9 @@ class _FriendsBodyState extends State<_FriendsBody> {
     final t = context.t;
     final c = D2Colors.of(context);
     final found = widget.entries.where(_matches).toList();
+    final friendCount = widget.entries
+        .where((e) => e.status == FriendStatus.friends)
+        .length;
     final requests = [
       for (final e in found)
         if (e.status != FriendStatus.friends) e,
@@ -99,7 +107,7 @@ class _FriendsBodyState extends State<_FriendsBody> {
             const SizedBox(height: 8),
           ],
         ],
-        if (friends.isNotEmpty) ...[
+        if (friendCount > 0) ...[
           const SizedBox(height: 10),
           Row(
             crossAxisAlignment: CrossAxisAlignment.baseline,
@@ -111,23 +119,27 @@ class _FriendsBodyState extends State<_FriendsBody> {
               ),
               const SizedBox(width: 8),
               Text(
-                '${friends.length}',
+                '$friendCount',
                 style: D2Text.body.copyWith(color: c.inkSoft),
               ),
             ],
           ),
           const SizedBox(height: 8),
-          D2Card(
-            padding: EdgeInsets.zero,
-            child: Column(
-              children: [
-                for (var i = 0; i < friends.length; i++) ...[
-                  if (i > 0) Container(height: 2, color: c.bg),
-                  _FriendRow(user: friends[i].user, onInvite: widget.onInvite),
+          if (friends.isNotEmpty)
+            D2Card(
+              padding: EdgeInsets.zero,
+              child: Column(
+                children: [
+                  for (var i = 0; i < friends.length; i++) ...[
+                    if (i > 0) Container(height: 2, color: c.bg),
+                    _FriendRow(
+                      user: friends[i].user,
+                      onInvite: widget.onInvite,
+                    ),
+                  ],
                 ],
-              ],
+              ),
             ),
-          ),
         ],
       ],
     );
@@ -338,8 +350,7 @@ class _FriendRow extends StatelessWidget {
                 label: t.online.inviteShort,
                 kind: D2ButtonKind.accent,
                 semanticLabel: '${t.online.invite}: ${user.name}',
-                onPressed: () =>
-                    (onInvite ?? (u) => openLegacyInvite(context, u))(user),
+                onPressed: () => inviteFriend(context, user, onInvite),
               ),
             ],
             PopupMenuButton<_FriendMenu>(

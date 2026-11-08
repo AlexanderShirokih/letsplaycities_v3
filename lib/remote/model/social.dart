@@ -66,10 +66,6 @@ class UserProfile extends Equatable {
     blocked: Blocked.fromWire(json['blocked'] as String),
   );
 
-  /// The invitation and the friend request are impossible while either user
-  /// blocks the other
-  bool get canInvite => blocked == Blocked.none;
-
   @override
   List<Object?> get props => [user, friendship, blocked];
 }

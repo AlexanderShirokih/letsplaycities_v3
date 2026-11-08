@@ -22,7 +22,11 @@ void main() {
     repository = FakeApiRepository()
       ..pageSize = 2
       ..games = [for (var id = 5; id >= 1; id--) game(id)];
-    bloc = UserListActionsBloc(repository, UserFetchType.getHistoryList, 2);
+    bloc = UserListActionsBloc(
+      repository,
+      UserFetchType.getHistoryList,
+      withUser: 2,
+    );
   });
 
   tearDown(() => bloc.close());
@@ -67,5 +71,38 @@ void main() {
     await settle();
 
     expect(ids(), [5, 4]);
+  });
+
+  test('a failed page keeps the loaded games and can be retried', () async {
+    await settle();
+
+    repository.listError = StateError('offline');
+    bloc.add(const UserFetchMoreEvent());
+    await settle();
+
+    var state = bloc.state as UserActionListDataState;
+    expect(ids(), [5, 4]);
+    expect(state.moreError, isA<StateError>());
+    expect(state.hasMore, isTrue);
+
+    repository.listError = null;
+    bloc.add(const UserFetchMoreEvent());
+    await settle();
+
+    state = bloc.state as UserActionListDataState;
+    expect(ids(), [5, 4, 3, 2]);
+    expect(state.moreError, isNull);
+  });
+
+  test('the first request skips the cache only when asked to', () async {
+    final friends = UserListActionsBloc(
+      repository,
+      UserFetchType.getFriendsList,
+      refreshOnOpen: true,
+    );
+    addTearDown(friends.close);
+    await settle();
+
+    expect(repository.log, ['friends(forceRefresh: true)']);
   });
 }

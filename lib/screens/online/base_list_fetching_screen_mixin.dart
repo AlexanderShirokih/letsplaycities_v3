@@ -6,7 +6,9 @@ import 'package:lets_play_cities/base/remote/bloc/user_actions_bloc.dart';
 import 'package:lets_play_cities/base/remote/bloc/user_list_actions_bloc.dart';
 import 'package:lets_play_cities/i18n/strings.g.dart';
 import 'package:lets_play_cities/remote/api_repository.dart';
+import 'package:lets_play_cities/remote/client/api_exception.dart';
 import 'package:lets_play_cities/screens/common/common_widgets.dart';
+import 'package:lets_play_cities/screens/common/error_texts.dart';
 
 import 'common_online_widgets.dart';
 
@@ -27,14 +29,22 @@ mixin BaseListFetchingScreenMixin<T> on StatelessWidget {
   /// If `true` ListView will be used as container, otherwise as a Column
   bool get scrollable => true;
 
+  /// `true` if opening the screen requests the list again instead of using
+  /// the cached one, e.g. when the list shows who is online
+  bool get refreshOnOpen => false;
+
   /// Builds item from fetched [data]
   Widget buildItem(BuildContext context, T data);
 
   /// Builds the fetched, not empty [data]. [hasMore] is `true` while the
   /// server has more pages. By default a list of [buildItem] that asks for
   /// the next page at its end.
-  Widget buildBody(BuildContext context, List<T> data, bool hasMore) =>
-      _showList(context, data, hasMore);
+  Widget buildBody(
+    BuildContext context,
+    List<T> data,
+    bool hasMore,
+    Object? moreError,
+  ) => _showList(context, data, hasMore, moreError);
 
   /// Creates slider widget which is [Colors.green] for left position
   /// and [Colors.red] for right.
@@ -60,7 +70,8 @@ mixin BaseListFetchingScreenMixin<T> on StatelessWidget {
         create: (ctx) => UserListActionsBloc(
           ctx.read<ApiRepository>(),
           fetchEvent,
-          withUser,
+          withUser: withUser,
+          refreshOnOpen: refreshOnOpen,
         ),
       ),
       // Not closed with the screen: the undo snackbar is shown by the
@@ -78,6 +89,11 @@ mixin BaseListFetchingScreenMixin<T> on StatelessWidget {
     child: BlocListener<UserActionsBloc, UserActionsState>(
       listener: _onUserActionState,
       child: BlocBuilder<UserListActionsBloc, UserActionsState>(
+        // A reload after an action keeps the list on the screen, so what the
+        // user typed into it stays.
+        buildWhen: (previous, current) =>
+            !(previous is UserActionListDataState &&
+                current is UserProcessingActionState),
         builder: (context, state) {
           if (state is UserActionListDataState) {
             return RefreshIndicator(
@@ -88,7 +104,12 @@ mixin BaseListFetchingScreenMixin<T> on StatelessWidget {
               },
               child: state.data.isEmpty
                   ? _showPlaceholder(context)
-                  : buildBody(context, state.data as List<T>, state.hasMore),
+                  : buildBody(
+                      context,
+                      state.data as List<T>,
+                      state.hasMore,
+                      state.moreError,
+                    ),
             );
           } else if (state is UserActionErrorState) {
             return showError(context, state.error);
@@ -131,13 +152,17 @@ mixin BaseListFetchingScreenMixin<T> on StatelessWidget {
           ),
         );
       }
-      // Forced: unbanning a user does not update the cached ban list.
-      reloadList(true);
+      // The repository keeps its cache up to date after an action.
+      reloadList(false);
     } else if (state is UserActionErrorState) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           duration: const Duration(seconds: 3),
-          content: Text(context.t.online.actionFailed),
+          content: Text(
+            state.error is ApiException
+                ? errorText(context.t, state.error)
+                : context.t.online.actionFailed,
+          ),
         ),
       );
       // The failed action left the cached list as it was, so reloading from
@@ -146,13 +171,24 @@ mixin BaseListFetchingScreenMixin<T> on StatelessWidget {
     }
   }
 
-  Widget _showList(BuildContext context, List<T> data, bool hasMore) =>
-      scrollable
+  Widget _showList(
+    BuildContext context,
+    List<T> data,
+    bool hasMore,
+    Object? moreError,
+  ) => scrollable
       ? ListView.builder(
           padding: EdgeInsets.all(8.0),
-          itemCount: data.length + (hasMore ? 1 : 0),
+          itemCount: data.length + (hasMore || moreError != null ? 1 : 0),
           itemBuilder: (ctx, i) => i < data.length
               ? buildItem(context, data[i])
+              : moreError != null
+              ? _RetryMore(
+                  error: moreError,
+                  onRetry: () => context.read<UserListActionsBloc>().add(
+                    const UserFetchMoreEvent(),
+                  ),
+                )
               : _LoadMore(
                   onVisible: () => context.read<UserListActionsBloc>().add(
                     const UserFetchMoreEvent(),
@@ -203,5 +239,24 @@ class _LoadMoreState extends State<_LoadMore> {
   Widget build(BuildContext context) => const Padding(
     padding: EdgeInsets.all(16.0),
     child: Center(child: CircularProgressIndicator()),
+  );
+}
+
+/// The end of a paged list whose last page failed: the error and a retry
+class _RetryMore extends StatelessWidget {
+  final Object error;
+  final VoidCallback onRetry;
+
+  const _RetryMore({required this.error, required this.onRetry});
+
+  @override
+  Widget build(BuildContext context) => Padding(
+    padding: const EdgeInsets.all(8.0),
+    child: Column(
+      children: [
+        Text(errorText(context.t, error), textAlign: TextAlign.center),
+        TextButton(onPressed: onRetry, child: Text(context.t.online.reload)),
+      ],
+    ),
   );
 }

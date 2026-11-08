@@ -43,7 +43,8 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(repository.log, contains('putFriend(2)'));
-    expect(repository.log.last, 'friends(forceRefresh: true)');
+    // The repository keeps its cache right after an action
+    expect(repository.log.last, 'friends(forceRefresh: false)');
     expect(find.text(t.online.requestAccepted), findsOneWidget);
     expect(find.text('Alice'), findsOneWidget);
     expect(find.text(acceptLabel), findsNothing);
@@ -121,17 +122,119 @@ void main() {
     expect(find.text('Maria'), findsOneWidget);
   });
 
-  testWidgets('the menu removes a friend after the undo snackbar and blocks', (
+  testWidgets('opening the screen skips the cache, an action reload uses it', (
+    tester,
+  ) async {
+    await show(tester);
+    expect(repository.log, ['friends(forceRefresh: true)']);
+
+    await tester.tap(find.text(t.online.declineFriendshipRequest));
+    await tester.pumpAndSettle();
+
+    expect(repository.log, [
+      'friends(forceRefresh: true)',
+      'deleteFriend(2)',
+      'friends(forceRefresh: false)',
+    ]);
+  });
+
+  Future<void> openMenu(WidgetTester tester, String name) async {
+    await tester.tap(find.byTooltip(name));
+    await tester.pumpAndSettle();
+  }
+
+  testWidgets('the menu blocks a friend', (tester) async {
+    repository.friendEntries = [friendEntry(4, 'Carol', FriendStatus.friends)];
+    await show(tester);
+
+    await openMenu(tester, 'Carol');
+    await tester.tap(find.text(t.online.ban));
+    await tester.pumpAndSettle();
+
+    expect(repository.log, contains('putBlock(4)'));
+  });
+
+  testWidgets('the menu removes a friend once the undo snackbar times out', (
     tester,
   ) async {
     repository.friendEntries = [friendEntry(4, 'Carol', FriendStatus.friends)];
     await show(tester);
 
-    await tester.tap(find.byTooltip('Carol'));
+    await openMenu(tester, 'Carol');
+    await tester.tap(find.text(t.online.removeFromFriends));
     await tester.pumpAndSettle();
-    await tester.tap(find.text(t.online.ban));
+    expect(find.text(t.online.removedFromFriends(login: 'Carol')), findsOne);
+    expect(repository.log, isNot(contains('deleteFriend(4)')));
+
+    await tester.pump(const Duration(seconds: 3));
     await tester.pumpAndSettle();
 
-    expect(repository.log, contains('putBlock(4)'));
+    expect(repository.log, contains('deleteFriend(4)'));
+    expect(find.text('Carol'), findsNothing);
+  });
+
+  testWidgets('Cancel on the undo snackbar keeps the friend', (tester) async {
+    repository.friendEntries = [friendEntry(4, 'Carol', FriendStatus.friends)];
+    await show(tester);
+
+    await openMenu(tester, 'Carol');
+    await tester.tap(find.text(t.online.removeFromFriends));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text(t.cancel));
+    await tester.pumpAndSettle();
+    await tester.pump(const Duration(seconds: 3));
+    await tester.pumpAndSettle();
+
+    expect(repository.log, isNot(contains('deleteFriend(4)')));
+    expect(find.text('Carol'), findsOneWidget);
+  });
+
+  testWidgets('the search text survives the reload after an action', (
+    tester,
+  ) async {
+    repository.friendEntries = [
+      friendEntry(2, 'Alice', FriendStatus.incoming),
+      friendEntry(7, 'Maria', FriendStatus.friends),
+      friendEntry(8, 'Timur', FriendStatus.friends),
+    ];
+    await show(tester);
+
+    await tester.enterText(find.byType(EditableText), 'ali');
+    await tester.pumpAndSettle();
+    await tester.tap(find.text(t.online.acceptFriendshipRequest));
+    await tester.pumpAndSettle();
+
+    expect(repository.log.last, 'friends(forceRefresh: false)');
+    expect(
+      tester.widget<EditableText>(find.byType(EditableText)).controller.text,
+      'ali',
+    );
+    // Alice is a friend now and matches the search
+    expect(find.text('Alice'), findsOneWidget);
+    expect(find.text('Maria'), findsNothing);
+  });
+
+  testWidgets('the friend count ignores the search', (tester) async {
+    repository.friendEntries = [
+      friendEntry(7, 'Maria', FriendStatus.friends),
+      friendEntry(8, 'Timur', FriendStatus.friends),
+    ];
+    await show(tester);
+
+    await tester.enterText(find.byType(EditableText), 'mar');
+    await tester.pumpAndSettle();
+
+    expect(find.text('Timur'), findsNothing);
+    expect(find.text('2'), findsOneWidget);
+  });
+
+  testWidgets('a failed action shows the text of the server', (tester) async {
+    repository.actionError = const ApiException(403, 'blocked', 'Blocked!');
+    await show(tester);
+
+    await tester.tap(find.text(t.online.acceptFriendshipRequest));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Blocked!'), findsOneWidget);
   });
 }
