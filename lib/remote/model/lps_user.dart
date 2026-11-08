@@ -53,13 +53,16 @@ class LpsUser extends Equatable {
   bool isOnline(DateTime now) => now.difference(lastSeenAt) < onlineWindow;
 
   /// Avatar on the server of [config], `null` if the user has none
-  String? avatarUrl(AppConfig config) {
-    final hash = avatarHash;
-    if (hash == null) return null;
-
-    return '${config.restBaseUrl}/avatars/$id?v=${Uri.encodeQueryComponent(hash)}';
-  }
+  String? avatarUrl(AppConfig config) => avatarUrlOf(config, id, avatarHash);
 
   @override
   List<Object?> get props => [id, name, avatarHash, provider, lastSeenAt];
+}
+
+/// Avatar of user [id] with version [avatarHash] on the server of [config],
+/// `null` if the user has no avatar
+String? avatarUrlOf(AppConfig config, int id, String? avatarHash) {
+  if (avatarHash == null) return null;
+
+  return '${config.restBaseUrl}/avatars/$id?v=${Uri.encodeQueryComponent(avatarHash)}';
 }

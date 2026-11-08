@@ -5,17 +5,10 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:lets_play_cities/app_config.dart';
-import 'package:lets_play_cities/base/preferences.dart';
-import 'package:lets_play_cities/remote/auth.dart';
-import 'package:lets_play_cities/remote/client/remote_game_client.dart';
-import 'package:lets_play_cities/remote/client/socket_api.dart';
 import 'package:lets_play_cities/remote/client/web_socket_connector.dart';
-import 'package:lets_play_cities/remote/core/json_message_converter.dart';
 import 'package:lets_play_cities/remote/client/api_exception.dart';
 import 'package:lets_play_cities/remote/client/base_socket_connector.dart';
 import 'package:lets_play_cities/remote/exceptions.dart';
-import 'package:lets_play_cities/remote/model/lps_user.dart';
 
 class _FakeWebSocket extends Fake implements WebSocket {
   bool closed = false;
@@ -23,8 +16,6 @@ class _FakeWebSocket extends Fake implements WebSocket {
   @override
   Future close([int? code, String? reason]) async => closed = true;
 }
-
-class _FakePreferences extends Fake implements GamePreferences {}
 
 const _uri = 'wss://test:443/game';
 
@@ -164,33 +155,5 @@ void main() {
     await pumpEventQueue();
 
     expect(socket.closed, isTrue);
-  });
-
-  test('RemoteGameClient.connect() fails instead of waiting forever', () async {
-    final client = RemoteGameClient(
-      account: RemoteAccount(
-        LpsUser(
-          id: 1,
-          name: 'user',
-          provider: 'native',
-          lastSeenAt: DateTime(2026),
-        ),
-        canReceiveMessages: true,
-      ),
-      socketApi: SocketApi(
-        WebSocketConnector(
-          _uri,
-          openSocket: (_) => Future.error(
-            const WebSocketException('Connection was not upgraded', 503),
-          ),
-        ),
-        JsonMessageConverter(AppConfig.forHost('test')),
-      ),
-      firebaseToken: Future.value(''),
-      preferences: _FakePreferences(),
-      isLocal: () => false,
-    );
-
-    await expectLater(client.connect(), throwsA(isA<ConnectionException>()));
   });
 }

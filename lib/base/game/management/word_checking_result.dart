@@ -26,8 +26,14 @@ class WordCheckingResult extends GameEvent {
 
   const WordCheckingResult();
 
-  /// Creates word checking result from [WordResult] enum state
-  factory WordCheckingResult.of(WordResult result, User owner, String word) {
+  /// Creates word checking result from [WordResult] enum state.
+  /// [validLetter] is the letter that [WordResult.wrongLetter] asks for.
+  factory WordCheckingResult.of(
+    WordResult result,
+    User owner,
+    String word, {
+    String validLetter = '',
+  }) {
     switch (result) {
       case WordResult.accepted:
         return Accepted(word, owner);
@@ -43,6 +49,8 @@ class WordCheckingResult extends GameEvent {
         return NotFound(word);
       case WordResult.wrongMove:
         return Error(WrongMoveException());
+      case WordResult.wrongLetter:
+        return WrongLetter(validLetter);
       case WordResult.unknown:
         return Error(WordCheckingException('Unknown word result!'));
     }

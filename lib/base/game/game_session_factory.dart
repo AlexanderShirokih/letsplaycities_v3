@@ -68,6 +68,7 @@ class GameSessionFactory {
       wordsDifficulty: () => preferences.wordsDifficulty,
       externalEvents: config.externalEventSource,
       turnGate: mode == GameMode.playerVsPlayer ? TurnGate() : null,
+      serverAuthoritative: config.serverAuthoritative,
     );
   }
 }

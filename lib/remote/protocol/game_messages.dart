@@ -86,6 +86,10 @@ sealed class ServerGameMessage extends Equatable {
   List<Object?> get props => [];
 }
 
+/// What the server says while the client waits for a game: [Queued],
+/// [InviteStatus], [Match] or [ProtocolError]
+sealed class WaitingEvent {}
+
 /// Answer to [Hello]
 class Welcome extends ServerGameMessage {
   final LpsUser user;
@@ -97,7 +101,7 @@ class Welcome extends ServerGameMessage {
 }
 
 /// The client waits in the queue
-class Queued extends ServerGameMessage {
+class Queued extends ServerGameMessage implements WaitingEvent {
   const Queued();
 }
 
@@ -119,7 +123,7 @@ enum InviteStatusKind {
   );
 }
 
-class InviteStatus extends ServerGameMessage {
+class InviteStatus extends ServerGameMessage implements WaitingEvent {
   final int userId;
   final InviteStatusKind status;
 
@@ -148,7 +152,7 @@ class MatchOpponent extends Equatable {
 }
 
 /// A game has started
-class Match extends ServerGameMessage {
+class Match extends ServerGameMessage implements WaitingEvent {
   final int gameId;
   final MatchOpponent opponent;
   final bool youStart;
@@ -238,7 +242,7 @@ class GameOver extends ServerGameMessage {
 
 /// The server rejected a message: `bad_message`, `hello_required`,
 /// `invalid_state`, `unsupported_protocol`, `replaced`, `rate_limited`
-class ProtocolError extends ServerGameMessage {
+class ProtocolError extends ServerGameMessage implements WaitingEvent {
   final String code;
 
   const ProtocolError(this.code);

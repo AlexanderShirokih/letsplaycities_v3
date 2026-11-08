@@ -42,6 +42,18 @@ void main() {
       );
     });
 
+    test('WRONG_LETTER asks for the valid letter', () {
+      expect(
+        WordCheckingResult.of(
+          WordResult.wrongLetter,
+          player,
+          'москва',
+          validLetter: 'а',
+        ),
+        isA<WrongLetter>().having((e) => e.validLetter, 'validLetter', 'а'),
+      );
+    });
+
     test('RECEIVED and UNKNOWN are reported as errors', () {
       for (final result in [WordResult.received, WordResult.unknown]) {
         expect(

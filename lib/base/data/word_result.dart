@@ -15,6 +15,9 @@ enum WordResult {
   /// Error: It's not a users turn
   wrongMove('WRONG_MOVE'),
 
+  /// Error: The word starts with a letter other than the last suitable one
+  wrongLetter('WRONG_LETTER'),
+
   /// Undefined state
   unknown('UNKNOWN');
 

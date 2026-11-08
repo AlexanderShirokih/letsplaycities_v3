@@ -1,0 +1,72 @@
+import 'dart:async';
+
+import 'package:lets_play_cities/remote/exceptions.dart';
+import 'package:lets_play_cities/remote/game_connection.dart';
+import 'package:lets_play_cities/remote/model/lps_user.dart';
+import 'package:lets_play_cities/remote/protocol/game_messages.dart';
+
+/// [GameConnection] in memory: the test plays the server with [receive] and
+/// [drop] and reads what the client sent from [sent].
+class FakeGameConnection implements GameConnection {
+  final _messages = StreamController<ServerGameMessage>.broadcast();
+  final _closes = StreamController<GameConnectionClose>.broadcast();
+
+  /// Messages the client sent, in order
+  final sent = <ClientGameMessage>[];
+
+  /// The user the server welcomes
+  LpsUser user;
+
+  /// Calls of [ensureConnected]
+  int connects = 0;
+
+  bool _connected = false;
+
+  FakeGameConnection({LpsUser? user})
+    : user =
+          user ??
+          LpsUser(
+            id: 1,
+            name: 'Мария',
+            provider: 'native',
+            lastSeenAt: DateTime(2026),
+          );
+
+  @override
+  Future<LpsUser> ensureConnected() async {
+    connects++;
+    _connected = true;
+
+    return user;
+  }
+
+  @override
+  Stream<ServerGameMessage> get messages => _messages.stream;
+
+  @override
+  Stream<GameConnectionClose> get closes => _closes.stream;
+
+  @override
+  bool get isConnected => _connected;
+
+  @override
+  void send(ClientGameMessage message) {
+    if (!_connected) {
+      throw const RemoteIOException('The game connection is not open');
+    }
+
+    sent.add(message);
+  }
+
+  @override
+  Future<void> close() async => _connected = false;
+
+  /// The server sends [message]
+  void receive(ServerGameMessage message) => _messages.add(message);
+
+  /// The socket breaks
+  void drop() {
+    _connected = false;
+    _closes.add((code: null, reason: 'connection lost'));
+  }
+}

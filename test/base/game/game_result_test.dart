@@ -133,4 +133,60 @@ void main() {
       });
     });
   }
+
+  group('server authority', () {
+    /// The result of a network game that the server ended with [loser]
+    /// losing; the scores and the turn play no part.
+    MatchResult resultWhenLoses({
+      required bool ownerLoses,
+      required MoveFinishType finishType,
+      required ScoringType scoringType,
+    }) {
+      final owner = createPlayer('owner')..increaseScore(ownerLoses ? 50 : 0);
+      final opponent = createPlayer('opponent')
+        ..increaseScore(ownerLoses ? 0 : 50);
+      final users = UsersList([owner, opponent]);
+      if (ownerLoses) users.switchToNext();
+
+      return GameResultChecker(
+        users: users,
+        owner: owner,
+        finishType: finishType,
+        scoringType: scoringType,
+        finishRequester: ownerLoses ? owner : opponent,
+        serverAuthoritative: true,
+      ).getGameResults().matchResult;
+    }
+
+    test('loser decides result regardless of score', () {
+      for (final scoringType in ScoringType.values) {
+        for (final finishType in [
+          MoveFinishType.surrender,
+          MoveFinishType.timeout,
+          MoveFinishType.disconnected,
+        ]) {
+          final reason = '$scoringType, $finishType';
+
+          expect(
+            resultWhenLoses(
+              ownerLoses: true,
+              finishType: finishType,
+              scoringType: scoringType,
+            ),
+            MatchResult.lose,
+            reason: reason,
+          );
+          expect(
+            resultWhenLoses(
+              ownerLoses: false,
+              finishType: finishType,
+              scoringType: scoringType,
+            ),
+            MatchResult.win,
+            reason: reason,
+          );
+        }
+      }
+    });
+  });
 }

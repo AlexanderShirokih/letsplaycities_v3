@@ -8,37 +8,75 @@ import 'package:lets_play_cities/remote/api_repository.dart';
 import 'package:lets_play_cities/remote/api_repository_factory.dart';
 import 'package:lets_play_cities/remote/client/remote_game_client.dart';
 import 'package:lets_play_cities/remote/exceptions.dart';
+import 'package:lets_play_cities/remote/game_connection.dart';
+import 'package:lets_play_cities/remote/model/lps_user.dart';
+import 'package:lets_play_cities/remote/model/social.dart';
+import 'package:lets_play_cities/remote/protocol/game_messages.dart';
 
 import '../../../remote/fake_api_repository_factory.dart';
 
-/// Lets the test decide when [connect] and [play] finish. Like the real
-/// socket, [play] fails once the connection is closed.
+/// Lets the test decide when [connect] finishes and what the server says
+/// while the user waits.
 class _FakeGameClient implements RemoteGameClient {
   final connectResult = Completer<void>();
-  final playResult = Completer<GameConfig>();
+  final _waiting = StreamController<WaitingEvent>.broadcast();
+  final _closes = StreamController<GameConnectionClose>.broadcast();
   bool connected = false;
   int playCalls = 0;
+  int cancels = 0;
+
+  /// What [configFor] returns
+  GameConfig config = const GameConfig(gameMode: GameMode.network);
 
   @override
-  Future<void> connect() async {
+  Future<LpsUser> connect() async {
     await connectResult.future;
     connected = true;
+
+    return LpsUser(
+      id: _owner,
+      name: 'owner',
+      provider: 'native',
+      lastSeenAt: DateTime(2026),
+    );
   }
 
   @override
-  Future<void> logIn() async {}
-
-  @override
-  Future<GameConfig> play() async {
+  Future<void> find() async {
     playCalls++;
     if (!connected) {
       throw const RemoteIOException('Socket channel is not opened');
     }
-    return playResult.future;
   }
 
   @override
-  Future<void> disconnect() async => connected = false;
+  Stream<WaitingEvent> get waiting => _waiting.stream;
+
+  @override
+  Stream<GameConnectionClose> get closes => _closes.stream;
+
+  @override
+  GameConfig configFor(Match match) => config;
+
+  @override
+  void cancel() => cancels++;
+
+  /// The server pairs the user with an opponent
+  void match() => _waiting.add(
+    const Match(
+      gameId: 1,
+      opponent: MatchOpponent(
+        id: 2,
+        name: 'opponent',
+        friendship: Friendship.none,
+      ),
+      youStart: true,
+      moveTimeSec: 30,
+    ),
+  );
+
+  /// The socket breaks
+  void drop() => _closes.add((code: null, reason: 'lost'));
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
@@ -100,7 +138,7 @@ void main() {
     final states = <WaitingRoomState>[];
 
     final uncaught = await _uncaughtErrorsOf(() async {
-      final client = _FakeGameClient();
+      final client = _FakeGameClient()..config = config;
       final bloc = _createBloc(
         client,
         apiRepositories: () {
@@ -115,7 +153,7 @@ void main() {
       await pumpEventQueue();
       lookupsBeforeStart = lookups;
 
-      client.playResult.complete(config);
+      client.match();
       await pumpEventQueue();
 
       await subscription.cancel();
@@ -135,7 +173,7 @@ void main() {
     expect(states.last, isA<WaitingRoomInitial>());
   });
 
-  test('Cancel tapped while connecting is not followed by play()', () async {
+  test('Cancel tapped while connecting is not followed by find()', () async {
     late WaitingRoomState stateAfterCancel;
     late int playCalls;
 
@@ -181,7 +219,9 @@ void main() {
     expect(uncaught, isEmpty);
   });
 
-  test('play() failing after close() does not add events', () async {
+  test('a lost socket while waiting shows the connection error', () async {
+    late WaitingRoomState state;
+
     final uncaught = await _uncaughtErrorsOf(() async {
       final client = _FakeGameClient();
       final bloc = _createBloc(client);
@@ -190,15 +230,36 @@ void main() {
       client.connectResult.complete();
       await pumpEventQueue();
 
-      // The screen goes away while waiting for an opponent; the closed
-      // socket then ends play() with a ConnectionException.
-      await bloc.close();
-      client.playResult.completeError(
-        const ConnectionException('Connection interrupted'),
-      );
+      client.drop();
       await pumpEventQueue();
+
+      state = bloc.state;
+      await bloc.close();
     });
 
     expect(uncaught, isEmpty);
+    expect(state, const WaitingRoomConnectionError());
+  });
+
+  test('closing while waiting cancels the search, socket stays', () async {
+    late int cancels;
+
+    final uncaught = await _uncaughtErrorsOf(() async {
+      final client = _FakeGameClient();
+      final bloc = _createBloc(client);
+
+      bloc.add(const NewGameRequestEvent());
+      client.connectResult.complete();
+      await pumpEventQueue();
+
+      await bloc.close();
+      client.drop();
+      await pumpEventQueue();
+
+      cancels = client.cancels;
+    });
+
+    expect(uncaught, isEmpty);
+    expect(cancels, 1);
   });
 }

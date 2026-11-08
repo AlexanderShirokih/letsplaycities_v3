@@ -72,6 +72,80 @@ class _BrokenUser extends User {
   }
 }
 
+/// Accepts every word, like the checks and the server; holds back leave
+/// requests, which the network interceptor turns into `leave`.
+class _ServerChannel extends AbstractEventChannel {
+  final leaves = <LeaveRequested>[];
+
+  @override
+  Stream<GameEvent> sendEvent(GameEvent event) {
+    if (event is LeaveRequested) {
+      leaves.add(event);
+
+      return const Stream.empty();
+    }
+
+    return Stream.value(
+      event is RawWordEvent
+          ? Accepted(event.word, event.owner, status: CityStatus.ok)
+          : event,
+    );
+  }
+}
+
+/// The opponent of a network game: its words are the ones the test sends.
+class _OpponentUser extends User {
+  final words = StreamController<String>();
+  late final _queue = StreamIterator(words.stream);
+
+  _OpponentUser()
+    : super(
+        accountInfo: const LocalAccountInfo(
+          name: 'opponent',
+          picture: PlaceholderPictureSource(),
+        ),
+        comboSystem: ComboSystem(canUseQuickTime: false),
+        isTrusted: true,
+      );
+
+  @override
+  Future<String> onCreateWord(String firstChar) async {
+    await _queue.moveNext();
+
+    return _queue.current;
+  }
+}
+
+/// A game on server authority between [owner] and [opponent]; [server] plays
+/// the events that come from the game server.
+class _ServerGame {
+  final owner = _player('owner');
+  final opponent = _OpponentUser();
+  final channel = _ServerChannel();
+  final server = StreamController<GameEvent>();
+  late final GameSession session;
+
+  _ServerGame({required int timeLimit, bool ownerStarts = true}) {
+    session = GameSession(
+      mode: GameMode.network,
+      usersList: UsersList(ownerStarts ? [owner, opponent] : [opponent, owner]),
+      eventChannel: channel,
+      scoringType: ScoringType.byScore,
+      timeLimit: timeLimit,
+      scoreController: ScoreController(
+        ScoringSet.initial(),
+        ScoringType.byScore,
+        GameMode.network,
+        (_) {},
+      ),
+      achievements: _RecordingAchievements(),
+      wordsDifficulty: () => Difficulty.easy,
+      externalEvents: (_) => server.stream,
+      serverAuthoritative: true,
+    );
+  }
+}
+
 Player _player(String name) => Player(
   LocalAccountInfo(name: name, picture: const PlaceholderPictureSource()),
 );
@@ -326,5 +400,100 @@ void main() {
     expect(difficultyReads, 1);
     expect(achievements.unlocked, contains(Achievement.playInHardMode));
     expect(achievements.submittedScores, [10]);
+  });
+
+  group('server authority', () {
+    testWidgets('server game ignores local timeout', (tester) async {
+      final game = _ServerGame(timeLimit: 3);
+      final events = <GameEvent>[];
+      game.session.inputEvents.listen(events.add);
+      var finished = false;
+      unawaited(game.session.runMoves().then((_) => finished = true));
+      // Fake time covers the start delay of the game loop.
+      await tester.pump(const Duration(milliseconds: 200));
+
+      for (var second = 0; second < 10; second++) {
+        await tester.pump(const Duration(seconds: 1));
+      }
+      // Under fake async the end of the timer only arrives after one turn of
+      // the real event loop.
+      await tester.runAsync(() => Future<void>.delayed(Duration.zero));
+      await tester.pump();
+
+      expect(events.whereType<TimeEvent>().last.secondsLeft, 0);
+      expect(events.whereType<OnMoveFinished>(), isEmpty);
+      expect(finished, isFalse);
+
+      await game.session.cancel();
+    });
+
+    test('timer restarts on opponent accepted word', () {
+      fakeAsync((async) {
+        final game = _ServerGame(timeLimit: 10, ownerStarts: false);
+        final events = <GameEvent>[];
+        game.session.inputEvents.listen(events.add);
+        game.session.runMoves().ignore();
+        async.elapse(const Duration(milliseconds: 200));
+
+        async.elapse(const Duration(seconds: 6));
+        expect(events.whereType<TimeEvent>().last.secondsLeft, 5);
+
+        game.opponent.words.add('москва');
+        async.flushMicrotasks();
+        events.clear();
+        async.elapse(const Duration(seconds: 1));
+
+        expect(events.whereType<TimeEvent>().map((e) => e.secondsLeft), [10]);
+
+        game.session.cancel();
+        async.flushTimers();
+      });
+    });
+
+    test('surrender sends leave and ends on gameOver', () {
+      fakeAsync((async) {
+        final game = _ServerGame(timeLimit: 0);
+        GameResult? result;
+        game.session.runMoves().then((value) => result = value);
+        async.elapse(const Duration(milliseconds: 200));
+        game.opponent.increaseScore(5);
+
+        game.session.surrender();
+        async.flushMicrotasks();
+
+        expect(game.channel.leaves.single.owner, same(game.owner));
+        expect(result, isNull);
+
+        game.server.add(OnMoveFinished(MoveFinishType.surrender, game.owner));
+        async.flushMicrotasks();
+
+        expect(result!.finishType, MoveFinishType.surrender);
+        expect(result!.finishRequester, same(game.owner));
+        expect(result!.matchResult, MatchResult.lose);
+
+        async.elapse(const Duration(seconds: 5));
+        expect(game.channel.leaves, hasLength(1));
+      });
+    });
+
+    test('surrender ends locally after 3 s without gameOver', () {
+      fakeAsync((async) {
+        final game = _ServerGame(timeLimit: 0);
+        GameResult? result;
+        game.session.runMoves().then((value) => result = value);
+        async.elapse(const Duration(milliseconds: 200));
+        game.owner.increaseScore(50);
+
+        game.session.surrender();
+        async.elapse(const Duration(milliseconds: 2900));
+        expect(result, isNull);
+
+        async.elapse(const Duration(milliseconds: 200));
+
+        expect(result!.finishType, MoveFinishType.surrender);
+        expect(result!.finishRequester, same(game.owner));
+        expect(result!.matchResult, MatchResult.lose);
+      });
+    });
   });
 }

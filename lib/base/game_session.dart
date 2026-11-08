@@ -39,6 +39,15 @@ class GameSession {
   /// does not wait
   final TurnGate? turnGate;
 
+  /// `true` when a server judges the moves and ends the game. The timer then
+  /// only shows the time, and only the server ends the game: by timeout, by
+  /// surrender or when a player leaves.
+  final bool serverAuthoritative;
+
+  /// How long a surrender waits for the server to end the game before the
+  /// game ends here
+  static const leaveTimeout = Duration(seconds: 3);
+
   final AchievementsService _achievements;
 
   /// Called when the game ends, so the setting in effect at that moment counts
@@ -55,6 +64,12 @@ class GameSession {
   final _serviceEvents = StreamController<GameEvent>.broadcast();
 
   bool _gameRunning = true;
+
+  /// Ends the game here when the server does not answer a surrender
+  Timer? _leaveFallback;
+
+  /// Completes when the last service event has passed the event channel
+  Future<void> _serviceEventsSent = Future.value();
 
   /// Stream containing all events
   Stream<GameEvent> get inputEvents => _inputEvents.stream;
@@ -75,6 +90,7 @@ class GameSession {
     required this._wordsDifficulty,
     Stream<GameEvent> Function(GameSession)? externalEvents,
     this.turnGate,
+    this.serverAuthoritative = false,
   }) {
     scoreController.onMoveCombos = _summary.onCombos;
 
@@ -114,14 +130,26 @@ class GameSession {
     _sendServiceEvent(MessageEvent(message, currentPlayer));
   }
 
-  /// Sends service event to _serviceEvents pipe
-  Future _sendServiceEvent(GameEvent event) async {
-    await _serviceEvents.addStream(eventChannel.sendEvent(event));
+  /// Sends service event to _serviceEvents pipe. Events pass the channel one
+  /// after another: a stream cannot be added while another one is.
+  Future _sendServiceEvent(GameEvent event) {
+    final sent = _serviceEventsSent.then((_) async {
+      if (_serviceEvents.isClosed) return;
+
+      await _serviceEvents.addStream(eventChannel.sendEvent(event));
+    });
+    _serviceEventsSent = sent.catchError((_) {});
+
+    return sent;
   }
 
   /// Finishes the current game and surrenders the player
   /// if it is a current user now.
+  /// On server authority the server is asked to end the game instead: see
+  /// [leaveTimeout].
   Future surrender() async {
+    if (serverAuthoritative) return _leave();
+
     _gameRunning = false;
     turnGate?.cancel();
 
@@ -136,6 +164,23 @@ class GameSession {
     );
   }
 
+  /// Asks the server to end the game with the loss of the player. The game
+  /// ends with the answer of the server, or here as a surrender after
+  /// [leaveTimeout].
+  Future<void> _leave() async {
+    if (!_gameRunning || _leaveFallback != null) return;
+
+    final owner = usersList.all.firstWhere((user) => user is Player);
+    _leaveFallback = Timer(leaveTimeout, () {
+      if (!_gameRunning) return;
+
+      _gameRunning = false;
+      _sendServiceEvent(OnMoveFinished(MoveFinishType.surrender, owner));
+    });
+
+    await _sendServiceEvent(LeaveRequested(owner));
+  }
+
   /// Runs game processing loop
   /// When the game finishes returns [GameResult]
   Future<GameResult> runMoves() async {
@@ -145,6 +190,7 @@ class GameSession {
         _inputEvents.sink.add(event);
       }
     } finally {
+      _leaveFallback?.cancel();
       await _inputEvents.close();
     }
 
@@ -165,6 +211,7 @@ class GameSession {
         finishType: event.endType,
         finishRequester: event.finishRequester,
         summary: summary,
+        serverAuthoritative: serverAuthoritative,
       ).getGameResults();
 
       scoreController.onGameFinished(gameResults);
@@ -258,11 +305,15 @@ class GameSession {
         .take(timeLimit + 1)
         .takeWhile((_) => _gameRunning);
 
-    yield OnMoveFinished(MoveFinishType.timeout, usersList.current);
+    // On server authority only the server ends a move that ran out of time
+    if (!serverAuthoritative) {
+      yield OnMoveFinished(MoveFinishType.timeout, usersList.current);
+    }
   }
 
   Future cancel() async {
     _gameRunning = false;
+    _leaveFallback?.cancel();
     turnGate?.cancel();
 
     await usersList.close();

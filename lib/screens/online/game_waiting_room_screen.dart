@@ -12,11 +12,8 @@ import 'package:lets_play_cities/remote/account.dart';
 import 'package:lets_play_cities/remote/account_manager.dart';
 import 'package:lets_play_cities/remote/api_repository_factory.dart';
 import 'package:lets_play_cities/remote/client/remote_game_client.dart';
-import 'package:lets_play_cities/remote/client/socket_api.dart';
-import 'package:lets_play_cities/remote/client/web_socket_connector.dart';
-import 'package:lets_play_cities/remote/core/json_message_converter.dart';
 import 'package:lets_play_cities/remote/exceptions.dart';
-import 'package:lets_play_cities/remote/model/cloud_messaging_service.dart';
+import 'package:lets_play_cities/remote/game_connection.dart';
 import 'package:lets_play_cities/remote/model/friend_game_request.dart';
 import 'package:lets_play_cities/remote/model/server_messages.dart';
 import 'package:lets_play_cities/remote/models.dart';
@@ -98,17 +95,11 @@ class _GameWaitingRoomScreenState extends State<GameWaitingRoomScreen> {
           create: (_) {
             final waitingBloc = WaitingRoomBloc(
               RemoteGameClient(
-                account: remoteAccount,
-                firebaseToken: getIt<CloudMessagingService>().getUserToken(),
-                preferences: getIt<GamePreferences>(),
-                isLocal: () => !getIt<AppConfig>().isSecure,
-                socketApi: SocketApi(
-                  WebSocketConnector(getIt<AppConfig>().gameSocketUrl),
-                  // The pictures are on the main server, also in a LAN game.
-                  JsonMessageConverter(
-                    getIt<ApiRepositoryFactory>().pictureConfig,
-                  ),
-                ),
+                getIt<GameConnection>(),
+                isLocal: !getIt<AppConfig>().isSecure,
+                // The pictures are on the main server, also in a LAN game.
+                pictureConfig: getIt<ApiRepositoryFactory>().pictureConfig,
+                chatEnabled: getIt<GamePreferences>().onlineChatEnabled,
               ),
               remoteAccount.userId,
               apiRepositories: () => getIt<ApiRepositoryFactory>(),

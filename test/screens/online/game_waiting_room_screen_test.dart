@@ -5,7 +5,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:get_it/get_it.dart';
 import 'package:lets_play_cities/app_config.dart';
-import 'package:lets_play_cities/base/game/game_config.dart';
 import 'package:lets_play_cities/base/preferences.dart';
 import 'package:lets_play_cities/base/remote/bloc/waiting_room_bloc.dart';
 import 'package:lets_play_cities/i18n/strings.g.dart';
@@ -14,14 +13,17 @@ import 'package:lets_play_cities/remote/auth.dart';
 import 'package:lets_play_cities/remote/auth/token_store.dart';
 import 'package:lets_play_cities/remote/client/remote_game_client.dart';
 import 'package:lets_play_cities/remote/exceptions.dart';
+import 'package:lets_play_cities/remote/game_connection.dart';
 import 'package:lets_play_cities/remote/model/cloud_messaging_service.dart';
 import 'package:lets_play_cities/remote/model/friend_game_request.dart';
 import 'package:lets_play_cities/remote/model/lps_user.dart';
 import 'package:lets_play_cities/screens/common/common_widgets.dart';
 import 'package:lets_play_cities/screens/online/common_online_widgets.dart';
+import 'package:lets_play_cities/remote/protocol/game_messages.dart';
 import 'package:lets_play_cities/screens/online/game_waiting_room_screen.dart';
 
 import '../../i18n/translations_harness.dart';
+import '../../remote/fake_game_connection.dart';
 
 /// Returns the queued results one per call and repeats the last one.
 class _FakeAccountManager implements AccountManager {
@@ -43,6 +45,9 @@ class _FakeAccountManager implements AccountManager {
 
 class _FakePreferences implements GamePreferences {
   @override
+  bool get onlineChatEnabled => true;
+
+  @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
@@ -50,32 +55,31 @@ class _FakePreferences implements GamePreferences {
 class _FlakyGameClient implements RemoteGameClient {
   int connectCalls = 0;
   int playCalls = 0;
-  final invites = <FriendGameRequest>[];
+  final invites = <int>[];
 
   @override
-  Future<void> connect() async {
+  Future<LpsUser> connect() async {
     if (connectCalls++ == 0) {
       throw const ConnectionException('Connection refused');
     }
+
+    return _account.user;
   }
 
   @override
-  Future<void> logIn() async {}
+  Future<void> find() async => playCalls++;
 
   @override
-  Future<GameConfig> play() {
-    playCalls++;
-    return Completer<GameConfig>().future;
-  }
+  Future<void> invite(int userId) async => invites.add(userId);
 
   @override
-  Future<dynamic> invite(FriendGameRequest request) {
-    invites.add(request);
-    return Completer<dynamic>().future;
-  }
+  Stream<WaitingEvent> get waiting => const Stream.empty();
 
   @override
-  Future<void> disconnect() async {}
+  Stream<GameConnectionClose> get closes => const Stream.empty();
+
+  @override
+  void cancel() {}
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
@@ -93,6 +97,7 @@ void _registerServices(AccountManager accountManager) {
     ..registerSingleton<AccountManager>(accountManager)
     ..registerSingleton<CloudMessagingService>(StubCloudMessagingService())
     ..registerSingleton<GamePreferences>(_FakePreferences())
+    ..registerSingleton<GameConnection>(FakeGameConnection())
     ..registerSingleton<AppConfig>(config)
     ..registerSingleton<ApiRepositoryFactory>(
       ApiRepositoryFactory.main(
@@ -205,7 +210,7 @@ void main() {
     await tester.pump();
 
     expect(client.connectCalls, 2);
-    expect(client.invites, [request]);
+    expect(client.invites, [2]);
     expect(client.playCalls, 0);
 
     // Disposes the waiting animation and closes the bloc.

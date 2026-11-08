@@ -1,20 +1,16 @@
 import 'dart:async';
 
 import 'package:lets_play_cities/base/game/combo/combo_system.dart';
-import 'package:lets_play_cities/base/game/player/surrender_exception.dart';
 import 'package:lets_play_cities/base/users.dart';
 import 'package:lets_play_cities/remote/account.dart';
 import 'package:lets_play_cities/remote/client/remote_game_client.dart';
 
-/// The user by the other side
+/// The user by the other side: its moves are the words that the server
+/// accepted from it
 class RemotePlayer extends User {
-  final RemoteGameClient _remoteGameClient;
+  final RemoteGame _game;
 
-  @override
-  Future<void> close() =>
-      _remoteGameClient.disconnect().then((_) => super.close());
-
-  RemotePlayer(AdvancedAccountInfo accountInfo, this._remoteGameClient)
+  RemotePlayer(AdvancedAccountInfo accountInfo, this._game)
     : super(
         comboSystem: ComboSystem(canUseQuickTime: true),
         accountInfo: accountInfo,
@@ -22,10 +18,12 @@ class RemotePlayer extends User {
       );
 
   @override
-  Future<String> onCreateWord(String firstChar) {
-    return _remoteGameClient
-        .getInputWords(accountInfo as AdvancedAccountInfo)
-        .first
-        .catchError((_) => throw SurrenderException(this, true));
+  Future<String> onCreateWord(String firstChar) => _game.nextOpponentWord();
+
+  /// Leaves the game unless it is over; the shared connection stays open
+  @override
+  Future<void> close() async {
+    await _game.quit();
+    await super.close();
   }
 }

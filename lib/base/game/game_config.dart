@@ -23,6 +23,11 @@ class GameConfig {
   /// Additional stream with [GameEvent]s
   final Stream<GameEvent> Function(GameSession)? externalEventSource;
 
+  /// `true` when a server judges the moves, runs the clock and ends the game:
+  /// the network game and the LAN game
+  bool get serverAuthoritative =>
+      gameMode == GameMode.network || gameMode == GameMode.multiplayer;
+
   const GameConfig({
     required this.gameMode,
     this.timeLimitOverride,

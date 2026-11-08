@@ -24,6 +24,10 @@ class GameResultChecker {
   /// What happened in the game
   final GameSummary summary;
 
+  /// `true` when a server ended the game: [finishRequester] is then the
+  /// loser that the server named, whatever the score
+  final bool serverAuthoritative;
+
   const GameResultChecker({
     required this.users,
     required this.owner,
@@ -31,6 +35,7 @@ class GameResultChecker {
     required this.scoringType,
     required this.finishRequester,
     this.summary = GameSummary.empty,
+    this.serverAuthoritative = false,
   });
 
   /// Determines game results relative to [owner].
@@ -39,9 +44,15 @@ class GameResultChecker {
     owner: owner,
     finishType: finishType,
     hasScore: scoringType != ScoringType.lastMove,
-    matchResult: _getMatchResult(
-      finishType == MoveFinishType.timeout ? ScoringType.lastMove : scoringType,
-    ),
+    matchResult: serverAuthoritative
+        ? (identical(finishRequester, owner)
+              ? MatchResult.lose
+              : MatchResult.win)
+        : _getMatchResult(
+            finishType == MoveFinishType.timeout
+                ? ScoringType.lastMove
+                : scoringType,
+          ),
     finishRequester: finishRequester,
     summary: summary,
     opponent: users.all.where((user) => user != owner).firstOrNull,

@@ -5,9 +5,9 @@ import 'package:lets_play_cities/remote/model/lps_user.dart';
 
 export 'package:lets_play_cities/base/data/account_info.dart';
 
-/// [ClientAccountInfo] constructed from [ProfileInfo]
+/// Account of another user: the opponent of a network game
 class AdvancedAccountInfo extends ClientAccountInfo with Equatable {
-  final ProfileInfo profileInfo;
+  final BaseProfileInfo profileInfo;
 
   @override
   final bool canReceiveMessages;

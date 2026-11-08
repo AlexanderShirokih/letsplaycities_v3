@@ -54,6 +54,14 @@ class OnMoveFinished extends GameEvent {
   const OnMoveFinished(this.endType, this.finishRequester);
 }
 
+/// Asks the server of a network game to let [owner] leave: the server ends
+/// the game with the loss of [owner]
+class LeaveRequested extends GameEvent {
+  final User owner;
+
+  const LeaveRequested(this.owner);
+}
+
 /// An event that represents game timer ticks
 class TimeEvent extends GameEvent {
   /// Seconds left for the current move.
