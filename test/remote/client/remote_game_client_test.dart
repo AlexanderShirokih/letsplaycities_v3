@@ -176,9 +176,9 @@ void main() {
       final other = opponent(config).accountInfo as AdvancedAccountInfo;
 
       expect(me.userId, _me);
-      expect(other.profileInfo.userId, _opponentId);
+      expect(other.userId, _opponentId);
       expect(other.name, 'Пётр');
-      expect(other.profileInfo.pictureUrl, contains('/avatars/2?v=abc'));
+      expect(other.pictureUrl, contains('/avatars/2?v=abc'));
       expect(
         config.usersListOverride!.all.every((user) => user.isMessagesAllowed),
         isTrue,

@@ -44,7 +44,6 @@ class _FakeServer implements HttpClientAdapter {
 
 void main() {
   final mainServer = AppConfig.forHost('main.test');
-  final lanServer = AppConfig.lan('192.168.1.5');
   final alice = {
     'id': 2,
     'name': 'Alice',
@@ -128,55 +127,5 @@ void main() {
         expect(dioConfigs, [mainServer]);
       },
     );
-  });
-
-  group('forServer', () {
-    test('sends the requests to that server with its own token', () async {
-      await factory
-          .forServer(lanServer, MemoryTokenStore('lan'))
-          .forUser()
-          .blocks(true);
-
-      final request = server.requests.single;
-      expect(request.uri.toString(), 'http://192.168.1.5:8988/blocks');
-      expect(request.headers['Authorization'], 'Bearer lan');
-      expect(dioConfigs, [lanServer]);
-    });
-
-    test('keeps the picture URLs on the main server', () async {
-      server.respond = (_) => [aliceWithPicture];
-
-      final repository = factory
-          .forServer(lanServer, MemoryTokenStore('lan'))
-          .forUser();
-      final friends = await repository.friends(true);
-
-      expect(server.requests.single.uri.host, '192.168.1.5');
-      expect(
-        repository.avatarUrl(friends.single.user),
-        'https://main.test:443/v1/avatars/2?v=abc',
-      );
-    });
-
-    test('shares the cache with the factory it was made from', () async {
-      server.respond = (_) => [aliceWithPicture];
-      final lanFactory = factory.forServer(lanServer, MemoryTokenStore('lan'));
-
-      await lanFactory.forUser().friends(true);
-      final cached = await factory.forUser().friends(false);
-
-      expect(lanFactory.cache, same(cache));
-      expect(cache.cachedFriends, cached);
-      expect(server.requests, hasLength(1));
-    });
-
-    test('leaves the original factory on its server', () async {
-      factory.forServer(lanServer, MemoryTokenStore('lan'));
-
-      await factory.clientFor().getCityRequests();
-
-      expect(factory.serverConfig, mainServer);
-      expect(server.requests.single.uri.host, 'main.test');
-    });
   });
 }

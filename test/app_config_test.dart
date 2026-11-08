@@ -23,8 +23,7 @@ void main() {
     expect(config.isSecure, isFalse);
     expect(config.pinCertificate, isFalse);
     expect(config.port, 8988);
-    expect(config.restBaseUrl, startsWith('http://192.168.1.5:8988'));
-    expect(config.gameSocketUrl, startsWith('ws://192.168.1.5:8988'));
+    expect(config.gameSocketUrl, 'ws://192.168.1.5:8988/v1/game');
   });
 
   test('environment without LPS_HOST fails fast', () {

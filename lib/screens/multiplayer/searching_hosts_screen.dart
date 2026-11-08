@@ -31,7 +31,7 @@ class SearchingHostsScreen extends StatelessWidget {
               discovery:
                   createDiscovery?.call() ??
                   NetworkDiscovery.createDiscovery(
-                    port: getIt.get<AppConfig>(instanceName: 'local').port,
+                    port: AppConfig.lanPort,
                     errorLogger: getIt.get<ErrorLogger>(),
                   ),
             )..add(StartSearchingEvent());

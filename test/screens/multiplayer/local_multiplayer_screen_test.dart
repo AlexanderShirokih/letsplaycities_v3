@@ -4,9 +4,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:get_it/get_it.dart';
 import 'package:lets_play_cities/app_config.dart';
-import 'package:lets_play_cities/remote/account_manager.dart';
+import 'package:lets_play_cities/base/preferences.dart';
+import 'package:lets_play_cities/remote/api_repository_factory.dart';
+import 'package:lets_play_cities/remote/auth/token_store.dart';
 import 'package:lets_play_cities/remote/server/server_game_controller.dart';
 import 'package:lets_play_cities/screens/common/d2/d2.dart';
+import 'package:lets_play_cities/screens/multiplayer/lan_scope.dart';
 import 'package:lets_play_cities/screens/multiplayer/local_multiplayer_screen.dart';
 import 'package:lets_play_cities/utils/error_logger.dart';
 
@@ -45,7 +48,13 @@ class _FakeLogger implements ErrorLogger {
   void error(Object error, StackTrace stackTrace) {}
 }
 
-class _FakeAccountManager extends Fake implements AccountManager {}
+class _FakePreferences extends Fake implements GamePreferences {
+  @override
+  String get lastNativeLogin => 'Вася';
+
+  @override
+  bool get onlineChatEnabled => true;
+}
 
 Widget _app() => withTranslations(
   MaterialApp(
@@ -62,15 +71,7 @@ void main() {
     final getIt = GetIt.instance;
     getIt
       ..registerSingleton<ServerGameController>(server)
-      ..registerSingleton<ErrorLogger>(_FakeLogger())
-      ..registerSingleton<AppConfig>(
-        AppConfig.forHost('localhost'),
-        instanceName: 'local',
-      )
-      ..registerFactoryParam<AccountManager, AppConfig, void>(
-        (config, _) => _FakeAccountManager(),
-        instanceName: 'local',
-      );
+      ..registerSingleton<ErrorLogger>(_FakeLogger());
   });
 
   tearDown(() => GetIt.instance.reset());
@@ -115,6 +116,48 @@ void main() {
 
     expect(server.runGameCalls, 0);
     expect(server.isRunning, isFalse);
+    expect(find.text('Создать игру'), findsOneWidget);
+  });
+
+  testWidgets('leaving the waiting room of a hosted game stops the host', (
+    tester,
+  ) async {
+    // Completed inside the fake time of the test
+    final host = _FakeServer()..setUpGate.complete();
+    final mainConfig = AppConfig.forHost('main.test');
+    GetIt.instance
+      ..unregister<ServerGameController>()
+      ..registerSingleton<ServerGameController>(host)
+      ..registerSingleton<AppConfig>(mainConfig)
+      ..registerSingleton<GamePreferences>(_FakePreferences())
+      ..registerSingleton<ApiRepositoryFactory>(
+        ApiRepositoryFactory.main(
+          mainConfig,
+          MemoryTokenStore(),
+          onError: (_, _) {},
+        ),
+      );
+    await tester.pumpWidget(_app());
+
+    await tester.tap(find.text('Создать игру'));
+    for (var i = 0; i < 5; i++) {
+      await tester.pump();
+    }
+    await tester.pump(const Duration(seconds: 1));
+
+    expect(GetIt.instance.currentScopeName, lanGameScopeName);
+    expect(find.text('Найти соперника'), findsOneWidget);
+    expect(host.isRunning, isTrue);
+
+    await tester.tap(find.byTooltip('Назад').last);
+    for (var i = 0; i < 5; i++) {
+      await tester.pump();
+    }
+    await tester.pump(const Duration(seconds: 1));
+
+    expect(GetIt.instance.currentScopeName, isNot(lanGameScopeName));
+    expect(host.closeCalls, 1);
+    expect(host.isRunning, isFalse);
     expect(find.text('Создать игру'), findsOneWidget);
   });
 

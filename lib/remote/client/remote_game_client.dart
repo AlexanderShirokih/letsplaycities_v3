@@ -163,12 +163,10 @@ class RemoteGameClient {
     final game = _game = RemoteGame._(_connection, me.id, owner);
     final opponent = RemotePlayer(
       AdvancedAccountInfo(
-        BaseProfileInfo(
-          userId: match.opponent.id,
-          login: match.opponent.name,
-          pictureUrl: _avatarUrl(match.opponent.id, match.opponent.avatarHash),
-        ),
-        true,
+        userId: match.opponent.id,
+        name: match.opponent.name,
+        pictureUrl: _avatarUrl(match.opponent.id, match.opponent.avatarHash),
+        canReceiveMessages: true,
       ),
       game,
     );
@@ -250,8 +248,7 @@ class RemoteGame {
   /// `false` once the game is over
   bool get isRunning => !_ended.isCompleted;
 
-  int get _opponentId =>
-      (_opponent.accountInfo as AdvancedAccountInfo).profileInfo.userId;
+  int get _opponentId => (_opponent.accountInfo as AdvancedAccountInfo).userId;
 
   void _onMessage(ServerGameMessage message) {
     switch (message) {

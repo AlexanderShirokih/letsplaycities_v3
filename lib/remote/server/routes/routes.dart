@@ -4,18 +4,12 @@ import 'dart:io';
 import 'package:equatable/equatable.dart';
 import 'package:lets_play_cities/base/platform/app_version.dart';
 import 'package:lets_play_cities/base/platform/device_name.dart';
-import 'package:lets_play_cities/base/usecases.dart';
-import 'package:lets_play_cities/remote/model/profile_info.dart';
 import 'package:lets_play_cities/remote/server/client_failure_logging.dart';
-import 'package:lets_play_cities/remote/server/connection_transformer.dart';
 import 'package:lets_play_cities/utils/error_logger.dart';
-
-import '../user_lookup_repository.dart';
 
 /// Describes main HTTP methods
 enum HttpMethod {
-  get('GET'),
-  post('POST');
+  get('GET');
 
   const HttpMethod(this.verb);
 
@@ -46,28 +40,11 @@ abstract class RequestHandler {
   Future<dynamic> handleRequest(HttpRequest request);
 }
 
-/// Handles Sign-up request. Doesn't return anything
-class SignUpRequestHandler implements RequestHandler {
-  final SingleAsyncUseCase<HttpRequest, ProfileInfo> _signUpUserUseCase;
-  final UserLookupRepository _userLookupRepository;
-
-  SignUpRequestHandler(this._signUpUserUseCase, this._userLookupRepository);
-
-  @override
-  Future<void> handleRequest(HttpRequest request) async {
-    final profile = await _signUpUserUseCase.execute(request);
-    _userLookupRepository.addUser(profile);
-  }
-}
-
-/// Upgrades current connection to WebSocket.
-/// Returns [MessagePipe<String, String>].
+/// Upgrades current connection to WebSocket and returns the [WebSocket]
 class WebSocketRequestHandler implements RequestHandler {
   @override
-  Future<MessagePipe<String, String>> handleRequest(HttpRequest request) async {
-    final socket = await WebSocketTransformer.upgrade(request);
-    return WebSocketMessagePipe(socket);
-  }
+  Future<WebSocket> handleRequest(HttpRequest request) =>
+      WebSocketTransformer.upgrade(request);
 }
 
 /// Service request used to identify server
@@ -99,24 +76,17 @@ abstract class RequestDispatcher {
   /// from handling the others.
   Future<dynamic> dispatchRequest(HttpRequest request);
 
-  /// Create [RequestDispatcher] implementation that binds all requested
-  /// [RequestHandler]s and reports their failures to [errorLogger]
-  factory RequestDispatcher.buildRequestDispatcher(
-    SingleAsyncUseCase<HttpRequest, ProfileInfo> signUpUserUseCase,
-    UserLookupRepository userLookupRepository,
-    ErrorLogger errorLogger,
-  ) {
+  /// Create [RequestDispatcher] implementation that binds the routes of the
+  /// LAN host, `GET /v1/game` (WebSocket) and `GET /ack`, and reports their
+  /// failures to [errorLogger]
+  factory RequestDispatcher.buildRequestDispatcher(ErrorLogger errorLogger) {
     return RequestDispatcherImpl(errorLogger)
-      ..bindRequestHandler(
-        SignUpRequestHandler(signUpUserUseCase, userLookupRepository),
-        Endpoint(HttpMethod.post, '/user/'),
-      )
-      ..bindRequestHandler(
-        WebSocketRequestHandler(),
-        Endpoint(HttpMethod.get, '/game'),
-      )
+      ..bindRequestHandler(WebSocketRequestHandler(), gameEndpoint)
       ..bindRequestHandler(AckServer(), Endpoint(HttpMethod.get, '/ack'));
   }
+
+  /// The game WebSocket of protocol v1
+  static const gameEndpoint = Endpoint(HttpMethod.get, '/v1/game');
 }
 
 /// [RequestDispatcher] that reports the errors of its handlers to an

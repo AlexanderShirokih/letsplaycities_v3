@@ -3,10 +3,7 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:lets_play_cities/base/usecases.dart';
-import 'package:lets_play_cities/remote/model/profile_info.dart';
 import 'package:lets_play_cities/remote/server/routes/routes.dart';
-import 'package:lets_play_cities/remote/server/user_lookup_repository.dart';
 import 'package:lets_play_cities/utils/error_logger.dart';
 
 class _FakeResponse implements HttpResponse {
@@ -88,15 +85,6 @@ class _FailingHandler implements RequestHandler {
   Future<dynamic> handleRequest(HttpRequest request) async => throw error;
 }
 
-class _FailingSignUp implements SingleAsyncUseCase<HttpRequest, ProfileInfo> {
-  _FailingSignUp(this.error);
-
-  final Object error;
-
-  @override
-  Future<ProfileInfo> execute(HttpRequest request) async => throw error;
-}
-
 class _RecordingLogger implements ErrorLogger {
   final errors = <Object>[];
   final logs = <String>[];
@@ -117,16 +105,16 @@ void main() {
     dispatcher = RequestDispatcherImpl(logger)
       ..bindRequestHandler(
         _ResultHandler('pipe'),
-        const Endpoint(HttpMethod.get, '/game'),
+        const Endpoint(HttpMethod.get, '/v1/game'),
       )
       ..bindRequestHandler(
         _FailingHandler(const FormatException('Unexpected end of input')),
-        const Endpoint(HttpMethod.post, '/user/'),
+        const Endpoint(HttpMethod.get, '/ack'),
       );
   });
 
   test('Returns the result of the matching handler', () async {
-    final request = _FakeRequest('GET', '/game', _FakeResponse());
+    final request = _FakeRequest('GET', '/v1/game', _FakeResponse());
 
     expect(await dispatcher.dispatchRequest(request), equals('pipe'));
     expect(request.response.closeCalls, isZero);
@@ -143,7 +131,7 @@ void main() {
   });
 
   test('Answers an unsupported method with 405 instead of throwing', () async {
-    final request = _FakeRequest('HEAD', '/game', _FakeResponse());
+    final request = _FakeRequest('HEAD', '/v1/game', _FakeResponse());
 
     expect(await dispatcher.dispatchRequest(request), isNull);
     expect(request.response.statusCode, equals(HttpStatus.methodNotAllowed));
@@ -154,14 +142,14 @@ void main() {
   test(
     'Answers a malformed request with 400 and logs it as a message',
     () async {
-      final request = _FakeRequest('POST', '/user/', _FakeResponse());
+      final request = _FakeRequest('GET', '/ack', _FakeResponse());
 
       expect(await dispatcher.dispatchRequest(request), isNull);
       expect(request.response.statusCode, equals(HttpStatus.badRequest));
       expect(request.response.body.toString(), contains('Unexpected end'));
       expect(request.response.closeCalls, equals(1));
       expect(logger.logs, [
-        allOf(contains('POST /user/'), contains('Unexpected end of input')),
+        allOf(contains('GET /ack'), contains('Unexpected end of input')),
       ]);
       expect(logger.errors, isEmpty);
     },
@@ -172,11 +160,11 @@ void main() {
     // when a browser opens /game
     dispatcher.bindRequestHandler(
       _FailingHandler(const WebSocketException('Invalid WebSocket upgrade')),
-      const Endpoint(HttpMethod.get, '/game'),
+      const Endpoint(HttpMethod.get, '/v1/game'),
     );
     final request = _FakeRequest(
       'GET',
-      '/game',
+      '/v1/game',
       _FakeResponse(headersSent: true),
     );
 
@@ -185,19 +173,19 @@ void main() {
     expect(logger.errors, isEmpty);
   });
 
-  test('Logs a client that drops during its sign-up as a message', () async {
+  test('Logs a client that drops during its request as a message', () async {
     // dart:io fails reading the body of a request whose client goes away
     dispatcher.bindRequestHandler(
       _FailingHandler(
         const HttpException('Connection closed while receiving data'),
       ),
-      const Endpoint(HttpMethod.post, '/user/'),
+      const Endpoint(HttpMethod.get, '/ack'),
     );
-    final request = _FakeRequest('POST', '/user/', _FakeResponse());
+    final request = _FakeRequest('GET', '/ack', _FakeResponse());
 
     expect(await dispatcher.dispatchRequest(request), isNull);
     expect(logger.logs, [
-      allOf(contains('POST /user/'), contains('Connection closed')),
+      allOf(contains('GET /ack'), contains('Connection closed')),
     ]);
     expect(logger.errors, isEmpty);
   });
@@ -206,9 +194,9 @@ void main() {
     final failure = StateError('Bad state');
     dispatcher.bindRequestHandler(
       _FailingHandler(failure),
-      const Endpoint(HttpMethod.get, '/game'),
+      const Endpoint(HttpMethod.get, '/v1/game'),
     );
-    final request = _FakeRequest('GET', '/game', _FakeResponse());
+    final request = _FakeRequest('GET', '/v1/game', _FakeResponse());
 
     expect(await dispatcher.dispatchRequest(request), isNull);
     expect(request.response.statusCode, equals(HttpStatus.badRequest));
@@ -216,18 +204,16 @@ void main() {
     expect(logger.logs, isEmpty);
   });
 
-  test('The built dispatcher logs a malformed sign-up body', () async {
-    const error = FormatException('Bad sign-up body');
-    final built = RequestDispatcher.buildRequestDispatcher(
-      _FailingSignUp(error),
-      UserLookupRepositoryImpl(),
-      logger,
-    );
-    final request = _FakeRequest('POST', '/user/', _FakeResponse());
+  test('The built dispatcher serves no route of the old protocol', () async {
+    final built = RequestDispatcher.buildRequestDispatcher(logger);
 
-    expect(await built.dispatchRequest(request), isNull);
-    expect(request.response.statusCode, equals(HttpStatus.badRequest));
-    expect(logger.logs, [contains('Bad sign-up body')]);
+    final game = _FakeRequest('GET', '/game', _FakeResponse());
+    expect(await built.dispatchRequest(game), isNull);
+    expect(game.response.statusCode, equals(HttpStatus.badRequest));
+
+    final signUp = _FakeRequest('POST', '/user/', _FakeResponse());
+    expect(await built.dispatchRequest(signUp), isNull);
+    expect(signUp.response.statusCode, equals(HttpStatus.methodNotAllowed));
     expect(logger.errors, isEmpty);
   });
 }

@@ -3,7 +3,6 @@ import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:lets_play_cities/app_config.dart';
 import 'package:lets_play_cities/base/remote/bloc/local_multiplayer_bloc.dart';
-import 'package:lets_play_cities/remote/auth.dart';
 import 'package:lets_play_cities/remote/remote_host.dart';
 import 'package:lets_play_cities/remote/server/server_game_controller.dart';
 import 'package:lets_play_cities/utils/error_logger.dart';
@@ -50,14 +49,6 @@ class _RecordingLogger implements ErrorLogger {
   void log(String message) {}
 }
 
-class _FakeAccountManager extends Fake implements AccountManager {}
-
-final _localConfig = AppConfig.forHost(
-  'localhost',
-  isSecure: false,
-  port: 8988,
-);
-
 Future<void> _settle() async {
   for (var i = 0; i < 20; i++) {
     await Future<void>.delayed(Duration.zero);
@@ -66,25 +57,13 @@ Future<void> _settle() async {
 
 void main() {
   late _RecordingLogger logger;
-  late List<AppConfig> accountManagerConfigs;
-  late AccountManager accountManager;
 
   setUp(() {
     logger = _RecordingLogger();
-    accountManagerConfigs = [];
-    accountManager = _FakeAccountManager();
   });
 
   LocalMultiplayerBloc createBloc(ServerGameController server) =>
-      LocalMultiplayerBloc(
-        server: server,
-        errorLogger: logger,
-        localConfig: _localConfig,
-        createAccountManager: (config) {
-          accountManagerConfigs.add(config);
-          return accountManager;
-        },
-      );
+      LocalMultiplayerBloc(server: server, errorLogger: logger);
 
   Future<List<LocalMultiplayerState>> statesAfter(
     LocalMultiplayerBloc bloc,
@@ -113,24 +92,21 @@ void main() {
     ]);
     expect(server.calls, ['setUp', 'close']);
     expect(logger.errors.single, isA<SocketException>());
-    expect(accountManagerConfigs, isEmpty);
 
     await bloc.close();
   });
 
-  test('Hosts a game on localhost with the local server config', () async {
+  test('Hosts a game on localhost with the LAN server config', () async {
     final server = _FakeServer();
     final bloc = createBloc(server);
 
     final states = await statesAfter(bloc, LocalMultiplayerCreate());
 
-    final gameConfig = _localConfig.copy(host: 'localhost');
     expect(states, [
       isA<LocalMultiplayerStartingServer>(),
-      LocalMultiplayerStartGame(gameConfig, accountManager),
+      LocalMultiplayerStartGame(AppConfig.lan('localhost')),
     ]);
     expect(server.calls, ['setUp', 'runGame']);
-    expect(accountManagerConfigs, [gameConfig]);
     expect(logger.errors, isEmpty);
 
     await bloc.close();
@@ -171,26 +147,33 @@ void main() {
 
     final states = await statesAfter(bloc, LocalMultiplayerConnect(host));
 
-    final gameConfig = AppConfig.forHost(
-      '192.168.1.10',
-      isSecure: false,
-      port: 8988,
-    );
-    expect(states, [LocalMultiplayerStartGame(gameConfig, accountManager)]);
+    expect(states, [LocalMultiplayerStartGame(AppConfig.lan('192.168.1.10'))]);
     expect(server.calls, isEmpty);
-    expect(accountManagerConfigs, [gameConfig]);
 
     await bloc.close();
   });
 
-  test('Builds a new account manager each time a game starts', () async {
-    final bloc = createBloc(_FakeServer());
-    expect(accountManagerConfigs, isEmpty);
-
-    await statesAfter(bloc, LocalMultiplayerCreate());
+  test('Leaving the game stops the host', () async {
+    final server = _FakeServer();
+    final bloc = createBloc(server);
     await statesAfter(bloc, LocalMultiplayerCreate());
 
-    expect(accountManagerConfigs, hasLength(2));
+    final states = await statesAfter(bloc, const LocalMultiplayerGameLeft());
+
+    expect(states, [isA<LocalMultiplayerInitial>()]);
+    expect(server.calls, ['setUp', 'runGame', 'close']);
+    expect(server.isRunning, isFalse);
+
+    await bloc.close();
+  });
+
+  test('Leaving a joined game has no host to stop', () async {
+    final server = _FakeServer();
+    final bloc = createBloc(server);
+
+    await statesAfter(bloc, const LocalMultiplayerGameLeft());
+
+    expect(server.calls, isEmpty);
 
     await bloc.close();
   });

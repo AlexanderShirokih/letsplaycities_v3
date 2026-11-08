@@ -106,6 +106,24 @@ void main() {
       });
     }
 
+    test('the stream can be listened before connect()', () async {
+      // GameConnection listens first, then connects
+      server.listen((request) async {
+        final socket = await WebSocketTransformer.upgrade(request);
+        socket.add('hi');
+      });
+      final connector = WebSocketConnector(uri);
+
+      final messages = connector.messageStream.take(2).toList();
+      connector.connect();
+
+      expect((await messages).map((m) => (m.type, m.data)), [
+        (SocketMessageType.connected, null),
+        (SocketMessageType.data, 'hi'),
+      ]);
+      await connector.close();
+    });
+
     test('close code reaches the stream', () async {
       server.listen((request) async {
         final socket = await WebSocketTransformer.upgrade(request);

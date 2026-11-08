@@ -1,24 +1,17 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:lets_play_cities/base/cities_list/city_request.dart';
-import 'package:lets_play_cities/remote/auth.dart';
 import 'package:lets_play_cities/remote/auth/token_store.dart';
 import 'package:lets_play_cities/remote/client/api_exception.dart';
 import 'package:lets_play_cities/remote/client/api_client.dart';
 import 'package:lets_play_cities/remote/exceptions.dart';
-import 'package:lets_play_cities/remote/usecase/signup_user.dart';
 
-/// Remote server REST-api client: the sign-up of the LAN server and the
-/// city requests
+/// Remote server REST-api client of the city requests
 class RemoteLpsApiClient extends LpsApiClient {
   final Dio _httpClient;
   final TokenStore _tokens;
 
   const RemoteLpsApiClient(this._httpClient, this._tokens);
-
-  @override
-  Future<RemoteSignUpResponse> signUp(RemoteSignUpData data) =>
-      SignUpUser(_httpClient).execute(data);
 
   @override
   Future<List<CityRequest>> getCityRequests() async {
@@ -122,100 +115,6 @@ class RemoteLpsApiClient extends LpsApiClient {
       () => _httpClient.post('/cities/edit', data: request.toJson()),
     );
   }
-}
-
-class RemoteSignUpResponse {
-  /// Unique user ID.
-  /// Used to uniquely identify user on the game server.
-  final int userId;
-
-  /// Users name
-  final String login;
-
-  /// Access token is used to authenticate user on the server.
-  final String accessToken;
-
-  /// Profile picture
-  final String pictureHash;
-
-  /// Users role on server
-  final Role role;
-
-  final AuthType authType;
-
-  RemoteSignUpResponse({
-    required this.userId,
-    required this.login,
-    required this.accessToken,
-    required this.pictureHash,
-    required this.role,
-    required this.authType,
-  });
-
-  factory RemoteSignUpResponse.fromMap(dynamic data) => RemoteSignUpResponse(
-    userId: data['userId'],
-    login: data['name'],
-    accessToken: data['accHash'],
-    pictureHash: data['picHash'],
-    role: Role.fromSignUpState(data['state']),
-    authType: AuthType.fromString(data['authType']),
-  );
-
-  Map<String, dynamic> toMap() => {
-    'userId': userId,
-    'name': login,
-    'accHash': accessToken,
-    'picHash': pictureHash,
-    'state': role.signUpState,
-    'authType': authType.fullName,
-  };
-}
-
-/// Request for authentication on the remote game server
-class RemoteSignUpData {
-  /// User name
-  final String login;
-
-  /// Social network type
-  final AuthType authType;
-
-  /// Firebase token
-  final String firebaseToken;
-
-  /// Social network access token
-  final String accessToken;
-
-  /// Social network user ID
-  final String snUID;
-
-  /// Protocol version
-  static const version = 5;
-
-  RemoteSignUpData({
-    required this.login,
-    required this.authType,
-    required this.firebaseToken,
-    required this.accessToken,
-    required this.snUID,
-  });
-
-  dynamic toMap() => {
-    'version': version,
-    'login': login,
-    'authType': authType.fullName,
-    'firebaseToken': firebaseToken,
-    'accToken': accessToken,
-    'snUID': snUID,
-  };
-
-  factory RemoteSignUpData.fromMap(Map<String, dynamic> json) =>
-      RemoteSignUpData(
-        authType: AuthType.fromString(json['authType']),
-        login: json['login'],
-        accessToken: json['accToken'],
-        firebaseToken: json['firebaseToken'],
-        snUID: json['snUID'],
-      );
 }
 
 /// Exception used when user is not authorized

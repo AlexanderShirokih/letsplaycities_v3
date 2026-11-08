@@ -30,3 +30,12 @@ class LocalMultiplayerCancel extends LocalMultiplayerEvent {
   @override
   List<Object> get props => [];
 }
+
+/// The player left the waiting room of the game: the host of this device,
+/// if any, stops
+class LocalMultiplayerGameLeft extends LocalMultiplayerEvent {
+  const LocalMultiplayerGameLeft();
+
+  @override
+  List<Object> get props => [];
+}

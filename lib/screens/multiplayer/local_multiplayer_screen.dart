@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get_it/get_it.dart';
@@ -6,14 +7,13 @@ import 'package:lets_play_cities/base/platform/device_name.dart';
 import 'package:lets_play_cities/base/preferences.dart';
 import 'package:lets_play_cities/base/remote/bloc/local_multiplayer_bloc.dart';
 import 'package:lets_play_cities/i18n/strings.g.dart';
-import 'package:lets_play_cities/remote/account_manager.dart';
 import 'package:lets_play_cities/remote/auth/token_store.dart';
-import 'package:lets_play_cities/remote/api_repository_factory.dart';
+import 'package:lets_play_cities/remote/client/api_dio.dart';
 import 'package:lets_play_cities/remote/game_connection.dart';
 import 'package:lets_play_cities/remote/remote_host.dart';
 import 'package:lets_play_cities/remote/server/server_game_controller.dart';
-import 'package:lets_play_cities/remote/server/user_lookup_repository.dart';
 import 'package:lets_play_cities/screens/common/d2/d2.dart';
+import 'package:lets_play_cities/screens/multiplayer/lan_scope.dart';
 import 'package:lets_play_cities/screens/online/game_waiting_room_screen.dart';
 import 'package:lets_play_cities/utils/error_logger.dart';
 
@@ -42,13 +42,6 @@ class LocalMultiplayerScreen extends StatelessWidget {
           create: (_) => LocalMultiplayerBloc(
             server: getIt.get<ServerGameController>(),
             errorLogger: getIt.get<ErrorLogger>(),
-            localConfig: getIt.get<AppConfig>(instanceName: 'local'),
-            // Resolved when a game starts, as the 'local' factory reads the
-            // unnamed AccountManager, which a LAN scope may override.
-            createAccountManager: (config) => getIt.get<AccountManager>(
-              instanceName: 'local',
-              param1: config,
-            ),
           ),
           child: BlocConsumer<LocalMultiplayerBloc, LocalMultiplayerState>(
             builder: (context, state) => Column(
@@ -67,6 +60,7 @@ class LocalMultiplayerScreen extends StatelessWidget {
             listener: (context, state) {
               if (state is LocalMultiplayerStartGame) {
                 final getIt = GetIt.instance;
+                final bloc = context.read<LocalMultiplayerBloc>();
                 pushLanGameScope(getIt, state);
 
                 Navigator.push(
@@ -75,7 +69,13 @@ class LocalMultiplayerScreen extends StatelessWidget {
                     builder: (_) =>
                         const GameWaitingRoomScreenStandalone(isLocal: true),
                   ),
-                ).then((value) => getIt.popScope());
+                ).then((_) async {
+                  // Closes the game socket of this device first
+                  await getIt.popScope();
+                  if (!bloc.isClosed) {
+                    bloc.add(const LocalMultiplayerGameLeft());
+                  }
+                });
               } else if (state is LocalMultiplayerNoWifiState) {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(content: Text(t.multiplayer.reconnectWifi)),
@@ -92,34 +92,43 @@ class LocalMultiplayerScreen extends StatelessWidget {
   }
 }
 
-/// Name of the [GetIt] scope of a LAN game
-const lanGameScopeName = 'lan-game';
-
-/// Pushes the [getIt] scope of the LAN game that [game] starts. Inside it the
-/// unnamed [AppConfig], the [AccountManager] and the [ApiRepositoryFactory]
-/// target the LAN server; the factory keeps the picture URLs and the cache of
-/// the one outside the scope.
+/// Pushes the [getIt] scope of the LAN game that [game] starts, named
+/// [lanGameScopeName]. Inside it the unnamed [AppConfig] is the LAN host and
+/// the [GameConnection] goes there without a token, saying the name of the
+/// player. The LAN host has no REST: the REST clients stay on the main
+/// server, and the [Dio] of the scope never carries the main token.
 @visibleForTesting
 void pushLanGameScope(GetIt getIt, LocalMultiplayerStartGame game) {
-  final apiRepositories = getIt.get<ApiRepositoryFactory>();
+  final mainConfig = getIt.get<AppConfig>();
+  final logger = getIt.get<ErrorLogger>();
+  final preferences = getIt.get<GamePreferences>();
+
   getIt
     ..pushNewScope(scopeName: lanGameScopeName)
-    ..registerSingleton<AppConfig>(game.configOverrides)
-    ..registerSingleton<AccountManager>(game.accountManagerOverrides)
-    ..registerSingleton<ApiRepositoryFactory>(
-      apiRepositories.forServer(game.configOverrides, MemoryTokenStore()),
+    ..registerSingleton<AppConfig>(game.config)
+    // Read by the dictionary updater of the game screen
+    ..registerFactory<Dio>(
+      () => createApiDio(mainConfig, MemoryTokenStore(), onError: logger.error),
     )
-    ..registerSingleton<UserLookupRepository>(UserLookupRepositoryImpl())
-    // The LAN host never gets the token of the main server
     ..registerSingleton<GameConnection>(
       GameConnection.forApp(
-        url: game.configOverrides.gameSocketUrl,
+        url: game.config.gameSocketUrl,
         headers: () async => const {},
-        playerName: () => getIt.get<GamePreferences>().lastNativeLogin,
-        logger: getIt.get<ErrorLogger>(),
+        playerName: () => _lanPlayerName(preferences),
+        logger: logger,
       ),
       dispose: (connection) => connection.close(),
     );
+}
+
+/// The name of the player in a LAN game: the last name entered for the
+/// online game, «Игрок» if there is none. The name of a signed-in account
+/// is not known without a request, which a LAN without internet would not
+/// answer.
+String _lanPlayerName(GamePreferences preferences) {
+  final name = preferences.lastNativeLogin.trim();
+
+  return name.isEmpty ? t.players.player : name;
 }
 
 /// Name of this device, `null` when it is not known

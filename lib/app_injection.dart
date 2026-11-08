@@ -32,15 +32,11 @@ import 'package:lets_play_cities/remote/game_connection.dart';
 import 'package:lets_play_cities/remote/google_services_achievements.dart';
 import 'package:lets_play_cities/remote/http_overrides.dart';
 import 'package:lets_play_cities/remote/model/cloud_messaging_service.dart';
-import 'package:lets_play_cities/remote/server/local_account_manager.dart';
 import 'package:lets_play_cities/remote/server/local_game_server.dart';
 import 'package:lets_play_cities/remote/server/routes/routes.dart';
 import 'package:lets_play_cities/remote/server/server_connection.dart';
 import 'package:lets_play_cities/remote/server/server_game_controller.dart';
-import 'package:lets_play_cities/remote/server/usecases.dart';
-import 'package:lets_play_cities/remote/server/user_lookup_repository.dart';
 import 'package:lets_play_cities/remote/social/social_networks_service.dart';
-import 'package:lets_play_cities/remote/usecase/signup_user.dart';
 import 'package:lets_play_cities/utils/crashlytics_error_logger.dart';
 import 'package:lets_play_cities/utils/error_logger.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -79,12 +75,6 @@ Future<void> injectRootDependencies(AppConfig appConfig) async {
   // Global app config
   getIt.registerSingleton<AppConfig>(appConfig);
 
-  // [AppConfig] used in local multiplayer mode
-  getIt.registerSingleton<AppConfig>(
-    AppConfig.lan('localhost'),
-    instanceName: 'local',
-  );
-
   // Game preferences
   getIt.registerSingletonAsync<GamePreferences>(
     () async =>
@@ -120,13 +110,10 @@ Future<void> injectRootDependencies(AppConfig appConfig) async {
   // Access token of the signed-in user on the main server
   getIt.registerSingleton<TokenStore>(const SecureTokenStore());
 
-  // DIO client for the unnamed AppConfig current at the time of the call
+  // DIO client for the main server. A LAN game registers its own without
+  // the token in its GetIt scope.
   getIt.registerFactory<Dio>(
-    () => createApiDio(
-      getIt.get<AppConfig>(),
-      getIt.get<TokenStore>(),
-      onError: _logError,
-    ),
+    () => createApiDio(appConfig, getIt.get<TokenStore>(), onError: _logError),
   );
 
   // API clients for the main server. A LAN game registers its own factory in
@@ -142,7 +129,7 @@ Future<void> injectRootDependencies(AppConfig appConfig) async {
   // The one game socket of the signed-in user. Opened on the first use.
   getIt.registerLazySingleton<GameConnection>(
     () => GameConnection.forApp(
-      url: getIt.get<AppConfig>().gameSocketUrl,
+      url: appConfig.gameSocketUrl,
       headers: () async {
         final token = await getIt.get<TokenStore>().read();
 
@@ -168,19 +155,6 @@ Future<void> injectRootDependencies(AppConfig appConfig) async {
   // Social sign-in and the device id
   getIt.registerSingleton<SocialNetworksService>(
     NativeBridgeSocialNetworksService(),
-  );
-
-  // Local account manager
-  getIt.registerFactoryParam<AccountManager, AppConfig?, void>(
-    (localConfig, _) => LocalAccountManager(
-      getIt.get<AccountManager>(),
-      getIt.get<GamePreferences>(),
-      SignUpUser(
-        createApiDio(localConfig!, MemoryTokenStore(), onError: _logError),
-      ),
-      t.players.player,
-    ),
-    instanceName: 'local',
   );
 
   // FirebaseApp should be initialized before used in dependent modules
@@ -267,36 +241,17 @@ Future<void> injectRootDependencies(AppConfig appConfig) async {
     Platform.isLinux ? StubAdManager() : GoogleAdManager(),
   );
 
-  // UserLookupRepository for keeping authorized users
-  // Its better to keep this instance scoped in [LocalMultiplayerScreen]
-  getIt.registerSingleton<UserLookupRepository>(UserLookupRepositoryImpl());
-
-  /// RequestDispatcher for local game server
-  /// [UserLookupRepository] should be injected in target scope
-  getIt.registerFactory<RequestDispatcher>(
-    () => RequestDispatcher.buildRequestDispatcher(
-      SignUpUserUsecase(
-        GetProfileInfoFromSignUpData(getIt.get(instanceName: 'local')),
-      ),
-      getIt.get<UserLookupRepository>(),
-      getIt.get<ErrorLogger>(),
-    ),
-  );
-
-  /// Local game server
-  /// [UserLookupRepository] should be injected in target scope
-  getIt.registerFactory<LocalGameServer>(
-    () => LocalGameServerImpl(
-      WebSocketServerConnection(getIt.get(instanceName: 'local'), getIt.get()),
-      getIt.get(),
-    ),
-  );
-
+  // The LAN host of this device, started by the «По Wi-Fi рядом» screen
   getIt.registerFactory<ServerGameController>(
     () => ServerGameControllerImpl(
-      getIt.get<LocalGameServer>(),
-      getIt.get<GamePreferences>(),
-      getIt.get<ErrorLogger>(),
+      WebSocketServerConnection(
+        RequestDispatcher.buildRequestDispatcher(getIt.get<ErrorLogger>()),
+      ),
+      () => LocalGameServer(
+        moveTimeSec: () => getIt.get<GamePreferences>().timeLimit,
+        defaultPlayerName: t.players.player,
+        logger: getIt.get<ErrorLogger>(),
+      ),
     ),
   );
 

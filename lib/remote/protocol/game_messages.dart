@@ -255,6 +255,12 @@ class ProtocolError extends ServerGameMessage implements WaitingEvent {
   /// The server does not speak the protocol of `hello`
   static const unsupportedProtocol = 'unsupported_protocol';
 
+  /// The frame is not a message of the protocol
+  static const badMessage = 'bad_message';
+
+  /// A message came before `hello`
+  static const helloRequired = 'hello_required';
+
   final String code;
 
   const ProtocolError(this.code);

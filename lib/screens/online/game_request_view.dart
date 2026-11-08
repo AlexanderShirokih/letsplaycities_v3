@@ -10,7 +10,7 @@ import 'package:lets_play_cities/remote/game_connection.dart';
 import 'package:lets_play_cities/remote/model/cloud_messages.dart';
 import 'package:lets_play_cities/screens/common/d2/d2.dart';
 import 'package:lets_play_cities/screens/online/common_online_widgets.dart';
-import 'package:lets_play_cities/screens/multiplayer/local_multiplayer_screen.dart';
+import 'package:lets_play_cities/screens/multiplayer/lan_scope.dart';
 import 'package:lets_play_cities/screens/online/game_master.dart';
 import 'package:lets_play_cities/screens/online/game_waiting_room_screen.dart';
 import 'package:lets_play_cities/screens/online/online_home_screen.dart';

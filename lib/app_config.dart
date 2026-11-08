@@ -10,16 +10,19 @@ class AppConfig extends Equatable {
   );
   static const _kPinCertificate = bool.fromEnvironment('LPS_PIN_CERT');
 
-  /// Path of the protocol version that the main server serves.
+  /// Path of the protocol version that the servers serve.
   static const _kApiPath = '/v1';
+
+  /// Port of the game server in the local network
+  static const lanPort = 8988;
 
   /// Server URL for REST API requests, e.g. `https://host:443/v1`
   String get restBaseUrl =>
-      '${isSecure ? 'https' : 'http'}://$host:$port$_path';
+      '${isSecure ? 'https' : 'http'}://$host:$port$_kApiPath';
 
   /// Server URL for game WebSocket, e.g. `wss://host:443/v1/game`
   String get gameSocketUrl =>
-      '${isSecure ? 'wss' : 'ws'}://$host:$port$_path/game';
+      '${isSecure ? 'wss' : 'ws'}://$host:$port$_kApiPath/game';
 
   /// `true` is server uses HTTPS or WSS connection, `false` is HTTP or WS
   final bool isSecure;
@@ -33,19 +36,10 @@ class AppConfig extends Equatable {
   /// `true` if only the certificate from `assets/cert/lps.pem` is trusted
   final bool pinCertificate;
 
-  /// The embedded LAN server serves its paths without the protocol prefix.
-  final String _path;
-
-  const AppConfig._(
-    this.host,
-    this.port,
-    this.isSecure,
-    this.pinCertificate,
-    this._path,
-  );
+  const AppConfig._(this.host, this.port, this.isSecure, this.pinCertificate);
 
   @override
-  List<Object> get props => [host, port, isSecure, pinCertificate, _path];
+  List<Object> get props => [host, port, isSecure, pinCertificate];
 
   /// Reads the main server settings from `--dart-define`:
   /// `LPS_HOST`, `LPS_PORT` (443), `LPS_SECURE` (true), `LPS_PIN_CERT` (false).
@@ -71,19 +65,9 @@ class AppConfig extends Equatable {
     int port = 443,
     bool isSecure = true,
     bool pinCertificate = false,
-  }) => AppConfig._(host, port, isSecure, pinCertificate, _kApiPath);
+  }) => AppConfig._(host, port, isSecure, pinCertificate);
 
-  /// Game server in the local network: plain HTTP and WS, no pinning.
-  // The path becomes `/v1` when the LAN host moves to protocol v1.
-  factory AppConfig.lan(String host, {int port = 8988}) =>
-      AppConfig._(host, port, false, false, '');
-
-  /// Creates a deep copy with overriding parameters
-  AppConfig copy({String? host, int? port, bool? isSecure}) => AppConfig._(
-    host ?? this.host,
-    port ?? this.port,
-    isSecure ?? this.isSecure,
-    pinCertificate,
-    _path,
-  );
+  /// Game server in the local network: plain WS, no pinning.
+  factory AppConfig.lan(String host, {int port = lanPort}) =>
+      AppConfig._(host, port, false, false);
 }

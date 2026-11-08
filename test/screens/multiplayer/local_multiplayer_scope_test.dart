@@ -1,4 +1,6 @@
+import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:dio/dio.dart';
@@ -7,18 +9,16 @@ import 'package:get_it/get_it.dart';
 import 'package:lets_play_cities/app_config.dart';
 import 'package:lets_play_cities/base/preferences.dart';
 import 'package:lets_play_cities/base/remote/bloc/local_multiplayer_bloc.dart';
-import 'package:lets_play_cities/remote/game_connection.dart';
-import 'package:lets_play_cities/utils/error_logger.dart';
 import 'package:lets_play_cities/remote/api_repository_factory.dart';
-import 'package:lets_play_cities/remote/auth.dart';
 import 'package:lets_play_cities/remote/auth/token_store.dart';
-import 'package:lets_play_cities/remote/client/api_interceptor.dart';
-import 'package:lets_play_cities/remote/server/user_lookup_repository.dart';
+import 'package:lets_play_cities/remote/client/api_dio.dart';
+import 'package:lets_play_cities/remote/game_connection.dart';
+import 'package:lets_play_cities/screens/multiplayer/lan_scope.dart';
 import 'package:lets_play_cities/screens/multiplayer/local_multiplayer_screen.dart';
+import 'package:lets_play_cities/utils/error_logger.dart';
 
-/// Answers every request with one friend that has a picture and records the
-/// requests.
-class _FakeServer implements HttpClientAdapter {
+/// Records the requests and answers each with an empty JSON object
+class _FakeAdapter implements HttpClientAdapter {
   final requests = <RequestOptions>[];
 
   @override
@@ -28,19 +28,9 @@ class _FakeServer implements HttpClientAdapter {
     Future<void>? cancelFuture,
   ) async {
     requests.add(options);
+
     return ResponseBody.fromString(
-      jsonEncode([
-        {
-          'user': {
-            'id': 2,
-            'name': 'Alice',
-            'avatarHash': 'abc',
-            'provider': 'native',
-            'lastSeenAt': 1700000000000,
-          },
-          'status': 'friends',
-        },
-      ]),
+      '{}',
       200,
       headers: {
         Headers.contentTypeHeader: [Headers.jsonContentType],
@@ -52,58 +42,73 @@ class _FakeServer implements HttpClientAdapter {
   void close({bool force = false}) {}
 }
 
-class _FakeAccountManager extends Fake implements AccountManager {}
+/// The store of the main token; counts the reads
+class _MainTokens implements TokenStore {
+  var reads = 0;
 
-class _FakePreferences extends Fake implements GamePreferences {}
+  @override
+  Future<String?> read() async {
+    reads++;
+
+    return 'main';
+  }
+
+  @override
+  Future<void> write(String token) async {}
+
+  @override
+  Future<void> clear() async {}
+}
+
+class _FakePreferences extends Fake implements GamePreferences {
+  @override
+  String lastNativeLogin = '';
+}
 
 void main() {
   final mainConfig = AppConfig.forHost('main.test');
   final lanConfig = AppConfig.lan('192.168.1.5');
-  final lanAccountManager = _FakeAccountManager();
 
   late GetIt getIt;
-  late _FakeServer server;
-  late ApiRepositoryCacheHolder cache;
+  late _MainTokens mainTokens;
+  late _FakePreferences preferences;
   late ApiRepositoryFactory mainApiRepositories;
-  late MemoryTokenStore mainTokens;
 
   setUp(() {
     getIt = GetIt.asNewInstance();
-    server = _FakeServer();
-    mainTokens = MemoryTokenStore('main');
-    cache = ApiRepositoryCacheHolder();
-    mainApiRepositories = ApiRepositoryFactory(
+    mainTokens = _MainTokens();
+    preferences = _FakePreferences();
+    mainApiRepositories = ApiRepositoryFactory.main(
       mainConfig,
-      cache,
       mainTokens,
-      (config, tokens) => Dio(BaseOptions(baseUrl: config.restBaseUrl))
-        ..httpClientAdapter = server
-        ..interceptors.add(
-          ApiInterceptor(tokens, onUnauthorized: (_) async {}),
-        ),
+      onError: (_, _) {},
     );
     getIt
       ..registerSingleton<AppConfig>(mainConfig)
-      ..registerSingleton<AccountManager>(_FakeAccountManager())
+      ..registerSingleton<TokenStore>(mainTokens)
       ..registerSingleton<ApiRepositoryFactory>(mainApiRepositories)
-      ..registerSingleton<UserLookupRepository>(UserLookupRepositoryImpl())
+      ..registerFactory<Dio>(
+        () => createApiDio(
+          getIt.get<AppConfig>(),
+          getIt.get<TokenStore>(),
+          onError: (_, _) {},
+        ),
+      )
       ..registerSingleton<ErrorLogger>(SimpleErrorLogger())
-      ..registerSingleton<GamePreferences>(_FakePreferences());
+      ..registerSingleton<GamePreferences>(preferences);
   });
 
-  void pushScope() => pushLanGameScope(
-    getIt,
-    LocalMultiplayerStartGame(lanConfig, lanAccountManager),
-  );
+  void pushScope([AppConfig? config]) =>
+      pushLanGameScope(getIt, LocalMultiplayerStartGame(config ?? lanConfig));
 
-  test('the scope registers the LAN config and account manager', () {
+  test('the scope registers the LAN config under its name', () {
     pushScope();
 
     expect(getIt<AppConfig>(), lanConfig);
-    expect(getIt<AccountManager>(), same(lanAccountManager));
+    expect(getIt.currentScopeName, lanGameScopeName);
   });
 
-  test("the scope has its own game connection", () async {
+  test('the scope has its own game connection', () async {
     final main = GameConnection.forApp(
       url: 'wss://main.test/v1/game',
       headers: () async => {'Authorization': 'Bearer main'},
@@ -118,34 +123,91 @@ void main() {
     expect(getIt<GameConnection>(), same(main));
   });
 
-  test('inside the scope the API factory sends the requests to the LAN '
-      'server and keeps the main picture URLs and cache', () async {
-    pushScope();
-    final apiRepositories = getIt<ApiRepositoryFactory>();
+  group('the LAN game connection', () {
+    late HttpServer host;
+    late List<HttpHeaders> upgrades;
+    late List<Map<String, dynamic>> hellos;
 
-    await apiRepositories.tokens.write('lan');
+    setUp(() async {
+      upgrades = [];
+      hellos = [];
+      host = await HttpServer.bind(InternetAddress.loopbackIPv4, 0);
+      host.listen((request) async {
+        upgrades.add(request.headers);
+        final socket = await WebSocketTransformer.upgrade(request);
+        socket.listen((frame) {
+          final hello = jsonDecode(frame as String) as Map<String, dynamic>;
+          hellos.add(hello);
+          socket.add(
+            jsonEncode({
+              'type': 'welcome',
+              'user': {
+                'id': 1,
+                'name': hello['name'],
+                'avatarHash': null,
+                'provider': 'lan',
+                'lastSeenAt': 0,
+              },
+            }),
+          );
+        });
+      });
+    });
 
-    final repository = apiRepositories.forUser();
-    final friends = await repository.friends(true);
+    tearDown(() async {
+      await getIt.get<GameConnection>().close();
+      await host.close(force: true);
+    });
 
-    final request = server.requests.single;
-    expect(request.uri.toString(), 'http://192.168.1.5:8988/friends');
-    // The LAN game has its own token, the main one stays out of it.
-    expect(request.headers['Authorization'], 'Bearer lan');
-    expect(await mainTokens.read(), 'main');
-    expect(
-      repository.avatarUrl(friends.single.user),
-      'https://main.test:443/v1/avatars/2?v=abc',
-    );
-    expect(apiRepositories.cache, same(cache));
-    expect(cache.cachedFriends, friends);
+    Future<void> connect() async {
+      pushScope(AppConfig.lan('127.0.0.1', port: host.port));
+      await getIt.get<GameConnection>().ensureConnected();
+    }
+
+    test('goes to /v1/game of the host without the main token', () async {
+      preferences.lastNativeLogin = 'Вася';
+
+      await connect();
+
+      expect(upgrades.single.value(HttpHeaders.authorizationHeader), isNull);
+      expect(hellos.single['protocol'], 1);
+      expect(hellos.single['name'], 'Вася');
+      expect(mainTokens.reads, 0);
+    });
+
+    test('says «Игрок» when no name was ever entered', () async {
+      preferences.lastNativeLogin = '  ';
+
+      await connect();
+
+      expect(hellos.single['name'], 'Игрок');
+    });
   });
 
-  test('popping the scope brings the main server factory back', () async {
+  test('inside the scope the REST requests go to the main server and never '
+      'carry the main token', () async {
+    pushScope();
+
+    // The game screen builds its dictionary updater from this Dio
+    final dio = getIt.get<Dio>();
+    final adapter = _FakeAdapter();
+    dio.httpClientAdapter = adapter;
+    await dio.get<Object?>('/dictionary');
+
+    final request = adapter.requests.single;
+    expect(request.uri.toString(), 'https://main.test/v1/dictionary');
+    expect(request.headers[HttpHeaders.authorizationHeader], isNull);
+    expect(mainTokens.reads, 0);
+
+    // No API factory of the LAN host: the LAN host has no REST
+    expect(getIt<ApiRepositoryFactory>(), same(mainApiRepositories));
+  });
+
+  test('popping the scope brings the main server back', () async {
     pushScope();
     await getIt.popScope();
 
     expect(getIt<AppConfig>(), mainConfig);
-    expect(getIt<ApiRepositoryFactory>(), same(mainApiRepositories));
+    expect(getIt.currentScopeName, isNot(lanGameScopeName));
   });
 }

@@ -42,7 +42,7 @@ class WebSocketConnector implements AbstractSocketConnector {
       );
     }
 
-    final controller = _streamController = StreamController.broadcast();
+    final controller = _controller();
     final opening = (_openSocket ?? _defaultOpen)(_uri);
 
     opening
@@ -105,8 +105,17 @@ class WebSocketConnector implements AbstractSocketConnector {
     return ConnectionException(error.toString());
   }
 
+  /// Can be listened before [connect]
   @override
-  Stream<SocketMessage> get messageStream => _streamController!.stream;
+  Stream<SocketMessage> get messageStream => _controller().stream;
+
+  /// The controller of the current connection, a new one after [close]
+  StreamController<SocketMessage> _controller() {
+    final current = _streamController;
+    if (current != null && !current.isClosed) return current;
+
+    return _streamController = StreamController.broadcast();
+  }
 
   @override
   void sendData(String data) {

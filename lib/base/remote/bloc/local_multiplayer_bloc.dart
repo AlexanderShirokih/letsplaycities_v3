@@ -4,7 +4,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:lets_play_cities/app_config.dart';
 import 'package:lets_play_cities/base/platform/network_manager.dart';
-import 'package:lets_play_cities/remote/account_manager.dart';
 import 'package:lets_play_cities/remote/remote_host.dart';
 import 'package:lets_play_cities/remote/server/server_game_controller.dart';
 import 'package:lets_play_cities/utils/error_logger.dart';
@@ -21,20 +20,8 @@ class LocalMultiplayerBloc
   final ServerGameController _server;
   final ErrorLogger _errorLogger;
 
-  /// Config of the local game server. Its host is replaced with the address
-  /// of the chosen server before the game starts.
-  final AppConfig _localConfig;
-
-  /// Builds the account manager for a game on the server at the given config.
-  /// Called each time a game starts, not when the bloc is created.
-  final AccountManager Function(AppConfig) _createAccountManager;
-
-  LocalMultiplayerBloc({
-    required this._server,
-    required this._errorLogger,
-    required this._localConfig,
-    required this._createAccountManager,
-  }) : super(LocalMultiplayerInitial()) {
+  LocalMultiplayerBloc({required this._server, required this._errorLogger})
+    : super(LocalMultiplayerInitial()) {
     mapEventsSequentially(_mapEventToState);
     // Not sequential: a cancel must not wait for the creation it cancels
     on<LocalMultiplayerCancel>(_onCancel);
@@ -56,6 +43,12 @@ class LocalMultiplayerBloc
       yield* _createConnection();
     } else if (event is LocalMultiplayerConnect) {
       yield* _connectToServer(event.selectedHost);
+    } else if (event is LocalMultiplayerGameLeft) {
+      // The host of this device ends with its game
+      if (_server.isRunning) {
+        await _server.close();
+      }
+      yield LocalMultiplayerInitial();
     }
   }
 
@@ -105,7 +98,7 @@ class LocalMultiplayerBloc
         }),
       );
 
-      yield await _startGameForHost('localhost');
+      yield LocalMultiplayerStartGame(AppConfig.lan('localhost'));
     }
   }
 
@@ -115,17 +108,10 @@ class LocalMultiplayerBloc
     final isNetworkReady = await NetworkManager.ensureWifiConnected();
 
     if (isNetworkReady) {
-      yield await _startGameForHost(selectedHost.address);
+      yield LocalMultiplayerStartGame(AppConfig.lan(selectedHost.address));
     } else {
       yield LocalMultiplayerNoWifiState();
       yield LocalMultiplayerInitial();
     }
-  }
-
-  Future<LocalMultiplayerStartGame> _startGameForHost(String host) async {
-    final appConfig = _localConfig.copy(host: host);
-    final accMgr = _createAccountManager(appConfig);
-
-    return LocalMultiplayerStartGame(appConfig, accMgr);
   }
 }

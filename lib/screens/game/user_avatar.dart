@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:lets_play_cities/base/data.dart';
 import 'package:lets_play_cities/base/users.dart';
-import 'package:lets_play_cities/remote/account.dart';
 import 'package:lets_play_cities/screens/common/d2/d2.dart';
-import 'package:lets_play_cities/screens/online/network_avatar_building_mixin.dart';
 
 /// D2 avatar of a game participant: the robot for the computer, the
 /// picture of the account or the initials of the name.
@@ -47,37 +45,3 @@ String _initials(String name) => name
     .take(2)
     .map((part) => part.characters.first.toUpperCase())
     .join();
-
-class _NetworkAvatarBuilder with NetworkAvatarBuildingMixin {}
-
-Widget buildAvatarForUser(User user, double radius) {
-  final builder = _NetworkAvatarBuilder();
-  final accountInfo = user.accountInfo;
-  if (accountInfo is RemoteAccount) {
-    return builder.buildAvatar(accountInfo.baseProfileInfo, radius);
-  } else if (accountInfo is AdvancedAccountInfo) {
-    return builder.buildAvatar(accountInfo.profileInfo, radius);
-  } else {
-    return CircleAvatar(
-      radius: radius,
-      backgroundImage: _getImageProviderByPictureSource(
-        user.accountInfo.picture,
-      ),
-    );
-  }
-}
-
-const _kImagePlaceholder = 'assets/images/player_big.png';
-
-ImageProvider _getImageProviderByPictureSource(PictureSource source) {
-  if (source is AssetPictureSource) {
-    return AssetImage(source.assetName);
-  }
-
-  if (source is NetworkPictureSource && source.pictureURL != null) {
-    return NetworkImage(source.pictureURL!);
-  }
-
-  // PlaceholderImageSource
-  return AssetImage(_kImagePlaceholder);
-}

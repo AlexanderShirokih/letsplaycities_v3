@@ -13,12 +13,11 @@ class ApiRepositoryFactory {
   /// Server that receives the requests.
   final AppConfig serverConfig;
 
-  /// The main server: the picture URLs in the replies point to it, also
-  /// when [serverConfig] is a LAN server.
+  /// The main server: the picture URLs in the replies point to it, also in
+  /// a LAN game.
   final AppConfig pictureConfig;
 
-  /// Shared by every repository that this factory and its [forServer]
-  /// copies build.
+  /// Shared by every repository that this factory builds.
   final ApiRepositoryCacheHolder cache;
 
   /// Token of the user that the requests act as. The Dio from
@@ -66,11 +65,6 @@ class ApiRepositoryFactory {
     this.tokens,
     this._createDio,
   );
-
-  /// A factory that sends the requests to [server] and keeps the picture
-  /// URLs and the cache of this one. [tokens] belong to that server.
-  ApiRepositoryFactory forServer(AppConfig server, TokenStore tokens) =>
-      ApiRepositoryFactory._(server, pictureConfig, cache, tokens, _createDio);
 
   /// Repository that acts as the signed-in user
   ApiRepository forUser() {

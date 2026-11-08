@@ -23,21 +23,15 @@ class LocalMultiplayerErrorState extends LocalMultiplayerState {
   List<Object> get props => [];
 }
 
-/// Used to push waiting room screen with specified [host]
+/// Used to push the waiting room of the game on the LAN host of [config]
 class LocalMultiplayerStartGame extends LocalMultiplayerState {
-  /// Overrides of [AppConfig] for local game
-  final AppConfig configOverrides;
+  /// The LAN host of the game
+  final AppConfig config;
 
-  /// Overrides of [AccountManager] for local game
-  final AccountManager accountManagerOverrides;
-
-  const LocalMultiplayerStartGame(
-    this.configOverrides,
-    this.accountManagerOverrides,
-  );
+  const LocalMultiplayerStartGame(this.config);
 
   @override
-  List<Object> get props => [configOverrides, accountManagerOverrides];
+  List<Object> get props => [config];
 }
 
 /// Signals that user doesn't connected to the wi-fi network
