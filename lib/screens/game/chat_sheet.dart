@@ -8,6 +8,7 @@ import 'package:lets_play_cities/base/users.dart';
 import 'package:lets_play_cities/i18n/strings.g.dart';
 import 'package:lets_play_cities/screens/common/d2/d2.dart';
 
+import 'message_bubble.dart';
 import 'user_avatar.dart';
 
 /// «Чат» button with the number of the opponent's messages received since
@@ -147,7 +148,7 @@ class _ChatSheetState extends State<ChatSheet> {
                           ? messages[i + 1]
                           : null;
 
-                      return _MessageBubble(
+                      return _ChatRow(
                         messages[i],
                         lastOfOwner: !identical(next?.owner, messages[i].owner),
                       );
@@ -217,40 +218,17 @@ class _ChatSheetState extends State<ChatSheet> {
 
 /// The opponent's messages are on the left with the avatar under the last
 /// one of a row, the player's own are violet on the right.
-class _MessageBubble extends StatelessWidget {
+class _ChatRow extends StatelessWidget {
   static const _avatarSize = 32.0;
 
   final MessageInfo message;
   final bool lastOfOwner;
 
-  const _MessageBubble(this.message, {required this.lastOfOwner});
+  const _ChatRow(this.message, {required this.lastOfOwner});
 
   @override
   Widget build(BuildContext context) {
-    final c = D2Colors.of(context);
     final isMine = message.owner is Player;
-
-    final bubble = Container(
-      constraints: const BoxConstraints(maxWidth: 230),
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-      decoration: BoxDecoration(
-        color: isMine ? c.violet : c.bg,
-        borderRadius: BorderRadius.only(
-          topLeft: const Radius.circular(16),
-          topRight: const Radius.circular(16),
-          bottomLeft: Radius.circular(isMine ? 16 : 6),
-          bottomRight: Radius.circular(isMine ? 6 : 16),
-        ),
-      ),
-      child: Text(
-        message.message,
-        style: D2Text.bodyRegular.copyWith(
-          fontSize: 16,
-          height: 1.3,
-          color: isMine ? D2Colors.light.surface : c.ink,
-        ),
-      ),
-    );
 
     return Padding(
       padding: const EdgeInsets.only(top: 6),
@@ -266,7 +244,9 @@ class _MessageBubble extends StatelessWidget {
                 : const SizedBox(width: _avatarSize),
             const SizedBox(width: 8),
           ],
-          Flexible(child: bubble),
+          Flexible(
+            child: MessageBubble(message, tailLeft: !isMine, onSurface: true),
+          ),
         ],
       ),
     );

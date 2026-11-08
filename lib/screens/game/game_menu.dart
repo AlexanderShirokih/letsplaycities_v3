@@ -62,6 +62,7 @@ class GameMenuButton extends StatelessWidget {
       ),
       menuChildren: [
         if (local) ...[
+          // Nothing to do: the menu closes when an item is activated.
           _MenuItem(D2Glyph.resume, t.game.resume, onPressed: () {}),
           _MenuItem(D2Glyph.rules, t.game.rules, onPressed: showRules),
         ],

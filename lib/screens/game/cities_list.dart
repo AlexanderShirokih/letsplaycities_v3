@@ -3,9 +3,10 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lets_play_cities/base/data.dart';
 import 'package:lets_play_cities/base/game/game_item.dart';
 import 'package:lets_play_cities/base/repositories/game_session_repo.dart';
-import 'package:lets_play_cities/base/users.dart';
 import 'package:lets_play_cities/screens/common/d2/d2.dart';
 import 'package:lets_play_cities/utils/string_utils.dart';
+
+import 'message_bubble.dart';
 
 /// Represents ListView containing cities and messages
 class CitiesList extends StatelessWidget {
@@ -52,7 +53,7 @@ class GameItemListTile extends StatelessWidget {
           constraints: const BoxConstraints(maxWidth: 290),
           child: item is CityInfo
               ? _buildCity(context, item)
-              : _buildMessage(context, item as MessageInfo),
+              : MessageBubble(item as MessageInfo, tailLeft: isLeft),
         ),
       ),
     );
@@ -80,33 +81,6 @@ class GameItemListTile extends StatelessWidget {
             ),
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildMessage(BuildContext context, MessageInfo message) {
-    final c = D2Colors.of(context);
-    final isMine = message.owner is Player;
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-      decoration: BoxDecoration(
-        color: isMine ? c.violet : c.surface,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: isMine ? c.shadow.withAlpha(56) : c.edge,
-            offset: const Offset(0, 3),
-          ),
-        ],
-      ),
-      child: Text(
-        message.message,
-        style: D2Text.bodyRegular.copyWith(
-          fontSize: 16,
-          height: 1.3,
-          color: isMine ? D2Colors.light.surface : c.ink,
-        ),
       ),
     );
   }
