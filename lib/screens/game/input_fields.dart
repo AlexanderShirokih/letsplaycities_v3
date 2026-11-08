@@ -9,6 +9,7 @@ import 'package:lets_play_cities/screens/common/d2/d2.dart';
 import 'package:lets_play_cities/screens/game/voice_recognition_view.dart';
 
 import 'city_checking_result_bar.dart';
+import 'hotseat_handoff.dart';
 
 /// Bottom panel with the city input field, the «Send» button and the result
 /// of the word checking under them. When the panel gets less height than it
@@ -60,11 +61,14 @@ class _CityInputField extends StatefulWidget {
 class _CityInputFieldState extends State<_CityInputField> {
   late final InputMatcherCallback _onPressed;
   final inputController = TextEditingController();
+  final _focus = FocusNode();
   final _errorShown = ValueNotifier(false);
   late final StreamSubscription<String> _firstChars;
 
   /// First letter of the move, empty before the first move
   String _letter = '';
+
+  bool _covered = false;
 
   @override
   void initState() {
@@ -76,6 +80,20 @@ class _CityInputFieldState extends State<_CityInputField> {
         .read<GameServiceEventsRepository>()
         .getFirstChars()
         .listen((letter) => setState(() => _letter = letter));
+  }
+
+  // The next player is ready to type once the handoff cover goes away.
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+
+    final covered = HotseatHandoff.isCovering(context);
+    if (_covered && !covered) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _focus.requestFocus();
+      });
+    }
+    _covered = covered;
   }
 
   void _onSubmit(String value) {
@@ -144,6 +162,7 @@ class _CityInputFieldState extends State<_CityInputField> {
       // No context menu: pasting city names is not allowed.
       contextMenuBuilder: null,
       autofocus: true,
+      focusNode: _focus,
       onSubmitted: _onSubmit,
       controller: inputController,
       textCapitalization: TextCapitalization.words,
@@ -168,6 +187,7 @@ class _CityInputFieldState extends State<_CityInputField> {
   void dispose() {
     _firstChars.cancel();
     inputController.dispose();
+    _focus.dispose();
     _errorShown.dispose();
     super.dispose();
   }
