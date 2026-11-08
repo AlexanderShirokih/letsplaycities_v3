@@ -57,13 +57,14 @@
     "settings": "Настройки",
     "settings_item_titles": {
       "difficulty": "Сложность",
-      "scoring": "Подсчет очков",
+      "scoring": "Подсчёт очков",
       "move_timer": "Таймер хода",
       "correction": "Автоисправление",
       "sound": "Звук",
-      "online_chat": "Онлайн чат",
+      "online_chat": "Чат",
       "statistics": "Статистика",
-      "dict_updates": "Проверка обновлений словаря"
+      "dict_updates": "Обновление словаря",
+      "theme": "Тема"
     },
     "difficulty": {
       "easy": "Легко",
@@ -88,7 +89,24 @@
       "off": "Выкл",
       "minutes": "{n} мин"
     },
-    "statistic_sub": "Просмотр статистики"
+    "statistic_sub": "Просмотр статистики",
+    "groups": {
+      "game": "Игра",
+      "online": "Онлайн",
+      "app": "Приложение"
+    },
+    "timer": {
+      "s30": "30 с",
+      "m1": "1 мин",
+      "m2": "2 мин",
+      "off": "Нет"
+    },
+    "theme_mode": {
+      "light": "Светлая",
+      "dark": "Тёмная",
+      "system": "Как в системе"
+    },
+    "stats": "Статистика"
   },
   "stats": {
     "title": "Статистика",

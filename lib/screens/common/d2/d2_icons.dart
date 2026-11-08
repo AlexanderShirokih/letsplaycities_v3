@@ -39,6 +39,11 @@ enum D2Glyph {
   ban,
   timer,
   warning,
+  gauge,
+  star,
+  wand,
+  sound,
+  moon,
 }
 
 /// One stroked (or filled) path of a glyph, in a 24x24 view box
@@ -226,6 +231,31 @@ final _glyphs = <D2Glyph, List<_Shape>>{
     const _Shape('M12 3.3 2.6 19.8h18.8z'),
     const _Shape('M12 9.6v4.4'),
     const _Shape('M12 16.9h.01', width: 3.2),
+  ],
+  D2Glyph.gauge: [
+    const _Shape('M3.5 16.5a8.5 8.5 0 0 1 17 0'),
+    const _Shape('M12 16.5l4.2-5.2'),
+    const _Shape('M6.4 12.2l1.2.7M12 8v1.4M17.6 12.2l-1.2.7'),
+  ],
+  D2Glyph.star: [
+    const _Shape(
+      'M12 3.2l2.6 5.5 6 .7-4.4 4.1 1.2 5.9L12 16.5l-5.4 2.9 1.2-5.9-4.4-4.1 6-.7z',
+    ),
+  ],
+  D2Glyph.wand: [
+    const _Shape('M4.5 19.5l10-10'),
+    const _Shape('M12.8 7.8l3.4 3.4'),
+    const _Shape(
+      'M18 3.5v3M16.5 5h3M19.5 12v2.4M18.3 13.2h2.4M9.5 3.5v2.2M8.4 4.6h2.2',
+    ),
+  ],
+  D2Glyph.sound: [
+    const _Shape('M4 9.5h3.5L12 5.5v13l-4.5-4H4z'),
+    const _Shape('M15.5 9.2a4 4 0 0 1 0 5.6'),
+    const _Shape('M18.2 6.6a7.6 7.6 0 0 1 0 10.8'),
+  ],
+  D2Glyph.moon: [
+    const _Shape('M19.5 14.6A8 8 0 0 1 9.4 4.5a8 8 0 1 0 10.1 10.1z'),
   ],
 };
 

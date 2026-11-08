@@ -1,233 +1,333 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:lets_play_cities/app_injection.dart';
 import 'package:lets_play_cities/base/dictionary.dart';
 import 'package:lets_play_cities/base/preferences.dart';
 import 'package:lets_play_cities/base/scoring.dart';
+import 'package:lets_play_cities/base/themes/app_theme_mode.dart';
 import 'package:lets_play_cities/i18n/enum_labels.dart';
 import 'package:lets_play_cities/i18n/strings.g.dart';
-import 'package:lets_play_cities/screens/common/dialogs.dart';
+import 'package:lets_play_cities/screens/common/d2/d2.dart';
+import 'package:lets_play_cities/screens/settings/settings_mapping.dart';
 import 'package:lets_play_cities/screens/settings/stats/stats_screen.dart';
 
-class SettingsScreen extends StatelessWidget {
+class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
+
+  @override
+  State<SettingsScreen> createState() => _SettingsScreenState();
+}
+
+class _SettingsScreenState extends State<SettingsScreen> {
+  /// Writes a preference and redraws the screen with the new value
+  void _set(VoidCallback write) => setState(write);
 
   @override
   Widget build(BuildContext context) {
     final t = context.t;
+    final prefs = context.read<GamePreferences>();
+    final c = D2Colors.of(context);
+    final titles = t.settings.settingsItemTitles;
+
     return Scaffold(
-      appBar: AppBar(title: Text(t.settings.settings)),
-      body: _SettingsItemsList(t, context.watch<GamePreferences>()),
+      backgroundColor: c.bg,
+      body: SafeArea(
+        child: Column(
+          children: [
+            D2ScreenHeader(
+              title: t.settings.settings,
+              onBack: () => Navigator.of(context).maybePop(),
+            ),
+            Expanded(
+              child: ListView(
+                padding: const EdgeInsets.fromLTRB(16, 6, 16, 16),
+                children: [
+                  _Group(
+                    title: t.settings.groups.game,
+                    children: [
+                      _ChoiceRow(
+                        glyph: D2Glyph.gauge,
+                        label: titles.difficulty,
+                        child: D2Segmented<Difficulty>(
+                          items: [
+                            for (final d in Difficulty.values) (d, d.label(t)),
+                          ],
+                          selected: prefs.wordsDifficulty,
+                          onChanged: (d) =>
+                              _set(() => prefs.wordsDifficulty = d),
+                        ),
+                      ),
+                      _ChoiceRow(
+                        glyph: D2Glyph.timer,
+                        label: titles.moveTimer,
+                        child: D2Segmented<int>(
+                          items: [
+                            (30, t.settings.timer.s30),
+                            (60, t.settings.timer.m1),
+                            (120, t.settings.timer.m2),
+                            (0, t.settings.timer.off),
+                          ],
+                          selected: timerOptionFor(prefs.timeLimit),
+                          onChanged: (s) => _set(() => prefs.timeLimit = s),
+                        ),
+                      ),
+                      _ChoiceRow(
+                        glyph: D2Glyph.star,
+                        label: titles.scoring,
+                        child: D2Segmented<ScoringType>(
+                          items: [
+                            for (final s in ScoringType.values) (s, s.label(t)),
+                          ],
+                          selected: prefs.scoringType,
+                          onChanged: (s) => _set(() => prefs.scoringType = s),
+                        ),
+                      ),
+                      _SwitchRow(
+                        glyph: D2Glyph.wand,
+                        label: titles.correction,
+                        value: prefs.correctionEnabled,
+                        onChanged: (v) =>
+                            _set(() => prefs.correctionEnabled = v),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 14),
+                  _Group(
+                    title: t.settings.groups.online,
+                    children: [
+                      _SwitchRow(
+                        glyph: D2Glyph.chat,
+                        label: titles.onlineChat,
+                        value: prefs.onlineChatEnabled,
+                        onChanged: (v) =>
+                            _set(() => prefs.onlineChatEnabled = v),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 14),
+                  _Group(
+                    title: t.settings.groups.app,
+                    children: [
+                      _SwitchRow(
+                        glyph: D2Glyph.sound,
+                        label: titles.sound,
+                        value: prefs.soundEnabled,
+                        onChanged: (v) => _set(() => prefs.soundEnabled = v),
+                      ),
+                      _ChoiceRow(
+                        glyph: D2Glyph.moon,
+                        label: titles.theme,
+                        child: D2Segmented<AppThemeMode>(
+                          items: [
+                            (AppThemeMode.light, t.settings.themeMode.light),
+                            (AppThemeMode.dark, t.settings.themeMode.dark),
+                            (AppThemeMode.system, t.settings.themeMode.system),
+                          ],
+                          selected: prefs.themeMode,
+                          onChanged: (m) => _set(() => setThemeMode(m)),
+                        ),
+                      ),
+                      _SwitchRow(
+                        glyph: D2Glyph.rules,
+                        label: titles.dictUpdates,
+                        value: dictionaryUpdatesOn(
+                          prefs.dictionaryUpdatePeriod,
+                        ),
+                        onChanged: (v) => _set(
+                          () => prefs.dictionaryUpdatePeriod =
+                              dictionaryPeriodFor(v),
+                        ),
+                      ),
+                      _NavigationRow(
+                        glyph: D2Glyph.trophy,
+                        label: t.settings.stats,
+                        onTap: () => Navigator.of(context).push(
+                          MaterialPageRoute(builder: (_) => StatisticsScreen()),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
 
-class _SettingsItemsList extends StatefulWidget {
-  final Translations _t;
-  final GamePreferences _prefs;
+class _Group extends StatelessWidget {
+  final String title;
+  final List<Widget> children;
 
-  const _SettingsItemsList(this._t, this._prefs);
-
-  @override
-  State<_SettingsItemsList> createState() => _SettingsItemsListState();
-
-  /// Creates the items from the current preferences. Items hold the values
-  /// the user changes, so the [State] creates them once and keeps them.
-  List<_SettingsItem> _createItems() {
-    final titles = _t.settings.settingsItemTitles;
-    final onOff = [_t.settings.onOff.off, _t.settings.onOff.on];
-    return [
-      _SingleChoiceItem(
-        titles.difficulty,
-        [for (final value in Difficulty.values) value.label(_t)],
-        _prefs.wordsDifficulty.index,
-        onSet: (i) => _prefs.wordsDifficulty = Difficulty.values[i],
-      ),
-      _SingleChoiceItem(
-        titles.scoring,
-        [for (final value in ScoringType.values) value.label(_t)],
-        _prefs.scoringType.index,
-        onSet: (i) => _prefs.scoringType = ScoringType.values[i],
-      ),
-      _SingleChoiceItem(
-        titles.moveTimer,
-        [
-          for (final minutes in _acceptedValues)
-            minutes == 0
-                ? _t.settings.moveTimer.off
-                : _t.settings.moveTimer.minutes(n: minutes),
-        ],
-        _timerValueToIndex(_prefs.timeLimit),
-        useRadio: true,
-        onSet: (i) => _prefs.timeLimit = _indexToTimeValue(i),
-      ),
-      _ToggleItem(
-        titles.correction,
-        onOff,
-        _prefs.correctionEnabled,
-        onSet: (f) => _prefs.correctionEnabled = f,
-      ),
-      _ToggleItem(
-        titles.sound,
-        onOff,
-        _prefs.soundEnabled,
-        onSet: (f) => _prefs.soundEnabled = f,
-      ),
-      _ToggleItem(
-        titles.onlineChat,
-        onOff,
-        _prefs.onlineChatEnabled,
-        onSet: (f) => _prefs.onlineChatEnabled = f,
-      ),
-      _NavigationItem(
-        titles.statistics,
-        () => _t.settings.statisticSub,
-        () => StatisticsScreen(),
-      ),
-      _SingleChoiceItem(
-        titles.dictUpdates,
-        [for (final value in DictionaryUpdatePeriod.values) value.label(_t)],
-        _prefs.dictionaryUpdatePeriod.index,
-        useRadio: true,
-        onSet: (i) =>
-            _prefs.dictionaryUpdatePeriod = DictionaryUpdatePeriod.values[i],
-      ),
-    ];
-  }
-
-  static final _acceptedValues = [0, 1, 2, 5, 10, 15];
-
-  int _timerValueToIndex(int timerValueInSec) =>
-      _acceptedValues.indexWhere((e) => e >= timerValueInSec ~/ 60);
-
-  int _indexToTimeValue(int index) => _acceptedValues[index] * 60;
-}
-
-class _SettingsItemsListState extends State<_SettingsItemsList> {
-  late final List<_SettingsItem> _items;
-
-  @override
-  void initState() {
-    super.initState();
-    _items = widget._createItems();
-  }
+  const _Group({required this.title, required this.children});
 
   @override
   Widget build(BuildContext context) {
-    return ListView(
-      children: _items
-          .map(
-            (item) => ListTile(
-              title: Text(item.title),
-              subtitle: Text(item.subtitle),
-              trailing: item.isChecked == null
-                  ? null
-                  : Switch(
-                      value: item.isChecked!,
-                      onChanged: (_) => _onItemClicked(item),
-                    ),
-              onTap: () => _onItemClicked(item),
-            ),
-          )
-          .toList(growable: false),
+    final c = D2Colors.of(context);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(left: 4, bottom: 8),
+          child: Text(title, style: D2Text.section.copyWith(color: c.ink)),
+        ),
+        D2Card(
+          padding: EdgeInsets.zero,
+          child: Column(
+            children: [
+              for (var i = 0; i < children.length; i++) ...[
+                if (i > 0) Container(height: 2, color: c.bg),
+                children[i],
+              ],
+            ],
+          ),
+        ),
+      ],
     );
   }
-
-  void _onItemClicked(_SettingsItem item) =>
-      item.onClicked(context).then((_) => setState(() {}));
 }
 
-// Describes base settings item properties. Inherited classes should define the click behaviour
-abstract class _SettingsItem {
-  final String title;
+class _RowIcon extends StatelessWidget {
+  final D2Glyph glyph;
 
-  _SettingsItem(this.title);
-
-  bool? get isChecked;
-
-  String get subtitle;
-
-  Future<void> onClicked(BuildContext context);
-}
-
-typedef ScreenSelector = Widget Function();
-
-// When item is clicked then navigates to the specified destination.
-// The subtitle is read on every build, because the destination may change
-// what it shows (e.g. the current theme name).
-class _NavigationItem extends _SettingsItem {
-  final String Function() _subtitle;
-  final ScreenSelector _selector;
-
-  _NavigationItem(super.title, this._subtitle, this._selector);
+  const _RowIcon(this.glyph);
 
   @override
-  Future<void> onClicked(BuildContext context) {
-    return Navigator.of(context)
-        .push(MaterialPageRoute(builder: (_) => _selector()));
+  Widget build(BuildContext context) {
+    return Container(
+      width: 34,
+      height: 34,
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+        color: D2Colors.of(context).bg,
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: D2Icon(glyph, size: 20),
+    );
   }
-
-  @override
-  bool? get isChecked => null;
-
-  @override
-  String get subtitle => _subtitle();
 }
 
-class _ToggleItem extends _SettingsItem {
-  final List<String> _stateNames;
-  final Function(bool) onSet;
+class _RowLabel extends StatelessWidget {
+  final String text;
 
-  bool _isChecked;
-
-  _ToggleItem(
-    super.title,
-    this._stateNames,
-    bool initialState, {
-    required this.onSet,
-  }) : _isChecked = initialState;
+  const _RowLabel(this.text);
 
   @override
-  bool get isChecked => _isChecked;
-
-  @override
-  Future<void> onClicked(BuildContext context) async {
-    _isChecked = !_isChecked;
-    onSet(_isChecked);
+  Widget build(BuildContext context) {
+    return Expanded(
+      child: Text(
+        text,
+        style: D2Text.body.copyWith(color: D2Colors.of(context).ink),
+      ),
+    );
   }
-
-  @override
-  String get subtitle => _isChecked ? _stateNames[1] : _stateNames[0];
 }
 
-class _SingleChoiceItem extends _SettingsItem {
-  final List<String> _choiceItems;
+/// Label with a control below it
+class _ChoiceRow extends StatelessWidget {
+  final D2Glyph glyph;
+  final String label;
+  final Widget child;
 
-  final bool _useRadio;
-  int _currentChoice;
-  Function(int) onSet;
-
-  _SingleChoiceItem(
-    super.title,
-    this._choiceItems,
-    this._currentChoice, {
-    bool? useRadio,
-    required this.onSet,
-  }) : _useRadio = useRadio ?? false;
+  const _ChoiceRow({
+    required this.glyph,
+    required this.label,
+    required this.child,
+  });
 
   @override
-  bool? get isChecked => _useRadio ? _currentChoice != 0 : null;
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(10, 6, 10, 10),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          SizedBox(
+            height: 40,
+            child: Row(
+              children: [
+                _RowIcon(glyph),
+                const SizedBox(width: 12),
+                _RowLabel(label),
+              ],
+            ),
+          ),
+          const SizedBox(height: 6),
+          child,
+        ],
+      ),
+    );
+  }
+}
+
+class _SwitchRow extends StatelessWidget {
+  final D2Glyph glyph;
+  final String label;
+  final bool value;
+  final ValueChanged<bool> onChanged;
+
+  const _SwitchRow({
+    required this.glyph,
+    required this.label,
+    required this.value,
+    required this.onChanged,
+  });
 
   @override
-  Future<void> onClicked(BuildContext context) =>
-      showSingleChoiceDialog(context, title, _choiceItems, _currentChoice).then(
-        (value) {
-          if (value != null) {
-            _currentChoice = value;
-            onSet(value);
-          }
-        },
-      );
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(10, 0, 6, 0),
+      child: SizedBox(
+        height: 52,
+        child: Row(
+          children: [
+            _RowIcon(glyph),
+            const SizedBox(width: 12),
+            _RowLabel(label),
+            D2Switch(value: value, onChanged: onChanged),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _NavigationRow extends StatelessWidget {
+  final D2Glyph glyph;
+  final String label;
+  final VoidCallback onTap;
+
+  const _NavigationRow({
+    required this.glyph,
+    required this.label,
+    required this.onTap,
+  });
 
   @override
-  String get subtitle => _choiceItems[_currentChoice];
+  Widget build(BuildContext context) {
+    return Semantics(
+      button: true,
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(10, 0, 14, 0),
+          child: SizedBox(
+            height: 52,
+            child: Row(
+              children: [
+                _RowIcon(glyph),
+                const SizedBox(width: 12),
+                _RowLabel(label),
+                const RotatedBox(quarterTurns: 2, child: D2Icon(D2Glyph.back)),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
 }

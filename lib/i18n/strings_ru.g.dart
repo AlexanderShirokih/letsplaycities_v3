@@ -234,6 +234,13 @@ class Translations$settings$ru {
 
 	/// ru: 'Просмотр статистики'
 	String get statisticSub => 'Просмотр статистики';
+
+	late final Translations$settings$groups$ru groups = Translations$settings$groups$ru._(_root);
+	late final Translations$settings$timer$ru timer = Translations$settings$timer$ru._(_root);
+	late final Translations$settings$themeMode$ru themeMode = Translations$settings$themeMode$ru._(_root);
+
+	/// ru: 'Статистика'
+	String get stats => 'Статистика';
 }
 
 // Path: stats
@@ -834,8 +841,8 @@ class Translations$settings$settingsItemTitles$ru {
 	/// ru: 'Сложность'
 	String get difficulty => 'Сложность';
 
-	/// ru: 'Подсчет очков'
-	String get scoring => 'Подсчет очков';
+	/// ru: 'Подсчёт очков'
+	String get scoring => 'Подсчёт очков';
 
 	/// ru: 'Таймер хода'
 	String get moveTimer => 'Таймер хода';
@@ -846,14 +853,17 @@ class Translations$settings$settingsItemTitles$ru {
 	/// ru: 'Звук'
 	String get sound => 'Звук';
 
-	/// ru: 'Онлайн чат'
-	String get onlineChat => 'Онлайн чат';
+	/// ru: 'Чат'
+	String get onlineChat => 'Чат';
 
 	/// ru: 'Статистика'
 	String get statistics => 'Статистика';
 
-	/// ru: 'Проверка обновлений словаря'
-	String get dictUpdates => 'Проверка обновлений словаря';
+	/// ru: 'Обновление словаря'
+	String get dictUpdates => 'Обновление словаря';
+
+	/// ru: 'Тема'
+	String get theme => 'Тема';
 }
 
 // Path: settings.difficulty
@@ -938,6 +948,63 @@ class Translations$settings$moveTimer$ru {
 
 	/// ru: '{n} мин'
 	String minutes({required Object n}) => '${n} мин';
+}
+
+// Path: settings.groups
+class Translations$settings$groups$ru {
+	Translations$settings$groups$ru._(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// ru: 'Игра'
+	String get game => 'Игра';
+
+	/// ru: 'Онлайн'
+	String get online => 'Онлайн';
+
+	/// ru: 'Приложение'
+	String get app => 'Приложение';
+}
+
+// Path: settings.timer
+class Translations$settings$timer$ru {
+	Translations$settings$timer$ru._(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// ru: '30 с'
+	String get s30 => '30 с';
+
+	/// ru: '1 мин'
+	String get m1 => '1 мин';
+
+	/// ru: '2 мин'
+	String get m2 => '2 мин';
+
+	/// ru: 'Нет'
+	String get off => 'Нет';
+}
+
+// Path: settings.themeMode
+class Translations$settings$themeMode$ru {
+	Translations$settings$themeMode$ru._(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// ru: 'Светлая'
+	String get light => 'Светлая';
+
+	/// ru: 'Тёмная'
+	String get dark => 'Тёмная';
+
+	/// ru: 'Как в системе'
+	String get system => 'Как в системе';
 }
 
 // Path: gameResults.matchResult
