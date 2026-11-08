@@ -154,6 +154,12 @@ class D2Button extends StatelessWidget {
   final D2ButtonSize size;
   final bool expand;
 
+  /// Counter in the top right corner, hidden when `null` or zero
+  final int? badge;
+
+  /// Replaces the label for screen readers
+  final String? semanticLabel;
+
   const D2Button({
     super.key,
     required this.label,
@@ -162,6 +168,8 @@ class D2Button extends StatelessWidget {
     this.kind = D2ButtonKind.primary,
     this.size = D2ButtonSize.medium,
     this.expand = false,
+    this.badge,
+    this.semanticLabel,
   });
 
   @override
@@ -189,41 +197,54 @@ class D2Button extends StatelessWidget {
         : D2Text.cta.copyWith(fontSize: fontSize);
     final textColor = enabled ? fg : c.inkSoft;
 
+    final button = _Pressable(
+      color: enabled ? fill : null,
+      border: enabled ? border : _disabledBorder,
+      dashed: !enabled,
+      shadow: enabled ? shadow : const Color(0x00000000),
+      shadowHeight: !bordered ? 3 : (large ? 5 : 4),
+      radius: large ? 18 : 14,
+      height: large ? 58 : 44,
+      width: expand ? double.infinity : null,
+      onPressed: onPressed,
+      child: Padding(
+        padding: EdgeInsets.symmetric(horizontal: large ? 20 : 14),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            if (icon != null) ...[
+              D2Icon(icon!, size: large ? 24 : 20, color: textColor),
+              const SizedBox(width: 8),
+            ],
+            Flexible(
+              child: Text(
+                label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: style.copyWith(color: textColor),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+
     return Semantics(
       button: true,
       enabled: enabled,
-      child: _Pressable(
-        color: enabled ? fill : null,
-        border: enabled ? border : _disabledBorder,
-        dashed: !enabled,
-        shadow: enabled ? shadow : const Color(0x00000000),
-        shadowHeight: !bordered ? 3 : (large ? 5 : 4),
-        radius: large ? 18 : 14,
-        height: large ? 58 : 44,
-        width: expand ? double.infinity : null,
-        onPressed: onPressed,
-        child: Padding(
-          padding: EdgeInsets.symmetric(horizontal: large ? 20 : 14),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              if (icon != null) ...[
-                D2Icon(icon!, size: large ? 24 : 20, color: textColor),
-                const SizedBox(width: 8),
+      label: semanticLabel,
+      excludeSemantics: semanticLabel != null,
+      onTap: semanticLabel != null ? onPressed : null,
+      child: badge == null || badge! <= 0
+          ? button
+          : Stack(
+              clipBehavior: Clip.none,
+              children: [
+                button,
+                Positioned(top: -4, right: -4, child: _Badge(badge!)),
               ],
-              Flexible(
-                child: Text(
-                  label,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: style.copyWith(color: textColor),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
+            ),
     );
   }
 }
@@ -278,30 +299,92 @@ class D2IconButton extends StatelessWidget {
               ),
             ),
             if (badge != null && badge! > 0)
-              Positioned(
-                top: -4,
-                right: -4,
-                child: Container(
-                  constraints: const BoxConstraints(minWidth: 18),
-                  height: 18,
-                  padding: const EdgeInsets.symmetric(horizontal: 4),
-                  alignment: Alignment.center,
-                  decoration: BoxDecoration(
-                    color: c.orange,
-                    borderRadius: BorderRadius.circular(9),
-                    border: Border.all(color: c.surface, width: 2),
-                  ),
-                  child: Text(
-                    '$badge',
-                    style: D2Text.small.copyWith(
-                      fontSize: 11,
-                      height: 1,
-                      color: D2Colors.light.ink,
-                    ),
-                  ),
-                ),
-              ),
+              Positioned(top: -4, right: -4, child: _Badge(badge!)),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Orange counter on the corner of a button
+class _Badge extends StatelessWidget {
+  final int count;
+
+  const _Badge(this.count);
+
+  @override
+  Widget build(BuildContext context) {
+    final c = D2Colors.of(context);
+
+    return Container(
+      constraints: const BoxConstraints(minWidth: 18),
+      height: 18,
+      padding: const EdgeInsets.symmetric(horizontal: 4),
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+        color: c.orange,
+        borderRadius: BorderRadius.circular(9),
+        border: Border.all(color: c.surface, width: 2),
+      ),
+      child: Text(
+        '$count',
+        style: D2Text.small.copyWith(
+          fontSize: 11,
+          height: 1,
+          color: D2Colors.light.ink,
+        ),
+      ),
+    );
+  }
+}
+
+/// Violet button with only a white glyph, like «Отправить».
+/// [tooltip] is its semantics label.
+class D2SquareButton extends StatelessWidget {
+  final D2Glyph glyph;
+  final String tooltip;
+  final VoidCallback? onPressed;
+  final double width;
+  final double height;
+
+  const D2SquareButton(
+    this.glyph, {
+    super.key,
+    required this.tooltip,
+    this.onPressed,
+    this.width = 56,
+    this.height = 52,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final c = D2Colors.of(context);
+    final enabled = onPressed != null;
+
+    return Semantics(
+      label: tooltip,
+      button: true,
+      enabled: enabled,
+      excludeSemantics: true,
+      onTap: onPressed,
+      child: _Pressable(
+        color: enabled ? c.violet : null,
+        border: enabled ? c.shadow : _disabledBorder,
+        dashed: !enabled,
+        shadow: enabled ? c.shadow : const Color(0x00000000),
+        shadowHeight: 4,
+        radius: 16,
+        width: width,
+        height: height,
+        onPressed: onPressed,
+        child: Center(
+          child: D2Icon(
+            glyph,
+            size: 26,
+            strokeWidth: 3,
+            color: enabled ? Colors.white : c.inkSoft,
+          ),
         ),
       ),
     );

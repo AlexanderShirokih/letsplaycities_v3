@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:lets_play_cities/base/game/combo.dart';
 import 'package:lets_play_cities/i18n/enum_labels.dart';
 import 'package:lets_play_cities/i18n/strings.g.dart';
+import 'package:lets_play_cities/screens/common/d2/d2.dart';
 
 /// Used to display users combos.
 class ComboBadgeWidget extends StatelessWidget {
@@ -17,8 +17,11 @@ class ComboBadgeWidget extends StatelessWidget {
     return StreamBuilder<Map<ComboType, int>>(
       stream: _comboEvents,
       builder: (context, snap) => !snap.hasData
-          ? Container()
-          : Row(
+          ? const SizedBox.shrink()
+          : Wrap(
+              alignment: WrapAlignment.center,
+              spacing: 4,
+              runSpacing: 4,
               children: snap.requireData.entries
                   .map((e) => _createBadge(context, t, e.key, e.value))
                   .toList(growable: false),
@@ -31,39 +34,38 @@ class ComboBadgeWidget extends StatelessWidget {
     Translations t,
     ComboType comboType,
     int multiplier,
-  ) => Tooltip(
-    message: comboType.label(t),
-    child: Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 2.0),
-      child: Chip(
-        labelPadding: const EdgeInsets.symmetric(
-          vertical: 1.0,
-          horizontal: 1.0,
+  ) {
+    final onYellow = D2Colors.light.ink;
+
+    return Tooltip(
+      message: comboType.label(t),
+      child: Container(
+        height: 24,
+        padding: const EdgeInsets.symmetric(horizontal: 6),
+        decoration: BoxDecoration(
+          color: D2Colors.of(context).yellow,
+          borderRadius: BorderRadius.circular(8),
         ),
-        avatar: CircleAvatar(
-          backgroundColor: Colors.transparent,
-          child: _getIcon(comboType, Theme.of(context).colorScheme.secondary),
-        ),
-        label: Text(
-          '× $multiplier',
-          style: Theme.of(context).textTheme.bodySmall,
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            D2Icon(_glyphOf(comboType), size: 14, color: onYellow),
+            const SizedBox(width: 3),
+            Text(
+              '×$multiplier',
+              style: D2Text.small.copyWith(color: onYellow, height: 1),
+            ),
+          ],
         ),
       ),
-    ),
-  );
-
-  Widget _getIcon(ComboType type, Color color) {
-    switch (type) {
-      case ComboType.quickTime:
-        return Icon(Icons.timelapse_outlined, color: color);
-      case ComboType.shortWord:
-        return Icon(Icons.star, color: color);
-      case ComboType.longWord:
-        return FaIcon(FontAwesomeIcons.rulerHorizontal, color: color);
-      case ComboType.sameCountry:
-        return FaIcon(FontAwesomeIcons.earthEurope, color: color);
-      case ComboType.differentCountries:
-        return FaIcon(FontAwesomeIcons.bookAtlas, color: color);
-    }
+    );
   }
+
+  static D2Glyph _glyphOf(ComboType type) => switch (type) {
+    ComboType.quickTime => D2Glyph.bolt,
+    ComboType.shortWord => D2Glyph.star,
+    ComboType.longWord => D2Glyph.gauge,
+    ComboType.sameCountry => D2Glyph.cities,
+    ComboType.differentCountries => D2Glyph.globe,
+  };
 }

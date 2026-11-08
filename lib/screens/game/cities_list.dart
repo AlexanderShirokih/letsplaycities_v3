@@ -3,8 +3,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lets_play_cities/base/data.dart';
 import 'package:lets_play_cities/base/game/game_item.dart';
 import 'package:lets_play_cities/base/repositories/game_session_repo.dart';
-import 'package:lets_play_cities/screens/common/d2/d2_colors.dart';
-import 'package:lets_play_cities/screens/common/utils.dart';
+import 'package:lets_play_cities/base/users.dart';
+import 'package:lets_play_cities/screens/common/d2/d2.dart';
 import 'package:lets_play_cities/utils/string_utils.dart';
 
 /// Represents ListView containing cities and messages
@@ -20,6 +20,7 @@ class CitiesList extends StatelessWidget {
         initialData: items.items,
         builder: (context, state) => ListView(
           reverse: true,
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
           children: state.hasData
               ? state.requireData.reversed
                     .map((e) => GameItemListTile(e))
@@ -31,100 +32,127 @@ class CitiesList extends StatelessWidget {
   }
 }
 
+/// A bubble of the city or the chat message: the moves of the left player
+/// are on the left, of the right player on the right.
 class GameItemListTile extends StatelessWidget {
   final GameItem _gameItem;
 
   const GameItemListTile(this._gameItem, {super.key});
 
   @override
-  Widget build(BuildContext context) => ListTile(
-    title: Row(
-      mainAxisSize: MainAxisSize.min,
-      mainAxisAlignment: _gameItem.owner.position == Position.left
-          ? MainAxisAlignment.start
-          : MainAxisAlignment.end,
-      children: [
-        Container(
-          constraints: BoxConstraints(maxWidth: 240.0),
-          padding: EdgeInsets.fromLTRB(10.0, 10.0, 16.0, 10.0),
-          margin: EdgeInsets.zero,
-          decoration: _buildDecoration(context),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              if (_gameItem is CityInfo) _buildIcon(_gameItem),
-              const SizedBox(width: 8.0),
-              Flexible(child: _buildText(context)),
-            ],
-          ),
+  Widget build(BuildContext context) {
+    final item = _gameItem;
+    final isLeft = item.owner.position == Position.left;
+
+    return Padding(
+      padding: const EdgeInsets.only(top: 9),
+      child: Align(
+        alignment: isLeft ? Alignment.centerLeft : Alignment.centerRight,
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 290),
+          child: item is CityInfo
+              ? _buildCity(context, item)
+              : _buildMessage(context, item as MessageInfo),
         ),
-      ],
-    ),
-  );
-
-  Widget _buildIcon(CityInfo cityInfo) {
-    switch (cityInfo.status) {
-      case CityStatus.ok:
-        return createFlagImage(cityInfo.countryCode);
-      case CityStatus.waiting:
-        return Icon(Icons.pending_outlined);
-      case CityStatus.error:
-        return Icon(Icons.error_outline, color: Colors.red);
-    }
-  }
-
-  BoxDecoration _buildDecoration(BuildContext context) {
-    final colors = D2Colors.of(context);
-
-    return BoxDecoration(
-      color: (_gameItem is CityInfo)
-          ? colors.surface
-          : (_gameItem.owner.position == Position.left
-                ? colors.surface
-                : colors.violet),
-      borderRadius: BorderRadius.circular(8.0),
-      border: Border.all(
-        width: 1.0,
-        color: colors.edge,
-        style: _gameItem is CityInfo ? BorderStyle.solid : BorderStyle.none,
       ),
     );
   }
 
-  Widget _buildText(BuildContext context) {
-    final colors = D2Colors.of(context);
-    if (_gameItem is CityInfo) {
-      final textStyle = Theme.of(context).textTheme.bodyLarge!
-          .copyWith(fontSize: 18, fontWeight: FontWeight.w600);
-      final spanTextStyle = textStyle.copyWith(color: colors.letter);
-      return RichText(
-        text: _buildCitySpans(textStyle, spanTextStyle),
-        overflow: TextOverflow.clip,
-      );
-    }
-    final isMine = _gameItem.owner.position != Position.left;
+  Widget _buildCity(BuildContext context, CityInfo city) {
+    final c = D2Colors.of(context);
 
-    return Text(
-      (_gameItem as MessageInfo).message,
-      style: TextStyle(color: isMine ? Colors.white : colors.ink),
+    return Container(
+      padding: const EdgeInsets.fromLTRB(9, 7, 12, 9),
+      decoration: BoxDecoration(
+        color: c.surface,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [BoxShadow(color: c.edge, offset: const Offset(0, 3))],
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          _buildIcon(context, city),
+          const SizedBox(width: 8),
+          Flexible(
+            child: Text.rich(
+              _buildCitySpans(city.city.toTitleCase(), c),
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        ],
+      ),
     );
   }
 
-  TextSpan _buildCitySpans(TextStyle textStyle, TextStyle spanTextStyle) {
-    final city = (_gameItem as CityInfo).city.toTitleCase();
-    final lastSuitable = indexOfLastSuitableChar(city);
+  Widget _buildMessage(BuildContext context, MessageInfo message) {
+    final c = D2Colors.of(context);
+    final isMine = message.owner is Player;
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+      decoration: BoxDecoration(
+        color: isMine ? c.violet : c.surface,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: isMine ? c.shadow.withAlpha(56) : c.edge,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
+      child: Text(
+        message.message,
+        style: D2Text.bodyRegular.copyWith(
+          fontSize: 16,
+          height: 1.3,
+          color: isMine ? D2Colors.light.surface : c.ink,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildIcon(BuildContext context, CityInfo cityInfo) {
+    final c = D2Colors.of(context);
+
+    return switch (cityInfo.status) {
+      CityStatus.ok => Container(
+        width: 24,
+        height: 16,
+        clipBehavior: Clip.antiAlias,
+        foregroundDecoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(3),
+          border: Border.all(color: c.shadow.withAlpha(64)),
+        ),
+        decoration: BoxDecoration(borderRadius: BorderRadius.circular(3)),
+        child: Image.asset(
+          'assets/images/flags/flag_${cityInfo.countryCode}.png',
+          fit: BoxFit.cover,
+          errorBuilder: (_, _, _) => const SizedBox.shrink(),
+        ),
+      ),
+      CityStatus.waiting => D2Icon(D2Glyph.timer, size: 20, color: c.inkSoft),
+      CityStatus.error => D2Icon(D2Glyph.warning, size: 20, color: c.error),
+    };
+  }
+
+  /// The last suitable letter is highlighted, the letters after it are dimmed
+  static TextSpan _buildCitySpans(String city, D2Colors c) {
+    final text = D2Text.body.copyWith(fontSize: 17, color: c.ink);
+    final letter = D2Text.body.copyWith(
+      fontSize: 17,
+      fontWeight: FontWeight.w700,
+      fontVariations: const [FontVariation('wght', 700)],
+      color: c.letter,
+    );
+    final tail = text.copyWith(color: c.inkSoft);
+    final last = indexOfLastSuitableChar(city);
 
     return TextSpan(
       children: [
-        // Highlight first letter
-        TextSpan(text: city[0], style: spanTextStyle),
-        // Show main test
-        TextSpan(text: city.substring(1, lastSuitable), style: textStyle),
-        // Highlight last suitable char
-        TextSpan(text: city[lastSuitable], style: spanTextStyle),
-        // Show trailing letters is exists
-        if (city.length != lastSuitable + 1)
-          TextSpan(text: city.substring(lastSuitable + 1), style: textStyle),
+        if (last > 0) TextSpan(text: city.substring(0, last), style: text),
+        TextSpan(text: city[last], style: letter),
+        if (last + 1 < city.length)
+          TextSpan(text: city.substring(last + 1), style: tail),
       ],
     );
   }

@@ -1,0 +1,122 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:lets_play_cities/base/game/bloc/game_bloc.dart';
+import 'package:lets_play_cities/base/game/game_config.dart';
+import 'package:lets_play_cities/base/game/game_mode.dart';
+import 'package:lets_play_cities/i18n/strings.g.dart';
+import 'package:lets_play_cities/screens/common/d2/d2.dart';
+import 'package:lets_play_cities/screens/common/dialogs.dart';
+
+import 'first_time_onboarding_screen.dart';
+
+/// «Пауза» button with the game menu: «Продолжить» and «Правила игры» in the
+/// local modes, «Выйти в меню» and «Сдаться…» in all of them.
+///
+/// Requires [GameBloc].
+class GameMenuButton extends StatelessWidget {
+  final GameConfig gameConfig;
+
+  const GameMenuButton(this.gameConfig, {super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.t;
+    final c = D2Colors.of(context);
+    final local = gameConfig.gameMode.isLocal;
+
+    // Dialogs and routes are opened from this context: the menu items are
+    // gone once the menu closes.
+    void exitToMenu() => showConfirmationDialog(
+      context,
+      message: t.game.goToMenu,
+      onOk: () => Navigator.of(context).pop(),
+    );
+
+    void surrender() => showConfirmationDialog(
+      context,
+      message: t.game.surrender,
+      onOk: () => context.read<GameBloc>().add(const GameEventSurrender()),
+    );
+
+    void showRules() => Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (context) => FirstTimeOnBoardingScreen(
+          gameConfig: gameConfig,
+          duration: const Duration(seconds: 4),
+          strings: context.t.firstTimeScreen.messages,
+          replay: true,
+        ),
+      ),
+    );
+
+    return MenuAnchor(
+      alignmentOffset: const Offset(0, 8),
+      style: MenuStyle(
+        backgroundColor: WidgetStatePropertyAll(c.surface),
+        shadowColor: WidgetStatePropertyAll(c.shadow.withAlpha(80)),
+        elevation: const WidgetStatePropertyAll(8),
+        padding: const WidgetStatePropertyAll(EdgeInsets.all(6)),
+        shape: WidgetStatePropertyAll(
+          RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        ),
+      ),
+      menuChildren: [
+        if (local) ...[
+          _MenuItem(D2Glyph.resume, t.game.resume, onPressed: () {}),
+          _MenuItem(D2Glyph.rules, t.game.rules, onPressed: showRules),
+        ],
+        _MenuItem(D2Glyph.exit, t.game.exitToMenu, onPressed: exitToMenu),
+        _MenuItem(
+          D2Glyph.surrender,
+          t.game.surrenderMenu,
+          color: c.error,
+          onPressed: surrender,
+        ),
+      ],
+      builder: (context, controller, _) => D2Button(
+        label: t.game.pause,
+        icon: D2Glyph.pause,
+        kind: D2ButtonKind.secondary,
+        onPressed: () =>
+            controller.isOpen ? controller.close() : controller.open(),
+      ),
+    );
+  }
+}
+
+class _MenuItem extends StatelessWidget {
+  final D2Glyph glyph;
+  final String label;
+  final Color? color;
+  final VoidCallback onPressed;
+
+  const _MenuItem(
+    this.glyph,
+    this.label, {
+    required this.onPressed,
+    this.color,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final fg = color ?? D2Colors.of(context).ink;
+
+    return MenuItemButton(
+      onPressed: onPressed,
+      style: ButtonStyle(
+        minimumSize: const WidgetStatePropertyAll(Size(208, 44)),
+        padding: const WidgetStatePropertyAll(
+          EdgeInsets.symmetric(horizontal: 10),
+        ),
+        foregroundColor: WidgetStatePropertyAll(fg),
+        overlayColor: WidgetStatePropertyAll(fg.withAlpha(20)),
+        shape: WidgetStatePropertyAll(
+          RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        ),
+        textStyle: WidgetStatePropertyAll(D2Text.body.copyWith(fontSize: 15)),
+      ),
+      leadingIcon: D2Icon(glyph, size: 20, color: fg),
+      child: Text(label),
+    );
+  }
+}

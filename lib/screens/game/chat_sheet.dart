@@ -1,0 +1,274 @@
+import 'dart:async';
+
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:lets_play_cities/base/game/game_item.dart';
+import 'package:lets_play_cities/base/repos.dart';
+import 'package:lets_play_cities/base/users.dart';
+import 'package:lets_play_cities/i18n/strings.g.dart';
+import 'package:lets_play_cities/screens/common/d2/d2.dart';
+
+import 'user_avatar.dart';
+
+/// «Чат» button with the number of the opponent's messages received since
+/// the chat was open the last time. Opens [ChatSheet].
+///
+/// Requires [GameSessionRepository].
+class ChatButton extends StatefulWidget {
+  const ChatButton({super.key});
+
+  @override
+  State<ChatButton> createState() => _ChatButtonState();
+}
+
+class _ChatButtonState extends State<ChatButton> {
+  late final GameSessionRepository _repository;
+  late final StreamSubscription<GameItem> _items;
+
+  var _open = false;
+  var _unread = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _repository = context.read<GameSessionRepository>();
+    _items = _repository.gameItemsRepository.getGameItems().listen((item) {
+      if (!_open && item is MessageInfo && item.owner is! Player) {
+        setState(() => _unread++);
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _items.cancel();
+    super.dispose();
+  }
+
+  Future<void> _openChat() async {
+    setState(() {
+      _open = true;
+      _unread = 0;
+    });
+
+    await showD2Sheet<void>(context, builder: (_) => ChatSheet(_repository));
+
+    if (mounted) setState(() => _open = false);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.t;
+
+    return D2Button(
+      label: t.game.chat,
+      icon: D2Glyph.chat,
+      kind: D2ButtonKind.secondary,
+      badge: _unread,
+      semanticLabel: _unread > 0 ? t.game.chatUnread(count: _unread) : null,
+      onPressed: _openChat,
+    );
+  }
+}
+
+/// Bottom sheet with the chat messages of the game and the message field
+class ChatSheet extends StatefulWidget {
+  final GameSessionRepository repository;
+
+  const ChatSheet(this.repository, {super.key});
+
+  @override
+  State<ChatSheet> createState() => _ChatSheetState();
+}
+
+class _ChatSheetState extends State<ChatSheet> {
+  final _input = TextEditingController();
+
+  @override
+  void dispose() {
+    _input.dispose();
+    super.dispose();
+  }
+
+  void _send() {
+    final message = _input.text.trim();
+    if (message.isEmpty) return;
+
+    widget.repository.sendChatMessage(message);
+    _input.clear();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.t;
+    final c = D2Colors.of(context);
+    final items = widget.repository.gameItemsRepository;
+
+    return Padding(
+      padding: EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(context).bottom),
+      child: SizedBox(
+        height: 398,
+        child: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 6, 16, 4),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      t.game.chat,
+                      style: D2Text.title.copyWith(color: c.ink),
+                    ),
+                  ),
+                  D2IconButton(
+                    D2Glyph.close,
+                    tooltip: t.d2.close,
+                    onPressed: () => Navigator.of(context).pop(),
+                  ),
+                ],
+              ),
+            ),
+            Expanded(
+              child: StreamBuilder<List<GameItem>>(
+                stream: items.getItemsList(),
+                initialData: items.items,
+                builder: (context, snapshot) {
+                  final messages = (snapshot.data ?? const [])
+                      .whereType<MessageInfo>()
+                      .toList(growable: false);
+
+                  return ListView.builder(
+                    reverse: true,
+                    padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
+                    itemCount: messages.length,
+                    itemBuilder: (context, index) {
+                      final i = messages.length - 1 - index;
+                      final next = i + 1 < messages.length
+                          ? messages[i + 1]
+                          : null;
+
+                      return _MessageBubble(
+                        messages[i],
+                        lastOfOwner: !identical(next?.owner, messages[i].owner),
+                      );
+                    },
+                  );
+                },
+              ),
+            ),
+            Container(
+              decoration: BoxDecoration(
+                border: Border(top: BorderSide(color: c.edge)),
+              ),
+              padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
+              child: SafeArea(
+                top: false,
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Container(
+                        height: 52,
+                        alignment: Alignment.centerLeft,
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        decoration: BoxDecoration(
+                          color: c.bg,
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        child: TextField(
+                          controller: _input,
+                          autofocus: true,
+                          onSubmitted: (_) => _send(),
+                          textCapitalization: TextCapitalization.sentences,
+                          cursorColor: c.violet,
+                          style: D2Text.bodyRegular.copyWith(
+                            fontSize: 16,
+                            color: c.ink,
+                          ),
+                          decoration: InputDecoration(
+                            isCollapsed: true,
+                            border: InputBorder.none,
+                            hintText: t.game.messageHint,
+                            hintStyle: D2Text.bodyRegular.copyWith(
+                              fontSize: 16,
+                              color: c.inkSoft,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    D2SquareButton(
+                      D2Glyph.send,
+                      tooltip: t.game.send,
+                      width: 52,
+                      height: 52,
+                      onPressed: _send,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// The opponent's messages are on the left with the avatar under the last
+/// one of a row, the player's own are violet on the right.
+class _MessageBubble extends StatelessWidget {
+  static const _avatarSize = 32.0;
+
+  final MessageInfo message;
+  final bool lastOfOwner;
+
+  const _MessageBubble(this.message, {required this.lastOfOwner});
+
+  @override
+  Widget build(BuildContext context) {
+    final c = D2Colors.of(context);
+    final isMine = message.owner is Player;
+
+    final bubble = Container(
+      constraints: const BoxConstraints(maxWidth: 230),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+      decoration: BoxDecoration(
+        color: isMine ? c.violet : c.bg,
+        borderRadius: BorderRadius.only(
+          topLeft: const Radius.circular(16),
+          topRight: const Radius.circular(16),
+          bottomLeft: Radius.circular(isMine ? 16 : 6),
+          bottomRight: Radius.circular(isMine ? 6 : 16),
+        ),
+      ),
+      child: Text(
+        message.message,
+        style: D2Text.bodyRegular.copyWith(
+          fontSize: 16,
+          height: 1.3,
+          color: isMine ? D2Colors.light.surface : c.ink,
+        ),
+      ),
+    );
+
+    return Padding(
+      padding: const EdgeInsets.only(top: 6),
+      child: Row(
+        mainAxisAlignment: isMine
+            ? MainAxisAlignment.end
+            : MainAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.end,
+        children: [
+          if (!isMine) ...[
+            lastOfOwner
+                ? buildD2AvatarForUser(message.owner, size: _avatarSize)
+                : const SizedBox(width: _avatarSize),
+            const SizedBox(width: 8),
+          ],
+          Flexible(child: bubble),
+        ],
+      ),
+    );
+  }
+}

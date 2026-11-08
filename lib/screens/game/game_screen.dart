@@ -6,7 +6,6 @@ import 'package:lets_play_cities/base/achievements/achievements_service.dart';
 import 'package:lets_play_cities/base/ads/advertising_helper.dart';
 import 'package:lets_play_cities/base/dictionary/countrycode_overrides.dart';
 import 'package:lets_play_cities/base/game/bloc/game_bloc.dart';
-import 'package:lets_play_cities/base/game/bloc/service_events_bloc.dart';
 import 'package:lets_play_cities/base/game/game_config.dart';
 import 'package:lets_play_cities/base/game/game_mode.dart';
 import 'package:lets_play_cities/base/game/player/default_player_names.dart';
@@ -25,8 +24,8 @@ import 'package:lets_play_cities/screens/game/first_time_onboarding_screen.dart'
 import '../common/common_widgets.dart';
 import '../game_results/game_results_screen.dart';
 import 'cities_list.dart';
-import 'city_checking_result_bar.dart';
 import 'input_fields.dart';
+import 'score_panel.dart';
 import 'top_bar.dart';
 
 /// Screen that shows all game-related interface
@@ -78,7 +77,7 @@ class GameScreen extends StatelessWidget {
                       BlocConsumer<GameBloc, GameLifecycleState>(
                         builder: (context, state) {
                           if (state is GameState) {
-                            return _buildGameStateLayout(state);
+                            return _buildGameStateLayout(state, gameConfig);
                           } else if (state is CheckingForUpdatesState) {
                             return LoadingView(
                               state.stage == CheckingForUpdatesStage.updating
@@ -173,14 +172,21 @@ GameBloc _createGameBloc(GameConfig gameConfig, Translations t) {
   );
 }
 
-Widget _buildGameStateLayout(GameState gameState) => RepositoryProvider(
-  create: (BuildContext context) => gameState.gameSessionRepository,
-  child: MultiBlocProvider(
-    providers: [
-      BlocProvider<ServiceEventsBloc>(create: (_) => ServiceEventsBloc()),
+Widget _buildGameStateLayout(GameState gameState, GameConfig gameConfig) =>
+    MultiRepositoryProvider(
+      providers: [
+        RepositoryProvider<GameSessionRepository>(
+          create: (_) => gameState.gameSessionRepository,
+        ),
+        RepositoryProvider<GameServiceEventsRepository>(
+          create: (context) => context
+              .read<GameSessionRepository>()
+              .createGameServiceEventsRepository(),
+        ),
+      ],
       // One bloc per game, so auto-listening survives rebuilds of the input
       // field and recognition is cancelled when the game layout goes away.
-      BlocProvider<VoiceRecognitionBloc>(
+      child: BlocProvider<VoiceRecognitionBloc>(
         create: (context) {
           final bloc = VoiceRecognitionBloc(
             gameState.gameSessionRepository.sendInputWord,
@@ -191,33 +197,25 @@ Widget _buildGameStateLayout(GameState gameState) => RepositoryProvider(
           };
           return bloc;
         },
-      ),
-    ],
-    child: Column(
-      children: [
-        TopBar(),
-        CitiesList(),
-        Container(
-          alignment: Alignment.bottomCenter,
-          child: SafeArea(
-            top: false,
-            child: Column(
-              children: [CityCheckingResultBar(), InputFieldsGroup()],
+        child: Column(
+          children: [
+            SafeArea(bottom: false, child: TopBar(gameConfig)),
+            const ScorePanel(),
+            const CitiesList(),
+            const InputFieldsGroup(),
+            Builder(
+              builder: (context) =>
+                  context.watch<GamePreferences>().soundEnabled
+                  ? SoundPlayer(
+                      assetSoundPath: 'sound/click.mp3',
+                      windowStream: context
+                          .watch<GameSessionRepository>()
+                          .createGameItemsRepository()
+                          .getGameItems(),
+                    )
+                  : SizedBox.shrink(),
             ),
-          ),
+          ],
         ),
-        Builder(
-          builder: (context) => context.watch<GamePreferences>().soundEnabled
-              ? SoundPlayer(
-                  assetSoundPath: 'sound/click.mp3',
-                  windowStream: context
-                      .watch<GameSessionRepository>()
-                      .createGameItemsRepository()
-                      .getGameItems(),
-                )
-              : SizedBox.shrink(),
-        ),
-      ],
-    ),
-  ),
-);
+      ),
+    );

@@ -3,17 +3,20 @@ import 'package:lets_play_cities/base/game/game_config.dart';
 import 'package:lets_play_cities/screens/game/game_screen.dart';
 
 /// Shows tips [strings] one by one with [duration] between them and then starts
-/// [GameScreen]
+/// [GameScreen], or goes back to the running game when it is a [replay] of
+/// the rules.
 class FirstTimeOnBoardingScreen extends StatefulWidget {
   final List<String> strings;
   final Duration duration;
   final GameConfig gameConfig;
+  final bool replay;
 
   const FirstTimeOnBoardingScreen({
     super.key,
     required this.strings,
     required this.duration,
     required this.gameConfig,
+    this.replay = false,
   });
 
   @override
@@ -29,6 +32,10 @@ class _FirstTimeOnBoardingScreenState extends State<FirstTimeOnBoardingScreen>
 
   int _currentTextId = 0;
 
+  /// The screen is leaving: a tap during the route animation must not pop
+  /// the game under it.
+  bool _leaving = false;
+
   @override
   void initState() {
     super.initState();
@@ -40,6 +47,9 @@ class _FirstTimeOnBoardingScreenState extends State<FirstTimeOnBoardingScreen>
             setState(() {
               _currentTextId++;
             });
+          } else if (widget.replay) {
+            if (!_leaving) Navigator.pop(context);
+            _leaving = true;
           } else {
             Navigator.pushReplacement(
               context,

@@ -14,4 +14,12 @@ void main() {
 
     expect(repository.getTimerTicks(), emitsInOrder([75, 74, emitsDone]));
   });
+
+  test('getFirstChars emits letters', () {
+    final repository = GameServiceEventsRepository(
+      Stream.fromIterable(const [TimeEvent(75), OnFirstCharChanged('м')]),
+    );
+
+    expect(repository.getFirstChars(), emitsInOrder(['м', emitsDone]));
+  });
 }

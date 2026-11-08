@@ -34,6 +34,9 @@ class GameSessionRepository {
       _session.mode == GameMode.network &&
       _session.usersList.all.every((user) => user.isMessagesAllowed);
 
+  /// Time limit in seconds per move, `0` when the moves are not timed
+  int get timeLimit => _session.timeLimit;
+
   /// Returns latest accepted word
   String get lastAcceptedWord => _session.lastAcceptedWord;
 

@@ -15,7 +15,14 @@ class GameServiceEventsRepository {
   /// Returns stream that emits the seconds left for the move on every
   /// timer tick
   Stream<int> getTimerTicks() => _eventsStream
-      .where((event) => (event) is TimeEvent)
+      .where((event) => event is TimeEvent)
       .cast<TimeEvent>()
       .map((event) => event.secondsLeft);
+
+  /// Returns stream that emits the first letter of every move; an empty
+  /// string means any letter.
+  Stream<String> getFirstChars() => _eventsStream
+      .where((event) => event is OnFirstCharChanged)
+      .cast<OnFirstCharChanged>()
+      .map((event) => event.firstChar);
 }

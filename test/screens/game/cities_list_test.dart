@@ -3,46 +3,14 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:lets_play_cities/base/achievements/achievements_service.dart';
 import 'package:lets_play_cities/base/data.dart';
-import 'package:lets_play_cities/base/dictionary.dart';
-import 'package:lets_play_cities/base/game/game_mode.dart';
 import 'package:lets_play_cities/base/game/management.dart';
-import 'package:lets_play_cities/base/game_session.dart';
 import 'package:lets_play_cities/base/repos.dart';
-import 'package:lets_play_cities/base/scoring.dart';
 import 'package:lets_play_cities/base/users.dart';
+import 'package:lets_play_cities/screens/common/d2/d2.dart';
 import 'package:lets_play_cities/screens/game/cities_list.dart';
 
-class _PassThroughChannel extends AbstractEventChannel {
-  @override
-  Stream<GameEvent> sendEvent(GameEvent event) => Stream.value(event);
-}
-
-/// A session whose events come from the test instead of the game loop.
-class _FakeSession extends GameSession {
-  final Stream<GameEvent> _events;
-
-  _FakeSession(this._events, UsersList users)
-    : super(
-        mode: GameMode.playerVsPlayer,
-        usersList: users,
-        eventChannel: _PassThroughChannel(),
-        scoringType: ScoringType.byScore,
-        timeLimit: 0,
-        scoreController: ScoreController(
-          ScoringSet.initial(),
-          ScoringType.byScore,
-          GameMode.playerVsPlayer,
-          (_) {},
-        ),
-        achievements: StubAchievementsService(),
-        wordsDifficulty: () => Difficulty.easy,
-      );
-
-  @override
-  Stream<GameEvent> get inputEvents => _events;
-}
+import 'fake_game_session.dart';
 
 void main() {
   late StreamController<GameEvent> events;
@@ -67,7 +35,7 @@ void main() {
       ),
     );
     repository = GameSessionRepository(
-      _FakeSession(events.stream, UsersList([first, second])),
+      FakeGameSession(events.stream, UsersList([first, second])),
     );
     listKey = 0;
   });
@@ -123,5 +91,29 @@ void main() {
 
     await play(tester, 'архангельск', first);
     expect(find.byType(GameItemListTile), findsNWidgets(3));
+  });
+
+  testWidgets('GameItemListTile highlights last letter', (tester) async {
+    await tester.pumpWidget(app());
+    await play(tester, 'рязань', first);
+
+    final spans = <TextSpan>[];
+    for (final text in tester.widgetList<RichText>(
+      find.descendant(
+        of: find.byType(GameItemListTile),
+        matching: find.byType(RichText),
+      ),
+    )) {
+      text.text.visitChildren((span) {
+        if (span is TextSpan) spans.add(span);
+        return true;
+      });
+    }
+
+    final letter = spans.singleWhere((span) => span.text == 'н');
+    expect(letter.style?.color, D2Colors.light.letter);
+
+    final tail = spans.singleWhere((span) => span.text == 'ь');
+    expect(tail.style?.color, D2Colors.light.inkSoft);
   });
 }

@@ -3,14 +3,19 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:lets_play_cities/base/game/management/word_checking_result.dart';
 import 'package:lets_play_cities/base/repos.dart';
 import 'package:lets_play_cities/i18n/strings.g.dart';
+import 'package:lets_play_cities/screens/common/d2/d2.dart';
 import 'package:lets_play_cities/utils/string_utils.dart';
 
+/// The error of the word checking under the input field, or the corrections
+/// of the word.
 class CityCheckingResultBar extends StatefulWidget {
-  const CityCheckingResultBar({super.key});
+  /// Set to `true` while an error message is shown
+  final ValueNotifier<bool>? errorShown;
+
+  const CityCheckingResultBar({super.key, this.errorShown});
 
   @override
   State<CityCheckingResultBar> createState() => _CityCheckingResultBarState();
@@ -36,6 +41,7 @@ class _CityCheckingResultBarState extends State<CityCheckingResultBar>
     animation = CurvedAnimation(parent: controller, curve: Curves.easeOutCirc);
 
     animation.addStatusListener((status) {
+      if (status == AnimationStatus.dismissed) _setErrorShown(false);
       if (completed) return;
 
       if (status == AnimationStatus.completed) {
@@ -55,11 +61,17 @@ class _CityCheckingResultBarState extends State<CityCheckingResultBar>
 
   void _onResult(WordCheckingResult result) {
     setState(() => _result = result);
+    _setErrorShown(result.isDescriptiveError());
     if (result.isDescriptiveError()) {
       _triggerAnimation();
     } else if (result is Corrections) {
       _triggerAnimation(reverse: false);
     }
+  }
+
+  void _setErrorShown(bool shown) {
+    final notifier = widget.errorShown;
+    if (notifier != null) notifier.value = shown;
   }
 
   void _triggerAnimation({bool reverse = true}) {
@@ -105,55 +117,82 @@ class _CityCheckingResultBarState extends State<CityCheckingResultBar>
     BuildContext context,
     GameSessionRepository repo,
     List<String> corrections,
-  ) => Container(
-    padding: EdgeInsets.symmetric(horizontal: 12.0),
-    height: max(corrections.length * 62.0 + 30.0, 100),
-    child: Column(
-      mainAxisSize: MainAxisSize.max,
-      children: [
-        Padding(
-          padding: const EdgeInsets.all(6.0),
-          child: Text(
+  ) {
+    final c = D2Colors.of(context);
+
+    return Container(
+      padding: const EdgeInsets.only(top: 6),
+      height: max(corrections.length * 52.0 + 30.0, 100),
+      child: Column(
+        mainAxisSize: MainAxisSize.max,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
             context.t.game.corrections,
-            style: Theme.of(context).textTheme.bodyMedium,
+            style: D2Text.body.copyWith(fontSize: 13, color: c.inkSoft),
           ),
-        ),
-        Expanded(
-          child: ListView.builder(
-            padding: EdgeInsets.zero,
-            itemCount: min(corrections.length, 5),
-            itemBuilder: (context, index) => Card(
-              elevation: 2,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(6),
-              ),
-              child: ListTile(
-                onTap: () => repo.sendInputWord(corrections[index]),
-                title: Text(corrections[index].toTitleCase()),
-                leading: FaIcon(FontAwesomeIcons.city),
+          const SizedBox(height: 6),
+          Expanded(
+            child: ListView.builder(
+              padding: EdgeInsets.zero,
+              itemCount: min(corrections.length, 5),
+              itemBuilder: (context, index) => Padding(
+                padding: const EdgeInsets.only(bottom: 6),
+                child: Material(
+                  color: c.bg,
+                  borderRadius: BorderRadius.circular(14),
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(14),
+                    onTap: () => repo.sendInputWord(corrections[index]),
+                    child: Container(
+                      constraints: const BoxConstraints(minHeight: 44),
+                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                      child: Row(
+                        children: [
+                          D2Icon(D2Glyph.cities, size: 20, color: c.inkSoft),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: Text(
+                              corrections[index].toTitleCase(),
+                              style: D2Text.body.copyWith(color: c.ink),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
               ),
             ),
           ),
-        ),
-      ],
-    ),
-  );
+        ],
+      ),
+    );
+  }
 
-  Widget _createNotificationBox(BuildContext context, String message) =>
-      Container(
-        margin: const EdgeInsets.all(8.0),
-        color: Theme.of(context).secondaryHeaderColor,
-        child: Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: Row(
-            children: [
-              Icon(Icons.warning),
-              SizedBox(width: 12.0),
-              Expanded(child: Text(message)),
-            ],
-          ),
+  Widget _createNotificationBox(BuildContext context, String message) {
+    final c = D2Colors.of(context);
+
+    return Padding(
+      padding: const EdgeInsets.only(top: 6),
+      child: Semantics(
+        liveRegion: true,
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            D2Icon(D2Glyph.warning, size: 18, color: c.error),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                message,
+                style: D2Text.body.copyWith(fontSize: 14, color: c.error),
+              ),
+            ),
+          ],
         ),
-      );
+      ),
+    );
+  }
 
   static String _translateWordCheckingResult(
     Translations t,

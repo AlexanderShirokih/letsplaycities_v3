@@ -1,120 +1,52 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lets_play_cities/base/data.dart';
-import 'package:lets_play_cities/base/game/management.dart';
-import 'package:lets_play_cities/base/repos.dart';
 import 'package:lets_play_cities/base/users.dart';
 import 'package:lets_play_cities/remote/account.dart';
+import 'package:lets_play_cities/screens/common/d2/d2.dart';
 import 'package:lets_play_cities/screens/online/network_avatar_building_mixin.dart';
 
-/// Creates circular user avatar with border around it.
-class UserAvatar extends StatelessWidget with NetworkAvatarBuildingMixin {
-  final User _user;
-  final CrossAxisAlignment alignment;
+/// D2 avatar of a game participant: the robot for the computer, the
+/// picture of the account or the initials of the name.
+Widget buildD2AvatarForUser(User user, {double size = 40}) {
+  if (user is Android) return D2Avatar.computer(size: size);
 
-  UserAvatar({required User user, super.key})
-    : alignment = _getAlignmentByPosition(user.position),
-      _user = user;
+  final picture = user.accountInfo.picture;
+  final initials = _initials(user.name);
 
-  @override
-  Widget build(BuildContext rootContext) => StreamBuilder<OnUserSwitchedEvent>(
-    stream: rootContext.watch<GameServiceEventsRepository>().getUserSwitches(),
-    builder: (context, snapshot) => SizedBox(
-      width: 80.0,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: alignment,
-        children: [
-          _AvatarBorderAnimator(
-            user: _user,
-            isActive:
-                snapshot.hasData && snapshot.requireData.nextUser == _user,
-            borderColor: Theme.of(context).primaryColor,
-          ),
-          SizedBox(height: 4.0),
-          RichText(
-            text: TextSpan(
-              text: '${_user.name}: ',
-              children: [
-                TextSpan(
-                  text: _user.score.toString(),
-                  style: TextStyle(fontWeight: FontWeight.bold),
-                ),
-              ],
-            ),
-            overflow: TextOverflow.fade,
-            softWrap: true,
-          ),
-        ],
-      ),
-    ),
-  );
-
-  static CrossAxisAlignment _getAlignmentByPosition(Position position) =>
-      (position == Position.left)
-      ? CrossAxisAlignment.start
-      : CrossAxisAlignment.end;
-}
-
-class _AvatarBorderAnimator extends StatefulWidget {
-  final User user;
-  final bool isActive;
-  final Color borderColor;
-
-  const _AvatarBorderAnimator({
-    required this.user,
-    required this.isActive,
-    required this.borderColor,
-  });
-
-  @override
-  __AvatarBorderAnimatorState createState() => __AvatarBorderAnimatorState();
-}
-
-class __AvatarBorderAnimatorState extends State<_AvatarBorderAnimator>
-    with TickerProviderStateMixin {
-  late AnimationController _controller;
-  late Animation<Color?> animation;
-
-  @override
-  void initState() {
-    super.initState();
-
-    _controller = AnimationController(
-      duration: const Duration(milliseconds: 2000),
-      vsync: this,
-    )..repeat(reverse: true);
-
-    animation =
-        ColorTween(
-          begin: widget.borderColor,
-          end: Colors.white,
-        ).animate(_controller)..addListener(() {
-          setState(() {});
-        });
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      decoration: ShapeDecoration(
-        shape: StadiumBorder(
-          side: BorderSide(
-            color: widget.isActive ? animation.value! : Colors.white,
-            width: 5.0,
-          ),
-        ),
-      ),
-      child: buildAvatarForUser(widget.user, 35.0),
+  if (picture is NetworkPictureSource && picture.pictureURL != null) {
+    return D2Avatar.user(
+      pictureUrl: picture.pictureURL,
+      initials: initials,
+      size: size,
     );
   }
+
+  if (picture is AssetPictureSource) {
+    return ExcludeSemantics(
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(size * 0.275),
+        child: Image.asset(
+          picture.assetName,
+          width: size,
+          height: size,
+          fit: BoxFit.cover,
+          errorBuilder: (_, _, _) =>
+              D2Avatar.user(initials: initials, size: size),
+        ),
+      ),
+    );
+  }
+
+  return D2Avatar.user(initials: initials, size: size);
 }
+
+/// Up to two first letters of the words of [name]
+String _initials(String name) => name
+    .split(RegExp(r'[ \-]'))
+    .where((part) => part.isNotEmpty)
+    .take(2)
+    .map((part) => part.characters.first.toUpperCase())
+    .join();
 
 class _NetworkAvatarBuilder with NetworkAvatarBuildingMixin {}
 

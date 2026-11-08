@@ -211,6 +211,55 @@ class Translations$game$ru {
 	/// ru: 'Очень жаль, но нам неизвестен город {city}. Проверьте правильность написания'
 	String unknownCity({required Object city}) => 'Очень жаль, но нам неизвестен город ${city}.\nПроверьте правильность написания';
 
+	/// ru: 'Пауза'
+	String get pause => 'Пауза';
+
+	/// ru: 'Продолжить'
+	String get resume => 'Продолжить';
+
+	/// ru: 'Правила игры'
+	String get rules => 'Правила игры';
+
+	/// ru: 'Выйти в меню'
+	String get exitToMenu => 'Выйти в меню';
+
+	/// ru: 'Сдаться…'
+	String get surrenderMenu => 'Сдаться…';
+
+	/// ru: 'Подсказка'
+	String get hint => 'Подсказка';
+
+	/// ru: 'Город на букву'
+	String get cityOnLetter => 'Город на букву';
+
+	/// ru: '?'
+	String get letterAny => '?';
+
+	/// ru: 'Чат'
+	String get chat => 'Чат';
+
+	/// ru: '(one) {Чат, {count} новое сообщение} (few) {Чат, {count} новых сообщения} (many) {Чат, {count} новых сообщений} (other) {Чат, {count} новых сообщений}'
+	String chatUnread({required num count}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('ru'))(count,
+		one: 'Чат, ${count} новое сообщение',
+		few: 'Чат, ${count} новых сообщения',
+		many: 'Чат, ${count} новых сообщений',
+		other: 'Чат, ${count} новых сообщений',
+	);
+
+	/// ru: 'Ваш ход'
+	String get yourTurn => 'Ваш ход';
+
+	/// ru: '(one) {Осталась {s} секунда} (few) {Осталось {s} секунды} (many) {Осталось {s} секунд} (other) {Осталось {s} секунд}'
+	String secondsLeft({required num s}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('ru'))(s,
+		one: 'Осталась ${s} секунда',
+		few: 'Осталось ${s} секунды',
+		many: 'Осталось ${s} секунд',
+		other: 'Осталось ${s} секунд',
+	);
+
+	/// ru: 'Отправить'
+	String get send => 'Отправить';
+
 	late final Translations$game$combos$ru combos = Translations$game$combos$ru._(_root);
 }
 
