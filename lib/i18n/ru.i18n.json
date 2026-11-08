@@ -23,12 +23,14 @@
     "first_player": "Игрок 1",
     "second_player": "Игрок 2"
   },
-  "main_menu": {
+  "home": {
+    "vs_computer": "С компьютером",
+    "two_players": "Вдвоём",
+    "wifi": "По Wi-Fi",
+    "online": "Онлайн",
     "play": "Играть",
-    "achievements": "Достижения",
-    "leaderboards": "Рейтинги",
-    "player_vs_android": "Игрок против андроида",
-    "player_vs_player": "Игрок против игрока"
+    "settings": "Настройки",
+    "profile": "Профиль"
   },
   "game": {
     "go_to_menu": "Выйти в меню?",

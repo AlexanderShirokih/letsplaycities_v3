@@ -70,7 +70,7 @@ class Translations with BaseTranslations<AppLocale, Translations> {
 	late final Translations$errors$ru errors = Translations$errors$ru._(_root);
 	late final Translations$time$ru time = Translations$time$ru._(_root);
 	late final Translations$players$ru players = Translations$players$ru._(_root);
-	late final Translations$mainMenu$ru mainMenu = Translations$mainMenu$ru._(_root);
+	late final Translations$home$ru home = Translations$home$ru._(_root);
 	late final Translations$game$ru game = Translations$game$ru._(_root);
 	late final Translations$settings$ru settings = Translations$settings$ru._(_root);
 	late final Translations$stats$ru stats = Translations$stats$ru._(_root);
@@ -137,28 +137,34 @@ class Translations$players$ru {
 	String get secondPlayer => 'Игрок 2';
 }
 
-// Path: mainMenu
-class Translations$mainMenu$ru {
-	Translations$mainMenu$ru._(this._root);
+// Path: home
+class Translations$home$ru {
+	Translations$home$ru._(this._root);
 
 	final Translations _root; // ignore: unused_field
 
 	// Translations
 
+	/// ru: 'С компьютером'
+	String get vsComputer => 'С компьютером';
+
+	/// ru: 'Вдвоём'
+	String get twoPlayers => 'Вдвоём';
+
+	/// ru: 'По Wi-Fi'
+	String get wifi => 'По Wi-Fi';
+
+	/// ru: 'Онлайн'
+	String get online => 'Онлайн';
+
 	/// ru: 'Играть'
 	String get play => 'Играть';
 
-	/// ru: 'Достижения'
-	String get achievements => 'Достижения';
+	/// ru: 'Настройки'
+	String get settings => 'Настройки';
 
-	/// ru: 'Рейтинги'
-	String get leaderboards => 'Рейтинги';
-
-	/// ru: 'Игрок против андроида'
-	String get playerVsAndroid => 'Игрок против андроида';
-
-	/// ru: 'Игрок против игрока'
-	String get playerVsPlayer => 'Игрок против игрока';
+	/// ru: 'Профиль'
+	String get profile => 'Профиль';
 }
 
 // Path: game
