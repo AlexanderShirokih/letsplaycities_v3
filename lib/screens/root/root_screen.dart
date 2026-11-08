@@ -1,8 +1,10 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:lets_play_cities/screens/common/d2/d2.dart';
 import 'package:lets_play_cities/screens/main/cites/list/cities_list_screen.dart';
 import 'package:lets_play_cities/screens/main/home_screen.dart';
+import 'package:lets_play_cities/screens/profile/profile_tab.dart';
 
 /// Root screen: three tabs with the bottom navigation
 class RootScreen extends StatefulWidget {
@@ -20,12 +22,17 @@ class RootScreen extends StatefulWidget {
     return state!;
   }
 
+  /// The root above [context], or `null` when the widget is shown alone
+  static RootScreenState? maybeOf(BuildContext context) =>
+      context.findAncestorStateOfType<RootScreenState>();
+
   @override
   State<RootScreen> createState() => RootScreenState();
 }
 
 class RootScreenState extends State<RootScreen> {
   late int _index = widget.initialTab;
+  late final ValueNotifier<int> _selected = ValueNotifier(_index);
   final Map<int, Widget> _built = {};
 
   List<WidgetBuilder> get _tabs =>
@@ -33,15 +40,24 @@ class RootScreenState extends State<RootScreen> {
       [
         (_) => const HomeScreen(),
         (_) => const CitiesListScreen(),
-        // Replaced by the profile tab
-        (_) => const SizedBox(),
+        (_) => const ProfileTab(),
       ];
+
+  /// Index of the visible tab, for tabs that refresh when shown
+  ValueListenable<int> get selectedIndex => _selected;
+
+  @override
+  void dispose() {
+    _selected.dispose();
+    super.dispose();
+  }
 
   void select(int index) {
     if (index == _index) return;
 
     setState(() {
       _index = index;
+      _selected.value = index;
     });
   }
 

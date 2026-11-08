@@ -32,6 +32,39 @@
     "settings": "Настройки",
     "profile": "Профиль"
   },
+  "profile": {
+    "title": "Профиль",
+    "passport": "Паспорт",
+    "countries_count(param=count)": {
+      "one": "{count} страна",
+      "few": "{count} страны",
+      "many": "{count} стран",
+      "other": "{count} стран"
+    },
+    "more_countries(param=count)": {
+      "one": "Ещё {count} страна",
+      "few": "Ещё {count} страны",
+      "many": "Ещё {count} стран",
+      "other": "Ещё {count} стран"
+    },
+    "all": "Все",
+    "games": "партий",
+    "online_wins_of(param=count)": {
+      "one": "побед онлайн из {count}",
+      "few": "побед онлайн из {count}",
+      "many": "побед онлайн из {count}",
+      "other": "побед онлайн из {count}"
+    },
+    "achievements": "Достижения",
+    "achievement_locked": "{title}, ещё не получено",
+    "rating": "Рейтинг",
+    "friends": "Друзья",
+    "history": "История",
+    "blacklist": "Чёрный список",
+    "settings": "Настройки",
+    "sign_in": "Войти в онлайн",
+    "online": "онлайн"
+  },
   "game": {
     "go_to_menu": "Выйти в меню?",
     "surrender": "Завершить игру?",

@@ -8,6 +8,7 @@ import 'package:lets_play_cities/base/repositories/cities/country_repository.dar
 import 'package:lets_play_cities/base/scoring.dart';
 import 'package:lets_play_cities/base/preferences.dart';
 import 'package:lets_play_cities/i18n/strings.g.dart';
+import 'package:lets_play_cities/screens/common/d2/d2.dart';
 import 'package:lets_play_cities/utils/string_utils.dart';
 
 class StatisticsScreen extends StatefulWidget {
@@ -30,11 +31,23 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
     final scoringSet = _getOrCreate(context.watch<GamePreferences>());
 
     return Scaffold(
-      appBar: AppBar(title: Text(t.stats.title)),
-      body: FutureBuilder<Map<String, String>>(
-        future: _countryNames,
-        builder: (context, names) =>
-            _StatisticsList(t, scoringSet, names.data ?? const {}),
+      backgroundColor: D2Colors.of(context).bg,
+      body: SafeArea(
+        child: Column(
+          children: [
+            D2ScreenHeader(
+              title: t.stats.title,
+              onBack: () => Navigator.of(context).maybePop(),
+            ),
+            Expanded(
+              child: FutureBuilder<Map<String, String>>(
+                future: _countryNames,
+                builder: (context, names) =>
+                    _StatisticsList(t, scoringSet, names.data ?? const {}),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -56,16 +69,20 @@ class _StatisticsList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => ListView(
-    children: _scoringSet.groups
-        .map((group) => _createCard(context, group))
-        .toList(),
+    padding: const EdgeInsets.fromLTRB(16, 6, 16, 16),
+    children: [
+      for (final group in _scoringSet.groups) ...[
+        _createCard(context, group),
+        const SizedBox(height: 12),
+      ],
+    ],
   );
 
-  Widget _createCard(BuildContext context, ScoringGroup group) => Card(
-    elevation: 5.0,
-    margin: const EdgeInsets.all(8.0),
-    child: Padding(
-      padding: const EdgeInsets.fromLTRB(16.0, 12.0, 20.0, 12.0),
+  Widget _createCard(BuildContext context, ScoringGroup group) {
+    final c = D2Colors.of(context);
+
+    return D2Card(
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -74,44 +91,57 @@ class _StatisticsList extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.baseline,
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                _t.stats.groups[group.main.name]!,
-                style: Theme.of(context).textTheme.titleLarge,
+              Expanded(
+                child: Text(
+                  _t.stats.groups[group.main.name]!,
+                  style: D2Text.section.copyWith(color: c.ink),
+                ),
               ),
-              if (group.main.asString() != null)
+              if (group.main.asString() != null) ...[
+                const SizedBox(width: 12.0),
                 Text(
                   group.main.asString() ?? '...',
-                  style: Theme.of(context).textTheme.titleLarge,
+                  style: D2Text.section.copyWith(color: c.ink),
                 ),
+              ],
             ],
           ),
-          const Divider(height: 10.0, thickness: 2.0),
+          Container(
+            height: 2.0,
+            margin: const EdgeInsets.symmetric(vertical: 8.0),
+            color: c.bg,
+          ),
           group.child.any((element) => element.hasValue())
               ? Column(
                   children: group.child
-                      .map((field) => _buildFieldsList(group, field))
+                      .map((field) => _buildFieldsList(c, group, field))
                       .toList(),
                 )
-              : Text(_t.stats.noData),
+              : Text(
+                  _t.stats.noData,
+                  style: D2Text.bodyRegular.copyWith(color: c.inkSoft),
+                ),
         ],
       ),
-    ),
-  );
+    );
+  }
 
-  Widget _buildFieldsList(ScoringGroup group, ScoringField field) {
+  Widget _buildFieldsList(D2Colors c, ScoringGroup group, ScoringField field) {
     final pair = field.asPairedString();
     final name = group.main.name == groupCountries
         ? _countryNames[pair.name] ?? pair.name
         : _t.stats.fields[pair.name] ?? pair.name.toTitleCase();
 
     return Padding(
-      padding: const EdgeInsets.all(8.0),
+      padding: const EdgeInsets.symmetric(vertical: 6.0),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Expanded(child: Text(name)),
+          Expanded(
+            child: Text(name, style: D2Text.bodyRegular.copyWith(color: c.ink)),
+          ),
           const SizedBox(width: 12.0),
-          Text(pair.value ?? '--'),
+          Text(pair.value ?? '--', style: D2Text.body.copyWith(color: c.ink)),
         ],
       ),
     );

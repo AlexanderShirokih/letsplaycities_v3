@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get_it/get_it.dart';
 import 'package:intl/intl.dart';
 import 'package:lets_play_cities/base/achievements/achievements_service.dart';
@@ -11,6 +10,7 @@ import 'package:lets_play_cities/remote/auth.dart';
 import 'package:lets_play_cities/remote/exceptions.dart';
 import 'package:lets_play_cities/remote/model/friend_game_request.dart';
 import 'package:lets_play_cities/screens/common/common_widgets.dart';
+import 'package:lets_play_cities/screens/common/d2/d2.dart';
 import 'package:lets_play_cities/screens/common/error_texts.dart';
 import 'package:lets_play_cities/screens/common/utils.dart';
 import 'package:lets_play_cities/screens/online/banlist.dart';
@@ -18,7 +18,6 @@ import 'package:lets_play_cities/screens/online/common_online_widgets.dart';
 import 'package:lets_play_cities/screens/online/friends.dart';
 import 'package:lets_play_cities/screens/online/game_waiting_room_screen.dart';
 import 'package:lets_play_cities/screens/online/history.dart';
-import 'package:lets_play_cities/screens/online/network_avatar_building_mixin.dart';
 
 import 'avatars/avatar_chooser.dart';
 
@@ -63,6 +62,9 @@ String? _describeAccountError(
   if (!account.hasError) return t.online.notSignedIn;
   return null;
 }
+
+Widget _divider(BuildContext context) =>
+    Divider(height: 18.0, thickness: 1.0, color: D2Colors.of(context).edge);
 
 /// Shows user profile independently from already injected providers
 class OnlineProfileViewStandalone extends StatefulWidget {
@@ -161,8 +163,7 @@ class OnlineProfileView extends StatefulWidget {
       );
 }
 
-class _OnlineProfileViewState extends State<OnlineProfileView>
-    with NetworkAvatarBuildingMixin {
+class _OnlineProfileViewState extends State<OnlineProfileView> {
   bool _shouldUpdate = false;
 
   // Kept between builds: a refresh rebuilds the view, and a new future would
@@ -243,12 +244,14 @@ class _OnlineProfileViewState extends State<OnlineProfileView>
                   child: Padding(
                     padding: const EdgeInsets.only(bottom: 24.0, right: 24.0),
                     child: FloatingActionButton.extended(
+                      backgroundColor: D2Colors.of(context).orange,
+                      foregroundColor: D2Colors.of(context).shadow,
                       onPressed: () =>
                           context.read<AccountManager>().signOut().then((_) {
                             if (context.mounted) Navigator.of(context).pop();
                           }),
-                      icon: FaIcon(FontAwesomeIcons.rightFromBracket),
-                      label: Text(context.t.online.signOut),
+                      icon: const D2Icon(D2Glyph.exit),
+                      label: Text(context.t.online.signOut, style: D2Text.body),
                     ),
                   ),
                 ),
@@ -266,6 +269,7 @@ class _OnlineProfileViewState extends State<OnlineProfileView>
   ) {
     final t = context.t;
     return ListView(
+      padding: const EdgeInsets.only(bottom: 88.0),
       children: [
         ..._buildTopBlock(isOwner, data, context, t),
         ..._buildIdBlock(data, context),
@@ -282,8 +286,9 @@ class _OnlineProfileViewState extends State<OnlineProfileView>
     BuildContext context,
     Translations t,
   ) sync* {
+    final c = D2Colors.of(context);
     yield Container(
-      padding: EdgeInsets.all(28.0),
+      padding: EdgeInsets.all(24.0),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
@@ -298,17 +303,23 @@ class _OnlineProfileViewState extends State<OnlineProfileView>
                     ),
                   )
                 : null,
-            child: buildAvatar(data, 60.0),
+            child: D2Avatar.user(
+              size: 72.0,
+              pictureUrl: data.pictureUrl,
+              initials: data.login.isEmpty
+                  ? ''
+                  : data.login.substring(0, 1).toUpperCase(),
+            ),
           ),
           Flexible(
             child: Padding(
-              padding: const EdgeInsets.only(left: 28.0, top: 8.0),
+              padding: const EdgeInsets.only(left: 20.0, top: 8.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     data.login,
-                    style: Theme.of(context).textTheme.titleLarge,
+                    style: D2Text.title.copyWith(color: c.ink),
                     overflow: TextOverflow.clip,
                   ),
                   const SizedBox(height: 12.0),
@@ -321,7 +332,7 @@ class _OnlineProfileViewState extends State<OnlineProfileView>
         ],
       ),
     );
-    yield const Divider(height: 18.0, thickness: 1.0);
+    yield _divider(context);
   }
 
   Iterable<Widget> _buildActionsBlock(
@@ -337,13 +348,10 @@ class _OnlineProfileViewState extends State<OnlineProfileView>
         alignment: Alignment.center,
         child: Text(
           t.online.inputBan,
-          style: Theme.of(context).textTheme.bodySmall!.copyWith(
-            fontSize: 16.0,
-            color: Theme.of(context).colorScheme.error,
-          ),
+          style: D2Text.body.copyWith(color: D2Colors.of(context).error),
         ),
       );
-      yield const Divider(height: 18.0, thickness: 1.0);
+      yield _divider(context);
       return;
     }
 
@@ -400,7 +408,7 @@ class _OnlineProfileViewState extends State<OnlineProfileView>
         }
       },
     );
-    yield const Divider(height: 18.0, thickness: 1.0);
+    yield _divider(context);
   }
 
   Iterable<Widget> _buildIdBlock(ProfileInfo data, BuildContext context) sync* {
@@ -408,10 +416,10 @@ class _OnlineProfileViewState extends State<OnlineProfileView>
       alignment: Alignment.center,
       child: Text(
         'ID ${data.userId}',
-        style: Theme.of(context).textTheme.bodySmall!.copyWith(fontSize: 16.0),
+        style: D2Text.body.copyWith(color: D2Colors.of(context).inkSoft),
       ),
     );
-    yield const Divider(height: 18.0, thickness: 1.0);
+    yield _divider(context);
   }
 
   Iterable<Widget> _buildNavigationBlock(
@@ -422,25 +430,25 @@ class _OnlineProfileViewState extends State<OnlineProfileView>
   ) sync* {
     if (!isOwner) return;
     yield _buildNavigationButton(
-      FaIcon(FontAwesomeIcons.userGroup),
+      D2Glyph.friends,
       t.online.friendsTab,
       () => OnlineFriendsScreen(),
     );
     yield _buildNavigationButton(
-      FaIcon(FontAwesomeIcons.clockRotateLeft),
+      D2Glyph.history,
       t.online.historyTab,
       () => OnlineHistoryScreen(target: data),
     );
     yield _buildNavigationButton(
-      FaIcon(FontAwesomeIcons.userSlash),
+      D2Glyph.ban,
       t.online.blacklistTab,
       () => OnlineBanlistScreen(),
     );
-    yield const Divider(height: 18.0, thickness: 1.0);
+    yield _divider(context);
   }
 
   Widget _buildNavigationButton(
-    Widget icon,
+    D2Glyph icon,
     String label,
     Widget Function() destinationScreen,
   ) => ListTile(
@@ -459,15 +467,17 @@ class _OnlineProfileViewState extends State<OnlineProfileView>
         ),
       ),
     ),
-    leading: icon,
-    title: Text(label),
+    leading: D2Icon(icon),
+    title: Text(label, style: D2Text.body),
   );
 
   Widget _createButton(String label, VoidCallback? onPressed) => ElevatedButton(
     style: ElevatedButton.styleFrom(
       padding: const EdgeInsets.symmetric(horizontal: 18.0, vertical: 18.0),
       shape: _createRoundedBorder(),
-      backgroundColor: Theme.of(context).primaryColor,
+      backgroundColor: D2Colors.of(context).violet,
+      foregroundColor: Theme.of(context).colorScheme.onPrimary,
+      textStyle: D2Text.body,
     ),
     onPressed: onPressed,
     child: Text(label),
@@ -591,16 +601,19 @@ class _OnlineProfileViewState extends State<OnlineProfileView>
     switch (data.role) {
       case Role.banned:
         yield const SizedBox(height: 10.0);
-        yield Text(t.online.banned);
+        yield Text(
+          t.online.banned,
+          style: D2Text.bodyRegular.copyWith(color: D2Colors.of(context).error),
+        );
         break;
       case Role.admin:
         yield const SizedBox(height: 10.0);
         yield Row(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            FaIcon(FontAwesomeIcons.userLock),
+            const D2Icon(D2Glyph.star, size: 18.0),
             const SizedBox(width: 8.0),
-            Text(t.online.admin),
+            Text(t.online.admin, style: D2Text.bodyRegular),
           ],
         );
         break;
@@ -617,19 +630,23 @@ class _OnlineProfileViewState extends State<OnlineProfileView>
     return (isOnline(data))
         ? Row(
             children: [
-              FaIcon(
-                FontAwesomeIcons.solidCircle,
-                color: Colors.green,
-                size: 12.0,
+              Container(
+                width: 10.0,
+                height: 10.0,
+                decoration: BoxDecoration(
+                  color: D2Colors.of(context).mint,
+                  shape: BoxShape.circle,
+                ),
               ),
               const SizedBox(width: 6.0),
-              Text(t.online.title),
+              Text(t.online.title, style: D2Text.bodyRegular),
             ],
           )
         : Text(
             formatLastVisit(t, data.lastVisitDate, DateTime.now()),
-            style: Theme.of(context).textTheme.bodyMedium!
-                .copyWith(fontStyle: FontStyle.italic),
+            style: D2Text.bodyRegular.copyWith(
+              color: D2Colors.of(context).inkSoft,
+            ),
           );
   }
 
@@ -644,11 +661,11 @@ class _OnlineProfileViewState extends State<OnlineProfileView>
       padding: const EdgeInsets.all(12.0),
       child: Text(
         t.online.battleHistory,
-        style: Theme.of(context).textTheme.titleLarge,
+        style: D2Text.section.copyWith(color: D2Colors.of(context).ink),
       ),
     );
     yield OnlineHistoryScreen(target: widget.target, embedded: true);
-    yield const Divider(height: 18.0, thickness: 1.0);
+    yield _divider(context);
   }
 
   void _update() {
@@ -695,11 +712,13 @@ class __AcceptOrDeclineButtonState extends State<_AcceptOrDeclineButton> {
     padding: EdgeInsets.only(left: 10.0),
     decoration: BoxDecoration(
       borderRadius: BorderRadius.circular(12.0),
-      color: Theme.of(context).primaryColor,
+      color: D2Colors.of(context).violet,
     ),
     child: DropdownButton(
       value: _selected,
       elevation: 5,
+      dropdownColor: D2Colors.of(context).violet,
+      iconEnabledColor: Theme.of(context).colorScheme.onPrimary,
       items: widget.onResult == null
           ? null
           : [0, 1]
@@ -708,7 +727,9 @@ class __AcceptOrDeclineButtonState extends State<_AcceptOrDeclineButton> {
                     value: e,
                     child: Text(
                       _values[e],
-                      style: Theme.of(context).textTheme.bodyLarge,
+                      style: D2Text.body.copyWith(
+                        color: Theme.of(context).colorScheme.onPrimary,
+                      ),
                     ),
                   ),
                 )

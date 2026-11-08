@@ -71,6 +71,7 @@ class Translations with BaseTranslations<AppLocale, Translations> {
 	late final Translations$time$ru time = Translations$time$ru._(_root);
 	late final Translations$players$ru players = Translations$players$ru._(_root);
 	late final Translations$home$ru home = Translations$home$ru._(_root);
+	late final Translations$profile$ru profile = Translations$profile$ru._(_root);
 	late final Translations$game$ru game = Translations$game$ru._(_root);
 	late final Translations$hotseat$ru hotseat = Translations$hotseat$ru._(_root);
 	late final Translations$settings$ru settings = Translations$settings$ru._(_root);
@@ -167,6 +168,78 @@ class Translations$home$ru {
 
 	/// ru: 'Профиль'
 	String get profile => 'Профиль';
+}
+
+// Path: profile
+class Translations$profile$ru {
+	Translations$profile$ru._(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// ru: 'Профиль'
+	String get title => 'Профиль';
+
+	/// ru: 'Паспорт'
+	String get passport => 'Паспорт';
+
+	/// ru: '(one) {{count} страна} (few) {{count} страны} (many) {{count} стран} (other) {{count} стран}'
+	String countriesCount({required num count}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('ru'))(count,
+		one: '${count} страна',
+		few: '${count} страны',
+		many: '${count} стран',
+		other: '${count} стран',
+	);
+
+	/// ru: '(one) {Ещё {count} страна} (few) {Ещё {count} страны} (many) {Ещё {count} стран} (other) {Ещё {count} стран}'
+	String moreCountries({required num count}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('ru'))(count,
+		one: 'Ещё ${count} страна',
+		few: 'Ещё ${count} страны',
+		many: 'Ещё ${count} стран',
+		other: 'Ещё ${count} стран',
+	);
+
+	/// ru: 'Все'
+	String get all => 'Все';
+
+	/// ru: 'партий'
+	String get games => 'партий';
+
+	/// ru: '(one) {побед онлайн из {count}} (few) {побед онлайн из {count}} (many) {побед онлайн из {count}} (other) {побед онлайн из {count}}'
+	String onlineWinsOf({required num count}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('ru'))(count,
+		one: 'побед онлайн из ${count}',
+		few: 'побед онлайн из ${count}',
+		many: 'побед онлайн из ${count}',
+		other: 'побед онлайн из ${count}',
+	);
+
+	/// ru: 'Достижения'
+	String get achievements => 'Достижения';
+
+	/// ru: '{title}, ещё не получено'
+	String achievementLocked({required Object title}) => '${title}, ещё не получено';
+
+	/// ru: 'Рейтинг'
+	String get rating => 'Рейтинг';
+
+	/// ru: 'Друзья'
+	String get friends => 'Друзья';
+
+	/// ru: 'История'
+	String get history => 'История';
+
+	/// ru: 'Чёрный список'
+	String get blacklist => 'Чёрный список';
+
+	/// ru: 'Настройки'
+	String get settings => 'Настройки';
+
+	/// ru: 'Войти в онлайн'
+	String get signIn => 'Войти в онлайн';
+
+	/// ru: 'онлайн'
+	String get online => 'онлайн';
 }
 
 // Path: game
