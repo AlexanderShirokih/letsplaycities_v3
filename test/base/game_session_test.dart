@@ -8,6 +8,7 @@ import 'package:lets_play_cities/base/data.dart';
 import 'package:lets_play_cities/base/dictionary.dart';
 import 'package:lets_play_cities/base/game/combo.dart';
 import 'package:lets_play_cities/base/game/game_mode.dart';
+import 'package:lets_play_cities/base/game/game_result.dart';
 import 'package:lets_play_cities/base/game/management.dart';
 import 'package:lets_play_cities/base/game/turn_gate.dart';
 import 'package:lets_play_cities/base/game_session.dart';
@@ -167,6 +168,39 @@ void main() {
 
       session.cancel();
       async.flushTimers();
+    });
+  });
+
+  test('results carry summary', () {
+    fakeAsync((async) {
+      final gate = TurnGate();
+      final session = _gatedSession(gate, channel: _AcceptingChannel());
+      final [first, _] = session.usersList.all;
+      GameResult? result;
+      session.runMoves().then((value) => result = value);
+      async.elapse(const Duration(milliseconds: 200));
+
+      // The handoff before the first move is not part of the game.
+      async.elapse(const Duration(seconds: 30));
+
+      for (final city in ['москва', 'анапа', 'амстердам']) {
+        gate.release();
+        async.flushMicrotasks();
+        async.elapse(const Duration(seconds: 10));
+        session.deliverUserInput(city);
+        async.flushMicrotasks();
+      }
+
+      session.scoreController.onMoveFinished(first, 'москва', 1000, {
+        ComboType.quickTime.index: 2,
+      });
+      session.surrender();
+      async.flushMicrotasks();
+
+      expect(result!.summary.citiesCount, 3);
+      expect(result!.summary.duration, const Duration(seconds: 30));
+      expect(result!.summary.longestCity?.city, 'амстердам');
+      expect(result!.summary.bestCombos, {ComboType.quickTime: 2});
     });
   });
 

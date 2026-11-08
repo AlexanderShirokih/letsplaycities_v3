@@ -5,6 +5,7 @@ import 'package:lets_play_cities/base/data.dart';
 import 'package:lets_play_cities/base/game/combo.dart';
 import 'package:lets_play_cities/base/game/game_mode.dart';
 import 'package:lets_play_cities/base/game/game_result.dart';
+import 'package:lets_play_cities/base/game/game_summary.dart';
 import 'package:lets_play_cities/base/game/management.dart';
 import 'package:lets_play_cities/base/preferences.dart';
 import 'package:lets_play_cities/base/scoring.dart';
@@ -66,6 +67,7 @@ GameResult _result(
   finishType: MoveFinishType.surrender,
   hasScore: hasScore,
   finishRequester: owner,
+  summary: GameSummary.empty,
 );
 
 void main() {
@@ -216,6 +218,24 @@ void main() {
 
       expect(_int(set, groupCombo, fieldQuickTime), 2);
       expect(_int(set, groupCombo, fieldShortWord), 3);
+    });
+
+    test('are passed on after the move of any user', () {
+      final controller = _controller(ScoringSet.initial());
+      final moves = <(User, Map<ComboType, int>)>[];
+      controller.onMoveCombos = (user, combos) => moves.add((user, combos));
+      final player = _player();
+      final opponent = _Opponent();
+
+      controller
+        ..onMoveFinished(player, 'ухта', 1000, {ComboType.shortWord.index: 2})
+        ..onMoveFinished(opponent, 'анапа', 1000, const {});
+
+      expect(moves.map((move) => move.$1), [player, opponent]);
+      expect(moves.map((move) => move.$2), [
+        {ComboType.shortWord: 2},
+        isEmpty,
+      ]);
     });
   });
 

@@ -10,6 +10,8 @@ import 'package:lets_play_cities/utils/collections_utils.dart';
 
 typedef OnUpdateScoringData = void Function(ScoringSet scoringData);
 
+typedef OnMoveCombos = void Function(User user, Map<ComboType, int> combos);
+
 /// Responsible for managing users score,
 /// controlling achievements and player stats
 class ScoreController {
@@ -17,6 +19,9 @@ class ScoreController {
   final ScoringSet _allGroups;
   final ScoringType _scoringType;
   final OnUpdateScoringData _onUpdate;
+
+  /// Gets the combos active after each accepted move of any user
+  OnMoveCombos? onMoveCombos;
 
   ScoreController(
     this._allGroups,
@@ -95,6 +100,13 @@ class ScoreController {
     }
 
     user.increaseScore(_getPoints(word, moveTimeInMs));
+
+    onMoveCombos?.call(
+      user,
+      activeCombos.map(
+        (type, level) => MapEntry(ComboType.values[type], level),
+      ),
+    );
 
     if (user is Player) {
       _updateLongestCities(user, word);

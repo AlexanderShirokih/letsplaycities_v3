@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import 'package:lets_play_cities/base/game/game_summary.dart';
 import 'package:lets_play_cities/base/game/management.dart';
 import 'package:lets_play_cities/base/scoring.dart';
 import 'package:lets_play_cities/base/users.dart';
@@ -20,12 +21,16 @@ class GameResultChecker {
   /// Main game actor (relative to user's perspective)
   final User owner;
 
+  /// What happened in the game
+  final GameSummary summary;
+
   const GameResultChecker({
     required this.users,
     required this.owner,
     required this.finishType,
     required this.scoringType,
     required this.finishRequester,
+    this.summary = GameSummary.empty,
   });
 
   /// Determines game results relative to [owner].
@@ -38,6 +43,7 @@ class GameResultChecker {
       finishType == MoveFinishType.timeout ? ScoringType.lastMove : scoringType,
     ),
     finishRequester: finishRequester,
+    summary: summary,
   );
 
   MatchResult _getMatchResult(ScoringType scoringType) =>
@@ -90,12 +96,16 @@ class GameResult extends Equatable {
   /// User who's responsible for finishing the game
   final User finishRequester;
 
+  /// What happened in the game
+  final GameSummary summary;
+
   const GameResult({
     required this.owner,
     required this.matchResult,
     required this.finishType,
     required this.hasScore,
     required this.finishRequester,
+    required this.summary,
   });
 
   @override
@@ -105,5 +115,6 @@ class GameResult extends Equatable {
     finishType,
     hasScore,
     finishRequester,
+    summary,
   ];
 }

@@ -8,6 +8,7 @@ import 'package:lets_play_cities/base/game/combo.dart';
 import 'package:lets_play_cities/base/game/game_config.dart';
 import 'package:lets_play_cities/base/game/game_mode.dart';
 import 'package:lets_play_cities/base/game/game_result.dart';
+import 'package:lets_play_cities/base/game/game_summary.dart';
 import 'package:lets_play_cities/base/game/management.dart';
 import 'package:lets_play_cities/base/preferences.dart';
 import 'package:lets_play_cities/base/users.dart';
@@ -60,6 +61,7 @@ void main() {
       finishType: MoveFinishType.surrender,
       hasScore: false,
       finishRequester: user,
+      summary: GameSummary.empty,
     );
     const config = GameConfig(gameMode: GameMode.playerVsAndroid);
 
@@ -92,6 +94,7 @@ void main() {
       finishType: MoveFinishType.surrender,
       hasScore: false,
       finishRequester: user,
+      summary: GameSummary.empty,
     );
     const config = GameConfig(gameMode: GameMode.playerVsPlayer);
 

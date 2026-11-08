@@ -1,11 +1,13 @@
 import 'dart:async';
 
+import 'package:clock/clock.dart';
 import 'package:lets_play_cities/base/achievements/achievements.dart';
 import 'package:lets_play_cities/base/achievements/achievements_service.dart';
 import 'package:lets_play_cities/base/data.dart';
 import 'package:lets_play_cities/base/dictionary.dart';
 import 'package:lets_play_cities/base/game/game_mode.dart';
 import 'package:lets_play_cities/base/game/game_result.dart';
+import 'package:lets_play_cities/base/game/game_summary.dart';
 import 'package:lets_play_cities/base/game/management.dart';
 import 'package:lets_play_cities/base/game/player/surrender_exception.dart';
 import 'package:lets_play_cities/base/game/turn_gate.dart';
@@ -42,6 +44,8 @@ class GameSession {
   /// Called when the game ends, so the setting in effect at that moment counts
   final Difficulty Function() _wordsDifficulty;
 
+  final GameSummaryBuilder _summary = GameSummaryBuilder(clock);
+
   // This stream will closed automatically by closing [_serviceEvents]
   // ignore: close_sinks
   final _inputEvents = StreamController<GameEvent>.broadcast();
@@ -72,6 +76,8 @@ class GameSession {
     Stream<GameEvent> Function(GameSession)? externalEvents,
     this.turnGate,
   }) {
+    scoreController.onMoveCombos = _summary.onCombos;
+
     if (externalEvents != null) {
       unawaited(
         externalEvents(this).asyncMap((event) async {
@@ -147,6 +153,8 @@ class GameSession {
         throw ('This move type should not finish the game!');
       }
 
+      final summary = _summary.build();
+
       // Update achievements
       await _updateAchievements();
 
@@ -156,6 +164,7 @@ class GameSession {
         scoringType: scoringType,
         finishType: event.endType,
         finishRequester: event.finishRequester,
+        summary: summary,
       ).getGameResults();
 
       scoreController.onGameFinished(gameResults);
@@ -184,6 +193,8 @@ class GameSession {
           return;
         }
       }
+
+      _summary.start();
 
       yield* mergeStreamsWhile(
         [_createTimer(), _makeMoveForCurrentUser(), _serviceEvents.stream],
@@ -226,6 +237,7 @@ class GameSession {
         yield event;
         if (event is Accepted) {
           if (event.owner is Player) _playerMovesInGame++;
+          _summary.onAccepted(event.owner, event.word, event.countryCode ?? 0);
 
           _lastAcceptedWord = event.word;
           usersList.switchToNext();
