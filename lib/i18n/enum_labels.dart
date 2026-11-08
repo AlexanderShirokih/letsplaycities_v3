@@ -2,6 +2,7 @@
 /// enum value does not compile until it has a text.
 library;
 
+import 'package:lets_play_cities/base/achievements/achievements.dart';
 import 'package:lets_play_cities/base/dictionary/dictionary.dart';
 import 'package:lets_play_cities/base/dictionary/dictionary_update_period.dart';
 import 'package:lets_play_cities/base/game/combo/combo_type.dart';
@@ -9,6 +10,26 @@ import 'package:lets_play_cities/base/game/game_result.dart';
 import 'package:lets_play_cities/base/game/management/game_events.dart';
 import 'package:lets_play_cities/base/scoring/scoring_type.dart';
 import 'package:lets_play_cities/i18n/strings.g.dart';
+
+extension AchievementLabel on Achievement {
+  String label(Translations t) => switch (this) {
+    Achievement.write15Cities => t.achievements.write15Cities,
+    Achievement.use3Tips => t.achievements.use3Tips,
+    Achievement.add1Friend => t.achievements.add1Friend,
+    Achievement.playInHardMode => t.achievements.playInHardMode,
+    Achievement.reachScore1000Pts => t.achievements.reachScore1000Pts,
+    Achievement.write80Cities => t.achievements.write80Cities,
+    Achievement.loginViaSocial => t.achievements.loginViaSocial,
+    Achievement.changeTheme => t.achievements.changeTheme,
+    Achievement.write50CitiesInGame => t.achievements.write50CitiesInGame,
+    Achievement.playOnline3Times => t.achievements.playOnline3Times,
+    Achievement.use30Tips => t.achievements.use30Tips,
+    Achievement.reachScore5000Pts => t.achievements.reachScore5000Pts,
+    Achievement.write500Cities => t.achievements.write500Cities,
+    Achievement.write100CitiesInGame => t.achievements.write100CitiesInGame,
+    Achievement.reachScore25000Pts => t.achievements.reachScore25000Pts,
+  };
+}
 
 extension ComboTypeLabel on ComboType {
   String label(Translations t) => switch (this) {

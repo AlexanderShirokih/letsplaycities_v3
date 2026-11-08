@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get_it/get_it.dart';
+import 'package:lets_play_cities/base/achievements/achievements_service.dart';
 import 'package:lets_play_cities/base/preferences.dart';
 import 'package:lets_play_cities/base/remote/bloc/login_bloc.dart';
 import 'package:lets_play_cities/i18n/strings.g.dart';
@@ -59,6 +60,7 @@ class _LoginScreenState extends State<LoginScreen> {
           preferences: GetIt.instance.get<GamePreferences>(),
           cloudServices: GetIt.instance.get<CloudMessagingService>(),
           apiRepositories: () => GetIt.instance.get<ApiRepositoryFactory>(),
+          achievements: GetIt.instance.get<AchievementsService>(),
         ),
         child: BlocConsumer<LoginBloc, LoginState>(
           builder: (context, state) {

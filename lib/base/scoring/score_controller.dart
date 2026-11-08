@@ -125,6 +125,8 @@ class ScoreController {
     _allGroups[groupParts].main.asIntField().increase();
     _allGroups[groupParts][_translateGameMode(_mode)].asIntField().increase();
 
+    _updateCountries(gameResult.summary.playerCountries);
+
     if (_mode == GameMode.network) {
       switch (gameResult.matchResult) {
         case MatchResult.win:
@@ -137,6 +139,56 @@ class ScoreController {
           break;
       }
     }
+  }
+
+  /// Codes of the countries the player named cities of, the most frequent
+  /// first
+  List<int> get visitedCountries => _rankedCountries()
+      .map((field) => int.tryParse(field.key ?? ''))
+      .nonNulls
+      .toList(growable: false);
+
+  /// Counts one game for each of [countries]
+  void _updateCountries(Set<int> countries) {
+    if (countries.isEmpty) return;
+
+    final counts = <String, int>{
+      for (final field in _rankedCountries()) field.key!: field.value ?? 0,
+    };
+    for (final code in countries) {
+      counts.update('$code', (count) => count + 1, ifAbsent: () => 1);
+    }
+
+    final ranked = _byCountDesc([
+      for (final MapEntry(:key, :value) in counts.entries)
+        PairedScoringField<String, int>('', key, value),
+    ]);
+
+    _allGroups[groupCountries].child = [
+      for (final (i, field) in ranked.indexed)
+        field.clone(name: '$fieldPairPrefix$i'),
+    ];
+  }
+
+  /// Stored countries with a key, the most frequent first
+  List<PairedScoringField<String, int>> _rankedCountries() => _byCountDesc(
+    _allGroups[groupCountries].child
+        .whereType<PairedScoringField<String, int>>()
+        .where((field) => field.key != null)
+        .toList(),
+  );
+
+  /// Sorts [fields] by value, keeping the order of equal ones
+  static List<PairedScoringField<String, int>> _byCountDesc(
+    List<PairedScoringField<String, int>> fields,
+  ) {
+    final order = List.generate(fields.length, (i) => i)
+      ..sort((i, j) {
+        final byValue = (fields[j].value ?? 0).compareTo(fields[i].value ?? 0);
+        return byValue != 0 ? byValue : i.compareTo(j);
+      });
+
+    return [for (final i in order) fields[i]];
   }
 
   void _updateLongestCities(User user, String word) =>

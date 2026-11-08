@@ -1,6 +1,11 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:get_it/get_it.dart';
 import 'package:lets_play_cities/app_injection.dart';
+import 'package:lets_play_cities/base/achievements/achievements.dart';
+import 'package:lets_play_cities/base/achievements/achievements_service.dart';
 import 'package:lets_play_cities/base/dictionary.dart';
 import 'package:lets_play_cities/base/preferences.dart';
 import 'package:lets_play_cities/base/scoring.dart';
@@ -21,6 +26,19 @@ class SettingsScreen extends StatefulWidget {
 class _SettingsScreenState extends State<SettingsScreen> {
   /// Writes a preference and redraws the screen with the new value
   void _set(VoidCallback write) => setState(write);
+
+  /// Applies [mode]; choosing another mode than the current one counts for
+  /// [Achievement.changeTheme].
+  void _setThemeMode(AppThemeMode mode) {
+    if (mode == context.read<GamePreferences>().themeMode) return;
+
+    _set(() => setThemeMode(mode));
+    unawaited(
+      GetIt.instance.get<AchievementsService>().unlockAchievement(
+        Achievement.changeTheme,
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -124,7 +142,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                             (AppThemeMode.system, t.settings.themeMode.system),
                           ],
                           selected: prefs.themeMode,
-                          onChanged: (m) => _set(() => setThemeMode(m)),
+                          onChanged: _setThemeMode,
                         ),
                       ),
                       _SwitchRow(

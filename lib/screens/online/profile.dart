@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get_it/get_it.dart';
 import 'package:intl/intl.dart';
+import 'package:lets_play_cities/base/achievements/achievements_service.dart';
 import 'package:lets_play_cities/base/remote/bloc/user_actions_bloc.dart';
 import 'package:lets_play_cities/i18n/strings.g.dart';
 import 'package:lets_play_cities/remote/api_repository_factory.dart';
@@ -176,7 +177,10 @@ class _OnlineProfileViewState extends State<OnlineProfileView>
   void initState() {
     super.initState();
     _account = context.read<AccountManager>().getLastSignedInAccount();
-    _userActionsBloc = UserActionsBloc(context.read<ApiRepository>());
+    _userActionsBloc = UserActionsBloc(
+      context.read<ApiRepository>(),
+      GetIt.instance.get<AchievementsService>(),
+    );
   }
 
   @override

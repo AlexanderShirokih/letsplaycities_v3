@@ -79,6 +79,12 @@ abstract class GamePreferences {
   List<String> get hotseatNames;
 
   set hotseatNames(List<String> names);
+
+  /// Local progress of each achievement by its wire name: the sum of its
+  /// increments. Empty until the first achievement is unlocked.
+  Map<String, int> get achievementsProgress;
+
+  set achievementsProgress(Map<String, int> progress);
 }
 
 class SharedPreferencesGamePrefs extends GamePreferences {
@@ -194,6 +200,22 @@ class SharedPreferencesGamePrefs extends GamePreferences {
   @override
   set hotseatNames(List<String> names) =>
       _prefs.setStringList('hotseatNames', names);
+
+  @override
+  Map<String, int> get achievementsProgress {
+    final stored = _prefs.getString('achievementsProgress');
+    if (stored == null) return {};
+
+    try {
+      return Map<String, int>.from(jsonDecode(stored) as Map);
+    } on Object {
+      return {};
+    }
+  }
+
+  @override
+  set achievementsProgress(Map<String, int> progress) =>
+      _prefs.setString('achievementsProgress', jsonEncode(progress));
 
   @override
   AppThemeMode get themeMode => AppThemeMode.values.firstWhere(

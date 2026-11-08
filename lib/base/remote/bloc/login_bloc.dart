@@ -2,6 +2,8 @@ import 'dart:async';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:equatable/equatable.dart';
+import 'package:lets_play_cities/base/achievements/achievements.dart';
+import 'package:lets_play_cities/base/achievements/achievements_service.dart';
 import 'package:lets_play_cities/base/preferences.dart';
 import 'package:lets_play_cities/remote/api_repository_factory.dart';
 import 'package:lets_play_cities/remote/auth.dart';
@@ -21,6 +23,7 @@ class LoginBloc extends Bloc<LoginEvent, LoginState>
   final AccountManager _accountManager;
   final CloudMessagingService _cloudServices;
   final SocialNetworksService _socialNetworksService;
+  final AchievementsService _achievements;
 
   /// Called once a social sign-up succeeds, so the caller decides which
   /// factory is current when the picture is uploaded.
@@ -32,6 +35,7 @@ class LoginBloc extends Bloc<LoginEvent, LoginState>
     required this._preferences,
     required this._cloudServices,
     required this._apiRepositories,
+    required this._achievements,
   }) : super(LoginInitial()) {
     mapEventsSequentially(_mapEventToState);
   }
@@ -101,6 +105,7 @@ class LoginBloc extends Bloc<LoginEvent, LoginState>
       );
 
       final remoteAccount = await _accountManager.signUp(request);
+      await _achievements.unlockAchievement(Achievement.loginViaSocial);
 
       yield LoginAuthUpdateAvatarState();
       await _apiRepositories()

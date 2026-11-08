@@ -3,7 +3,10 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:get_it/get_it.dart';
 import 'package:lets_play_cities/app_config.dart';
+import 'package:lets_play_cities/base/achievements/achievements.dart';
+import 'package:lets_play_cities/base/achievements/achievements_service.dart';
 import 'package:lets_play_cities/remote/auth.dart';
 import 'package:lets_play_cities/remote/model/blacklist_item_info.dart';
 import 'package:lets_play_cities/remote/model/friend_info.dart';
@@ -42,6 +45,25 @@ ProfileInfo profileInfo(
   friendshipStatus: friendshipStatus,
   authType: AuthType.native,
 );
+
+/// Keeps the achievements it was asked to unlock.
+class FakeAchievementsService extends Fake implements AchievementsService {
+  final unlocked = <Achievement>[];
+
+  @override
+  Future<void> unlockAchievement(
+    Achievement achievement, [
+    int incrementCount = 1,
+  ]) async => unlocked.add(achievement);
+}
+
+/// Registers a [FakeAchievementsService] in GetIt until the test ends.
+FakeAchievementsService registerFakeAchievements() {
+  final achievements = FakeAchievementsService();
+  GetIt.instance.registerSingleton<AchievementsService>(achievements);
+  addTearDown(GetIt.instance.reset);
+  return achievements;
+}
 
 /// Records the calls it gets in [log]; the fields play the server's data.
 class FakeApiRepository extends Fake implements ApiRepository {

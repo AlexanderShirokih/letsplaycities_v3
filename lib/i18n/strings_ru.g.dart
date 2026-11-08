@@ -83,6 +83,7 @@ class Translations with BaseTranslations<AppLocale, Translations> {
 	late final Translations$login$ru login = Translations$login$ru._(_root);
 	late final Translations$multiplayer$ru multiplayer = Translations$multiplayer$ru._(_root);
 	late final Translations$online$ru online = Translations$online$ru._(_root);
+	late final Translations$achievements$ru achievements = Translations$achievements$ru._(_root);
 	late final Translations$misc$ru misc = Translations$misc$ru._(_root);
 	late final Translations$d2$ru d2 = Translations$d2$ru._(_root);
 }
@@ -356,6 +357,7 @@ class Translations$stats$ru {
 		'combo': 'Комбо',
 		'mst_frq_cts': 'Самые загадываемые города',
 		'msg_big_cts': 'Самые длинные города',
+		'countries': 'Страны',
 	};
 	Map<String, String> get fields => {
 		'pva': 'В режиме против Андроида',
@@ -889,6 +891,60 @@ class Translations$online$ru {
 
 	/// ru: 'Произошла неизвестная ошибка :('
 	String get unknownError => 'Произошла неизвестная ошибка :(';
+}
+
+// Path: achievements
+class Translations$achievements$ru {
+	Translations$achievements$ru._(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// ru: '15 городов'
+	String get write15Cities => '15 городов';
+
+	/// ru: '3 подсказки'
+	String get use3Tips => '3 подсказки';
+
+	/// ru: 'Первый друг'
+	String get add1Friend => 'Первый друг';
+
+	/// ru: 'Сложный режим'
+	String get playInHardMode => 'Сложный режим';
+
+	/// ru: '1000 очков'
+	String get reachScore1000Pts => '1000 очков';
+
+	/// ru: '80 городов'
+	String get write80Cities => '80 городов';
+
+	/// ru: 'Вход через соцсеть'
+	String get loginViaSocial => 'Вход через соцсеть';
+
+	/// ru: 'Смена темы'
+	String get changeTheme => 'Смена темы';
+
+	/// ru: '50 городов за партию'
+	String get write50CitiesInGame => '50 городов за партию';
+
+	/// ru: '3 онлайн-партии'
+	String get playOnline3Times => '3 онлайн-партии';
+
+	/// ru: '30 подсказок'
+	String get use30Tips => '30 подсказок';
+
+	/// ru: '5000 очков'
+	String get reachScore5000Pts => '5000 очков';
+
+	/// ru: '500 городов'
+	String get write500Cities => '500 городов';
+
+	/// ru: '100 городов за партию'
+	String get write100CitiesInGame => '100 городов за партию';
+
+	/// ru: '25000 очков'
+	String get reachScore25000Pts => '25000 очков';
 }
 
 // Path: misc

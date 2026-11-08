@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:get_it/get_it.dart';
+import 'package:lets_play_cities/base/achievements/achievements_service.dart';
 import 'package:lets_play_cities/base/remote/bloc/user_actions_bloc.dart';
 import 'package:lets_play_cities/base/remote/bloc/user_list_actions_bloc.dart';
 import 'package:lets_play_cities/i18n/strings.g.dart';
@@ -54,7 +56,10 @@ mixin BaseListFetchingScreenMixin<T> on StatelessWidget {
       // app-wide ScaffoldMessenger and may confirm the action after the
       // screen is gone.
       RepositoryProvider(
-        create: (ctx) => UserActionsBloc(ctx.read<ApiRepository>()),
+        create: (ctx) => UserActionsBloc(
+          ctx.read<ApiRepository>(),
+          GetIt.instance.get<AchievementsService>(),
+        ),
       ),
     ],
     // Listens above the list builder, so reloading the list cannot unmount

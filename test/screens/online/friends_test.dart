@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:lets_play_cities/base/achievements/achievements.dart';
 import 'package:lets_play_cities/i18n/strings.g.dart';
 import 'package:lets_play_cities/remote/exceptions.dart';
 import 'package:lets_play_cities/screens/online/friends.dart';
@@ -8,8 +9,10 @@ import 'online_fakes.dart';
 void main() {
   final t = AppLocale.ru.buildSync();
   late FakeApiRepository repository;
+  late FakeAchievementsService achievements;
 
   setUp(() {
+    achievements = registerFakeAchievements();
     repository = FakeApiRepository()
       ..friends = [friendInfo(2, 'Alice', accepted: false)];
   });
@@ -31,6 +34,7 @@ void main() {
     expect(find.text(t.online.requestAccepted), findsOneWidget);
     expect(find.text('Alice'), findsOneWidget);
     expect(find.text(acceptLabel), findsNothing);
+    expect(achievements.unlocked, [Achievement.add1Friend]);
   });
 
   testWidgets('a refused access shows the access-denied text', (tester) async {

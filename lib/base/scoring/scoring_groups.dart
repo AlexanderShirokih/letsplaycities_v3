@@ -11,6 +11,10 @@ const groupHiscore = 'hscr';
 const groupFrequentCities = 'mst_frq_cts';
 const groupBigCities = 'msg_big_cts';
 
+/// Countries of the cities named by the player: the country code is the key
+/// of a paired field, and the number of games with such cities its value.
+const groupCountries = 'countries';
+
 /*
  * Field names
  */
@@ -195,6 +199,10 @@ class ScoringSet extends Equatable {
           ),
           growable: false,
         ),
+      ),
+      ScoringGroup(
+        main: ScoringField.empty(name: groupCountries),
+        child: [],
       ),
     ],
   );

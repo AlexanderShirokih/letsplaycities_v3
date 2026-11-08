@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:equatable/equatable.dart';
 import 'package:flutter/foundation.dart' show debugPrint;
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:lets_play_cities/base/achievements/achievements.dart';
 import 'package:lets_play_cities/base/achievements/achievements_service.dart';
 import 'package:lets_play_cities/base/ads/advertising_helper.dart';
 import 'package:lets_play_cities/base/dictionary.dart';
@@ -133,7 +134,10 @@ class GameBloc extends Bloc<GameStateEvent, GameLifecycleState>
       Error.throwWithStackTrace(event.error, event.stackTrace);
     } else if (event is GameEventShowHelp) {
       final isReady = await _showHelp();
-      if (!isReady) {
+      if (isReady) {
+        await _achievements.unlockAchievement(Achievement.use3Tips);
+        await _achievements.unlockAchievement(Achievement.use30Tips);
+      } else {
         final savedState = state;
         yield const GameNotificationState(GameNotification.hintNotReady);
         yield savedState;

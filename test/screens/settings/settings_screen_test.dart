@@ -3,6 +3,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:get_it/get_it.dart';
 import 'package:lets_play_cities/app_injection.dart';
+import 'package:lets_play_cities/base/achievements/achievements.dart';
+import 'package:lets_play_cities/base/achievements/achievements_service.dart';
 import 'package:lets_play_cities/base/dictionary.dart';
 import 'package:lets_play_cities/base/preferences.dart';
 import 'package:lets_play_cities/base/themes/app_theme_mode.dart';
@@ -13,17 +15,30 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../i18n/translations_harness.dart';
 
+class _RecordingAchievements extends Fake implements AchievementsService {
+  final unlocked = <Achievement>[];
+
+  @override
+  Future<void> unlockAchievement(
+    Achievement achievement, [
+    int incrementCount = 1,
+  ]) async => unlocked.add(achievement);
+}
+
 void main() {
   final t = AppLocale.ru.buildSync();
   final getIt = GetIt.instance;
 
   late GamePreferences prefs;
+  late _RecordingAchievements achievements;
 
   setUp(() async {
     SharedPreferences.setMockInitialValues({});
     prefs = SharedPreferencesGamePrefs(await SharedPreferences.getInstance());
+    achievements = _RecordingAchievements();
     await getIt.reset();
     getIt.registerSingleton<GamePreferences>(prefs);
+    getIt.registerSingleton<AchievementsService>(achievements);
     getIt.registerSingleton<ValueNotifier<AppThemeMode>>(
       ValueNotifier(prefs.themeMode),
       instanceName: themeModeNotifierName,
@@ -82,6 +97,19 @@ void main() {
           .value,
       AppThemeMode.dark,
     );
+    expect(achievements.unlocked, [Achievement.changeTheme]);
+  });
+
+  testWidgets('tapping the selected theme segment unlocks nothing', (
+    tester,
+  ) async {
+    await pumpScreen(tester);
+
+    await tester.tap(find.text(t.settings.themeMode.system));
+    await tester.pump();
+
+    expect(prefs.themeMode, AppThemeMode.system);
+    expect(achievements.unlocked, isEmpty);
   });
 
   testWidgets('tapping the sound switch turns the sound off', (tester) async {

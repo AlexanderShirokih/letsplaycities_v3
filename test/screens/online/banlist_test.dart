@@ -10,6 +10,7 @@ void main() {
   late String removedMessage;
 
   setUp(() {
+    registerFakeAchievements();
     removedMessage = t.online.banlistEntryRemoved;
     repository = FakeApiRepository()..banlist = [bannedUser(1, 'Bob')];
   });

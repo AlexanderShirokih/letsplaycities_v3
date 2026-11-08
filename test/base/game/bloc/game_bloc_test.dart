@@ -260,6 +260,24 @@ void main() {
       const GameNotificationState(GameNotification.hintNotReady),
       gameState,
     ]);
+    expect(achievements.unlocked, isEmpty);
+    await closeBloc(tester);
+  });
+
+  testWidgets('hint confirmation unlocks use3Tips progress', (tester) async {
+    adManager.rewardedReady = true;
+    startBloc(const GameConfig(gameMode: GameMode.playerVsAndroid));
+    await _pumpUntil(tester, () => bloc.state is GameState);
+    states.clear();
+
+    bloc.add(const GameEventShowHelp());
+    await _pumpUntil(tester, () => achievements.unlocked.length == 2);
+
+    expect(achievements.unlocked, [
+      Achievement.use3Tips,
+      Achievement.use30Tips,
+    ]);
+    expect(states, isEmpty);
     await closeBloc(tester);
   });
 

@@ -3,6 +3,7 @@
 // the index gave.
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:lets_play_cities/base/achievements/achievements.dart';
 import 'package:lets_play_cities/base/dictionary/dictionary.dart';
 import 'package:lets_play_cities/base/dictionary/dictionary_update_period.dart';
 import 'package:lets_play_cities/base/game/combo/combo_type.dart';
@@ -14,6 +15,14 @@ import 'package:lets_play_cities/i18n/strings.g.dart';
 
 void main() {
   final t = AppLocale.ru.buildSync();
+
+  test('achievements have distinct titles', () {
+    final titles = Achievement.values.map((v) => v.label(t)).toList();
+
+    expect(titles, everyElement(isNotEmpty));
+    expect(titles.toSet(), hasLength(Achievement.values.length));
+    expect(Achievement.write15Cities.label(t), '15 городов');
+  });
 
   test('combo types', () {
     expect(ComboType.values.map((v) => v.label(t)), [
@@ -27,9 +36,9 @@ void main() {
 
   test('match results', () {
     expect(MatchResult.values.map((v) => v.label(t)), [
-      'Вы победили!',
-      'Вы проиграли',
-      'Ничья!',
+      'Победа!',
+      'Поражение',
+      'Ничья',
     ]);
   });
 

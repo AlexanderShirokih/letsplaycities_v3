@@ -3,6 +3,8 @@ import 'dart:async';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:equatable/equatable.dart';
 
+import 'package:lets_play_cities/base/achievements/achievements.dart';
+import 'package:lets_play_cities/base/achievements/achievements_service.dart';
 import 'package:lets_play_cities/remote/auth.dart';
 import 'package:lets_play_cities/base/bloc/sequential_event_mapping.dart';
 
@@ -14,8 +16,10 @@ part 'user_actions_state.dart';
 class UserActionsBloc extends Bloc<UserActionsEvent, UserActionsState>
     with SequentialEventMapping<UserActionsEvent, UserActionsState> {
   final ApiRepository _apiRepository;
+  final AchievementsService _achievements;
 
-  UserActionsBloc(this._apiRepository) : super(UserActionsInitial()) {
+  UserActionsBloc(this._apiRepository, this._achievements)
+    : super(UserActionsInitial()) {
     mapEventsSequentially(_mapEventToState);
   }
 
@@ -62,6 +66,7 @@ class UserActionsBloc extends Bloc<UserActionsEvent, UserActionsState>
         break;
       case UserUserAction.acceptRequest:
         await _apiRepository.sendFriendRequestAcceptance(target, true);
+        await _achievements.unlockAchievement(Achievement.add1Friend);
         break;
       case UserUserAction.declineRequest:
         await _apiRepository.sendFriendRequestAcceptance(target, false);

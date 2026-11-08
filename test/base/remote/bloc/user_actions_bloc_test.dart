@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:lets_play_cities/base/achievements/achievements.dart';
 import 'package:lets_play_cities/base/remote/bloc/user_actions_bloc.dart';
 import 'package:lets_play_cities/remote/model/profile_info.dart';
 
@@ -6,6 +7,7 @@ import '../../../screens/online/online_fakes.dart';
 
 void main() {
   late FakeApiRepository repository;
+  late FakeAchievementsService achievements;
   late UserActionsBloc bloc;
   late List<UserActionsState> states;
 
@@ -18,7 +20,8 @@ void main() {
 
   setUp(() {
     repository = FakeApiRepository();
-    bloc = UserActionsBloc(repository);
+    achievements = FakeAchievementsService();
+    bloc = UserActionsBloc(repository, achievements);
     states = [];
     bloc.stream.listen(states.add);
   });
@@ -54,5 +57,34 @@ void main() {
       UserActionConfirmationState(unban),
     ]);
     expect(repository.log, isEmpty);
+  });
+
+  UserEvent answer(UserUserAction action) => UserEvent(
+    const BaseProfileInfo(userId: 2, login: 'Ann'),
+    action,
+    confirmationMessage: 'done',
+  );
+
+  test('an accepted friend request unlocks add1Friend', () async {
+    await send(answer(UserUserAction.acceptRequest));
+
+    expect(repository.log, ['sendFriendRequestAcceptance(2, true)']);
+    expect(achievements.unlocked, [Achievement.add1Friend]);
+  });
+
+  test('a declined friend request unlocks nothing', () async {
+    await send(answer(UserUserAction.declineRequest));
+
+    expect(repository.log, ['sendFriendRequestAcceptance(2, false)']);
+    expect(achievements.unlocked, isEmpty);
+  });
+
+  test('a failed acceptance unlocks nothing', () async {
+    repository.actionError = StateError('offline');
+
+    await send(answer(UserUserAction.acceptRequest));
+
+    expect(states.last, isA<UserActionErrorState>());
+    expect(achievements.unlocked, isEmpty);
   });
 }

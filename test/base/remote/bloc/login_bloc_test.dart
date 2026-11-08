@@ -1,6 +1,8 @@
 import 'dart:async';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:lets_play_cities/base/achievements/achievements.dart';
+import 'package:lets_play_cities/base/achievements/achievements_service.dart';
 import 'package:lets_play_cities/base/preferences.dart';
 import 'package:lets_play_cities/base/remote/bloc/login_bloc.dart';
 import 'package:lets_play_cities/remote/auth.dart';
@@ -42,6 +44,16 @@ class _FakePreferences extends Fake implements GamePreferences {
 
   @override
   set lastNativeLogin(String newLogin) => lastNativeLoginWrites.add(newLogin);
+}
+
+class _RecordingAchievements extends Fake implements AchievementsService {
+  final unlocked = <Achievement>[];
+
+  @override
+  Future<void> unlockAchievement(
+    Achievement achievement, [
+    int incrementCount = 1,
+  ]) async => unlocked.add(achievement);
 }
 
 class _FakeCloudMessaging extends Fake implements CloudMessagingService {
@@ -99,6 +111,7 @@ class _CountingLoginBloc extends LoginBloc {
         preferences: _FakePreferences(),
         cloudServices: _FakeCloudMessaging(),
         apiRepositories: () => throw StateError('No picture is uploaded'),
+        achievements: _RecordingAchievements(),
       );
 
   @override
@@ -115,6 +128,7 @@ void main() {
   late FakeApiRepositoryFactory apiRepositories;
   late _FakePreferences preferences;
   late _FakeSocialNetworks socialNetworks;
+  late _RecordingAchievements achievements;
 
   late int factoryLookups;
 
@@ -123,6 +137,7 @@ void main() {
     apiRepositories = FakeApiRepositoryFactory(apiRepository);
     preferences = _FakePreferences();
     socialNetworks = _FakeSocialNetworks();
+    achievements = _RecordingAchievements();
     factoryLookups = 0;
   });
 
@@ -135,6 +150,7 @@ void main() {
       factoryLookups++;
       return apiRepositories;
     },
+    achievements: achievements,
   );
 
   group('native login', () {
@@ -160,6 +176,7 @@ void main() {
       // The server may change the name, and its version is the one kept.
       expect(preferences.lastNativeLoginWrites, ['server name']);
       expect(factoryLookups, 0);
+      expect(achievements.unlocked, isEmpty);
     });
 
     test('reports a server error and keeps the last login', () async {
@@ -212,6 +229,7 @@ void main() {
       expect(lookupsAtSignUp, 0);
       expect(factoryLookups, 1);
       expect(preferences.lastNativeLoginWrites, isEmpty);
+      expect(achievements.unlocked, [Achievement.loginViaSocial]);
     });
 
     test('reports a failed network authorization', () async {
@@ -230,6 +248,7 @@ void main() {
         emitsInOrder([LoginAuthenticatingState(), LoginAuthErrorState(error)]),
       );
       expect(accountManager.requests, isEmpty);
+      expect(achievements.unlocked, isEmpty);
     });
 
     test('reports an unexpected sign-up error as LoginErrorState', () async {
@@ -243,6 +262,7 @@ void main() {
         bloc.stream,
         emitsInOrder([LoginAuthenticatingState(), LoginErrorState(error)]),
       );
+      expect(achievements.unlocked, isEmpty);
     });
   });
 

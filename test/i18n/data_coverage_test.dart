@@ -17,6 +17,7 @@ void main() {
       groupHiscore,
       groupFrequentCities,
       groupBigCities,
+      groupCountries,
     ];
 
     // fieldPairPrefix is left out: a paired field shows the city name.

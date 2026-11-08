@@ -69,6 +69,7 @@ void main() {
     late FakeAccountManager accountManager;
 
     setUp(() {
+      registerFakeAchievements();
       repository = FakeApiRepository()..profiles = {2: profileInfo(2, 'Alice')};
       accountManager = FakeAccountManager(remoteAccount(1, 'Bob'));
     });

@@ -61,13 +61,20 @@ GameResult _result(
   User owner, {
   MatchResult matchResult = MatchResult.win,
   bool hasScore = true,
+  Set<int> playerCountries = const {},
 }) => GameResult(
   owner: owner,
   matchResult: matchResult,
   finishType: MoveFinishType.surrender,
   hasScore: hasScore,
   finishRequester: owner,
-  summary: GameSummary.empty,
+  summary: GameSummary(
+    citiesCount: 0,
+    duration: Duration.zero,
+    longestCity: null,
+    bestCombos: const {},
+    playerCountries: playerCountries,
+  ),
 );
 
 void main() {
@@ -396,6 +403,75 @@ void main() {
       ]);
       // The shortest word was pushed out.
       expect(fields.any((f) => f.key == 'аа'), isFalse);
+    });
+  });
+
+  group('passport', () {
+    test('score controller records countries once per game', () {
+      final set = ScoringSet.initial();
+      final controller = _controller(set);
+
+      for (var i = 0; i < 2; i++) {
+        controller.onGameFinished(
+          _result(_player()..increaseScore(10), playerCountries: {7, 12}),
+        );
+      }
+
+      expect(_entries(set, groupCountries), {'7': 2, '12': 2});
+    });
+
+    test('visitedCountries sorted by count', () {
+      final controller = _controller(ScoringSet.initial());
+
+      for (final countries in [
+        {3},
+        {5, 3},
+        {9, 5, 3},
+      ]) {
+        controller.onGameFinished(
+          _result(_player()..increaseScore(10), playerCountries: countries),
+        );
+      }
+
+      expect(controller.visitedCountries, [3, 5, 9]);
+    });
+
+    test('are not recorded for a game that is not counted', () {
+      final set = ScoringSet.initial();
+
+      _controller(set).onGameFinished(_result(_player(), playerCountries: {7}));
+
+      expect(_entries(set, groupCountries), isEmpty);
+    });
+
+    test('start empty for statistics stored before them', () {
+      final stored = ScoringSet(
+        groups: ScoringSet.initial().groups
+            .where((g) => g.main.name != groupCountries)
+            .toList(),
+      );
+      final prefs = _Prefs(scoringData: jsonEncode(stored.toJson()));
+      final controller = ScoreController.fromPrefs(
+        prefs,
+        GameMode.playerVsAndroid,
+      );
+
+      expect(controller.visitedCountries, isEmpty);
+
+      controller
+        ..onGameFinished(
+          _result(_player()..increaseScore(10), playerCountries: {7}),
+        )
+        ..commit();
+
+      expect(_entries(prefs.stored, groupCountries), {'7': 1});
+      expect(
+        ScoreController.fromPrefs(
+          prefs,
+          GameMode.playerVsAndroid,
+        ).visitedCountries,
+        [7],
+      );
     });
   });
 

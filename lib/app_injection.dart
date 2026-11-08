@@ -8,6 +8,7 @@ import 'package:flutter/services.dart';
 import 'package:get_it/get_it.dart';
 import 'package:lets_play_cities/app_config.dart';
 import 'package:lets_play_cities/base/achievements/achievements_service.dart';
+import 'package:lets_play_cities/base/achievements/local_achievements.dart';
 import 'package:lets_play_cities/base/ads/advertising_helper.dart';
 import 'package:lets_play_cities/base/dictionary/countrycode_overrides.dart';
 import 'package:lets_play_cities/base/dictionary/impl/country_code_overrides_builder.dart';
@@ -205,14 +206,22 @@ Future<void> injectRootDependencies({required String serverHost}) async {
     ),
   );
 
-  /// Google Game Services as [AchievementsService]. A lazy singleton cannot
-  /// declare dependsOn; it is first read after allReady(), when the
-  /// [ErrorLogger] is ready.
-  getIt.registerLazySingleton<AchievementsService>(() {
-    return Platform.isLinux
-        ? StubAchievementsService()
-        : GoogleServicesAchievementService(getIt.get<ErrorLogger>());
-  });
+  /// Achievements kept on the device and reported to Google Game Services.
+  /// A lazy singleton cannot declare dependsOn; it is first read after
+  /// allReady(), when the [ErrorLogger] and [GamePreferences] are ready.
+  getIt.registerLazySingleton<LocalAchievementsService>(
+    () => LocalAchievementsService(
+      Platform.isLinux
+          ? StubAchievementsService()
+          : GoogleServicesAchievementService(getIt.get<ErrorLogger>()),
+      getIt.get<GamePreferences>(),
+    ),
+  );
+
+  /// The same instance as [LocalAchievementsService]
+  getIt.registerLazySingleton<AchievementsService>(
+    () => getIt.get<LocalAchievementsService>(),
+  );
 
   /// Voice recognition provider
   getIt.registerSingleton<VoiceRecognitionService>(

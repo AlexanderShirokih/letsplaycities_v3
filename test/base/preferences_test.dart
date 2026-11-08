@@ -137,6 +137,21 @@ void main() {
       prefs.scoringData = json;
       expect((await relaunch()).scoringData, json);
     });
+
+    test('achievements progress, as JSON', () async {
+      expect(prefs.achievementsProgress, isEmpty);
+
+      prefs.achievementsProgress = {'write15Cities': 12, 'changeTheme': 1};
+
+      expect((await relaunch()).achievementsProgress, {
+        'write15Cities': 12,
+        'changeTheme': 1,
+      });
+      expect(
+        await stored('achievementsProgress'),
+        '{"write15Cities":12,"changeTheme":1}',
+      );
+    });
   });
 
   group('storage format', () {
@@ -251,6 +266,11 @@ void main() {
     test('empty stored score data reads as no score data', () async {
       await launch({'scoringData': ''});
       expect(prefs.scoringData, isEmpty);
+    });
+
+    test('broken achievements progress reads as no progress', () async {
+      await launch({'achievementsProgress': 'not json'});
+      expect(prefs.achievementsProgress, isEmpty);
     });
   });
 
