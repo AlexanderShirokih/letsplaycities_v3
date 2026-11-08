@@ -157,6 +157,22 @@ void main() {
       expect(combosAfter(countries([1, 2, 3, 4, 5, 6, 2])), isEmpty);
     });
 
+    test('a city without a known country ends a different countries combo', () {
+      List<CityComboInfo> countries(List<int> codes) => [
+        for (final code in codes) _city(country: code),
+      ];
+
+      // Unknown country is not one more distinct country...
+      expect(combosAfter(countries([1, 2, 3, 4, 5, 0])), isEmpty);
+      // ...and it breaks the streak, as it does for the same country combo.
+      expect(combosAfter(countries([1, 2, 3, 4, 5, 0, 6])), isEmpty);
+      expect(combosAfter(countries([0, 1, 2, 3, 4, 5])), isEmpty);
+      expect(combosAfter(countries([0, 1, 2, 3, 4, 5, 6])), {
+        ComboType.differentCountries: 1,
+      });
+      expect(combosAfter(countries([0, 0, 0, 0, 0, 0, 0])), isEmpty);
+    });
+
     test('active combos cannot be changed from outside', () {
       final combos = combosAfter(List.filled(3, _city(word: 'ухта')));
 

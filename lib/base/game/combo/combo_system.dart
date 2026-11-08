@@ -56,7 +56,9 @@ class ComboSystem {
         ComboType.sameCountry,
         (info) => info.countryCode > 0 && info.countryCode == lastCountryCode,
       ),
+      // Unknown country (code 0) ends the streak, like in the same country combo.
       _updateCombo(ComboType.differentCountries, (info) {
+        if (info.countryCode <= 0) return false;
         final res = !usedCountries.contains(info.countryCode);
         usedCountries.add(info.countryCode);
         return res;
