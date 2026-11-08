@@ -6,7 +6,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_stream_listener/flutter_stream_listener.dart';
 import 'package:get_it/get_it.dart';
 import 'package:lets_play_cities/base/preferences.dart';
-import 'package:lets_play_cities/app_injection.dart';
+import 'package:lets_play_cities/screens/common/theme_mode.dart';
 import 'package:lets_play_cities/base/themes/app_theme_mode.dart';
 import 'package:lets_play_cities/i18n/strings.g.dart';
 import 'package:lets_play_cities/remote/model/cloud_messages.dart';

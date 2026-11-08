@@ -20,6 +20,7 @@ import 'package:lets_play_cities/base/stt/voice_recognition_service_impl.dart';
 import 'package:lets_play_cities/base/themes/app_theme_mode.dart';
 import 'package:lets_play_cities/i18n/strings.g.dart';
 import 'package:lets_play_cities/remote/account.dart';
+import 'package:lets_play_cities/screens/common/theme_mode.dart';
 import 'package:lets_play_cities/remote/account_manager.dart';
 import 'package:lets_play_cities/remote/account_manager_impl.dart';
 import 'package:lets_play_cities/remote/api_repository.dart';
@@ -47,18 +48,6 @@ import 'base/repositories/cities/city_repository.dart';
 import 'base/repositories/cities/country_repository.dart';
 
 /// Instance name of the theme mode notifier in GetIt
-const themeModeNotifierName = 'themeModeNotifier';
-
-/// Saves the theme [mode] to the preferences and notifies the app
-void setThemeMode(AppThemeMode mode) {
-  final getIt = GetIt.instance;
-  getIt.get<GamePreferences>().themeMode = mode;
-  getIt
-          .get<ValueNotifier<AppThemeMode>>(instanceName: themeModeNotifierName)
-          .value =
-      mode;
-}
-
 /// Registers root app dependencies. Should be called before
 /// all app initializations
 Future<void> injectRootDependencies({required String serverHost}) async {
