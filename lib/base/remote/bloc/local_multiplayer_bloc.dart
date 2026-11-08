@@ -36,7 +36,12 @@ class LocalMultiplayerBloc
     required this._createAccountManager,
   }) : super(LocalMultiplayerInitial()) {
     mapEventsSequentially(_mapEventToState);
+    // Not sequential: a cancel must not wait for the creation it cancels
+    on<LocalMultiplayerCancel>(_onCancel);
   }
+
+  /// Set by [LocalMultiplayerCancel] while the server is starting
+  var _createCancelled = false;
 
   @override
   Future<void> close() async {
@@ -54,7 +59,20 @@ class LocalMultiplayerBloc
     }
   }
 
+  Future<void> _onCancel(
+    LocalMultiplayerCancel event,
+    Emitter<LocalMultiplayerState> emit,
+  ) async {
+    if (state is! LocalMultiplayerStartingServer) return;
+
+    _createCancelled = true;
+    await _server.close();
+    emit(LocalMultiplayerInitial());
+  }
+
   Stream<LocalMultiplayerState> _createConnection() async* {
+    _createCancelled = false;
+
     final isNetworkReady = await NetworkManager.ensureWifiConnected();
 
     if (isNetworkReady) {
@@ -72,6 +90,12 @@ class LocalMultiplayerBloc
         _errorLogger.error(e, s);
         await _server.close();
         yield LocalMultiplayerInitial();
+        return;
+      }
+
+      if (_createCancelled) {
+        // The server was set up after the cancel closed it
+        await _server.close();
         return;
       }
 

@@ -780,38 +780,44 @@ class Translations$multiplayer$ru {
 
 	// Translations
 
-	/// ru: 'Мультиплеер'
-	String get title => 'Мультиплеер';
+	/// ru: 'По Wi-Fi рядом'
+	String get wifiTitle => 'По Wi-Fi рядом';
 
-	/// ru: 'Запуск сервера...'
-	String get startingServer => 'Запуск сервера...';
+	/// ru: 'Создать игру'
+	String get createGame => 'Создать игру';
+
+	/// ru: 'Вас видно рядом'
+	String get visibleNearby => 'Вас видно рядом';
+
+	/// ru: '{device}'
+	String deviceMode({required Object device}) => '${device}';
+
+	/// ru: 'Ждём соперника'
+	String get waitingOpponent => 'Ждём соперника';
+
+	/// ru: 'Отменить'
+	String get cancelCreate => 'Отменить';
+
+	/// ru: 'Присоединиться'
+	String get join => 'Присоединиться';
+
+	/// ru: 'Оба телефона должны быть в одной сети Wi-Fi'
+	String get sameWifi => 'Оба телефона должны быть в одной сети Wi-Fi';
+
+	/// ru: 'Игры рядом'
+	String get gamesNearby => 'Игры рядом';
+
+	/// ru: 'Ничего не найдено'
+	String get nothingFound => 'Ничего не найдено';
+
+	/// ru: 'Повторить'
+	String get retry => 'Повторить';
 
 	/// ru: 'Переподключитесь к Wi-Fi сети или попробуйте снова'
 	String get reconnectWifi => 'Переподключитесь к Wi-Fi сети или попробуйте снова';
 
 	/// ru: 'Произошла какая-то ошибка :('
 	String get error => 'Произошла какая-то ошибка :(';
-
-	/// ru: 'Для создания соединения вы должны находиться в одной Wi-Fi сети с вашим оппонентом'
-	String get sameWifiHint => 'Для создания соединения вы должны находиться в одной Wi-Fi сети с вашим оппонентом';
-
-	/// ru: 'Создать'
-	String get create => 'Создать';
-
-	/// ru: 'Присоединиться'
-	String get join => 'Присоединиться';
-
-	/// ru: 'Поиск'
-	String get search => 'Поиск';
-
-	/// ru: 'Доступные устройства'
-	String get availableDevices => 'Доступные устройства';
-
-	/// ru: 'Вы должны находиться в одной сети для поиска устройств'
-	String get sameNetworkHint => 'Вы должны находиться в одной сети для поиска устройств';
-
-	/// ru: 'Ничего не найдено. Убедитесь что у оппонента создано соединение и вы находитесь в одной сети'
-	String get nothingFound => 'Ничего не найдено. Убедитесь что у оппонента создано соединение и вы находитесь в одной сети';
 }
 
 // Path: online

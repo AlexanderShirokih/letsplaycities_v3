@@ -22,3 +22,11 @@ class LocalMultiplayerConnect extends LocalMultiplayerEvent {
   @override
   List<Object> get props => [selectedHost];
 }
+
+/// Stops the server that is starting and returns to the initial state
+class LocalMultiplayerCancel extends LocalMultiplayerEvent {
+  const LocalMultiplayerCancel();
+
+  @override
+  List<Object> get props => [];
+}

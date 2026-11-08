@@ -7,6 +7,7 @@ export 'd2_header.dart';
 export 'd2_icons.dart';
 export 'd2_letter_tile.dart';
 export 'd2_logo.dart';
+export 'd2_radar.dart';
 export 'd2_segmented.dart';
 export 'd2_sheet.dart';
 export 'd2_switch.dart';
