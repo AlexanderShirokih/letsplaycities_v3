@@ -22,9 +22,9 @@ extension ComboTypeLabel on ComboType {
 
 extension MatchResultLabel on MatchResult {
   String label(Translations t) => switch (this) {
-    MatchResult.win => t.gameResults.matchResult.win,
-    MatchResult.lose => t.gameResults.matchResult.lose,
-    MatchResult.draw => t.gameResults.matchResult.draw,
+    MatchResult.win => t.gameResults.winTitle,
+    MatchResult.lose => t.gameResults.loseTitle,
+    MatchResult.draw => t.gameResults.drawTitle,
   };
 }
 

@@ -447,7 +447,38 @@ class Translations$gameResults$ru {
 	/// ru: 'Мой счёт {score} очков в игре Сыграем в Города! https://play.google.com/store/apps/details?id=ru.aleshi.letsplaycities Сможешь набрать больше?'
 	String shareScore({required Object score}) => 'Мой счёт ${score} очков в игре Сыграем в Города!\nhttps://play.google.com/store/apps/details?id=ru.aleshi.letsplaycities\n Сможешь набрать больше?';
 
-	late final Translations$gameResults$matchResult$ru matchResult = Translations$gameResults$matchResult$ru._(_root);
+	/// ru: 'Победа!'
+	String get winTitle => 'Победа!';
+
+	/// ru: 'Поражение'
+	String get loseTitle => 'Поражение';
+
+	/// ru: 'Ничья'
+	String get drawTitle => 'Ничья';
+
+	/// ru: 'городов'
+	String get cities => 'городов';
+
+	/// ru: 'время'
+	String get time => 'время';
+
+	/// ru: 'самый длинный город'
+	String get longestCity => 'самый длинный город';
+
+	/// ru: 'Комбо'
+	String get comboTitle => 'Комбо';
+
+	/// ru: '×{count}'
+	String comboTimes({required Object count}) => '×${count}';
+
+	/// ru: 'Сыграть ещё'
+	String get playAgain => 'Сыграть ещё';
+
+	/// ru: 'В меню'
+	String get toMenu => 'В меню';
+
+	/// ru: 'Поделиться'
+	String get share => 'Поделиться';
 
 	/// ru: 'У {name} вышло время'
 	String descTimeout({required Object name}) => 'У ${name} вышло время';
@@ -1097,24 +1128,6 @@ class Translations$settings$themeMode$ru {
 
 	/// ru: 'Как в системе'
 	String get system => 'Как в системе';
-}
-
-// Path: gameResults.matchResult
-class Translations$gameResults$matchResult$ru {
-	Translations$gameResults$matchResult$ru._(this._root);
-
-	final Translations _root; // ignore: unused_field
-
-	// Translations
-
-	/// ru: 'Вы победили!'
-	String get win => 'Вы победили!';
-
-	/// ru: 'Вы проиграли'
-	String get lose => 'Вы проиграли';
-
-	/// ru: 'Ничья!'
-	String get draw => 'Ничья!';
 }
 
 // Path: online.invitationResult

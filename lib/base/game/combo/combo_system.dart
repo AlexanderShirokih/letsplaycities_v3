@@ -33,7 +33,10 @@ class ComboSystem {
           1.0,
         );
 
-  double _getScore(int s) => min((s + 1) * 0.5 + 0.5, _kMaxSingleScore);
+  /// The number a combo badge shows for a combo [level]
+  static int badgeValue(int level) => _getScore(level).round();
+
+  static double _getScore(int s) => min((s + 1) * 0.5 + 0.5, _kMaxSingleScore);
 
   /// Adds [CityComboInfo] to list and updates combos
   void addCity(CityComboInfo cityComboInfo) {
@@ -68,8 +71,7 @@ class ComboSystem {
     if (isAnyComboChanged) {
       _controller.add(
         _activeCombos.map(
-          (type, level) =>
-              MapEntry<ComboType, int>(type, _getScore(level).round()),
+          (type, level) => MapEntry<ComboType, int>(type, badgeValue(level)),
         ),
       );
     }

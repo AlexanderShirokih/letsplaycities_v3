@@ -74,7 +74,7 @@ void main() {
     await tester.pumpWidget(app());
 
     expect(
-      find.text(AppLocale.ru.buildSync().gameResults.matchResult.win),
+      find.text(AppLocale.ru.buildSync().gameResults.winTitle),
       findsOneWidget,
     );
     expect(adManager.interstitialsShown, 1);
@@ -107,12 +107,105 @@ void main() {
       ),
     );
 
-    await tester.tap(find.byIcon(Icons.replay));
+    await tester.tap(find.text('Сыграть ещё'));
     await tester.pumpAndSettle();
 
     expect(find.byType(HotseatSetupScreen), findsOneWidget);
     expect(find.byType(GameResultsScreen), findsNothing);
     expect(find.text('Аня'), findsOneWidget);
     expect(find.text('Боря'), findsOneWidget);
+  });
+
+  group('summary', () {
+    GameResult resultWith({bool hasScore = true, GameSummary? summary}) =>
+        GameResult(
+          owner: _TestUser(),
+          matchResult: MatchResult.win,
+          finishType: MoveFinishType.surrender,
+          hasScore: hasScore,
+          finishRequester: _TestUser(),
+          summary: summary ?? GameSummary.empty,
+        );
+
+    Future<void> pump(WidgetTester tester, GameResult result) async {
+      tester.view.physicalSize = const Size(1080, 2400);
+      tester.view.devicePixelRatio = 3;
+      addTearDown(tester.view.reset);
+
+      await tester.pumpWidget(
+        withTranslations(
+          MaterialApp(
+            home: GameResultsScreen(
+              result,
+              const GameConfig(gameMode: GameMode.playerVsAndroid),
+            ),
+          ),
+        ),
+      );
+    }
+
+    testWidgets('shows win title, metrics and combos', (tester) async {
+      await pump(
+        tester,
+        resultWith(
+          summary: const GameSummary(
+            citiesCount: 37,
+            duration: Duration(minutes: 18, seconds: 42),
+            longestCity: (city: 'петропавловск-камчатский', countryCode: 1),
+            bestCombos: {ComboType.quickTime: 4},
+            playerCountries: {1},
+          ),
+        ),
+      );
+
+      expect(find.text('Победа!'), findsOneWidget);
+      expect(find.text('37'), findsOneWidget);
+      expect(find.text('18:42'), findsOneWidget);
+      expect(
+        find.textContaining('Петропавловск-Камчатск', findRichText: true),
+        findsOneWidget,
+      );
+      expect(find.text('Быстрый ответ'), findsOneWidget);
+      expect(find.text('×${ComboSystem.badgeValue(4)}'), findsOneWidget);
+    });
+
+    testWidgets('hides score when result has no score', (tester) async {
+      await pump(tester, resultWith(hasScore: false));
+
+      expect(find.text('Игрок'), findsNothing);
+      expect(find.text('Поделиться'), findsNothing);
+    });
+
+    testWidgets('hides metrics and combos of an empty summary', (tester) async {
+      await pump(tester, resultWith());
+
+      expect(find.text('городов'), findsNothing);
+      expect(find.text('Комбо'), findsNothing);
+    });
+
+    testWidgets('shows only the three best combos', (tester) async {
+      await pump(
+        tester,
+        resultWith(
+          summary: const GameSummary(
+            citiesCount: 5,
+            duration: Duration(seconds: 90),
+            longestCity: null,
+            bestCombos: {
+              ComboType.quickTime: 1,
+              ComboType.shortWord: 6,
+              ComboType.longWord: 4,
+              ComboType.sameCountry: 2,
+            },
+            playerCountries: {},
+          ),
+        ),
+      );
+
+      expect(find.text('Быстрый ответ'), findsNothing);
+      expect(find.text('Короткие города'), findsOneWidget);
+      expect(find.text('Длинные города'), findsOneWidget);
+      expect(find.text('Одна страна'), findsOneWidget);
+    });
   });
 }

@@ -49,7 +49,7 @@ class ComboBadgeWidget extends StatelessWidget {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            D2Icon(_glyphOf(comboType), size: 14, color: onYellow),
+            D2Icon(glyphOf(comboType), size: 14, color: onYellow),
             const SizedBox(width: 3),
             Text(
               '×$multiplier',
@@ -61,7 +61,8 @@ class ComboBadgeWidget extends StatelessWidget {
     );
   }
 
-  static D2Glyph _glyphOf(ComboType type) => switch (type) {
+  /// The icon of a combo [type]
+  static D2Glyph glyphOf(ComboType type) => switch (type) {
     ComboType.quickTime => D2Glyph.bolt,
     ComboType.shortWord => D2Glyph.star,
     ComboType.longWord => D2Glyph.gauge,

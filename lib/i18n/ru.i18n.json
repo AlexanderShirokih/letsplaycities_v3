@@ -191,11 +191,17 @@
   "game_results": {
     "score": "Ваш счёт: ",
     "share_score": "Мой счёт {score} очков в игре Сыграем в Города!\nhttps://play.google.com/store/apps/details?id=ru.aleshi.letsplaycities\n Сможешь набрать больше?",
-    "match_result": {
-      "win": "Вы победили!",
-      "lose": "Вы проиграли",
-      "draw": "Ничья!"
-    },
+    "win_title": "Победа!",
+    "lose_title": "Поражение",
+    "draw_title": "Ничья",
+    "cities": "городов",
+    "time": "время",
+    "longest_city": "самый длинный город",
+    "combo_title": "Комбо",
+    "combo_times(param=count)": "×{count}",
+    "play_again": "Сыграть ещё",
+    "to_menu": "В меню",
+    "share": "Поделиться",
     "desc_timeout": "У {name} вышло время",
     "desc_disconnected": "{name} отключился",
     "desc_surrender": "{name} сдался",

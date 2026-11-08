@@ -44,6 +44,7 @@ class GameResultChecker {
     ),
     finishRequester: finishRequester,
     summary: summary,
+    opponent: users.all.where((user) => user != owner).firstOrNull,
   );
 
   MatchResult _getMatchResult(ScoringType scoringType) =>
@@ -99,6 +100,9 @@ class GameResult extends Equatable {
   /// What happened in the game
   final GameSummary summary;
 
+  /// The first user other than [owner], `null` if there is none
+  final User? opponent;
+
   const GameResult({
     required this.owner,
     required this.matchResult,
@@ -106,6 +110,7 @@ class GameResult extends Equatable {
     required this.hasScore,
     required this.finishRequester,
     required this.summary,
+    this.opponent,
   });
 
   @override
@@ -116,5 +121,6 @@ class GameResult extends Equatable {
     hasScore,
     finishRequester,
     summary,
+    opponent,
   ];
 }
