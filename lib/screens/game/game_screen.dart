@@ -156,8 +156,8 @@ void replaceGameRoute(BuildContext context, Route<void> newRoute) {
   navigator.pushReplacement(newRoute);
 }
 
-/// Called from the [BlocProvider.create] of [GameScreen]. The [Dio] is built
-/// from the unnamed `AppConfig` of the GetIt scope active at that moment.
+/// Called from the [BlocProvider.create] of [GameScreen]. The [Dio] goes to
+/// the main server; in a LAN game it carries no token.
 GameBloc _createGameBloc(GameConfig gameConfig, Translations t) {
   final getIt = GetIt.instance;
   final prefs = getIt.get<GamePreferences>();
