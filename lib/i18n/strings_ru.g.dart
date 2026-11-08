@@ -407,6 +407,9 @@ class Translations$settings$ru {
 
 	/// ru: 'Статистика'
 	String get stats => 'Статистика';
+
+	/// ru: 'Лицензии'
+	String get licenses => 'Лицензии';
 }
 
 // Path: stats

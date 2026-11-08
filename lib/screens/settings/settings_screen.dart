@@ -163,6 +163,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           MaterialPageRoute(builder: (_) => StatisticsScreen()),
                         ),
                       ),
+                      _NavigationRow(
+                        glyph: D2Glyph.globe,
+                        label: t.settings.licenses,
+                        onTap: () => showLicensePage(context: context),
+                      ),
                     ],
                   ),
                 ],

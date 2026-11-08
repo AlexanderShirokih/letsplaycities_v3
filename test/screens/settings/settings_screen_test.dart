@@ -153,4 +153,15 @@ void main() {
     expect(prefs.dictionaryUpdatePeriod, DictionaryUpdatePeriod.daily);
     expect(tester.widget<D2Switch>(dict).value, isTrue);
   });
+
+  testWidgets('the licenses row opens the license page', (tester) async {
+    await pumpScreen(tester);
+
+    final row = find.text(t.settings.licenses);
+    await tester.scrollUntilVisible(row, 200);
+    await tester.tap(row);
+    await tester.pumpAndSettle();
+
+    expect(find.byType(LicensePage), findsOneWidget);
+  });
 }
