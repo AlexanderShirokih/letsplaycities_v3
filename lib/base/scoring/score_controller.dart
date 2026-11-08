@@ -75,8 +75,11 @@ class ScoreController {
   }
 
   /// Used when the game has finished. Updates parts count stats.
+  ///
+  /// Games without score (last move wins) are counted too: nobody has points
+  /// there, so only scored games that ended with no points are skipped.
   void onGameFinished(GameResult gameResult) {
-    if (!gameResult.hasScore || gameResult.owner.score <= 0) return;
+    if (gameResult.hasScore && gameResult.owner.score <= 0) return;
 
     _allGroups[groupParts].main.asIntField().increase();
     _allGroups[groupParts][_translateGameMode(_mode)].asIntField().increase();

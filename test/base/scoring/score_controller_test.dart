@@ -246,16 +246,51 @@ void main() {
       }
     });
 
-    test('are not counted without score', () {
+    test('scored games ending with no points are not counted', () {
       final set = ScoringSet.initial();
       final controller = _controller(set, mode: GameMode.network);
 
       controller.onGameFinished(_result(_player()));
-      controller.onGameFinished(
-        _result(_player()..increaseScore(10), hasScore: false),
-      );
 
       expect(set, ScoringSet.initial());
+    });
+
+    test('are counted in LAST_MOVE games, where nobody has points', () {
+      for (final mode in GameMode.values) {
+        final set = ScoringSet.initial();
+
+        _controller(
+          set,
+          type: ScoringType.lastMove,
+          mode: mode,
+        ).onGameFinished(_result(_player(), hasScore: false));
+
+        expect(set[groupParts].main.asIntField().value, 1, reason: '$mode');
+      }
+    });
+
+    test('count online wins and losses in LAST_MOVE games', () {
+      final set = ScoringSet.initial();
+      final controller = _controller(
+        set,
+        type: ScoringType.lastMove,
+        mode: GameMode.network,
+      );
+      final owner = _player();
+
+      controller.onGameFinished(
+        _result(owner, matchResult: MatchResult.win, hasScore: false),
+      );
+      controller.onGameFinished(
+        _result(owner, matchResult: MatchResult.lose, hasScore: false),
+      );
+      controller.onGameFinished(
+        _result(owner, matchResult: MatchResult.lose, hasScore: false),
+      );
+
+      expect(_int(set, groupOnline, fieldWins), 1);
+      expect(_int(set, groupOnline, fieldLose), 2);
+      expect(_int(set, groupParts, fieldOnline), 3);
     });
 
     test('count online wins and losses', () {
