@@ -66,6 +66,7 @@ void main() {
       expect(prefs.themeMode, AppThemeMode.system);
       expect(prefs.currentCredentials, isNull);
       expect(prefs.lastNativeLogin, isEmpty);
+      expect(prefs.hotseatNames, isEmpty);
     });
 
     test('reports the first launch only once, across restarts', () async {
@@ -113,6 +114,13 @@ void main() {
     test('last native login', () async {
       prefs.lastNativeLogin = 'Игрок 1';
       expect((await relaunch()).lastNativeLogin, 'Игрок 1');
+    });
+
+    test('prefs hotseatNames round-trip', () async {
+      prefs.hotseatNames = ['Аня', 'Боря'];
+
+      expect((await relaunch()).hotseatNames, ['Аня', 'Боря']);
+      expect(await stored('hotseatNames'), ['Аня', 'Боря']);
     });
 
     test('dictionary check date, to the millisecond', () async {

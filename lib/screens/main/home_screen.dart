@@ -4,6 +4,7 @@ import 'package:lets_play_cities/base/game/game_mode.dart';
 import 'package:lets_play_cities/i18n/strings.g.dart';
 import 'package:lets_play_cities/screens/common/d2/d2.dart';
 import 'package:lets_play_cities/screens/game/game_screen.dart';
+import 'package:lets_play_cities/screens/game/hotseat_setup_screen.dart';
 import 'package:lets_play_cities/screens/multiplayer/local_multiplayer_screen.dart';
 import 'package:lets_play_cities/screens/online/game_master.dart';
 import 'package:lets_play_cities/screens/root/root_screen.dart';
@@ -37,11 +38,8 @@ class HomeActions {
           GameConfig(gameMode: GameMode.playerVsAndroid),
         ),
       ),
-      // Replaced by the hotseat setup screen
       playTwoPlayers: () => push(
-        () => GameScreen.createGameScreenRoute(
-          GameConfig(gameMode: GameMode.playerVsPlayer),
-        ),
+        () => MaterialPageRoute(builder: (_) => const HotseatSetupScreen()),
       ),
       playWifi: () =>
           push(() => LocalMultiplayerScreen.createNavigationRoute(context)),

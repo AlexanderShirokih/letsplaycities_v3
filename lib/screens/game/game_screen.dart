@@ -9,6 +9,7 @@ import 'package:lets_play_cities/base/game/bloc/game_bloc.dart';
 import 'package:lets_play_cities/base/game/game_config.dart';
 import 'package:lets_play_cities/base/game/game_mode.dart';
 import 'package:lets_play_cities/base/game/player/default_player_names.dart';
+import 'package:lets_play_cities/base/game/turn_gate.dart';
 import 'package:lets_play_cities/base/preferences.dart';
 import 'package:lets_play_cities/base/repos.dart';
 import 'package:lets_play_cities/base/stt/bloc/voice_recognition_bloc.dart';
@@ -24,6 +25,7 @@ import 'package:lets_play_cities/screens/game/first_time_onboarding_screen.dart'
 import '../common/common_widgets.dart';
 import '../game_results/game_results_screen.dart';
 import 'game_layout.dart';
+import 'hotseat_handoff.dart';
 
 /// Screen that shows all game-related interface
 class GameScreen extends StatelessWidget {
@@ -80,6 +82,7 @@ class GameScreen extends StatelessWidget {
                               state,
                               gameConfig,
                               keyboardOpen,
+                              context.read<GameBloc>().turnGate,
                             );
                           } else if (state is CheckingForUpdatesState) {
                             return LoadingView(
@@ -158,6 +161,15 @@ void replaceGameRoute(BuildContext context, Route<void> newRoute) {
 GameBloc _createGameBloc(GameConfig gameConfig, Translations t) {
   final getIt = GetIt.instance;
   final prefs = getIt.get<GamePreferences>();
+  final hotseatNames = prefs.hotseatNames;
+
+  // The names typed before the game, unless left empty
+  String hotseatName(int index, String fallback) {
+    final name = index < hotseatNames.length ? hotseatNames[index].trim() : '';
+
+    return name.isEmpty ? fallback : name;
+  }
+
   return GameBloc(
     gameConfig: gameConfig,
     prefs: prefs,
@@ -165,8 +177,8 @@ GameBloc _createGameBloc(GameConfig gameConfig, Translations t) {
     playerNames: DefaultPlayerNames(
       player: t.players.player,
       android: t.players.android,
-      firstPlayer: t.players.firstPlayer,
-      secondPlayer: t.players.secondPlayer,
+      firstPlayer: hotseatName(0, t.players.firstPlayer),
+      secondPlayer: hotseatName(1, t.players.secondPlayer),
     ),
     codeOverrides: getIt.get<CountryCodeOverrides>(),
     dictionaryUpdater: DictionaryUpdater(prefs, getIt.get<Dio>()),
@@ -175,10 +187,12 @@ GameBloc _createGameBloc(GameConfig gameConfig, Translations t) {
   );
 }
 
+/// The game covered by [HotseatHandoff] while [turnGate] holds a move.
 Widget _buildGameStateLayout(
   GameState gameState,
   GameConfig gameConfig,
   bool keyboardOpen,
+  TurnGate? turnGate,
 ) => MultiRepositoryProvider(
   providers: [
     RepositoryProvider<GameSessionRepository>(
@@ -203,30 +217,36 @@ Widget _buildGameStateLayout(
       };
       return bloc;
     },
-    child: Column(
-      children: [
-        Expanded(
-          child: Builder(
-            builder: (context) => GameLayout(
-              gameConfig,
-              keyboardOpen: keyboardOpen,
-              onRegisterInputClear: (clear) =>
-                  context.read<GameBloc>().onUserInputAccepted = clear,
+    child: _withHandoff(
+      turnGate,
+      Column(
+        children: [
+          Expanded(
+            child: Builder(
+              builder: (context) => GameLayout(
+                gameConfig,
+                keyboardOpen: keyboardOpen,
+                onRegisterInputClear: (clear) =>
+                    context.read<GameBloc>().onUserInputAccepted = clear,
+              ),
             ),
           ),
-        ),
-        Builder(
-          builder: (context) => context.watch<GamePreferences>().soundEnabled
-              ? SoundPlayer(
-                  assetSoundPath: 'sound/click.mp3',
-                  windowStream: context
-                      .watch<GameSessionRepository>()
-                      .createGameItemsRepository()
-                      .getGameItems(),
-                )
-              : SizedBox.shrink(),
-        ),
-      ],
+          Builder(
+            builder: (context) => context.watch<GamePreferences>().soundEnabled
+                ? SoundPlayer(
+                    assetSoundPath: 'sound/click.mp3',
+                    windowStream: context
+                        .watch<GameSessionRepository>()
+                        .createGameItemsRepository()
+                        .getGameItems(),
+                  )
+                : SizedBox.shrink(),
+          ),
+        ],
+      ),
     ),
   ),
 );
+
+Widget _withHandoff(TurnGate? turnGate, Widget game) =>
+    turnGate == null ? game : HotseatHandoff(gate: turnGate, child: game);

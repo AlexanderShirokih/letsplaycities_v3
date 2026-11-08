@@ -6,6 +6,7 @@ enum D2Glyph {
   play,
   computer,
   twoPlayers,
+  phone,
   wifi,
   online,
   hint,
@@ -99,6 +100,7 @@ final _glyphs = <D2Glyph, List<_Shape>>{
     const _Shape('M6 12h12'),
     const _Shape('M12 7.2h.01M12 16.8h.01', width: 3.4),
   ],
+  D2Glyph.phone: [_Shape(_rect(6, 2.5, 12, 19, 3.5)), const _Shape('M11 18h2')],
   D2Glyph.wifi: [
     const _Shape('M3.5 9.2a12 12 0 0 1 17 0'),
     const _Shape('M7 12.8a7 7 0 0 1 10 0'),

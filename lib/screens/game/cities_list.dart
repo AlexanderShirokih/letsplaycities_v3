@@ -76,7 +76,7 @@ class GameItemListTile extends StatelessWidget {
           const SizedBox(width: 8),
           Flexible(
             child: Text.rich(
-              _buildCitySpans(city.city.toTitleCase(), c),
+              cityNameSpans(city.city.toTitleCase(), c),
               overflow: TextOverflow.ellipsis,
             ),
           ),
@@ -89,45 +89,60 @@ class GameItemListTile extends StatelessWidget {
     final c = D2Colors.of(context);
 
     return switch (cityInfo.status) {
-      CityStatus.ok => Container(
-        width: 24,
-        height: 16,
-        clipBehavior: Clip.antiAlias,
-        foregroundDecoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(3),
-          border: Border.all(color: c.shadow.withAlpha(64)),
-        ),
-        decoration: BoxDecoration(borderRadius: BorderRadius.circular(3)),
-        child: Image.asset(
-          'assets/images/flags/flag_${cityInfo.countryCode}.png',
-          fit: BoxFit.cover,
-          errorBuilder: (_, _, _) => const SizedBox.shrink(),
-        ),
-      ),
+      CityStatus.ok => CityFlag(cityInfo.countryCode),
       CityStatus.waiting => D2Icon(D2Glyph.timer, size: 20, color: c.inkSoft),
       CityStatus.error => D2Icon(D2Glyph.warning, size: 20, color: c.error),
     };
   }
+}
 
-  /// The last suitable letter is highlighted, the letters after it are dimmed
-  static TextSpan _buildCitySpans(String city, D2Colors c) {
-    final text = D2Text.body.copyWith(fontSize: 17, color: c.ink);
-    final letter = D2Text.body.copyWith(
-      fontSize: 17,
-      fontWeight: FontWeight.w700,
-      fontVariations: const [FontVariation('wght', 700)],
-      color: c.letter,
-    );
-    final tail = text.copyWith(color: c.inkSoft);
-    final last = indexOfLastSuitableChar(city);
+/// [city] with its last suitable letter highlighted and the letters after it
+/// dimmed
+TextSpan cityNameSpans(String city, D2Colors c, {double fontSize = 17}) {
+  final text = D2Text.body.copyWith(fontSize: fontSize, color: c.ink);
+  final letter = D2Text.body.copyWith(
+    fontSize: fontSize,
+    fontWeight: FontWeight.w700,
+    fontVariations: const [FontVariation('wght', 700)],
+    color: c.letter,
+  );
+  final tail = text.copyWith(color: c.inkSoft);
+  final last = indexOfLastSuitableChar(city);
 
-    return TextSpan(
-      children: [
-        if (last > 0) TextSpan(text: city.substring(0, last), style: text),
-        TextSpan(text: city[last], style: letter),
-        if (last + 1 < city.length)
-          TextSpan(text: city.substring(last + 1), style: tail),
-      ],
+  return TextSpan(
+    children: [
+      if (last > 0) TextSpan(text: city.substring(0, last), style: text),
+      TextSpan(text: city[last], style: letter),
+      if (last + 1 < city.length)
+        TextSpan(text: city.substring(last + 1), style: tail),
+    ],
+  );
+}
+
+/// Flag of the country with [countryCode], 24x16 with rounded corners
+class CityFlag extends StatelessWidget {
+  final int countryCode;
+
+  const CityFlag(this.countryCode, {super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final c = D2Colors.of(context);
+
+    return Container(
+      width: 24,
+      height: 16,
+      clipBehavior: Clip.antiAlias,
+      foregroundDecoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(3),
+        border: Border.all(color: c.shadow.withAlpha(64)),
+      ),
+      decoration: BoxDecoration(borderRadius: BorderRadius.circular(3)),
+      child: Image.asset(
+        'assets/images/flags/flag_$countryCode.png',
+        fit: BoxFit.cover,
+        errorBuilder: (_, _, _) => const SizedBox.shrink(),
+      ),
     );
   }
 }

@@ -14,6 +14,7 @@ import 'package:lets_play_cities/base/dictionary/impl/exclusions_factory.dart';
 import 'package:lets_play_cities/base/game/game_result.dart';
 import 'package:lets_play_cities/base/game/handlers.dart';
 import 'package:lets_play_cities/base/game/player/default_player_names.dart';
+import 'package:lets_play_cities/base/game/turn_gate.dart';
 import 'package:lets_play_cities/base/preferences.dart';
 import 'package:lets_play_cities/base/repositories/game_session_repo.dart';
 import 'package:lets_play_cities/base/scoring.dart';
@@ -52,6 +53,12 @@ class GameBloc extends Bloc<GameStateEvent, GameLifecycleState>
 
   OnUserInputAccepted? onUserInputAccepted;
   OnUserMoveBegins? onUserMoveBegins;
+
+  TurnGate? _turnGate;
+
+  /// The gate the running game waits at before each move, `null` before the
+  /// game starts and in games that do not wait
+  TurnGate? get turnGate => _turnGate;
 
   @override
   Future<void> close() async {
@@ -167,20 +174,20 @@ class GameBloc extends Bloc<GameStateEvent, GameLifecycleState>
     if (state is! GotDataState) throw ('Invalid state: $state!');
     final dataState = state as GotDataState;
 
-    final repository = GameSessionRepository(
-      GameSessionFactory.createForGameMode(
-        config: _gameConfig,
-        preferences: _prefs,
-        codeOverrides: _codeOverrides,
-        exclusions: dataState.exclusions,
-        dictionary: dataState.dictionary,
-        scoreController: dataState.scoreController,
-        achievements: _achievements,
-        playerNames: _playerNames,
-        onUserInputAccepted: () => onUserInputAccepted?.call(),
-        onUserMoveBegins: () => onUserMoveBegins?.call(),
-      ),
+    final session = GameSessionFactory.createForGameMode(
+      config: _gameConfig,
+      preferences: _prefs,
+      codeOverrides: _codeOverrides,
+      exclusions: dataState.exclusions,
+      dictionary: dataState.dictionary,
+      scoreController: dataState.scoreController,
+      achievements: _achievements,
+      playerNames: _playerNames,
+      onUserInputAccepted: () => onUserInputAccepted?.call(),
+      onUserMoveBegins: () => onUserMoveBegins?.call(),
     );
+    final repository = GameSessionRepository(session);
+    _turnGate = session.turnGate;
 
     yield GameState(
       repository,

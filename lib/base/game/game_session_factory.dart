@@ -1,7 +1,9 @@
 import 'package:lets_play_cities/base/achievements/achievements_service.dart';
 import 'package:lets_play_cities/base/dictionary.dart';
 import 'package:lets_play_cities/base/dictionary/countrycode_overrides.dart';
+import 'package:lets_play_cities/base/game/game_mode.dart';
 import 'package:lets_play_cities/base/game/player/default_player_names.dart';
+import 'package:lets_play_cities/base/game/turn_gate.dart';
 import 'package:lets_play_cities/base/game_session.dart';
 import 'package:lets_play_cities/base/preferences.dart';
 import 'package:lets_play_cities/base/scoring.dart';
@@ -16,6 +18,8 @@ class GameSessionFactory {
   /// Creates [GameSession] depending on given parameters.
   /// Note that [GameConfig] will override some parameters.
   /// [playerNames] name the users of a game on one device.
+  /// A game of two players on one device waits at a [TurnGate] before each
+  /// move.
   static GameSession createForGameMode({
     required GamePreferences preferences,
     required GameConfig config,
@@ -63,6 +67,7 @@ class GameSessionFactory {
       achievements: achievements,
       wordsDifficulty: () => preferences.wordsDifficulty,
       externalEvents: config.externalEventSource,
+      turnGate: mode == GameMode.playerVsPlayer ? TurnGate() : null,
     );
   }
 }

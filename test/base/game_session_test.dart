@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:fake_async/fake_async.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:lets_play_cities/base/achievements/achievements.dart';
 import 'package:lets_play_cities/base/achievements/achievements_service.dart';
@@ -8,6 +9,7 @@ import 'package:lets_play_cities/base/dictionary.dart';
 import 'package:lets_play_cities/base/game/combo.dart';
 import 'package:lets_play_cities/base/game/game_mode.dart';
 import 'package:lets_play_cities/base/game/management.dart';
+import 'package:lets_play_cities/base/game/turn_gate.dart';
 import 'package:lets_play_cities/base/game_session.dart';
 import 'package:lets_play_cities/base/scoring.dart';
 import 'package:lets_play_cities/base/users.dart';
@@ -59,7 +61,105 @@ class _BrokenUser extends User {
   }
 }
 
+Player _player(String name) => Player(
+  LocalAccountInfo(name: name, picture: const PlaceholderPictureSource()),
+);
+
+/// A game of two players on one device that waits for [gate] before a move.
+GameSession _gatedSession(
+  TurnGate gate, {
+  required AbstractEventChannel channel,
+  int timeLimit = 0,
+}) => GameSession(
+  mode: GameMode.playerVsPlayer,
+  usersList: UsersList([_player('first'), _player('second')]),
+  eventChannel: channel,
+  scoringType: ScoringType.byScore,
+  timeLimit: timeLimit,
+  scoreController: ScoreController(
+    ScoringSet.initial(),
+    ScoringType.byScore,
+    GameMode.playerVsPlayer,
+    (_) {},
+  ),
+  achievements: _RecordingAchievements(),
+  wordsDifficulty: () => Difficulty.easy,
+  turnGate: gate,
+);
+
 void main() {
+  test('timer does not tick while gate is closed', () {
+    fakeAsync((async) {
+      final gate = TurnGate();
+      final session = _gatedSession(
+        gate,
+        channel: _RecordingChannel(),
+        timeLimit: 5,
+      );
+      final events = <GameEvent>[];
+      session.inputEvents.listen(events.add);
+      session.runMoves().ignore();
+
+      async.elapse(const Duration(seconds: 3));
+
+      expect(gate.waiting.value, isNotNull);
+      expect(events.whereType<TimeEvent>(), isEmpty);
+      expect(events.whereType<OnUserSwitchedEvent>(), isEmpty);
+
+      gate.release();
+      async.elapse(const Duration(seconds: 2));
+
+      expect(events.whereType<TimeEvent>(), isNotEmpty);
+
+      session.cancel();
+      async.flushTimers();
+    });
+  });
+
+  test('double release starts one move in the game', () {
+    fakeAsync((async) {
+      final gate = TurnGate();
+      final channel = _RecordingChannel();
+      final session = _gatedSession(gate, channel: channel);
+      session.runMoves().ignore();
+      async.elapse(const Duration(milliseconds: 200));
+
+      gate
+        ..release()
+        ..release();
+      async.flushMicrotasks();
+
+      expect(channel.sent.whereType<OnUserSwitchedEvent>().length, 1);
+      expect(gate.waiting.value, isNull);
+
+      session.cancel();
+      async.flushTimers();
+    });
+  });
+
+  test('cancel while the gate is closed ends the game without a move', () {
+    fakeAsync((async) {
+      final gate = TurnGate();
+      final channel = _RecordingChannel();
+      final session = _gatedSession(gate, channel: channel);
+      Object? error;
+      var finished = false;
+      session.runMoves().then<void>(
+        (_) => finished = true,
+        onError: (Object e) => error = e,
+      );
+      async.elapse(const Duration(milliseconds: 200));
+      expect(gate.waiting.value, isNotNull);
+
+      session.cancel();
+      async.flushMicrotasks();
+
+      expect(error, isNull);
+      expect(finished, isTrue);
+      expect(channel.sent.whereType<OnUserSwitchedEvent>(), isEmpty);
+    });
+  });
+
   testWidgets('ends the game loop with the error of a move', (tester) async {
     final channel = _RecordingChannel();
     final user = _BrokenUser();

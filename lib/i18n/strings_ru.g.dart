@@ -72,6 +72,7 @@ class Translations with BaseTranslations<AppLocale, Translations> {
 	late final Translations$players$ru players = Translations$players$ru._(_root);
 	late final Translations$home$ru home = Translations$home$ru._(_root);
 	late final Translations$game$ru game = Translations$game$ru._(_root);
+	late final Translations$hotseat$ru hotseat = Translations$hotseat$ru._(_root);
 	late final Translations$settings$ru settings = Translations$settings$ru._(_root);
 	late final Translations$stats$ru stats = Translations$stats$ru._(_root);
 	late final Translations$citiesList$ru citiesList = Translations$citiesList$ru._(_root);
@@ -270,6 +271,39 @@ class Translations$game$ru {
 	String get send => 'Отправить';
 
 	late final Translations$game$combos$ru combos = Translations$game$combos$ru._(_root);
+}
+
+// Path: hotseat
+class Translations$hotseat$ru {
+	Translations$hotseat$ru._(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// ru: 'Передайте телефон'
+	String get passPhone => 'Передайте телефон';
+
+	/// ru: 'Ход: {name}'
+	String turnOf({required Object name}) => 'Ход: ${name}';
+
+	/// ru: 'Игрок 1'
+	String get player1 => 'Игрок 1';
+
+	/// ru: 'Игрок 2'
+	String get player2 => 'Игрок 2';
+
+	/// ru: 'Я готов'
+	String get ready => 'Я готов';
+
+	/// ru: 'Имя первого игрока'
+	String get nameLabel1 => 'Имя первого игрока';
+
+	/// ru: 'Имя второго игрока'
+	String get nameLabel2 => 'Имя второго игрока';
+
+	/// ru: 'Таймер на паузе'
+	String get timerPaused => 'Таймер на паузе';
 }
 
 // Path: settings

@@ -79,6 +79,16 @@
       "different_countries": "Разные страны"
     }
   },
+  "hotseat": {
+    "pass_phone": "Передайте телефон",
+    "turn_of(param=name)": "Ход: {name}",
+    "player1": "Игрок 1",
+    "player2": "Игрок 2",
+    "ready": "Я готов",
+    "name_label1": "Имя первого игрока",
+    "name_label2": "Имя второго игрока",
+    "timer_paused": "Таймер на паузе"
+  },
   "settings": {
     "settings": "Настройки",
     "settings_item_titles": {

@@ -73,6 +73,12 @@ abstract class GamePreferences {
   String get lastNativeLogin;
 
   set lastNativeLogin(String newLogin);
+
+  /// Names of the first and the second player in the last game of two
+  /// players on one device. Empty until the first such game.
+  List<String> get hotseatNames;
+
+  set hotseatNames(List<String> names);
 }
 
 class SharedPreferencesGamePrefs extends GamePreferences {
@@ -181,6 +187,13 @@ class SharedPreferencesGamePrefs extends GamePreferences {
   set lastNativeLogin(String newLogin) {
     _prefs.setString('lastNativeLogin', newLogin);
   }
+
+  @override
+  List<String> get hotseatNames => _prefs.getStringList('hotseatNames') ?? [];
+
+  @override
+  set hotseatNames(List<String> names) =>
+      _prefs.setStringList('hotseatNames', names);
 
   @override
   AppThemeMode get themeMode => AppThemeMode.values.firstWhere(

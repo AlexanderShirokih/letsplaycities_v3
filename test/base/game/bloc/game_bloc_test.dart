@@ -156,6 +156,15 @@ void main() {
     await tester.pump(const Duration(milliseconds: 200));
   }
 
+  /// Lets the first player of a game on one device make the move the game
+  /// waits for.
+  Future<void> openGate(WidgetTester tester) async {
+    // Fake time covers the start delay of the game loop.
+    await tester.pump(const Duration(milliseconds: 200));
+    await _pumpUntil(tester, () => bloc.turnGate!.waiting.value != null);
+    bloc.turnGate!.release();
+  }
+
   setUp(() {
     supportDir = Directory.systemTemp.createTempSync('game_bloc');
     fakeApplicationSupportDirectory(supportDir);
@@ -192,6 +201,31 @@ void main() {
       const DataLoadingState(),
     ]);
     await closeBloc(tester);
+  });
+
+  testWidgets('only a game on one device waits at the turn gate', (
+    tester,
+  ) async {
+    startBloc(const GameConfig(gameMode: GameMode.playerVsAndroid));
+    await _pumpUntil(tester, () => bloc.state is GameState);
+
+    expect(bloc.turnGate, isNull);
+    await closeBloc(tester);
+  });
+
+  testWidgets('leaving game while gate is closed emits no error', (
+    tester,
+  ) async {
+    startBloc(const GameConfig(gameMode: GameMode.playerVsPlayer));
+    await _pumpUntil(tester, () => bloc.state is GameState);
+    // Fake time covers the start delay of the game loop.
+    await tester.pump(const Duration(milliseconds: 200));
+    await _pumpUntil(tester, () => bloc.turnGate!.waiting.value != null);
+
+    await closeBloc(tester);
+
+    expect(bloc.turnGate!.waiting.value, isNull);
+    expect(states.whereType<ErrorState>(), isEmpty);
   });
 
   testWidgets('a network game does not check for dictionary updates', (
@@ -239,8 +273,7 @@ void main() {
       ),
     );
     await _pumpUntil(tester, () => bloc.state is GameState);
-    // Fake time covers the start delay of the game loop.
-    await tester.pump(const Duration(milliseconds: 200));
+    await openGate(tester);
 
     prefs.wordsDifficulty = Difficulty.hard;
     bloc.add(const GameEventSurrender());
@@ -265,8 +298,7 @@ void main() {
         ),
       );
       await _pumpUntil(tester, () => bloc.state is GameState);
-      // Fake time covers the start delay of the game loop.
-      await tester.pump(const Duration(milliseconds: 200));
+      await openGate(tester);
       await _pumpUntil(tester, () => bloc.state is ErrorState);
 
       final error = (bloc.state as ErrorState).exception;

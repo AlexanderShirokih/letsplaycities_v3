@@ -8,6 +8,7 @@ import 'package:lets_play_cities/base/game/game_mode.dart';
 import 'package:lets_play_cities/base/game/game_result.dart';
 import 'package:lets_play_cities/base/game/management.dart';
 import 'package:lets_play_cities/base/game/player/surrender_exception.dart';
+import 'package:lets_play_cities/base/game/turn_gate.dart';
 import 'package:lets_play_cities/base/scoring.dart';
 import 'package:lets_play_cities/base/users.dart';
 import 'package:lets_play_cities/utils/stream_utils.dart';
@@ -31,6 +32,10 @@ class GameSession {
 
   /// Time limit in seconds per users move
   final int timeLimit;
+
+  /// Holds every move until the next player is ready, `null` when the game
+  /// does not wait
+  final TurnGate? turnGate;
 
   final AchievementsService _achievements;
 
@@ -65,6 +70,7 @@ class GameSession {
     required this._achievements,
     required this._wordsDifficulty,
     Stream<GameEvent> Function(GameSession)? externalEvents,
+    this.turnGate,
   }) {
     if (externalEvents != null) {
       unawaited(
@@ -111,6 +117,8 @@ class GameSession {
   /// if it is a current user now.
   Future surrender() async {
     _gameRunning = false;
+    turnGate?.cancel();
+
     await _sendServiceEvent(
       OnMoveFinished(
         usersList.currentPlayer == null
@@ -165,6 +173,18 @@ class GameSession {
     await Future.delayed(Duration(milliseconds: 150));
 
     while (_gameRunning) {
+      final gate = turnGate;
+      if (gate != null) {
+        await gate.waitFor(usersList.current);
+
+        // Cancelled while waiting: the waiting player leaves the game, as
+        // when the input of a move is closed.
+        if (!_gameRunning) {
+          yield OnMoveFinished(MoveFinishType.surrender, usersList.current);
+          return;
+        }
+      }
+
       yield* mergeStreamsWhile(
         [_createTimer(), _makeMoveForCurrentUser(), _serviceEvents.stream],
         (element) {
@@ -231,6 +251,7 @@ class GameSession {
 
   Future cancel() async {
     _gameRunning = false;
+    turnGate?.cancel();
 
     await usersList.close();
     await _serviceEvents.close();
