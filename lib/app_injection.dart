@@ -16,8 +16,7 @@ import 'package:lets_play_cities/base/platform/app_version.dart';
 import 'package:lets_play_cities/base/preferences.dart';
 import 'package:lets_play_cities/base/stt/voice_recognition_service.dart';
 import 'package:lets_play_cities/base/stt/voice_recognition_service_impl.dart';
-import 'package:lets_play_cities/base/themes/theme_manager.dart';
-import 'package:lets_play_cities/base/themes/theme_manager_impl.dart';
+import 'package:lets_play_cities/base/themes/app_theme_mode.dart';
 import 'package:lets_play_cities/i18n/strings.g.dart';
 import 'package:lets_play_cities/remote/account.dart';
 import 'package:lets_play_cities/remote/account_manager.dart';
@@ -45,6 +44,19 @@ import 'base/dictionary/impl/country_list_loader_factory.dart';
 import 'base/platform/device_name.dart';
 import 'base/repositories/cities/city_repository.dart';
 import 'base/repositories/cities/country_repository.dart';
+
+/// Instance name of the theme mode notifier in GetIt
+const themeModeNotifierName = 'themeModeNotifier';
+
+/// Saves the theme [mode] to the preferences and notifies the app
+void setThemeMode(AppThemeMode mode) {
+  final getIt = GetIt.instance;
+  getIt.get<GamePreferences>().themeMode = mode;
+  getIt
+          .get<ValueNotifier<AppThemeMode>>(instanceName: themeModeNotifierName)
+          .value =
+      mode;
+}
 
 /// Registers root app dependencies. Should be called before
 /// all app initializations
@@ -89,9 +101,10 @@ Future<void> injectRootDependencies({required String serverHost}) async {
         SharedPreferencesGamePrefs(await SharedPreferences.getInstance()),
   );
 
-  // Theme manager
-  getIt.registerSingletonWithDependencies<ThemeManager>(
-    () => ThemeManagerImpl(getIt.get<GamePreferences>()),
+  // Theme mode, initialized from the preferences. Use [setThemeMode] to change.
+  getIt.registerSingletonWithDependencies<ValueNotifier<AppThemeMode>>(
+    () => ValueNotifier(getIt.get<GamePreferences>().themeMode),
+    instanceName: themeModeNotifierName,
     dependsOn: [GamePreferences],
   );
 

@@ -70,7 +70,6 @@ class GameScreen extends StatelessWidget {
         },
         child: Stack(
           children: [
-            createBackground(context),
             SizedBox.expand(
               child: BlocProvider(
                 create: (_) => _createGameBloc(gameConfig, t),

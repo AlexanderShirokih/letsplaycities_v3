@@ -12,7 +12,6 @@ import 'package:lets_play_cities/i18n/enum_labels.dart';
 import 'package:lets_play_cities/i18n/strings.g.dart';
 import 'package:lets_play_cities/remote/account.dart';
 import 'package:lets_play_cities/remote/remote_player.dart';
-import 'package:lets_play_cities/screens/common/common_widgets.dart';
 import 'package:lets_play_cities/screens/game/game_screen.dart';
 import 'package:lets_play_cities/screens/game/user_avatar.dart';
 import 'package:lets_play_cities/screens/online/profile.dart';
@@ -51,7 +50,6 @@ class _GameResultsScreenState extends State<GameResultsScreen> {
     return Scaffold(
       body: Stack(
         children: [
-          createBackground(context),
           Positioned.fill(
             child: BackdropFilter(
               filter: ImageFilter.blur(sigmaX: 5.0, sigmaY: 5.0),

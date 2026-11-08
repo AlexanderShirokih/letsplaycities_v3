@@ -20,7 +20,6 @@ class MainScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Stack(
     children: [
-      createBackground(context),
       Column(
         children: [_createAppLogo(), _createNavigationButtonsGroup(context)],
       ),

@@ -3,7 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lets_play_cities/base/data.dart';
 import 'package:lets_play_cities/base/game/game_item.dart';
 import 'package:lets_play_cities/base/repositories/game_session_repo.dart';
-import 'package:lets_play_cities/base/themes/theme.dart' as themes;
+import 'package:lets_play_cities/screens/common/d2/d2_colors.dart';
 import 'package:lets_play_cities/screens/common/utils.dart';
 import 'package:lets_play_cities/utils/string_utils.dart';
 
@@ -74,35 +74,40 @@ class GameItemListTile extends StatelessWidget {
   }
 
   BoxDecoration _buildDecoration(BuildContext context) {
-    final theme = context.watch<themes.Theme>();
+    final colors = D2Colors.of(context);
 
     return BoxDecoration(
       color: (_gameItem is CityInfo)
-          ? theme.fillColor
+          ? colors.surface
           : (_gameItem.owner.position == Position.left
-                ? theme.messageOther
-                : theme.messageMe),
+                ? colors.surface
+                : colors.violet),
       borderRadius: BorderRadius.circular(8.0),
       border: Border.all(
         width: 1.0,
-        color: theme.borderColor,
+        color: colors.edge,
         style: _gameItem is CityInfo ? BorderStyle.solid : BorderStyle.none,
       ),
     );
   }
 
   Widget _buildText(BuildContext context) {
-    final theme = context.watch<themes.Theme>();
+    final colors = D2Colors.of(context);
     if (_gameItem is CityInfo) {
       final textStyle = Theme.of(context).textTheme.bodyLarge!
           .copyWith(fontSize: 18, fontWeight: FontWeight.w600);
-      final spanTextStyle = textStyle.copyWith(color: theme.wordSpanColor);
+      final spanTextStyle = textStyle.copyWith(color: colors.letter);
       return RichText(
         text: _buildCitySpans(textStyle, spanTextStyle),
         overflow: TextOverflow.clip,
       );
     }
-    return Text((_gameItem as MessageInfo).message);
+    final isMine = _gameItem.owner.position != Position.left;
+
+    return Text(
+      (_gameItem as MessageInfo).message,
+      style: TextStyle(color: isMine ? Colors.white : colors.ink),
+    );
   }
 
   TextSpan _buildCitySpans(TextStyle textStyle, TextStyle spanTextStyle) {

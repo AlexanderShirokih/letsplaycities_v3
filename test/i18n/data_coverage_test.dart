@@ -3,15 +3,8 @@
 // that every such id has a text.
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:lets_play_cities/base/preferences.dart';
 import 'package:lets_play_cities/base/scoring.dart';
-import 'package:lets_play_cities/base/themes/theme_manager_impl.dart';
 import 'package:lets_play_cities/i18n/strings.g.dart';
-
-class _FakePreferences extends Fake implements GamePreferences {
-  @override
-  String get theme => '';
-}
 
 void main() {
   final t = AppLocale.ru.buildSync();
@@ -64,14 +57,5 @@ void main() {
       );
       expect(t.stats.fields.keys, containsAll(fields));
     });
-  });
-
-  test('every theme has a name', () {
-    final themes = ThemeManagerImpl(_FakePreferences()).availableThemes;
-
-    expect(
-      t.themes.themeNames.keys,
-      containsAll(themes.map((theme) => theme.name)),
-    );
   });
 }

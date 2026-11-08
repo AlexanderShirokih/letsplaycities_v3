@@ -3,6 +3,7 @@ import 'package:lets_play_cities/base/data.dart';
 import 'package:lets_play_cities/base/dictionary.dart';
 import 'package:lets_play_cities/base/preferences.dart';
 import 'package:lets_play_cities/base/scoring.dart';
+import 'package:lets_play_cities/base/themes/app_theme_mode.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 // Stored codes of the enums. Installed apps already hold these numbers, so
@@ -62,7 +63,7 @@ void main() {
       expect(prefs.scoringData, isEmpty);
       expect(prefs.lastDictionaryCheckDate.millisecondsSinceEpoch, 0);
       expect(prefs.dictionaryUpdatePeriod, DictionaryUpdatePeriod.threeHours);
-      expect(prefs.theme, isNull);
+      expect(prefs.themeMode, AppThemeMode.system);
       expect(prefs.currentCredentials, isNull);
       expect(prefs.lastNativeLogin, isEmpty);
     });
@@ -102,13 +103,11 @@ void main() {
       expect(await stored('timeLimit'), 180);
     });
 
-    test('theme, and clearing it brings back the default', () async {
-      prefs.theme = 'autumn';
-      expect((await relaunch()).theme, 'autumn');
+    test('themeMode defaults to system and round-trips', () async {
+      expect(prefs.themeMode, AppThemeMode.system);
 
-      prefs.theme = null;
-      expect((await relaunch()).theme, isNull);
-      expect(store.containsKey('theme'), isFalse);
+      prefs.themeMode = AppThemeMode.dark;
+      expect((await relaunch()).themeMode, AppThemeMode.dark);
     });
 
     test('last native login', () async {

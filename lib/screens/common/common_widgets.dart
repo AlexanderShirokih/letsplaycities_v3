@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:lets_play_cities/base/themes/theme.dart' as theme;
 import 'package:lets_play_cities/i18n/strings.g.dart';
 
 /// Creates material button with [_text] on center and leading [_icon], if present.
@@ -53,14 +51,6 @@ class MaterialIconButton extends StatelessWidget {
       icon: Icon(iconData),
     ),
   );
-}
-
-/// Creates expanded background image with from theme data
-Widget createBackground(BuildContext context) {
-  final background = context.watch<theme.Theme>().backgroundImage;
-  return background == null
-      ? Positioned.fill(child: Container())
-      : Positioned.fill(child: Image.asset(background, fit: BoxFit.cover));
 }
 
 /// Shows card with progress bar and message

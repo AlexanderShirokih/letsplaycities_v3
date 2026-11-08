@@ -10,34 +10,22 @@ import '../../i18n/translations_harness.dart';
 
 void main() {
   final t = AppLocale.ru.buildSync();
-  final themeNames = t.themes.themeNames;
 
   late GamePreferences prefs;
 
   setUp(() async {
-    SharedPreferences.setMockInitialValues({'theme': 'default'});
+    SharedPreferences.setMockInitialValues({});
     prefs = SharedPreferencesGamePrefs(await SharedPreferences.getInstance());
   });
 
-  testWidgets('theme row shows the theme chosen after the screen was built', (
-    tester,
-  ) async {
+  testWidgets('shows the sound row and no theme row', (tester) async {
     await tester.pumpWidget(
       MultiRepositoryProvider(
         providers: [RepositoryProvider<GamePreferences>.value(value: prefs)],
         child: withTranslations(const MaterialApp(home: SettingsScreen())),
       ),
     );
-    expect(find.text(themeNames['default']!), findsOneWidget);
 
-    // What ThemeManagerScreen does while Settings stays on the stack.
-    prefs.theme = 'autumn';
-
-    // Any row tap rebuilds the list once its action completes.
-    await tester.tap(find.text(t.settings.settingsItemTitles.sound));
-    await tester.pumpAndSettle();
-
-    expect(find.text(themeNames['autumn']!), findsOneWidget);
-    expect(find.text(themeNames['default']!), findsNothing);
+    expect(find.text(t.settings.settingsItemTitles.sound), findsOneWidget);
   });
 }

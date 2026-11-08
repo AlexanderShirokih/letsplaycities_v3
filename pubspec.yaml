@@ -60,8 +60,15 @@ flutter:
 
   assets:
     - assets/images/
-    - assets/images/backgrounds/
     - assets/images/flags/
     - assets/sound/
     - assets/data/
     - assets/cert/
+
+  fonts:
+    - family: Unbounded
+      fonts:
+        - asset: assets/fonts/Unbounded[wght].ttf
+    - family: Rubik
+      fonts:
+        - asset: assets/fonts/Rubik[wght].ttf

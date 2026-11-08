@@ -11,7 +11,6 @@ import 'package:lets_play_cities/base/game/management.dart';
 import 'package:lets_play_cities/base/game_session.dart';
 import 'package:lets_play_cities/base/repos.dart';
 import 'package:lets_play_cities/base/scoring.dart';
-import 'package:lets_play_cities/base/themes/theme.dart' as themes;
 import 'package:lets_play_cities/base/users.dart';
 import 'package:lets_play_cities/screens/game/cities_list.dart';
 
@@ -44,16 +43,6 @@ class _FakeSession extends GameSession {
   @override
   Stream<GameEvent> get inputEvents => _events;
 }
-
-const _theme = themes.Theme(
-  name: 'test',
-  primaryColor: Colors.blue,
-  accentColor: Colors.red,
-  fillColor: Colors.white,
-  borderColor: Colors.black,
-  messageMe: Colors.green,
-  messageOther: Colors.grey,
-);
 
 void main() {
   late StreamController<GameEvent> events;
@@ -88,17 +77,14 @@ void main() {
   // Builds a new CitiesList instance on every layout build, as the game
   // screen does.
   Widget app() => MaterialApp(
-    home: RepositoryProvider<themes.Theme>.value(
-      value: _theme,
-      child: RepositoryProvider<GameSessionRepository>.value(
-        value: repository,
-        child: Scaffold(
-          body: StatefulBuilder(
-            builder: (context, setState) {
-              setLayoutState = setState;
-              return Column(children: [CitiesList(key: ValueKey(listKey))]);
-            },
-          ),
+    home: RepositoryProvider<GameSessionRepository>.value(
+      value: repository,
+      child: Scaffold(
+        body: StatefulBuilder(
+          builder: (context, setState) {
+            setLayoutState = setState;
+            return Column(children: [CitiesList(key: ValueKey(listKey))]);
+          },
         ),
       ),
     ),

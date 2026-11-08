@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:lets_play_cities/base/data.dart';
 import 'package:lets_play_cities/base/dictionary.dart';
 import 'package:lets_play_cities/base/scoring.dart';
+import 'package:lets_play_cities/base/themes/app_theme_mode.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// Represents application preferences
@@ -10,11 +11,10 @@ abstract class GamePreferences {
   /// Words difficulty level.
   Difficulty get wordsDifficulty;
 
-  /// Current theme name
-  String? get theme;
+  /// Theme mode chosen by the user. [AppThemeMode.system] by default.
+  AppThemeMode get themeMode;
 
-  // Sets the current theme
-  set theme(String? themeName);
+  set themeMode(AppThemeMode mode);
 
   set wordsDifficulty(Difficulty d);
 
@@ -183,14 +183,11 @@ class SharedPreferencesGamePrefs extends GamePreferences {
   }
 
   @override
-  String? get theme => _prefs.getString('theme');
+  AppThemeMode get themeMode => AppThemeMode.values.firstWhere(
+    (mode) => mode.name == _prefs.getString('themeMode'),
+    orElse: () => AppThemeMode.system,
+  );
 
   @override
-  set theme(String? themeName) {
-    if (themeName == null) {
-      _prefs.remove('theme');
-    } else {
-      _prefs.setString('theme', themeName);
-    }
-  }
+  set themeMode(AppThemeMode mode) => _prefs.setString('themeMode', mode.name);
 }

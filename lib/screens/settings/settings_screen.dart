@@ -7,7 +7,6 @@ import 'package:lets_play_cities/i18n/enum_labels.dart';
 import 'package:lets_play_cities/i18n/strings.g.dart';
 import 'package:lets_play_cities/screens/common/dialogs.dart';
 import 'package:lets_play_cities/screens/settings/stats/stats_screen.dart';
-import 'package:lets_play_cities/screens/settings/theme_manager_screen.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
@@ -37,12 +36,6 @@ class _SettingsItemsList extends StatefulWidget {
     final titles = _t.settings.settingsItemTitles;
     final onOff = [_t.settings.onOff.off, _t.settings.onOff.on];
     return [
-      _NavigationItem(
-        titles.theme,
-        () =>
-            _t.themes.themeNames[_prefs.theme] ?? _t.settings.themeNotSelected,
-        () => ThemeManagerScreen(),
-      ),
       _SingleChoiceItem(
         titles.difficulty,
         [for (final value in Difficulty.values) value.label(_t)],

@@ -83,7 +83,6 @@ class Translations with BaseTranslations<AppLocale, Translations> {
 	late final Translations$multiplayer$ru multiplayer = Translations$multiplayer$ru._(_root);
 	late final Translations$online$ru online = Translations$online$ru._(_root);
 	late final Translations$misc$ru misc = Translations$misc$ru._(_root);
-	late final Translations$themes$ru themes = Translations$themes$ru._(_root);
 }
 
 // Path: errors
@@ -220,10 +219,6 @@ class Translations$settings$ru {
 	String get settings => 'Настройки';
 
 	late final Translations$settings$settingsItemTitles$ru settingsItemTitles = Translations$settings$settingsItemTitles$ru._(_root);
-
-	/// ru: 'Не выбрано'
-	String get themeNotSelected => 'Не выбрано';
-
 	late final Translations$settings$difficulty$ru difficulty = Translations$settings$difficulty$ru._(_root);
 	late final Translations$settings$scoringType$ru scoringType = Translations$settings$scoringType$ru._(_root);
 	late final Translations$settings$onOff$ru onOff = Translations$settings$onOff$ru._(_root);
@@ -774,35 +769,6 @@ class Translations$misc$ru {
 	String get gallery => 'Галерея';
 }
 
-// Path: themes
-class Translations$themes$ru {
-	Translations$themes$ru._(this._root);
-
-	final Translations _root; // ignore: unused_field
-
-	// Translations
-
-	/// ru: 'Темы'
-	String get title => 'Темы';
-
-	Map<String, String> get themeNames => {
-		'default': 'Стандартная',
-		'dark': 'Темная',
-		'green': 'Зеленая',
-		'blue': 'Синяя',
-		'autumn': 'Осень',
-		'french': 'Париж',
-		'rus': 'Москва',
-		'ukr': 'Киев',
-		'usa': 'Нью-Йорк',
-	};
-	List<String> get sampleCities => [
-		'Берлин',
-		'Нью-Йорк',
-		'Казань',
-	];
-}
-
 // Path: game.combos
 class Translations$game$combos$ru {
 	Translations$game$combos$ru._(this._root);
@@ -834,9 +800,6 @@ class Translations$settings$settingsItemTitles$ru {
 	final Translations _root; // ignore: unused_field
 
 	// Translations
-
-	/// ru: 'Тема'
-	String get theme => 'Тема';
 
 	/// ru: 'Сложность'
 	String get difficulty => 'Сложность';

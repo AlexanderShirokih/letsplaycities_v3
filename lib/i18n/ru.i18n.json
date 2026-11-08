@@ -54,7 +54,6 @@
   "settings": {
     "settings": "Настройки",
     "settings_item_titles": {
-      "theme": "Тема",
       "difficulty": "Сложность",
       "scoring": "Подсчет очков",
       "move_timer": "Таймер хода",
@@ -64,7 +63,6 @@
       "statistics": "Статистика",
       "dict_updates": "Проверка обновлений словаря"
     },
-    "theme_not_selected": "Не выбрано",
     "difficulty": {
       "easy": "Легко",
       "medium": "Нормально",
@@ -298,24 +296,5 @@
   "misc": {
     "camera": "Камера",
     "gallery": "Галерея"
-  },
-  "themes": {
-    "title": "Темы",
-    "theme_names(map)": {
-      "default": "Стандартная",
-      "dark": "Темная",
-      "green": "Зеленая",
-      "blue": "Синяя",
-      "autumn": "Осень",
-      "french": "Париж",
-      "rus": "Москва",
-      "ukr": "Киев",
-      "usa": "Нью-Йорк"
-    },
-    "sample_cities": [
-      "Берлин",
-      "Нью-Йорк",
-      "Казань"
-    ]
   }
 }

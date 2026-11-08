@@ -6,14 +6,15 @@
 
 import 'dart:async' as _i3;
 
-import 'package:lets_play_cities/base/data.dart' as _i9;
+import 'package:lets_play_cities/base/data.dart' as _i10;
 import 'package:lets_play_cities/base/dictionary.dart' as _i6;
 import 'package:lets_play_cities/base/preferences.dart' as _i5;
-import 'package:lets_play_cities/base/scoring.dart' as _i7;
+import 'package:lets_play_cities/base/scoring.dart' as _i8;
+import 'package:lets_play_cities/base/themes/app_theme_mode.dart' as _i7;
 import 'package:lets_play_cities/remote/server/local_game_server.dart' as _i2;
 import 'package:lets_play_cities/remote/server/remote_connection.dart' as _i4;
 import 'package:mockito/mockito.dart' as _i1;
-import 'package:mockito/src/dummies.dart' as _i8;
+import 'package:mockito/src/dummies.dart' as _i9;
 
 // ignore_for_file: type=lint
 // ignore_for_file: avoid_redundant_argument_values
@@ -81,6 +82,13 @@ class MockGamePreferences extends _i1.Mock implements _i5.GamePreferences {
   ) as _i6.Difficulty);
 
   @override
+  _i7.AppThemeMode get themeMode => (super.noSuchMethod(
+    Invocation.getter(#themeMode),
+    returnValue: _i7.AppThemeMode.light,
+    returnValueForMissingStub: _i7.AppThemeMode.light,
+  ) as _i7.AppThemeMode);
+
+  @override
   bool get correctionEnabled => (super.noSuchMethod(
     Invocation.getter(#correctionEnabled),
     returnValue: false,
@@ -109,17 +117,17 @@ class MockGamePreferences extends _i1.Mock implements _i5.GamePreferences {
   ) as int);
 
   @override
-  _i7.ScoringType get scoringType => (super.noSuchMethod(
+  _i8.ScoringType get scoringType => (super.noSuchMethod(
     Invocation.getter(#scoringType),
-    returnValue: _i7.ScoringType.byScore,
-    returnValueForMissingStub: _i7.ScoringType.byScore,
-  ) as _i7.ScoringType);
+    returnValue: _i8.ScoringType.byScore,
+    returnValueForMissingStub: _i8.ScoringType.byScore,
+  ) as _i8.ScoringType);
 
   @override
   String get scoringData => (super.noSuchMethod(
     Invocation.getter(#scoringData),
-    returnValue: _i8.dummyValue<String>(this, Invocation.getter(#scoringData)),
-    returnValueForMissingStub: _i8.dummyValue<String>(
+    returnValue: _i9.dummyValue<String>(this, Invocation.getter(#scoringData)),
+    returnValueForMissingStub: _i9.dummyValue<String>(
       this,
       Invocation.getter(#scoringData),
     ),
@@ -155,19 +163,19 @@ class MockGamePreferences extends _i1.Mock implements _i5.GamePreferences {
   @override
   String get lastNativeLogin => (super.noSuchMethod(
     Invocation.getter(#lastNativeLogin),
-    returnValue: _i8.dummyValue<String>(
+    returnValue: _i9.dummyValue<String>(
       this,
       Invocation.getter(#lastNativeLogin),
     ),
-    returnValueForMissingStub: _i8.dummyValue<String>(
+    returnValueForMissingStub: _i9.dummyValue<String>(
       this,
       Invocation.getter(#lastNativeLogin),
     ),
   ) as String);
 
   @override
-  set theme(String? themeName) => super.noSuchMethod(
-    Invocation.setter(#theme, themeName),
+  set themeMode(_i7.AppThemeMode? mode) => super.noSuchMethod(
+    Invocation.setter(#themeMode, mode),
     returnValueForMissingStub: null,
   );
 
@@ -202,7 +210,7 @@ class MockGamePreferences extends _i1.Mock implements _i5.GamePreferences {
   );
 
   @override
-  set scoringType(_i7.ScoringType? s) => super.noSuchMethod(
+  set scoringType(_i8.ScoringType? s) => super.noSuchMethod(
     Invocation.setter(#scoringType, s),
     returnValueForMissingStub: null,
   );
@@ -233,7 +241,7 @@ class MockGamePreferences extends _i1.Mock implements _i5.GamePreferences {
   );
 
   @override
-  _i3.Future<dynamic> setCurrentCredentials(_i9.Credential? newCredentials) =>
+  _i3.Future<dynamic> setCurrentCredentials(_i10.Credential? newCredentials) =>
       (super.noSuchMethod(
         Invocation.method(#setCurrentCredentials, [newCredentials]),
         returnValue: _i3.Future<dynamic>.value(),
