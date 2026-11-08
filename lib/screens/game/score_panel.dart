@@ -154,7 +154,7 @@ class _ScorePanelState extends State<ScorePanel> {
                   const SizedBox(width: 5),
                   Flexible(
                     child: Text(
-                      _formatTime(_secondsLeft),
+                      formatClock(_secondsLeft),
                       maxLines: 1,
                       style: D2Text.section.copyWith(color: c.ink),
                     ),
@@ -166,12 +166,6 @@ class _ScorePanelState extends State<ScorePanel> {
         ],
       ),
     );
-  }
-
-  static String _formatTime(int totalSeconds) {
-    final (:minutes, :seconds) = toMinutesSeconds(totalSeconds);
-
-    return '$minutes:${seconds.toString().padLeft(2, '0')}';
   }
 }
 

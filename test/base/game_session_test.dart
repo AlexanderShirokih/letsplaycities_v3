@@ -24,6 +24,16 @@ class _RecordingChannel extends AbstractEventChannel {
   }
 }
 
+/// Accepts every word, as the checks of a real game accept a valid city.
+class _AcceptingChannel extends AbstractEventChannel {
+  @override
+  Stream<GameEvent> sendEvent(GameEvent event) => Stream.value(
+    event is RawWordEvent
+        ? Accepted(event.word, event.owner, status: CityStatus.ok)
+        : event,
+  );
+}
+
 class _RecordingAchievements extends Fake implements AchievementsService {
   final unlocked = <Achievement>[];
   final submittedScores = <int>[];
@@ -131,6 +141,29 @@ void main() {
 
       expect(channel.sent.whereType<OnUserSwitchedEvent>().length, 1);
       expect(gate.waiting.value, isNull);
+
+      session.cancel();
+      async.flushTimers();
+    });
+  });
+
+  test('after an accepted move the gate waits for the second player', () {
+    fakeAsync((async) {
+      final gate = TurnGate();
+      final session = _gatedSession(gate, channel: _AcceptingChannel());
+      final [first, second] = session.usersList.all;
+      session.runMoves().ignore();
+      async.elapse(const Duration(milliseconds: 200));
+
+      expect(gate.waiting.value, same(first));
+
+      gate.release();
+      async.flushMicrotasks();
+      session.deliverUserInput('москва');
+      async.flushMicrotasks();
+
+      expect(session.lastAcceptedWord, 'москва');
+      expect(gate.waiting.value, same(second));
 
       session.cancel();
       async.flushTimers();

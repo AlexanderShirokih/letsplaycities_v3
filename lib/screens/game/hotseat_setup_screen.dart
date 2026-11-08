@@ -6,7 +6,7 @@ import 'package:lets_play_cities/base/preferences.dart';
 import 'package:lets_play_cities/i18n/strings.g.dart';
 
 import 'game_screen.dart';
-import 'hotseat_handoff.dart';
+import 'hotseat_turn_view.dart';
 
 /// Names of the two players on one phone, before their game starts.
 ///

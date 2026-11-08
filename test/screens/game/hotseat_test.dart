@@ -88,7 +88,7 @@ void main() {
 
       expect(find.text(t.hotseat.passPhone), findsOneWidget);
       expect(
-        find.text(t.hotseat.turnOf(name: t.players.firstPlayer)),
+        find.text(t.hotseat.turnOf(name: t.hotseat.player1)),
         findsOneWidget,
       );
 
@@ -260,9 +260,8 @@ void main() {
       expect(gate.waiting.value, same(second));
     });
 
-    testWidgets('the game menu is out of reach under the handoff', (
-      tester,
-    ) async {
+    /// The real game layout under the handoff, at 320px and 1.3 text scale.
+    Future<void> pumpGame(WidgetTester tester) async {
       _useNarrowScreen(tester);
       final repository = GameSessionRepository(session);
       final voice = VoiceRecognitionBloc(
@@ -294,6 +293,12 @@ void main() {
           textScale: 1.3,
         ),
       );
+    }
+
+    testWidgets('the game menu is out of reach under the handoff', (
+      tester,
+    ) async {
+      await pumpGame(tester);
       await playFirstMove(tester);
       events.add(OnUserSwitchedEvent(first, [first, second]));
       await tester.pump();
@@ -314,6 +319,23 @@ void main() {
 
       expect(find.text(t.game.surrenderMenu), findsNothing);
       expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('the city field takes the focus after «Я готов»', (
+      tester,
+    ) async {
+      await pumpGame(tester);
+      await playFirstMove(tester);
+      gate.waitFor(second).ignore();
+      await tester.pumpAndSettle();
+
+      final field = find.byType(TextField);
+      expect(tester.widget<TextField>(field).focusNode?.hasFocus, isFalse);
+
+      await tester.tap(find.text(t.hotseat.ready));
+      await tester.pumpAndSettle();
+
+      expect(tester.widget<TextField>(field).focusNode?.hasFocus, isTrue);
     });
 
     testWidgets('handoff fits 320px at 1.3 text scale', (tester) async {
