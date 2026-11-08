@@ -747,29 +747,36 @@ class Translations$login$ru {
 
 	// Translations
 
-	/// ru: 'Обновление картинки профиля'
-	String get updatingAvatar => 'Обновление картинки профиля';
-
 	/// ru: 'Не удалось войти через соц.сеть'
 	String get socialFailed => 'Не удалось войти через соц.сеть';
 
 	/// ru: 'Что-то пошло не так :(. Попробуйте снова'
 	String get failed => 'Что-то пошло не так :(. Попробуйте снова';
 
-	/// ru: 'Вход'
-	String get title => 'Вход';
+	/// ru: 'Войти через Google'
+	String get google => 'Войти через Google';
 
-	/// ru: 'Ваше имя'
-	String get nameLabel => 'Ваше имя';
+	/// ru: 'Войти через VK ID'
+	String get vkId => 'Войти через VK ID';
 
-	/// ru: 'Используйте вход через социальные сети чтобы не потерять свой аккаунт'
-	String get socialHint => 'Используйте вход через социальные сети чтобы не потерять свой аккаунт';
+	/// ru: 'или играть как гость'
+	String get orGuest => 'или играть как гость';
 
-	/// ru: 'Войти'
-	String get signIn => 'Войти';
+	/// ru: 'Имя'
+	String get name => 'Имя';
 
-	/// ru: 'или войти используя'
-	String get orSignInWith => 'или войти используя';
+	/// ru: 'Играть'
+	String get play => 'Играть';
+
+	Map<String, String> get errors => {
+		'bad_name': 'Имя должно содержать от 2 до 64 символов',
+		'forbidden_name': 'Это имя использовать нельзя',
+		'banned': 'Аккаунт заблокирован',
+		'too_many_requests': 'Слишком много попыток, попробуйте позже',
+		'provider_disabled': 'Вход через эту соцсеть недоступен',
+		'invalid_provider_token': 'Не удалось подтвердить вход через соцсеть',
+		'provider_unavailable': 'Соцсеть временно недоступна',
+	};
 }
 
 // Path: multiplayer

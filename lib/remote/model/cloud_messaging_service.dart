@@ -8,6 +8,9 @@ abstract class CloudMessagingService {
 
   /// Returns user identifier to send messages to him
   Future<String> getUserToken();
+
+  /// Emits the new identifier each time it changes
+  Stream<String> get tokenRefreshes;
 }
 
 // Stub implementation used for testing purposes on desktop
@@ -19,4 +22,7 @@ class StubCloudMessagingService implements CloudMessagingService {
 
   @override
   Stream<IncomingCloudMessage> get messages => Stream.empty();
+
+  @override
+  Stream<String> get tokenRefreshes => Stream.empty();
 }

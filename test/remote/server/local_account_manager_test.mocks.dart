@@ -345,21 +345,40 @@ class MockAccountManager extends _i1.Mock implements _i2.AccountManager {
       ) as _i9.Future<_i2.RemoteAccount?>);
 
   @override
-  _i9.Future<_i2.RemoteAccount> signUp(_i2.RemoteSignUpData? signInData) =>
+  _i9.Future<_i2.RemoteAccount?> trySilentNative() => (super.noSuchMethod(
+    Invocation.method(#trySilentNative, []),
+    returnValue: _i9.Future<_i2.RemoteAccount?>.value(),
+    returnValueForMissingStub: _i9.Future<_i2.RemoteAccount?>.value(),
+  ) as _i9.Future<_i2.RemoteAccount?>);
+
+  @override
+  _i9.Future<_i2.RemoteAccount> signInNative(String? name) =>
       (super.noSuchMethod(
-        Invocation.method(#signUp, [signInData]),
+        Invocation.method(#signInNative, [name]),
         returnValue: _i9.Future<_i2.RemoteAccount>.value(
-          _FakeRemoteAccount_2(this, Invocation.method(#signUp, [signInData])),
+          _FakeRemoteAccount_2(this, Invocation.method(#signInNative, [name])),
         ),
         returnValueForMissingStub: _i9.Future<_i2.RemoteAccount>.value(
-          _FakeRemoteAccount_2(this, Invocation.method(#signUp, [signInData])),
+          _FakeRemoteAccount_2(this, Invocation.method(#signInNative, [name])),
         ),
       ) as _i9.Future<_i2.RemoteAccount>);
 
   @override
-  _i9.Future<dynamic> signOut() => (super.noSuchMethod(
+  _i9.Future<_i2.RemoteAccount> signInSocial(_i2.AuthType? type) =>
+      (super.noSuchMethod(
+        Invocation.method(#signInSocial, [type]),
+        returnValue: _i9.Future<_i2.RemoteAccount>.value(
+          _FakeRemoteAccount_2(this, Invocation.method(#signInSocial, [type])),
+        ),
+        returnValueForMissingStub: _i9.Future<_i2.RemoteAccount>.value(
+          _FakeRemoteAccount_2(this, Invocation.method(#signInSocial, [type])),
+        ),
+      ) as _i9.Future<_i2.RemoteAccount>);
+
+  @override
+  _i9.Future<void> signOut() => (super.noSuchMethod(
     Invocation.method(#signOut, []),
-    returnValue: _i9.Future<dynamic>.value(),
-    returnValueForMissingStub: _i9.Future<dynamic>.value(),
-  ) as _i9.Future<dynamic>);
+    returnValue: _i9.Future<void>.value(),
+    returnValueForMissingStub: _i9.Future<void>.value(),
+  ) as _i9.Future<void>);
 }

@@ -1,18 +1,21 @@
 /// Describes account types
 enum AuthType {
-  native('nv', 'Native'),
-  google('gl', 'Google'),
-  vkontakte('vk', 'Vkontakte'),
-  odnoklassniki('ok', 'Odnoklassniki'),
-  facebook('fb', 'Facebook');
+  native('nv', 'Native', 'native'),
+  google('gl', 'Google', 'google'),
+  vkontakte('vk', 'Vkontakte', 'vk'),
+  odnoklassniki('ok', 'Odnoklassniki', 'ok'),
+  facebook('fb', 'Facebook', 'fb');
 
-  const AuthType(this.shortName, this.fullName);
+  const AuthType(this.shortName, this.fullName, this.provider);
 
   /// Name used on the native social login channel ('authType', 'networkType')
   final String shortName;
 
-  /// Name used by the game server and the REST API ('authType')
+  /// Name used by the LAN game server ('authType')
   final String fullName;
+
+  /// Name used by the REST API v1 (`provider`)
+  final String provider;
 
   /// Returns the type named [s] by its [shortName].
   /// Throws a [String] when there is no such type.

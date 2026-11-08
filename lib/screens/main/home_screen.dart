@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:get_it/get_it.dart';
 import 'package:lets_play_cities/base/game/game_config.dart';
 import 'package:lets_play_cities/base/game/game_mode.dart';
 import 'package:lets_play_cities/i18n/strings.g.dart';
+import 'package:lets_play_cities/remote/auth.dart';
 import 'package:lets_play_cities/screens/common/d2/d2.dart';
 import 'package:lets_play_cities/screens/game/game_screen.dart';
 import 'package:lets_play_cities/screens/game/hotseat_setup_screen.dart';
@@ -54,7 +56,11 @@ class HomeActions {
 class HomeScreen extends StatelessWidget {
   final HomeActions? actions;
 
-  const HomeScreen({super.key, this.actions});
+  /// Loads the signed-in account for the avatar; by default the
+  /// [AccountManager] of GetIt does
+  final Future<RemoteAccount?> Function()? loadAccount;
+
+  const HomeScreen({super.key, this.actions, this.loadAccount});
 
   @override
   Widget build(BuildContext context) {
@@ -90,9 +96,13 @@ class HomeScreen extends StatelessWidget {
                       message: t.home.profile,
                       child: GestureDetector(
                         onTap: a.openProfile,
-                        child: D2Avatar.user(
-                          initials: _initial(t.players.player),
-                          size: 44,
+                        child: _AccountAvatar(
+                          load:
+                              loadAccount ??
+                              () => GetIt.instance
+                                  .get<AccountManager>()
+                                  .getLastSignedInAccount(),
+                          fallbackName: t.players.player,
                         ),
                       ),
                     ),
@@ -138,9 +148,50 @@ class HomeScreen extends StatelessWidget {
       ),
     );
   }
+}
 
-  static String _initial(String name) =>
-      name.isEmpty ? '' : name.substring(0, 1).toUpperCase();
+/// Avatar of the signed-in account, or the initial of [fallbackName]
+class _AccountAvatar extends StatefulWidget {
+  final Future<RemoteAccount?> Function() load;
+  final String fallbackName;
+
+  const _AccountAvatar({required this.load, required this.fallbackName});
+
+  @override
+  State<_AccountAvatar> createState() => _AccountAvatarState();
+}
+
+class _AccountAvatarState extends State<_AccountAvatar> {
+  RemoteAccount? _account;
+
+  @override
+  void initState() {
+    super.initState();
+    _load();
+  }
+
+  Future<void> _load() async {
+    RemoteAccount? account;
+    try {
+      account = await widget.load();
+    } catch (_) {
+      // Offline or signed out: the home screen shows the local player.
+      return;
+    }
+
+    if (mounted) setState(() => _account = account);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final name = _account?.name ?? widget.fallbackName;
+
+    return D2Avatar.user(
+      pictureUrl: _account?.avatarUrl,
+      initials: name.isEmpty ? '' : name.substring(0, 1).toUpperCase(),
+      size: 44,
+    );
+  }
 }
 
 class _ComputerCard extends StatelessWidget {

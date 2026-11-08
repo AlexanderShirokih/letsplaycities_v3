@@ -81,6 +81,19 @@ class FirebaseServices implements CloudMessagingService {
     }
   }
 
+  /// Throws when the instance is not configured yet.
+  @override
+  Stream<String> get tokenRefreshes {
+    final messaging = _firebaseMessaging;
+    if (messaging == null) {
+      throw StateError('Firebase messaging is not initialized!');
+    }
+
+    // The same token as getUserToken() returns, see the TODO there.
+    // ignore: deprecated_member_use
+    return messaging.onTokenRefresh;
+  }
+
   void _handleAction(Map<String, dynamic> data) {
     final action = data['action'];
 

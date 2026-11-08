@@ -22,11 +22,11 @@ import 'package:lets_play_cities/i18n/strings.g.dart';
 import 'package:lets_play_cities/screens/common/theme_mode.dart';
 import 'package:lets_play_cities/remote/account_manager.dart';
 import 'package:lets_play_cities/remote/account_manager_impl.dart';
-import 'package:lets_play_cities/remote/api_repository.dart';
 import 'package:lets_play_cities/remote/api_repository_factory.dart';
+import 'package:lets_play_cities/remote/auth/auth_api.dart';
 import 'package:lets_play_cities/remote/auth/token_store.dart';
 import 'package:lets_play_cities/remote/city_requests_repository.dart';
-import 'package:lets_play_cities/remote/client/api_interceptor.dart';
+import 'package:lets_play_cities/remote/client/api_dio.dart';
 import 'package:lets_play_cities/remote/firebase/firebase_service.dart';
 import 'package:lets_play_cities/remote/google_services_achievements.dart';
 import 'package:lets_play_cities/remote/http_overrides.dart';
@@ -38,6 +38,7 @@ import 'package:lets_play_cities/remote/server/server_connection.dart';
 import 'package:lets_play_cities/remote/server/server_game_controller.dart';
 import 'package:lets_play_cities/remote/server/usecases.dart';
 import 'package:lets_play_cities/remote/server/user_lookup_repository.dart';
+import 'package:lets_play_cities/remote/social/social_networks_service.dart';
 import 'package:lets_play_cities/remote/usecase/signup_user.dart';
 import 'package:lets_play_cities/utils/crashlytics_error_logger.dart';
 import 'package:lets_play_cities/utils/error_logger.dart';
@@ -76,9 +77,6 @@ Future<void> injectRootDependencies(AppConfig appConfig) async {
 
   // Global app config
   getIt.registerSingleton<AppConfig>(appConfig);
-
-  // [AppConfig] used for API requests
-  getIt.registerSingleton(getIt<AppConfig>(), instanceName: 'api');
 
   // [AppConfig] used in local multiplayer mode
   getIt.registerSingleton<AppConfig>(
@@ -123,31 +121,26 @@ Future<void> injectRootDependencies(AppConfig appConfig) async {
 
   // DIO client for the unnamed AppConfig current at the time of the call
   getIt.registerFactory<Dio>(
-    () => _createDio(getIt.get<AppConfig>(), getIt.get<TokenStore>()),
+    () => createApiDio(
+      getIt.get<AppConfig>(),
+      getIt.get<TokenStore>(),
+      onError: _logError,
+    ),
   );
-
-  final apiCache = ApiRepositoryCacheHolder();
 
   // API clients for the main server. A LAN game registers its own factory in
-  // its GetIt scope, which shares this one's cache. The 'api' config is the
-  // same instance as the unnamed one.
+  // its GetIt scope, which shares this one's cache.
   getIt.registerSingleton<ApiRepositoryFactory>(
-    ApiRepositoryFactory(
-      getIt.get<AppConfig>(instanceName: 'api'),
-      apiCache,
+    ApiRepositoryFactory.main(
+      appConfig,
       getIt.get<TokenStore>(),
-      (config, tokens) =>
-          _createDio(config, tokens, onUnauthorized: apiCache.clear),
+      onError: _logError,
     ),
   );
 
-  // Account manager
-  getIt.registerSingletonWithDependencies<AccountManager>(
-    () => AccountManagerImpl(
-      getIt.get<GamePreferences>(),
-      getIt.get<ApiRepositoryFactory>(),
-    ),
-    dependsOn: [GamePreferences],
+  // Social sign-in and the device id
+  getIt.registerSingleton<SocialNetworksService>(
+    NativeBridgeSocialNetworksService(),
   );
 
   // Local account manager
@@ -155,7 +148,9 @@ Future<void> injectRootDependencies(AppConfig appConfig) async {
     (localConfig, _) => LocalAccountManager(
       getIt.get<AccountManager>(),
       getIt.get<GamePreferences>(),
-      SignUpUser(_createDio(localConfig!, MemoryTokenStore())),
+      SignUpUser(
+        createApiDio(localConfig!, MemoryTokenStore(), onError: _logError),
+      ),
       t.players.player,
     ),
     instanceName: 'local',
@@ -194,6 +189,20 @@ Future<void> injectRootDependencies(AppConfig appConfig) async {
     ],
   );
 
+  // Account manager. Registered after the services it waits for.
+  getIt.registerSingletonWithDependencies<AccountManager>(() {
+    final apiRepositories = getIt.get<ApiRepositoryFactory>();
+
+    return AccountManagerImpl(
+      preferences: getIt.get<GamePreferences>(),
+      apiRepositories: apiRepositories,
+      auth: AuthApi(apiRepositories.dio()),
+      socialNetworks: getIt.get<SocialNetworksService>(),
+      messaging: getIt.get<CloudMessagingService>(),
+      logger: getIt.get<ErrorLogger>(),
+    );
+  }, dependsOn: [GamePreferences, CloudMessagingService]);
+
   /// City requests repository
   getIt.registerFactory<CityRequestsRepository>(
     () => CityRequestsRepository(getIt.get<ApiRepositoryFactory>().clientFor()),
@@ -208,6 +217,7 @@ Future<void> injectRootDependencies(AppConfig appConfig) async {
           ? StubAchievementsService()
           : GoogleServicesAchievementService(getIt.get<ErrorLogger>()),
       getIt.get<GamePreferences>(),
+      getIt.get<ErrorLogger>(),
     ),
   );
 
@@ -275,27 +285,7 @@ Future<void> injectRootDependencies(AppConfig appConfig) async {
   );
 }
 
-/// Returns DIO client instance that signs the requests with the token of
-/// [tokens]. [onUnauthorized] runs after the token is rejected, and the
-/// token is dropped then.
-Dio _createDio(
-  AppConfig appConfig,
-  TokenStore tokens, {
-  void Function()? onUnauthorized,
-}) =>
-    Dio(
-        BaseOptions(
-          baseUrl: appConfig.restBaseUrl,
-          connectTimeout: const Duration(milliseconds: 8000),
-          receiveTimeout: const Duration(milliseconds: 5000),
-        ),
-      )
-      ..interceptors.add(
-        ApiInterceptor(
-          tokens,
-          onUnauthorized: () {
-            tokens.clear();
-            onUnauthorized?.call();
-          },
-        ),
-      );
+/// Logs an error of the REST transport. The logger is looked up at the time
+/// of the error: it waits for Firebase on the phones.
+void _logError(Object error, StackTrace stackTrace) =>
+    GetIt.instance.get<ErrorLogger>().error(error, stackTrace);

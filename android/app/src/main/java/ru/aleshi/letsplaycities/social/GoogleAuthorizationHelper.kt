@@ -37,46 +37,65 @@ class GoogleAuthorizationHelper(private val activity: BaseAsyncActivity) {
 
         if (GoogleSignIn.hasPermissions(account, *options.scopeArray)) {
             return account
-        } else {
-            // Haven't been signed-in before. Try the silent sign-in first.
-            val signInClient = GoogleSignIn.getClient(activity, options)
-            try {
-                return signInClient.silentSignIn().await()
-            } catch (e: ApiException) {
-                e.printStackTrace()
+        }
 
-                // We can't silently sign in, so try to sign in implicitly
-                val data = activity.launchIntentAsync(signInClient.signInIntent).await()
+        return signInWith(options)
+    }
 
-                return if (data != null) {
-                    val result = Auth.GoogleSignInApi.getSignInResultFromIntent(data.data)
-                            ?: throw AuthorizationException(
-                                    errorCode = ANOTHER_ERROR,
-                                    description = activity.getString(R.string.no_play_services)
-                            )
+    /**
+     * Signs in for the game server: the account carries a fresh ID token for the
+     * web client of `google-services.json`. The cached account is not used, its
+     * token may be missing or expired.
+     * @throws [AuthorizationException] if sign in cancelled or failed
+     */
+    suspend fun signInForIdToken(): GoogleSignInAccount {
+        val options = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+                .requestIdToken(activity.getString(R.string.default_web_client_id))
+                .requestId().requestProfile().build()
 
-                    if (result.isSuccess) {
-                        result.signInAccount!!
-                    } else {
-                        val error = result.status.statusMessage
-                                ?: "Authentication error: ${
-                                    CommonStatusCodes.getStatusCodeString(
-                                            result.status.statusCode
-                                    )
-                                }"
-                        throw AuthorizationException(errorCode = AUTH_FAILED, description = error)
-                    }
+        return signInWith(options)
+    }
+
+    /**
+     * Tries the silent sign-in first, then the sign in activity.
+     */
+    private suspend fun signInWith(options: GoogleSignInOptions): GoogleSignInAccount {
+        val signInClient = GoogleSignIn.getClient(activity, options)
+        try {
+            return signInClient.silentSignIn().await()
+        } catch (e: ApiException) {
+            e.printStackTrace()
+
+            // We can't silently sign in, so try to sign in implicitly
+            val data = activity.launchIntentAsync(signInClient.signInIntent).await()
+
+            return if (data != null) {
+                val result = Auth.GoogleSignInApi.getSignInResultFromIntent(data.data)
+                        ?: throw AuthorizationException(
+                                errorCode = ANOTHER_ERROR,
+                                description = activity.getString(R.string.no_play_services)
+                        )
+
+                if (result.isSuccess) {
+                    result.signInAccount!!
                 } else {
-                    throw AuthorizationException(
-                            errorCode = ANOTHER_ERROR,
-                            description = activity.getString(R.string.no_game_services)
-                    )
+                    val error = result.status.statusMessage
+                            ?: "Authentication error: ${
+                                CommonStatusCodes.getStatusCodeString(
+                                        result.status.statusCode
+                                )
+                            }"
+                    throw AuthorizationException(errorCode = AUTH_FAILED, description = error)
                 }
+            } else {
+                throw AuthorizationException(
+                        errorCode = ANOTHER_ERROR,
+                        description = activity.getString(R.string.no_game_services)
+                )
             }
         }
     }
 
     private fun buildSignInOptions() = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_GAMES_SIGN_IN)
-            .requestServerAuthCode(activity.getString(R.string.default_web_client_id))
             .requestId().requestProfile().build()
 }

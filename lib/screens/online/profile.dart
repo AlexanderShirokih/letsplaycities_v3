@@ -92,43 +92,37 @@ class _OnlineProfileViewStandaloneState
 
   @override
   Widget build(BuildContext context) {
-    return RepositoryProvider<AccountManager>.value(
-      value: _accountManager,
-      child: FutureBuilder<RemoteAccount?>(
-        future: _account,
-        builder: (context, lastSignedInAccount) {
-          if (lastSignedInAccount.connectionState != ConnectionState.done) {
-            return LoadingView(context.t.online.fetchingProfile);
-          }
-          if (!lastSignedInAccount.hasData) {
-            return ConnectionErrorView(
-              onReload: _reload,
-              errorMessage: _describeAccountError(
-                context.t,
-                lastSignedInAccount,
-              ),
-            );
-          }
-          return Scaffold(
-            appBar: AppBar(title: Text(context.t.online.profileTab)),
-            body: MultiRepositoryProvider(
-              providers: [
-                RepositoryProvider<RemoteAccount>.value(
-                  value: lastSignedInAccount.requireData!,
-                ),
-                // Inside a LAN game's GetIt scope this is the factory for
-                // the LAN server.
-                RepositoryProvider<ApiRepository>.value(
-                  value: GetIt.instance.get<ApiRepositoryFactory>().forUser(
-                    lastSignedInAccount.requireData!.userId,
-                  ),
-                ),
-              ],
-              child: OnlineProfileView(target: widget.target),
-            ),
+    return FutureBuilder<RemoteAccount?>(
+      future: _account,
+      builder: (context, lastSignedInAccount) {
+        if (lastSignedInAccount.connectionState != ConnectionState.done) {
+          return LoadingView(context.t.online.fetchingProfile);
+        }
+        if (!lastSignedInAccount.hasData) {
+          return ConnectionErrorView(
+            onReload: _reload,
+            errorMessage: _describeAccountError(context.t, lastSignedInAccount),
           );
-        },
-      ),
+        }
+        return Scaffold(
+          appBar: AppBar(title: Text(context.t.online.profileTab)),
+          body: MultiRepositoryProvider(
+            providers: [
+              RepositoryProvider<RemoteAccount>.value(
+                value: lastSignedInAccount.requireData!,
+              ),
+              // Inside a LAN game's GetIt scope this is the factory for
+              // the LAN server.
+              RepositoryProvider<ApiRepository>.value(
+                value: GetIt.instance.get<ApiRepositoryFactory>().forUser(
+                  lastSignedInAccount.requireData!.userId,
+                ),
+              ),
+            ],
+            child: OnlineProfileView(target: widget.target),
+          ),
+        );
+      },
     );
   }
 }
@@ -144,8 +138,8 @@ class OnlineProfileView extends StatefulWidget {
   State<OnlineProfileView> createState() => _OnlineProfileViewState();
 
   /// Creates navigation route for [OnlineProfileView] wrapped in [Scaffold].
-  /// [context] must contain [ApiRepository] and [AccountManager] injected
-  /// using [RepositoryProvider] in the widget tree.
+  /// [context] must contain [ApiRepository] injected using
+  /// [RepositoryProvider] in the widget tree.
   static Route createRoute(BuildContext context, {BaseProfileInfo? target}) =>
       MaterialPageRoute(
         builder: (ctx) => Scaffold(
@@ -153,7 +147,6 @@ class OnlineProfileView extends StatefulWidget {
           body: MultiRepositoryProvider(
             providers: [
               RepositoryProvider.value(value: context.read<ApiRepository>()),
-              RepositoryProvider.value(value: context.read<AccountManager>()),
             ],
             child: OnlineProfileView(target: target),
           ),
@@ -175,7 +168,7 @@ class _OnlineProfileViewState extends State<OnlineProfileView> {
   @override
   void initState() {
     super.initState();
-    _account = context.read<AccountManager>().getLastSignedInAccount();
+    _account = GetIt.instance.get<AccountManager>().getLastSignedInAccount();
     _userActionsBloc = UserActionsBloc(
       context.read<ApiRepository>(),
       GetIt.instance.get<AchievementsService>(),
@@ -189,7 +182,7 @@ class _OnlineProfileViewState extends State<OnlineProfileView> {
   }
 
   void _reloadAccount() => setState(() {
-    _account = context.read<AccountManager>().getLastSignedInAccount();
+    _account = GetIt.instance.get<AccountManager>().getLastSignedInAccount();
   });
 
   @override
@@ -244,8 +237,10 @@ class _OnlineProfileViewState extends State<OnlineProfileView> {
                     child: FloatingActionButton.extended(
                       backgroundColor: D2Colors.of(context).orange,
                       foregroundColor: D2Colors.of(context).shadow,
-                      onPressed: () =>
-                          context.read<AccountManager>().signOut().then((_) {
+                      onPressed: () => GetIt.instance
+                          .get<AccountManager>()
+                          .signOut()
+                          .then((_) {
                             if (context.mounted) Navigator.of(context).pop();
                           }),
                       icon: const D2Icon(D2Glyph.exit),
@@ -456,7 +451,6 @@ class _OnlineProfileViewState extends State<OnlineProfileView> {
         builder: (ctx) => MultiRepositoryProvider(
           providers: [
             RepositoryProvider.value(value: context.read<ApiRepository>()),
-            RepositoryProvider.value(value: context.read<AccountManager>()),
           ],
           child: Scaffold(
             appBar: AppBar(title: Text(label)),
@@ -561,13 +555,10 @@ class _OnlineProfileViewState extends State<OnlineProfileView> {
                     : () => Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (_) => RepositoryProvider.value(
-                            value: context.read<AccountManager>(),
-                            child: GameWaitingRoomScreenStandalone(
-                              request: FriendGameRequest(
-                                mode: FriendGameRequestType.invite,
-                                target: data,
-                              ),
+                          builder: (_) => GameWaitingRoomScreenStandalone(
+                            request: FriendGameRequest(
+                              mode: FriendGameRequestType.invite,
+                              target: data,
                             ),
                           ),
                         ),

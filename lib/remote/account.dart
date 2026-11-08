@@ -1,6 +1,7 @@
 import 'package:equatable/equatable.dart';
 import 'package:lets_play_cities/base/data.dart';
 import 'package:lets_play_cities/remote/auth.dart';
+import 'package:lets_play_cities/remote/model/lps_user.dart';
 
 export 'package:lets_play_cities/base/data/account_info.dart';
 
@@ -23,43 +24,31 @@ class AdvancedAccountInfo extends ClientAccountInfo with Equatable {
   List<Object> get props => [name, picture];
 }
 
-/// Contains remote account info of the user
+/// The signed-in account of the user
 class RemoteAccount extends ClientAccountInfo with Equatable {
-  /// Unique user ID.
-  /// Used to uniquely identify user on the game server.
-  final int userId;
+  final LpsUser user;
 
-  /// Users role on server
-  final Role role;
-
-  /// Account origin
-  final AuthType authType;
-
-  RemoteAccount({
-    required this.userId,
-    required this.name,
-    required this.canReceiveMessages,
-    required this.role,
-    required this.authType,
-    required String? pictureUri,
-  }) : picture = NetworkPictureSource(pictureUri);
-
-  @override
-  final String name;
-
-  @override
-  final PictureSource picture;
+  /// Avatar of [user], `null` if there is none
+  final String? avatarUrl;
 
   @override
   final bool canReceiveMessages;
 
+  RemoteAccount(this.user, {this.avatarUrl, this.canReceiveMessages = false});
+
+  /// Unique user ID on the game server
+  int get userId => user.id;
+
   @override
-  List<Object> get props => [userId, name, picture];
+  String get name => user.name;
+
+  @override
+  PictureSource get picture => NetworkPictureSource(avatarUrl);
+
+  @override
+  List<Object?> get props => [user, avatarUrl, canReceiveMessages];
 
   /// Returns [BaseProfileInfo] for this account
-  BaseProfileInfo get baseProfileInfo => BaseProfileInfo(
-    userId: userId,
-    login: name,
-    pictureUrl: (picture as NetworkPictureSource).pictureURL,
-  );
+  BaseProfileInfo get baseProfileInfo =>
+      BaseProfileInfo(userId: userId, login: name, pictureUrl: avatarUrl);
 }

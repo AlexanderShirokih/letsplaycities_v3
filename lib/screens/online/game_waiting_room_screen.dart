@@ -104,8 +104,9 @@ class _GameWaitingRoomScreenState extends State<GameWaitingRoomScreen> {
                 isLocal: () => !getIt<AppConfig>().isSecure,
                 socketApi: SocketApi(
                   WebSocketConnector(getIt<AppConfig>().gameSocketUrl),
+                  // The pictures are on the main server, also in a LAN game.
                   JsonMessageConverter(
-                    getIt.get<AppConfig>(instanceName: 'api'),
+                    getIt<ApiRepositoryFactory>().pictureConfig,
                   ),
                 ),
               ),

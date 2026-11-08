@@ -154,7 +154,9 @@ void main() {
       final tokens = MemoryTokenStore(token);
       final dio = Dio(BaseOptions(baseUrl: 'https://api.test/v1'))
         ..httpClientAdapter = server
-        ..interceptors.add(ApiInterceptor(tokens, onUnauthorized: () {}));
+        ..interceptors.add(
+          ApiInterceptor(tokens, onUnauthorized: (_) async {}),
+        );
       return RemoteLpsApiClient(config, dio, tokens, ownerId);
     }
 

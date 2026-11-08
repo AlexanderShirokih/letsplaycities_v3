@@ -1,5 +1,6 @@
 export 'd2_avatar.dart';
 export 'd2_bottom_nav.dart';
+export 'd2_brand_marks.dart';
 export 'd2_buttons.dart';
 export 'd2_card.dart';
 export 'd2_colors.dart';

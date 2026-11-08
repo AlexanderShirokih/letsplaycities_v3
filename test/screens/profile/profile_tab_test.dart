@@ -18,6 +18,7 @@ import 'package:lets_play_cities/remote/auth.dart';
 import 'package:lets_play_cities/screens/common/d2/d2.dart';
 import 'package:lets_play_cities/screens/profile/profile_tab.dart';
 import 'package:lets_play_cities/screens/root/root_screen.dart';
+import 'package:lets_play_cities/utils/error_logger.dart';
 
 import '../online/online_fakes.dart';
 import '../../i18n/translations_harness.dart';
@@ -83,7 +84,11 @@ void main() {
     getIt.registerSingleton<AccountManager>(FakeAccountManager(account));
     getIt.registerSingleton<ApiRepositoryFactory>(_Factory(repository));
     getIt.registerSingleton<CountryRepository>(_Countries());
-    final local = LocalAchievementsService(FakeAchievementsService(), prefs);
+    final local = LocalAchievementsService(
+      FakeAchievementsService(),
+      prefs,
+      SimpleErrorLogger(),
+    );
     getIt.registerSingleton<LocalAchievementsService>(local);
     getIt.registerSingleton<AchievementsService>(local);
     addTearDown(getIt.reset);

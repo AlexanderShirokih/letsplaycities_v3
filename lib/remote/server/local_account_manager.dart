@@ -1,8 +1,8 @@
-import 'package:lets_play_cities/base/data.dart';
 import 'package:lets_play_cities/base/preferences.dart';
 import 'package:lets_play_cities/base/usecases.dart';
 import 'package:lets_play_cities/remote/auth.dart';
 import 'package:lets_play_cities/remote/exceptions.dart';
+import 'package:lets_play_cities/remote/model/lps_user.dart';
 
 class LocalAccountManager implements AccountManager {
   final GamePreferences _preferences;
@@ -60,12 +60,15 @@ class LocalAccountManager implements AccountManager {
     final response = await _signUpUseCase.execute(signUpData);
 
     return RemoteAccount(
-      userId: response.userId,
-      name: response.login,
-      pictureUri: (remoteAccount?.picture as NetworkPictureSource?)?.pictureURL,
+      LpsUser(
+        id: response.userId,
+        name: response.login,
+        provider: 'lan',
+        lastSeenAt: DateTime.now(),
+      ),
+      // The picture of the main account, on the main server
+      avatarUrl: remoteAccount?.avatarUrl,
       canReceiveMessages: _preferences.onlineChatEnabled,
-      role: response.role,
-      authType: response.authType,
     );
   }
 
@@ -73,7 +76,14 @@ class LocalAccountManager implements AccountManager {
   Future<void> signOut() => Future.value();
 
   @override
-  Future<RemoteAccount> signUp(RemoteSignUpData signInData) {
-    throw RemoteException('Unsupported operation!');
-  }
+  Future<RemoteAccount?> trySilentNative() => _unsupported();
+
+  @override
+  Future<RemoteAccount> signInNative(String name) => _unsupported();
+
+  @override
+  Future<RemoteAccount> signInSocial(AuthType type) => _unsupported();
+
+  Future<Never> _unsupported() =>
+      Future.error(const RemoteException('Unsupported operation!'));
 }

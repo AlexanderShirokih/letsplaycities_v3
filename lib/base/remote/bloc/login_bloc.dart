@@ -5,36 +5,25 @@ import 'package:equatable/equatable.dart';
 import 'package:lets_play_cities/base/achievements/achievements.dart';
 import 'package:lets_play_cities/base/achievements/achievements_service.dart';
 import 'package:lets_play_cities/base/preferences.dart';
-import 'package:lets_play_cities/remote/api_repository_factory.dart';
 import 'package:lets_play_cities/remote/auth.dart';
+import 'package:lets_play_cities/remote/client/api_exception.dart';
 import 'package:lets_play_cities/remote/exceptions.dart';
-import 'package:lets_play_cities/remote/model/cloud_messaging_service.dart';
-import 'package:lets_play_cities/remote/social/social_networks_service.dart';
 import 'package:lets_play_cities/base/bloc/sequential_event_mapping.dart';
 
 part 'login_event.dart';
 
 part 'login_state.dart';
 
-/// Handle user sign up events
+/// Signs the user in by the events of the login screen
 class LoginBloc extends Bloc<LoginEvent, LoginState>
     with SequentialEventMapping<LoginEvent, LoginState> {
   final GamePreferences _preferences;
   final AccountManager _accountManager;
-  final CloudMessagingService _cloudServices;
-  final SocialNetworksService _socialNetworksService;
   final AchievementsService _achievements;
 
-  /// Called once a social sign-up succeeds, so the caller decides which
-  /// factory is current when the picture is uploaded.
-  final ApiRepositoryFactory Function() _apiRepositories;
-
   LoginBloc({
-    required this._socialNetworksService,
     required this._accountManager,
     required this._preferences,
-    required this._cloudServices,
-    required this._apiRepositories,
     required this._achievements,
   }) : super(LoginInitial()) {
     mapEventsSequentially(_mapEventToState);
@@ -60,59 +49,29 @@ class LoginBloc extends Bloc<LoginEvent, LoginState>
 
   Stream<LoginState> _mapEventToState(LoginEvent event) async* {
     if (event is LoginNativeEvent) {
-      yield* _handleNativeLogin(event.login);
+      yield* _signIn(() async {
+        final account = await _accountManager.signInNative(event.login);
+        _preferences.lastNativeLogin = account.name;
+      });
     } else if (event is LoginSocialEvent) {
-      yield* _handleSocialLogin(event.authType);
+      yield* _signIn(() async {
+        await _accountManager.signInSocial(event.authType);
+        await _achievements.unlockAchievement(Achievement.loginViaSocial);
+      });
     } else if (event is LoginAuthErrorEvent) {
       yield LoginErrorState(event.error);
     }
   }
 
-  Stream<LoginState> _handleNativeLogin(String login) async* {
+  Stream<LoginState> _signIn(Future<void> Function() signIn) async* {
     yield LoginAuthenticatingState();
 
-    final request = RemoteSignUpData(
-      login: login,
-      authType: AuthType.native,
-      firebaseToken: await _cloudServices.getUserToken(),
-      accessToken: 'native_access',
-      snUID: await _socialNetworksService.getDeviceId(),
-    );
-
     try {
-      final remoteAccount = await _accountManager.signUp(request);
-
-      _preferences.lastNativeLogin = remoteAccount.name;
+      await signIn();
 
       yield LoginAuthCompletedState();
-    } on RemoteException catch (e) {
+    } on ApiException catch (e) {
       yield LoginErrorState(e);
-    }
-  }
-
-  Stream<LoginState> _handleSocialLogin(AuthType authType) async* {
-    yield LoginAuthenticatingState();
-
-    try {
-      final result = await _socialNetworksService.login(authType);
-
-      final request = RemoteSignUpData(
-        login: result.login,
-        authType: result.authType,
-        firebaseToken: await _cloudServices.getUserToken(),
-        accessToken: result.accessToken,
-        snUID: result.snUID,
-      );
-
-      final remoteAccount = await _accountManager.signUp(request);
-      await _achievements.unlockAchievement(Achievement.loginViaSocial);
-
-      yield LoginAuthUpdateAvatarState();
-      await _apiRepositories()
-          .forUser(remoteAccount.userId)
-          .updatePictureFromURL(result.pictureUri);
-
-      yield LoginAuthCompletedState();
     } on AuthorizationException catch (e) {
       yield LoginAuthErrorState(e);
     }

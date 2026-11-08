@@ -13,18 +13,20 @@ class GoogleService : ISocialNetworkService {
     override suspend fun onLogin(activity: Activity): SocialAccountData {
         val authorizationHelper = GoogleAuthorizationHelper(requireBaseActivity(activity))
 
-        val account = authorizationHelper.signIn()
+        val account = authorizationHelper.signInForIdToken()
 
-        val isAllRequestedDataPresent =
-                account.id != null && account.serverAuthCode != null && account.displayName != null && account.photoUrl != null
+        val id = account.id
+        val idToken = account.idToken
+        val name = account.displayName
 
-        if (isAllRequestedDataPresent) {
+        if (id != null && idToken != null && name != null) {
+            // The game server checks the ID token, it goes as the access token.
             return SocialAccountData(
-                    snUID = account.id!!,
-                    login = account.displayName!!,
-                    accessToken = account.serverAuthCode!!,
+                    snUID = id,
+                    login = name,
+                    accessToken = idToken,
                     networkType = ServiceType.Google,
-                    pictureUri = account.photoUrl!!.toString()
+                    pictureUri = account.photoUrl?.toString() ?: ""
             )
         } else {
             authorizationHelper.signOut()

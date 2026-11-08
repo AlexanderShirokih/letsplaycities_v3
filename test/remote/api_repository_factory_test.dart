@@ -68,7 +68,9 @@ void main() {
       dioConfigs.add(config);
       return Dio(BaseOptions(baseUrl: config.restBaseUrl))
         ..httpClientAdapter = server
-        ..interceptors.add(ApiInterceptor(tokens, onUnauthorized: () {}));
+        ..interceptors.add(
+          ApiInterceptor(tokens, onUnauthorized: (_) async {}),
+        );
     });
   });
 

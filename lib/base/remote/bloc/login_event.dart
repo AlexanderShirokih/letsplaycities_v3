@@ -5,7 +5,7 @@ abstract class LoginEvent extends Equatable {
   const LoginEvent();
 }
 
-/// Starts sign in or sign up sequence using native
+/// Signs in the account of this device, created with [login] if it is new
 class LoginNativeEvent extends LoginEvent {
   final String login;
 

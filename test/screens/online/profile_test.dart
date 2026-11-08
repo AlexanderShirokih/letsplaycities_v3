@@ -2,7 +2,9 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:get_it/get_it.dart';
 import 'package:lets_play_cities/i18n/strings.g.dart';
+import 'package:lets_play_cities/remote/auth.dart';
 import 'package:lets_play_cities/screens/online/profile.dart';
 
 import 'online_fakes.dart';
@@ -72,6 +74,7 @@ void main() {
       registerFakeAchievements();
       repository = FakeApiRepository()..profiles = {2: profileInfo(2, 'Alice')};
       accountManager = FakeAccountManager(remoteAccount(1, 'Bob'));
+      GetIt.instance.registerSingleton<AccountManager>(accountManager);
     });
 
     Future<void> showAlicesProfile(WidgetTester tester) async {
@@ -79,7 +82,6 @@ void main() {
         hostScreen(
           OnlineProfileView(target: profileInfo(2, 'Alice')),
           repository: repository,
-          accountManager: accountManager,
         ),
       );
       await tester.pumpAndSettle();

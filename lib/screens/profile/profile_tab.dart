@@ -70,9 +70,8 @@ class _LocalProfile {
 class _OnlineProfile {
   final RemoteAccount account;
   final ApiRepository repository;
-  final BaseProfileInfo info;
 
-  const _OnlineProfile(this.account, this.repository, this.info);
+  const _OnlineProfile(this.account, this.repository);
 }
 
 /// «Профиль» tab: the player, the passport of countries, metrics,
@@ -140,9 +139,9 @@ class _ProfileTabState extends State<ProfileTab> {
     }
   }
 
-  /// Fetches the account and its profile. Without the account, or without the
-  /// network, the header stays local.
-  Future<void> _loadAccount({bool refresh = false}) async {
+  /// Fetches the account from `GET /v1/me`. Without the account, or without
+  /// the network, the header stays local.
+  Future<void> _loadAccount() async {
     final load = ++_loads;
     final getIt = GetIt.instance;
     _OnlineProfile? online;
@@ -152,16 +151,10 @@ class _ProfileTabState extends State<ProfileTab> {
           .get<AccountManager>()
           .getLastSignedInAccount();
       if (account != null) {
-        final repository = getIt.get<ApiRepositoryFactory>().forUser(
-          account.userId,
+        online = _OnlineProfile(
+          account,
+          getIt.get<ApiRepositoryFactory>().forUser(account.userId),
         );
-        var info = account.baseProfileInfo;
-        try {
-          info = await repository.getProfileInfo(info, refresh);
-        } catch (_) {
-          // Offline: the account holds the name and the picture too.
-        }
-        online = _OnlineProfile(account, repository, info);
       }
     } catch (_) {
       online = null;
@@ -251,7 +244,7 @@ class _ProfileTabState extends State<ProfileTab> {
           label: t.profile.history,
           onTap: () => _openOnline(
             t.profile.history,
-            OnlineHistoryScreen(target: online.info),
+            OnlineHistoryScreen(target: online.account.baseProfileInfo),
           ),
         ),
         _NavigationRow(
@@ -293,10 +286,8 @@ class _ProfileTabState extends State<ProfileTab> {
 
     showD2Sheet<void>(
       context,
-      builder: (_) => AvatarChooserView(
-        online.repository,
-        onAvatarUpdated: () => _loadAccount(refresh: true),
-      ),
+      builder: (_) =>
+          AvatarChooserView(online.repository, onAvatarUpdated: _loadAccount),
     );
   }
 
@@ -305,13 +296,8 @@ class _ProfileTabState extends State<ProfileTab> {
 
     return Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (_) => MultiRepositoryProvider(
-          providers: [
-            RepositoryProvider<ApiRepository>.value(value: online.repository),
-            RepositoryProvider<AccountManager>.value(
-              value: GetIt.instance.get<AccountManager>(),
-            ),
-          ],
+        builder: (_) => RepositoryProvider<ApiRepository>.value(
+          value: online.repository,
           child: Scaffold(
             appBar: AppBar(title: Text(title)),
             body: screen,
@@ -339,8 +325,8 @@ class _Header extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = context.t;
     final c = D2Colors.of(context);
-    final info = online?.info;
-    final name = info?.login ?? t.players.player;
+    final account = online?.account;
+    final name = account?.name ?? t.players.player;
 
     Widget avatar = Container(
       padding: const EdgeInsets.all(4),
@@ -356,7 +342,7 @@ class _Header extends StatelessWidget {
       ),
       child: D2Avatar.user(
         size: 72,
-        pictureUrl: info?.pictureUrl,
+        pictureUrl: account?.avatarUrl,
         initials: name.isEmpty ? '' : name.substring(0, 1).toUpperCase(),
       ),
     );

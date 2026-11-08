@@ -16,6 +16,7 @@ import 'package:lets_play_cities/remote/client/socket_api.dart';
 import 'package:lets_play_cities/remote/core/json_message_converter.dart';
 import 'package:lets_play_cities/remote/exceptions.dart';
 import 'package:lets_play_cities/remote/model/friend_game_request.dart';
+import 'package:lets_play_cities/remote/model/lps_user.dart';
 
 /// In-memory connector: the test pushes incoming messages into [incoming].
 class _FakeConnector implements AbstractSocketConnector {
@@ -49,12 +50,13 @@ void main() {
     isLocal = false;
     client = RemoteGameClient(
       account: RemoteAccount(
-        userId: 1,
-        name: 'user',
+        LpsUser(
+          id: 1,
+          name: 'user',
+          provider: 'native',
+          lastSeenAt: DateTime(2026),
+        ),
         canReceiveMessages: true,
-        role: Role.regular,
-        authType: AuthType.native,
-        pictureUri: null,
       ),
       socketApi: SocketApi(
         connector,

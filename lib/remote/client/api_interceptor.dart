@@ -8,14 +8,18 @@ import 'package:lets_play_cities/remote/client/api_exception.dart';
 /// answer and turns an error answer into [ApiException] (as the
 /// [DioException.error]).
 ///
-/// Requests to other hosts (e.g. the download of an avatar) pass untouched.
+/// Requests outside the base URL (e.g. the download of an avatar from a
+/// social network) pass untouched.
 class ApiInterceptor extends Interceptor {
   static const _versionPrefix = '/v1';
+  static const _bearer = 'Bearer ';
 
   final TokenStore _tokens;
 
-  /// Called after an HTTP 401 answer, when the token is no longer valid.
-  final void Function() onUnauthorized;
+  /// Called after an `unauthorized` answer with the token that the failed
+  /// request sent, `null` if it sent none. The error reaches the caller once
+  /// the returned future completes.
+  final Future<void> Function(String? sentToken) onUnauthorized;
 
   ApiInterceptor(this._tokens, {required this.onUnauthorized});
 
@@ -35,7 +39,7 @@ class ApiInterceptor extends Interceptor {
 
     final token = await _tokens.read();
     if (token != null && token.isNotEmpty) {
-      options.headers['Authorization'] = 'Bearer $token';
+      options.headers['Authorization'] = '$_bearer$token';
     }
 
     options.validateStatus = (status) =>
@@ -45,14 +49,23 @@ class ApiInterceptor extends Interceptor {
   }
 
   @override
-  void onError(DioException err, ErrorInterceptorHandler handler) {
+  Future<void> onError(
+    DioException err,
+    ErrorInterceptorHandler handler,
+  ) async {
     final response = err.response;
     if (!_isApiRequest(err.requestOptions) || response == null) {
       return handler.next(err);
     }
 
     final exception = _parse(response);
-    if (exception is UnauthorizedException) onUnauthorized();
+    if (exception is UnauthorizedException) {
+      try {
+        await onUnauthorized(_sentToken(err.requestOptions));
+      } catch (_) {
+        // The handler reports its own failures; the caller gets the 401.
+      }
+    }
 
     handler.next(
       DioException(
@@ -65,8 +78,24 @@ class ApiInterceptor extends Interceptor {
     );
   }
 
-  /// Requests with an absolute URL in the path go to somebody else.
-  bool _isApiRequest(RequestOptions options) => !options.path.contains('://');
+  /// A request goes to the API when its URL is under the base URL.
+  bool _isApiRequest(RequestOptions options) {
+    final base = Uri.parse(options.baseUrl);
+    final uri = options.uri;
+
+    return uri.scheme == base.scheme &&
+        uri.host == base.host &&
+        uri.port == base.port &&
+        uri.path.startsWith(base.path);
+  }
+
+  String? _sentToken(RequestOptions options) {
+    final header = options.headers['Authorization'];
+
+    return header is String && header.startsWith(_bearer)
+        ? header.substring(_bearer.length)
+        : null;
+  }
 
   ApiException _parse(Response<dynamic> response) {
     final status = response.statusCode ?? 0;
@@ -79,7 +108,8 @@ class ApiInterceptor extends Interceptor {
         : (status == 401 ? 'unauthorized' : 'internal');
     final resolvedMessage = message is String ? message : null;
 
-    if (status == 401 || resolvedCode == 'unauthorized') {
+    // Other 401 codes, like `invalid_provider_token`, keep the session.
+    if (resolvedCode == 'unauthorized') {
       return UnauthorizedException(status, resolvedCode, resolvedMessage);
     }
     if (resolvedCode == 'banned') {

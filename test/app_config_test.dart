@@ -27,12 +27,17 @@ void main() {
     expect(config.gameSocketUrl, startsWith('ws://192.168.1.5:8988'));
   });
 
-  test('environment defaults are the secure server on 443 without pinning', () {
-    final config = AppConfig.fromEnvironment();
-
-    expect(config.port, 443);
-    expect(config.isSecure, isTrue);
-    expect(config.pinCertificate, isFalse);
-    expect(config.googleWebClientId, isEmpty);
+  test('environment without LPS_HOST fails fast', () {
+    // The tests run without --dart-define.
+    expect(
+      AppConfig.fromEnvironment,
+      throwsA(
+        isA<StateError>().having(
+          (e) => e.message,
+          'message',
+          contains('LPS_HOST'),
+        ),
+      ),
+    );
   });
 }

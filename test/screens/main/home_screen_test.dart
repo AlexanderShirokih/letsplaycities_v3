@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:lets_play_cities/remote/auth.dart';
+import 'package:lets_play_cities/remote/model/lps_user.dart';
 import 'package:lets_play_cities/screens/common/d2/d2.dart';
 import 'package:lets_play_cities/screens/main/home_screen.dart';
 
@@ -74,5 +76,36 @@ void main() {
     );
 
     expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('home avatar shows the signed-in account', (tester) async {
+    final account = RemoteAccount(
+      LpsUser(
+        id: 1,
+        name: 'мария',
+        provider: 'native',
+        lastSeenAt: DateTime(2026),
+      ),
+    );
+
+    await tester.pumpWidget(
+      withTranslations(
+        MaterialApp(
+          theme: buildD2Theme(Brightness.light),
+          home: Scaffold(
+            body: HomeScreen(actions: _noop, loadAccount: () async => account),
+          ),
+        ),
+      ),
+    );
+    await tester.pump();
+
+    final avatar = tester.widget<D2Avatar>(
+      find.descendant(
+        of: find.byTooltip('Профиль'),
+        matching: find.byType(D2Avatar),
+      ),
+    );
+    expect(avatar.initials, 'М');
   });
 }

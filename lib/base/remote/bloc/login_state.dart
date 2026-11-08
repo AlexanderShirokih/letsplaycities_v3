@@ -11,12 +11,6 @@ class LoginInitial extends LoginState {
   List<Object> get props => [];
 }
 
-/// Used while user picture updates
-class LoginAuthUpdateAvatarState extends LoginState {
-  @override
-  List<Object> get props => [];
-}
-
 /// State used while authentication process running
 class LoginAuthenticatingState extends LoginState {
   @override
@@ -29,7 +23,8 @@ class LoginAuthCompletedState extends LoginState {
   List<Object> get props => [];
 }
 
-/// State used when unknown error happens
+/// State used when the server refuses the sign-in ([ApiException]) or an
+/// unknown error happens
 class LoginErrorState extends LoginState {
   final Object error;
 
@@ -39,7 +34,7 @@ class LoginErrorState extends LoginState {
   List<Object> get props => [error];
 }
 
-/// State used when authorization was failed
+/// State used when the social network authorization failed
 class LoginAuthErrorState extends LoginState {
   final AuthorizationException exception;
 

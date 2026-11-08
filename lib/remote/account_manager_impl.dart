@@ -1,45 +1,209 @@
+import 'dart:async';
+
+import 'package:dio/dio.dart';
 import 'package:lets_play_cities/base/preferences.dart';
 import 'package:lets_play_cities/remote/api_repository_factory.dart';
 import 'package:lets_play_cities/remote/auth.dart';
-import 'package:lets_play_cities/remote/model/utils.dart';
+import 'package:lets_play_cities/remote/auth/auth_api.dart';
+import 'package:lets_play_cities/remote/client/api_exception.dart';
+import 'package:lets_play_cities/remote/model/cloud_messaging_service.dart';
+import 'package:lets_play_cities/remote/model/lps_user.dart';
+import 'package:lets_play_cities/remote/social/social_networks_service.dart';
+import 'package:lets_play_cities/utils/error_logger.dart';
 
-class AccountManagerImpl extends AccountManager {
+/// Account on the main server, signed in by the token in
+/// [ApiRepositoryFactory.tokens].
+class AccountManagerImpl implements AccountManager {
+  /// How long the account from `GET /v1/me` is served without a new request
+  static const accountLifetime = Duration(minutes: 5);
+
   final GamePreferences _preferences;
-
-  /// Talks to the main server, which keeps the accounts.
   final ApiRepositoryFactory _apiRepositories;
+  final AuthApi _auth;
+  final SocialNetworksService _socialNetworks;
+  final CloudMessagingService _messaging;
+  final ErrorLogger _logger;
+  final DateTime Function() _clock;
 
-  AccountManagerImpl(this._preferences, this._apiRepositories);
+  AccountManagerImpl({
+    required this._preferences,
+    required this._apiRepositories,
+    required this._auth,
+    required this._socialNetworks,
+    required this._messaging,
+    required this._logger,
+    DateTime Function()? clock,
+  }) : _clock = clock ?? DateTime.now;
 
-  // replaced in protocol v1 task 2: the account comes from `GET /v1/me`; there
-  // is no user id to ask the old profile endpoint with until then.
+  RemoteAccount? _account;
+  DateTime? _accountTime;
+  Future<RemoteAccount?>? _accountRequest;
+
+  /// Changes on every sign-in and sign-out, so the answer to a request of an
+  /// older session is not kept.
+  int _session = 0;
+
+  /// Sends the refreshed FCM tokens while a session is known
+  StreamSubscription<String>? _fcmRefreshes;
+
   @override
-  Future<RemoteAccount?> getLastSignedInAccount() async => null;
+  Future<RemoteAccount?> getLastSignedInAccount() {
+    final account = _account;
+    final time = _accountTime;
+    if (account != null &&
+        time != null &&
+        _clock().difference(time) < accountLifetime) {
+      return Future.value(account);
+    }
 
-  @override
-  Future<RemoteAccount> signUp(RemoteSignUpData signUpData) async {
-    final response = await _apiRepositories.clientFor().signUp(signUpData);
-
-    await _apiRepositories.tokens.write(response.accessToken);
-    _apiRepositories.cache.clear();
-
-    return RemoteAccount(
-      userId: response.userId,
-      name: response.login,
-      pictureUri: getPictureUrlOrNull(
-        _apiRepositories.serverConfig,
-        response.userId,
-        response.pictureHash,
-      ),
-      canReceiveMessages: _preferences.onlineChatEnabled,
-      role: response.role,
-      authType: response.authType,
+    return _accountRequest ??= _fetchAccount().whenComplete(
+      () => _accountRequest = null,
     );
   }
 
-  // TODO: Clear cookies here, when we implement cookies management
+  Future<RemoteAccount?> _fetchAccount() async {
+    final token = await _apiRepositories.tokens.read();
+    if (token == null || token.isEmpty) {
+      _forgetAccount();
+      return null;
+    }
+
+    final session = _session;
+    try {
+      final account = _toAccount(await _auth.me());
+      if (session == _session) {
+        _keepAccount(account);
+        if (_fcmRefreshes == null) unawaited(_startFcmSync());
+      }
+
+      return account;
+    } on UnauthorizedException {
+      // The interceptor has dropped the token.
+      if (session == _session) _forgetAccount();
+      return null;
+    }
+  }
+
   @override
-  Future signOut() => _apiRepositories.tokens.clear().then((_) {
+  Future<RemoteAccount?> trySilentNative() async {
+    try {
+      final deviceId = await _socialNetworks.getDeviceId();
+
+      return await _startSession(await _auth.native(deviceId, ''));
+    } on ApiException {
+      // `bad_name`: the device has no account and the user has to name it.
+      // The others (`banned`, `too_many_requests`) the login screen shows
+      // when the user signs in.
+      return null;
+    } on DioException {
+      return null;
+    } catch (e, s) {
+      _logger.error(e, s);
+      return null;
+    }
+  }
+
+  @override
+  Future<RemoteAccount> signInNative(String name) async {
+    final deviceId = await _socialNetworks.getDeviceId();
+
+    return _startSession(await _auth.native(deviceId, name.trim()));
+  }
+
+  @override
+  Future<RemoteAccount> signInSocial(AuthType type) async {
+    final network = await _socialNetworks.login(type);
+    final result = await _auth.social(
+      type.provider,
+      network.accessToken,
+      network.login,
+    );
+    final account = await _startSession(result);
+
+    if (result.user.avatarHash == null && network.pictureUri.isNotEmpty) {
+      unawaited(_uploadPicture(network.pictureUri));
+    }
+
+    return account;
+  }
+
+  @override
+  Future<void> signOut() async {
+    try {
+      await _auth.logout();
+    } catch (_) {
+      // The token is dropped anyway; the server forgets it in time.
+    }
+
+    _session++;
+    _forgetAccount();
+    await _fcmRefreshes?.cancel();
+    _fcmRefreshes = null;
+    await _apiRepositories.tokens.clear();
     _apiRepositories.cache.clear();
-  });
+  }
+
+  Future<RemoteAccount> _startSession(AuthResult result) async {
+    await _apiRepositories.tokens.write(result.token);
+    _apiRepositories.cache.clear();
+    _session++;
+
+    final account = _toAccount(result.user);
+    _keepAccount(account);
+    await _startFcmSync();
+
+    return account;
+  }
+
+  /// Sends the FCM token now and each time it changes
+  Future<void> _startFcmSync() async {
+    try {
+      _fcmRefreshes ??= _messaging.tokenRefreshes.listen(
+        (token) => unawaited(_sendFcmToken(token)),
+        onError: _logger.error,
+      );
+
+      await _sendFcmToken(await _messaging.getUserToken());
+    } catch (e, s) {
+      _logger.error(e, s);
+    }
+  }
+
+  Future<void> _sendFcmToken(String token) async {
+    if (token.isEmpty) return;
+
+    try {
+      await _auth.updateMe(fcmToken: token);
+    } catch (e, s) {
+      // Without the token the user only gets no invitations.
+      _logger.error(e, s);
+    }
+  }
+
+  /// Uploads the picture of the social network as the avatar
+  Future<void> _uploadPicture(String pictureUri) async {
+    try {
+      // replaced in protocol v1 task 3: updatePicture sends PUT /v1/me/avatar
+      await _apiRepositories.forUser().updatePictureFromURL(pictureUri);
+      _forgetAccount();
+    } catch (e, s) {
+      _logger.error(e, s);
+    }
+  }
+
+  RemoteAccount _toAccount(LpsUser user) => RemoteAccount(
+    user,
+    avatarUrl: user.avatarUrl(_apiRepositories.pictureConfig),
+    canReceiveMessages: _preferences.onlineChatEnabled,
+  );
+
+  void _keepAccount(RemoteAccount account) {
+    _account = account;
+    _accountTime = _clock();
+  }
+
+  void _forgetAccount() {
+    _account = null;
+    _accountTime = null;
+  }
 }

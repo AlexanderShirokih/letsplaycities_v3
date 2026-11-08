@@ -3,6 +3,7 @@ import 'package:lets_play_cities/base/preferences.dart';
 import 'package:lets_play_cities/base/usecases.dart';
 import 'package:lets_play_cities/remote/auth.dart';
 import 'package:lets_play_cities/remote/exceptions.dart';
+import 'package:lets_play_cities/remote/model/lps_user.dart';
 import 'package:lets_play_cities/remote/server/local_account_manager.dart';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
@@ -19,14 +20,12 @@ import 'local_account_manager_test.mocks.dart';
 ])
 void main() {
   late AccountManager accountManager;
-  late RemoteSignUpData signUpData;
   late GamePreferences gamePreferences;
   late AccountManager mainAccountManager;
   late MockSignUp signUp;
 
   setUp(() {
     signUp = MockSignUp();
-    signUpData = MockRemoteSignUpData();
     gamePreferences = MockGamePreferences();
     mainAccountManager = MockAccountManager();
     accountManager = LocalAccountManager(
@@ -45,14 +44,20 @@ void main() {
   });
 
   test(
-    'Sign Up throws an error, cause it is unsupported on local games',
+    'Sign-ins throw an error, cause they are unsupported on local games',
     () async {
       await expectLater(
-        () => accountManager.signUp(signUpData),
+        accountManager.signInNative('name'),
         throwsA(isA<RemoteException>()),
       );
-
-      verifyNoMoreInteractions(signUpData);
+      await expectLater(
+        accountManager.signInSocial(AuthType.google),
+        throwsA(isA<RemoteException>()),
+      );
+      await expectLater(
+        accountManager.trySilentNative(),
+        throwsA(isA<RemoteException>()),
+      );
     },
   );
 
@@ -75,12 +80,13 @@ void main() {
 
     when(mainAccountManager.getLastSignedInAccount()).thenAnswer(
       (_) async => RemoteAccount(
-        userId: 4321,
-        name: 'test_remote',
-        canReceiveMessages: false,
-        role: Role.regular,
-        authType: AuthType.native,
-        pictureUri: 'http://test',
+        LpsUser(
+          id: 4321,
+          name: 'test_remote',
+          provider: 'native',
+          lastSeenAt: DateTime(2026),
+        ),
+        avatarUrl: 'http://test',
       ) as RemoteAccount?,
     );
 
@@ -90,7 +96,8 @@ void main() {
     verify(signUp.execute(any)).called(1);
 
     expect(result.userId, equals(1234));
-    expect(result.authType, equals(AuthType.native));
+    expect(result.user.provider, equals('lan'));
+    expect(result.avatarUrl, equals('http://test'));
     expect(result.name, equals('test_remote'));
     expect(result.canReceiveMessages, isTrue);
   });
@@ -151,7 +158,7 @@ void main() {
     verify(signUp.execute(any)).called(1);
 
     expect(result.userId, equals(response.userId));
-    expect(result.authType, equals(response.authType));
+    expect(result.user.provider, equals('lan'));
     expect(result.name, equals(response.login));
     expect(result.canReceiveMessages, isTrue);
   });

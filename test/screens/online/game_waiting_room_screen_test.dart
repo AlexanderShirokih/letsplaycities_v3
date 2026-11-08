@@ -9,11 +9,14 @@ import 'package:lets_play_cities/base/game/game_config.dart';
 import 'package:lets_play_cities/base/preferences.dart';
 import 'package:lets_play_cities/base/remote/bloc/waiting_room_bloc.dart';
 import 'package:lets_play_cities/i18n/strings.g.dart';
+import 'package:lets_play_cities/remote/api_repository_factory.dart';
 import 'package:lets_play_cities/remote/auth.dart';
+import 'package:lets_play_cities/remote/auth/token_store.dart';
 import 'package:lets_play_cities/remote/client/remote_game_client.dart';
 import 'package:lets_play_cities/remote/exceptions.dart';
 import 'package:lets_play_cities/remote/model/cloud_messaging_service.dart';
 import 'package:lets_play_cities/remote/model/friend_game_request.dart';
+import 'package:lets_play_cities/remote/model/lps_user.dart';
 import 'package:lets_play_cities/screens/common/common_widgets.dart';
 import 'package:lets_play_cities/screens/online/common_online_widgets.dart';
 import 'package:lets_play_cities/screens/online/game_waiting_room_screen.dart';
@@ -79,12 +82,7 @@ class _FlakyGameClient implements RemoteGameClient {
 }
 
 final _account = RemoteAccount(
-  userId: 1,
-  name: 'user',
-  canReceiveMessages: false,
-  role: Role.regular,
-  authType: AuthType.native,
-  pictureUri: null,
+  LpsUser(id: 1, name: 'user', provider: 'native', lastSeenAt: DateTime(2026)),
 );
 
 final _t = AppLocale.ru.buildSync();
@@ -96,7 +94,13 @@ void _registerServices(AccountManager accountManager) {
     ..registerSingleton<CloudMessagingService>(StubCloudMessagingService())
     ..registerSingleton<GamePreferences>(_FakePreferences())
     ..registerSingleton<AppConfig>(config)
-    ..registerSingleton<AppConfig>(config, instanceName: 'api');
+    ..registerSingleton<ApiRepositoryFactory>(
+      ApiRepositoryFactory.main(
+        config,
+        MemoryTokenStore(),
+        onError: (e, s) => fail('$e'),
+      ),
+    );
 }
 
 Widget _app(Widget child) =>

@@ -37,17 +37,20 @@ class _FakeServer implements HttpClientAdapter {
 void main() {
   late _FakeServer server;
   late MemoryTokenStore tokens;
-  late int unauthorizedCalls;
+  late List<String?> unauthorized;
   late Dio dio;
 
   setUp(() {
     server = _FakeServer();
     tokens = MemoryTokenStore('secret');
-    unauthorizedCalls = 0;
+    unauthorized = [];
     dio = Dio(BaseOptions(baseUrl: 'https://lps.test:443/v1'))
       ..httpClientAdapter = server
       ..interceptors.add(
-        ApiInterceptor(tokens, onUnauthorized: () => unauthorizedCalls++),
+        ApiInterceptor(
+          tokens,
+          onUnauthorized: (sentToken) async => unauthorized.add(sentToken),
+        ),
       );
   });
 
@@ -130,10 +133,10 @@ void main() {
     expect(e, isA<BannedException>());
     expect(e.status, 403);
     expect(e.message, 'Rude');
-    expect(unauthorizedCalls, 0);
+    expect(unauthorized, isEmpty);
   });
 
-  test('401 calls onUnauthorized', () async {
+  test('401 calls onUnauthorized with the token it sent', () async {
     server
       ..status = 401
       ..body = jsonEncode({
@@ -144,8 +147,43 @@ void main() {
 
     expect(e, isA<UnauthorizedException>());
     expect(e.status, 401);
-    expect(unauthorizedCalls, 1);
+    expect(unauthorized, ['secret']);
   });
+
+  test('a rejected provider token is not a lost session', () async {
+    server
+      ..status = 401
+      ..body = jsonEncode({
+        'error': {'code': 'invalid_provider_token', 'message': 'No'},
+      });
+
+    final e = await failure(dio.post('/auth/social'));
+
+    expect(e, isNot(isA<UnauthorizedException>()));
+    expect(e.code, 'invalid_provider_token');
+    expect(unauthorized, isEmpty);
+  });
+
+  test('a 401 without an error body is a lost session', () async {
+    server
+      ..status = 401
+      ..contentType = Headers.textPlainContentType
+      ..body = 'Unauthorized';
+
+    final e = await failure(dio.get('/me'));
+
+    expect(e, isA<UnauthorizedException>());
+    expect(unauthorized, ['secret']);
+  });
+
+  test(
+    'a relative path with a URL in its query still gets the token',
+    () async {
+      await dio.get('/history?ref=https://other.test/page');
+
+      expect(server.requests.single.headers['Authorization'], 'Bearer secret');
+    },
+  );
 
   test("non-json error body keeps status with code 'internal'", () async {
     server
@@ -175,7 +213,7 @@ void main() {
       }
 
       expect(server.requests.single.headers, isNot(contains('Authorization')));
-      expect(unauthorizedCalls, 0);
+      expect(unauthorized, isEmpty);
     },
   );
 }

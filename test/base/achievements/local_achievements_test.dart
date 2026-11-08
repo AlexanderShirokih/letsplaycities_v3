@@ -3,6 +3,7 @@ import 'package:lets_play_cities/base/achievements/achievements.dart';
 import 'package:lets_play_cities/base/achievements/achievements_service.dart';
 import 'package:lets_play_cities/base/achievements/local_achievements.dart';
 import 'package:lets_play_cities/base/preferences.dart';
+import 'package:lets_play_cities/utils/error_logger.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class _RecordingAchievements implements AchievementsService {
@@ -26,8 +27,39 @@ class _RecordingAchievements implements AchievementsService {
       calls.add('showLeaderboardScreen');
 }
 
+/// Fails every call, like the game services without Google Play.
+class _BrokenAchievements implements AchievementsService {
+  @override
+  Future<void> unlockAchievement(
+    Achievement achievement, [
+    int incrementCount = 1,
+  ]) async => throw StateError('No Google Play');
+
+  @override
+  Future<void> submitScore(int score) => throw StateError('No Google Play');
+
+  @override
+  Future<void> showAchievementsScreen() async =>
+      throw StateError('No Google Play');
+
+  @override
+  Future<void> showLeaderboardScreen() async =>
+      throw StateError('No Google Play');
+}
+
+class _RecordingLogger implements ErrorLogger {
+  final errors = <Object>[];
+
+  @override
+  void error(Object error, StackTrace stackTrace) => errors.add(error);
+
+  @override
+  void log(String message) {}
+}
+
 void main() {
   late GamePreferences prefs;
+  late _RecordingLogger logger;
   late _RecordingAchievements inner;
   late LocalAchievementsService service;
 
@@ -35,7 +67,8 @@ void main() {
     SharedPreferences.setMockInitialValues({});
     prefs = SharedPreferencesGamePrefs(await SharedPreferences.getInstance());
     inner = _RecordingAchievements();
-    service = LocalAchievementsService(inner, prefs);
+    logger = _RecordingLogger();
+    service = LocalAchievementsService(inner, prefs, logger);
   });
 
   test('incremental achievement unlocks at target', () async {
@@ -76,9 +109,25 @@ void main() {
   test('progress is kept in the preferences', () async {
     await service.unlockAchievement(Achievement.write80Cities, 30);
 
-    final reopened = LocalAchievementsService(inner, prefs);
+    final reopened = LocalAchievementsService(inner, prefs, logger);
 
     expect(reopened.progress(Achievement.write80Cities), 30);
     expect(prefs.achievementsProgress, {'write80Cities': 30});
+  });
+
+  test('local achievements survive inner service errors', () async {
+    final broken = LocalAchievementsService(
+      _BrokenAchievements(),
+      prefs,
+      logger,
+    );
+
+    await broken.unlockAchievement(Achievement.use3Tips, 3);
+    await broken.submitScore(10);
+    await broken.showAchievementsScreen();
+    await broken.showLeaderboardScreen();
+
+    expect(broken.isUnlocked(Achievement.use3Tips), isTrue);
+    expect(logger.errors, hasLength(4));
   });
 }

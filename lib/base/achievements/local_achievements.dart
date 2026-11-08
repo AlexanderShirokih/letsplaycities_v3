@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:lets_play_cities/base/achievements/achievements.dart';
 import 'package:lets_play_cities/base/achievements/achievements_service.dart';
 import 'package:lets_play_cities/base/preferences.dart';
+import 'package:lets_play_cities/utils/error_logger.dart';
 
 /// Progress at which an incremental achievement is unlocked. Every other
 /// achievement is unlocked by its first call.
@@ -19,12 +20,14 @@ const achievementTargets = <Achievement, int>{
 };
 
 /// Keeps achievements on the device alongside [_inner], which reports them
-/// to the game services.
+/// to the game services. Failures of [_inner] are logged and never reach the
+/// caller: the local progress does not depend on them.
 class LocalAchievementsService implements AchievementsService {
   final AchievementsService _inner;
   final GamePreferences _prefs;
+  final ErrorLogger _logger;
 
-  LocalAchievementsService(this._inner, this._prefs);
+  LocalAchievementsService(this._inner, this._prefs, this._logger);
 
   /// Progress of [achievement], at most its target
   int progress(Achievement achievement) =>
@@ -49,17 +52,27 @@ class LocalAchievementsService implements AchievementsService {
     );
     _prefs.achievementsProgress = all;
 
-    return _inner.unlockAchievement(achievement, incrementCount);
+    return _guard(() => _inner.unlockAchievement(achievement, incrementCount));
   }
 
   @override
-  Future<void> submitScore(int score) => _inner.submitScore(score);
+  Future<void> submitScore(int score) =>
+      _guard(() => _inner.submitScore(score));
 
   @override
-  Future<void> showAchievementsScreen() => _inner.showAchievementsScreen();
+  Future<void> showAchievementsScreen() =>
+      _guard(_inner.showAchievementsScreen);
 
   @override
-  Future<void> showLeaderboardScreen() => _inner.showLeaderboardScreen();
+  Future<void> showLeaderboardScreen() => _guard(_inner.showLeaderboardScreen);
+
+  Future<void> _guard(Future<void> Function() call) async {
+    try {
+      await call();
+    } catch (e, s) {
+      _logger.error(e, s);
+    }
+  }
 
   static int _target(Achievement achievement) =>
       achievementTargets[achievement] ?? 1;

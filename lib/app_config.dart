@@ -9,9 +9,6 @@ class AppConfig extends Equatable {
     defaultValue: true,
   );
   static const _kPinCertificate = bool.fromEnvironment('LPS_PIN_CERT');
-  static const _kGoogleWebClientId = String.fromEnvironment(
-    'LPS_GOOGLE_WEB_CLIENT_ID',
-  );
 
   /// Path of the protocol version that the main server serves.
   static const _kApiPath = '/v1';
@@ -42,9 +39,6 @@ class AppConfig extends Equatable {
   /// `true` if only the certificate from `assets/cert/lps.pem` is trusted
   final bool pinCertificate;
 
-  /// Google OAuth web client ID that the Google sign-in asks the ID token for
-  final String googleWebClientId;
-
   /// The embedded LAN server serves its paths without the protocol prefix.
   final String _path;
 
@@ -53,30 +47,29 @@ class AppConfig extends Equatable {
     this.port,
     this.isSecure,
     this.pinCertificate,
-    this.googleWebClientId,
     this._path,
   );
 
   @override
-  List<Object> get props => [
-    host,
-    port,
-    isSecure,
-    pinCertificate,
-    googleWebClientId,
-    _path,
-  ];
+  List<Object> get props => [host, port, isSecure, pinCertificate, _path];
 
   /// Reads the main server settings from `--dart-define`:
-  /// `LPS_HOST`, `LPS_PORT` (443), `LPS_SECURE` (true), `LPS_PIN_CERT` (false),
-  /// `LPS_GOOGLE_WEB_CLIENT_ID` ('').
-  factory AppConfig.fromEnvironment() => AppConfig.forHost(
-    _kHost,
-    port: _kPort,
-    isSecure: _kSecure,
-    pinCertificate: _kPinCertificate,
-    googleWebClientId: _kGoogleWebClientId,
-  );
+  /// `LPS_HOST`, `LPS_PORT` (443), `LPS_SECURE` (true), `LPS_PIN_CERT` (false).
+  /// Throws [StateError] when `LPS_HOST` is not set.
+  factory AppConfig.fromEnvironment() {
+    if (_kHost.isEmpty) {
+      throw StateError(
+        'The server host is not set: build with --dart-define=LPS_HOST=<host>',
+      );
+    }
+
+    return AppConfig.forHost(
+      _kHost,
+      port: _kPort,
+      isSecure: _kSecure,
+      pinCertificate: _kPinCertificate,
+    );
+  }
 
   /// Main server at [host].
   factory AppConfig.forHost(
@@ -84,20 +77,12 @@ class AppConfig extends Equatable {
     int port = 443,
     bool isSecure = true,
     bool pinCertificate = false,
-    String googleWebClientId = '',
-  }) => AppConfig._(
-    host,
-    port,
-    isSecure,
-    pinCertificate,
-    googleWebClientId,
-    _kApiPath,
-  );
+  }) => AppConfig._(host, port, isSecure, pinCertificate, _kApiPath);
 
   /// Game server in the local network: plain HTTP and WS, no pinning.
   // The path becomes `/v1` when the LAN host moves to protocol v1.
   factory AppConfig.lan(String host, {int port = 8988}) =>
-      AppConfig._(host, port, false, false, '', '');
+      AppConfig._(host, port, false, false, '');
 
   /// Creates a deep copy with overriding parameters
   AppConfig copy({String? host, int? port, bool? isSecure}) => AppConfig._(
@@ -105,7 +90,6 @@ class AppConfig extends Equatable {
     port ?? this.port,
     isSecure ?? this.isSecure,
     pinCertificate,
-    googleWebClientId,
     _path,
   );
 }

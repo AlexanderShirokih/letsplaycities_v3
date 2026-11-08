@@ -5,7 +5,6 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:lets_play_cities/base/remote/bloc/user_actions_bloc.dart';
 import 'package:lets_play_cities/i18n/strings.g.dart';
 import 'package:lets_play_cities/i18n/time_format.dart';
-import 'package:lets_play_cities/remote/account_manager.dart';
 import 'package:lets_play_cities/remote/model/profile_info.dart';
 import 'package:lets_play_cities/remote/model/history_info.dart';
 import 'package:lets_play_cities/screens/common/utils.dart';
@@ -15,7 +14,7 @@ import 'package:lets_play_cities/screens/online/profile.dart';
 
 /// Battle history list screen
 /// Provides a list of user battle history
-/// Requires [ApiRepository] and [AccountManager] repositories in the widget tree.
+/// Requires [ApiRepository] repository in the widget tree.
 class OnlineHistoryScreen extends StatelessWidget
     with BaseListFetchingScreenMixin<HistoryInfo>, NetworkAvatarBuildingMixin {
   static final DateFormat _timeFormat = DateFormat('dd.MM.yyyy');

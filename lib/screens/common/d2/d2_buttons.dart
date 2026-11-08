@@ -18,6 +18,9 @@ enum D2ButtonKind {
 
   /// Yellow without an outline
   hint,
+
+  /// Surface with an outline and regular text, like the sign-in buttons
+  outline,
 }
 
 enum D2ButtonSize {
@@ -149,6 +152,9 @@ class _DashedPainter extends BoxPainter {
 class D2Button extends StatelessWidget {
   final String label;
   final D2Glyph? icon;
+
+  /// Replaces [icon] with a mark of its own, like the Google "G"
+  final Widget? leading;
   final VoidCallback? onPressed;
   final D2ButtonKind kind;
   final D2ButtonSize size;
@@ -164,6 +170,7 @@ class D2Button extends StatelessWidget {
     super.key,
     required this.label,
     this.icon,
+    this.leading,
     this.onPressed,
     this.kind = D2ButtonKind.primary,
     this.size = D2ButtonSize.medium,
@@ -188,13 +195,16 @@ class D2Button extends StatelessWidget {
         D2Colors.light.ink,
         c.shadow.withAlpha(56),
       ),
+      D2ButtonKind.outline => (c.surface, c.shadow, c.ink, c.shadow),
     };
 
     final bordered = border != null;
     final fontSize = large ? 18.0 : 14.0;
-    final style = kind == D2ButtonKind.secondary && !large
-        ? D2Text.body.copyWith(fontSize: 15)
-        : D2Text.cta.copyWith(fontSize: fontSize);
+    final style = switch (kind) {
+      D2ButtonKind.outline => D2Text.body,
+      D2ButtonKind.secondary when !large => D2Text.body.copyWith(fontSize: 15),
+      _ => D2Text.cta.copyWith(fontSize: fontSize),
+    };
     final textColor = enabled ? fg : c.inkSoft;
 
     final button = _Pressable(
@@ -213,7 +223,10 @@ class D2Button extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            if (icon != null) ...[
+            if (leading != null) ...[
+              leading!,
+              const SizedBox(width: 12),
+            ] else if (icon != null) ...[
               D2Icon(icon!, size: large ? 24 : 20, color: textColor),
               const SizedBox(width: 8),
             ],

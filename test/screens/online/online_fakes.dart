@@ -11,6 +11,7 @@ import 'package:lets_play_cities/remote/auth.dart';
 import 'package:lets_play_cities/remote/model/blacklist_item_info.dart';
 import 'package:lets_play_cities/remote/model/friend_info.dart';
 import 'package:lets_play_cities/remote/model/history_info.dart';
+import 'package:lets_play_cities/remote/model/lps_user.dart';
 
 import '../../i18n/translations_harness.dart';
 
@@ -182,25 +183,17 @@ class FakeAccountManager extends Fake implements AccountManager {
 }
 
 RemoteAccount remoteAccount(int userId, String name) => RemoteAccount(
-  userId: userId,
-  name: name,
-  canReceiveMessages: false,
-  role: Role.regular,
-  authType: AuthType.native,
-  pictureUri: null,
+  LpsUser(
+    id: userId,
+    name: name,
+    provider: 'native',
+    lastSeenAt: DateTime(2026, 1, 1),
+  ),
 );
 
-/// Puts [screen] into an app that provides [repository] and,
-/// when given, [accountManager].
-Widget hostScreen(
-  Widget screen, {
-  required ApiRepository repository,
-  AccountManager? accountManager,
-}) => MultiRepositoryProvider(
-  providers: [
-    RepositoryProvider<ApiRepository>.value(value: repository),
-    if (accountManager != null)
-      RepositoryProvider<AccountManager>.value(value: accountManager),
-  ],
-  child: withTranslations(MaterialApp(home: Scaffold(body: screen))),
-);
+/// Puts [screen] into an app that provides [repository].
+Widget hostScreen(Widget screen, {required ApiRepository repository}) =>
+    RepositoryProvider<ApiRepository>.value(
+      value: repository,
+      child: withTranslations(MaterialApp(home: Scaffold(body: screen))),
+    );

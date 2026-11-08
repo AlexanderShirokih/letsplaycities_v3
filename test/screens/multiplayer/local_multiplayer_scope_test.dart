@@ -70,7 +70,9 @@ void main() {
       mainTokens,
       (config, tokens) => Dio(BaseOptions(baseUrl: config.restBaseUrl))
         ..httpClientAdapter = server
-        ..interceptors.add(ApiInterceptor(tokens, onUnauthorized: () {})),
+        ..interceptors.add(
+          ApiInterceptor(tokens, onUnauthorized: (_) async {}),
+        ),
     );
     getIt
       ..registerSingleton<AppConfig>(mainConfig)
