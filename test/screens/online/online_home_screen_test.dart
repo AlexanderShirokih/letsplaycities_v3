@@ -93,6 +93,14 @@ class _SessionAccountManager extends FakeAccountManager {
 
   @override
   Future<RemoteAccount?> trySilentNative() async => null;
+
+  int signOuts = 0;
+
+  @override
+  Future<void> signOut() async {
+    signOuts++;
+    account = null;
+  }
 }
 
 final _t = AppLocale.ru.buildSync();
@@ -100,7 +108,7 @@ final _me = remoteAccount(1, 'Мария');
 
 void main() {
   late FakeApiRepository repository;
-  late FakeAccountManager accountManager;
+  late _SessionAccountManager accountManager;
   late DateTime now;
 
   setUp(() {
@@ -452,6 +460,37 @@ void main() {
     await settle(tester);
     expect(find.text(_t.online.noConnection), findsOneWidget);
     expect(tester.takeException(), isNull);
+  });
+  testWidgets('the own profile opens from the header and signs out', (
+    tester,
+  ) async {
+    useFakeConnection();
+    await tester.pumpWidget(
+      app(
+        Builder(
+          builder: (context) => TextButton(
+            onPressed: () =>
+                Navigator.of(context)
+                    .push(MaterialPageRoute(builder: (_) => home())),
+            child: const Text('menu'),
+          ),
+        ),
+      ),
+    );
+    await tester.tap(find.text('menu'));
+    await settle(tester);
+    await tester.pump(const Duration(seconds: 1));
+
+    await tester.tap(find.byTooltip(_t.online.profileTab));
+    await settle(tester);
+    await tester.pump(const Duration(seconds: 1));
+    await tester.tap(find.text(_t.online.signOut));
+    await settle(tester);
+    await tester.pump(const Duration(seconds: 1));
+
+    expect(accountManager.signOuts, 1);
+    expect(find.text('menu'), findsOneWidget);
+    expect(find.byType(OnlineHomeScreen), findsNothing);
   });
 }
 

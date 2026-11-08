@@ -306,13 +306,13 @@ void main() {
   });
 
   test('an accepted invitation starts the game of its match', () async {
-    bloc.add(const ReplyToInvite(3, true));
+    bloc.add(const ReplyToInvite(2, true));
     await pumpEventQueue();
     connection.receive(_match);
     await pumpEventQueue();
 
     expect(states, [const Connecting(), isA<Starting>(), const Idle()]);
-    expect(connection.sent, [const protocol.InviteReply(3, accept: true)]);
+    expect(connection.sent, [const protocol.InviteReply(2, accept: true)]);
   });
 
   test('an answer to a withdrawn invitation finishes with expired', () async {
@@ -336,4 +336,68 @@ void main() {
     expect(bloc.state, const Idle());
     expect(connection.sent, [const protocol.InviteReply(3, accept: false)]);
   });
+
+  test(
+    'a match that crossed the cancel of a find is left while inviting',
+    () async {
+      bloc.add(const FindPressed());
+      await pumpEventQueue();
+      connection.receive(const protocol.Queued());
+      await pumpEventQueue();
+      bloc.add(InvitePressed(_friend));
+      await pumpEventQueue();
+
+      connection
+        ..receive(const protocol.Queued())
+        ..receive(
+          const protocol.Match(
+            gameId: 6,
+            opponent: protocol.MatchOpponent(
+              id: 9,
+              name: 'Бот',
+              friendship: Friendship.none,
+            ),
+            youStart: true,
+            moveTimeSec: 30,
+          ),
+        );
+      await pumpEventQueue();
+
+      expect(states.whereType<Starting>(), isEmpty);
+      expect(bloc.state, Inviting(_friend));
+      expect(connection.sent, [
+        const protocol.Find(),
+        const protocol.Cancel(),
+        const protocol.Invite(2),
+        const protocol.Leave(),
+      ]);
+
+      connection.receive(_match);
+      await pumpEventQueue();
+      expect(states.whereType<Starting>(), hasLength(1));
+    },
+  );
+
+  test(
+    'the status of an earlier invitation does not end the current one',
+    () async {
+      final other = LpsUser(
+        id: 3,
+        name: 'Анна',
+        provider: 'native',
+        lastSeenAt: DateTime(2026),
+      );
+      bloc.add(InvitePressed(other));
+      await pumpEventQueue();
+      bloc.add(InvitePressed(_friend));
+      await pumpEventQueue();
+
+      connection.receive(
+        const protocol.InviteStatus(3, protocol.InviteStatusKind.declined),
+      );
+      await pumpEventQueue();
+
+      expect(bloc.state, Inviting(_friend));
+    },
+  );
 }

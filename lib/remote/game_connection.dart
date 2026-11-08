@@ -47,8 +47,9 @@ class GameConnection {
   final ErrorLogger? _logger;
   final Duration _welcomeTimeout;
 
-  /// Gets the headers of an upgrade that the server refused with 401
-  final void Function(Map<String, String> headers)? _onUnauthorized;
+  /// Gets the headers of an upgrade that the server refused with 401;
+  /// [ensureConnected] fails once it completes
+  final Future<void> Function(Map<String, String> headers)? _onUnauthorized;
   final GameMessageCodec _codec = const GameMessageCodec();
 
   final _messages = StreamController<ServerGameMessage>.broadcast();
@@ -80,7 +81,7 @@ class GameConnection {
     required Future<Map<String, String>> Function() headers,
     required String Function() playerName,
     ErrorLogger? logger,
-    void Function(Map<String, String> headers)? onUnauthorized,
+    Future<void> Function(Map<String, String> headers)? onUnauthorized,
   }) => GameConnection(
     url: url,
     headers: headers,
@@ -145,9 +146,10 @@ class GameConnection {
       final connector = _connector = _connectorFactory(_url, headers);
       _subscription = connector.messageStream.listen(
         (event) => _onEvent(connector, completer, event),
-        onError: (Object error, StackTrace stackTrace) {
+        onError: (Object error, StackTrace stackTrace) async {
+          // The caller of ensureConnected sees the token already dropped
           if (error is UnauthorizedException && _ready == completer) {
-            _onUnauthorized?.call(headers);
+            await _onUnauthorized?.call(headers);
           }
           _fail(completer, error, stackTrace);
         },

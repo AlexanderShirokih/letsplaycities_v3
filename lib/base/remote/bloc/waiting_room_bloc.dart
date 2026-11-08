@@ -155,7 +155,7 @@ class WaitingRoomBloc extends Bloc<WaitingRoomEvent, WaitingRoomState>
     // Cancelled or replaced while the connection opened
     if (request != _request) return;
 
-    _listen(request);
+    _listen(request, source);
     _requestSent = true;
 
     try {
@@ -205,11 +205,36 @@ class WaitingRoomBloc extends Bloc<WaitingRoomEvent, WaitingRoomState>
     }
   }
 
-  void _listen(int request) {
+  /// Listens to the answers of [request]. The server may still answer an
+  /// earlier request that crossed its cancel: only the answers about the
+  /// opponent of [source] count.
+  void _listen(int request, WaitingRoomEvent source) {
     unawaited(_stopListening());
 
+    final opponentId = switch (source) {
+      InvitePressed(:final friend) => friend.id,
+      ReplyToInvite(:final fromId) => fromId,
+      _ => null,
+    };
+
     _waiting = _gameClient.waiting.listen((message) {
+      // A match after close: the cancel that close sent leaves it
       if (_closing || request != _request) return;
+
+      final earlier = switch (message) {
+        protocol.Queued() => opponentId != null,
+        protocol.InviteStatus(:final userId) => userId != opponentId,
+        protocol.Match(:final opponent) =>
+          opponentId != null && opponent.id != opponentId,
+        protocol.ProtocolError() => false,
+      };
+      if (earlier) {
+        // E.g. a match of the queue that crossed the cancel before an
+        // invitation: nobody plays it
+        if (message is protocol.Match) _gameClient.leaveMatch();
+
+        return;
+      }
 
       if (message is protocol.Match) {
         // Read at once: the game keeps what the server says from now on

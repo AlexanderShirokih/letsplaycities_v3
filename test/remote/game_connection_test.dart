@@ -219,7 +219,7 @@ void main() {
   group('with its own settings', () {
     GameConnection connectionWith({
       Duration welcomeTimeout = const Duration(seconds: 10),
-      void Function(Map<String, String> headers)? onUnauthorized,
+      Future<void> Function(Map<String, String> headers)? onUnauthorized,
     }) => GameConnection(
       url: 'wss://test/v1/game',
       headers: () async => {'Authorization': 'Bearer t'},
@@ -258,7 +258,9 @@ void main() {
     test('a refused upgrade gives onUnauthorized the sent headers', () async {
       autoWelcome = false;
       final refusals = <Map<String, String>>[];
-      final connection = connectionWith(onUnauthorized: refusals.add);
+      final connection = connectionWith(
+        onUnauthorized: (headers) async => refusals.add(headers),
+      );
 
       final first = connection.ensureConnected();
       await pumpEventQueue();
@@ -276,6 +278,28 @@ void main() {
       expect(refusals, [
         {'Authorization': 'Bearer t'},
       ]);
+    });
+
+    test('a refused upgrade fails only after onUnauthorized', () async {
+      autoWelcome = false;
+      final dropped = Completer<void>();
+      final connection = connectionWith(onUnauthorized: (_) => dropped.future);
+      var failed = false;
+
+      final future = connection.ensureConnected().then<void>(
+        (_) {},
+        onError: (Object _) => failed = true,
+      );
+      await pumpEventQueue();
+      connectors.last.controller.addError(
+        const UnauthorizedException(401, 'unauthorized'),
+      );
+      await pumpEventQueue();
+      expect(failed, isFalse);
+
+      dropped.complete();
+      await future;
+      expect(failed, isTrue);
     });
   });
 }

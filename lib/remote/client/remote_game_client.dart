@@ -91,12 +91,18 @@ class RemoteGameClient {
       if (message is! Match) return;
 
       _disarmLateMatchGuard();
-      try {
-        _connection.send(const Leave());
-      } on RemoteIOException {
-        // The server ends the game of a lost connection itself
-      }
+      leaveMatch();
     });
+  }
+
+  /// Leaves the game of a match that this client will not play, without
+  /// building it
+  void leaveMatch() {
+    try {
+      _connection.send(const Leave());
+    } on RemoteIOException {
+      // The server ends the game of a lost connection itself
+    }
   }
 
   void _disarmLateMatchGuard() {

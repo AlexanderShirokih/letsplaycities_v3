@@ -13,6 +13,7 @@ import 'package:lets_play_cities/screens/online/common_online_widgets.dart';
 import 'package:lets_play_cities/screens/online/friends.dart';
 import 'package:lets_play_cities/screens/online/game_master.dart';
 import 'package:lets_play_cities/screens/online/game_waiting_room_screen.dart';
+import 'package:lets_play_cities/screens/online/profile.dart';
 
 /// «Онлайн»: the search card and up to three friends to invite. Needs the
 /// signed-in [RemoteAccount] above it.
@@ -78,6 +79,23 @@ class _OnlineHomeScreenState extends State<OnlineHomeScreen> {
       Navigator.of(context)
           .pushReplacement(OnlineGameMasterScreen.createNavigationRoute());
 
+  /// The own online profile, with «Выйти»
+  void _openProfile() {
+    final t = context.t;
+
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => RepositoryProvider<ApiRepository>.value(
+          value: _repository,
+          child: Scaffold(
+            appBar: AppBar(title: Text(t.online.profileTab)),
+            body: OnlineProfileView(onInvite: _invite),
+          ),
+        ),
+      ),
+    );
+  }
+
   void _openFriends() {
     final t = context.t;
 
@@ -115,6 +133,13 @@ class _OnlineHomeScreenState extends State<OnlineHomeScreen> {
                   D2ScreenHeader(
                     title: t.online.title,
                     onBack: () => Navigator.of(context).maybePop(),
+                    actions: [
+                      D2IconButton(
+                        D2Glyph.profile,
+                        tooltip: t.online.profileTab,
+                        onPressed: _openProfile,
+                      ),
+                    ],
                   ),
                   Expanded(
                     child: ListView(

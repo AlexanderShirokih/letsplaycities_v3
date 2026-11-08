@@ -241,11 +241,16 @@ class _OnlineProfileViewState extends State<OnlineProfileView> {
                     child: FloatingActionButton.extended(
                       backgroundColor: D2Colors.of(context).orange,
                       foregroundColor: D2Colors.of(context).shadow,
+                      // Back to the main menu: the online screens below
+                      // belong to the account that signed out
                       onPressed: () => GetIt.instance
                           .get<AccountManager>()
                           .signOut()
                           .then((_) {
-                            if (context.mounted) Navigator.of(context).pop();
+                            if (!context.mounted) return;
+
+                            Navigator.of(context)
+                                .popUntil((route) => route.isFirst);
                           }),
                       icon: const D2Icon(D2Glyph.exit),
                       label: Text(context.t.online.signOut, style: D2Text.body),
