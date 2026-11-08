@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get_it/get_it.dart';
 import 'package:lets_play_cities/base/achievements/achievements_service.dart';
 import 'package:lets_play_cities/base/remote/bloc/user_actions_bloc.dart';
+import 'package:lets_play_cities/base/remote/bloc/waiting_room_bloc.dart';
 import 'package:lets_play_cities/i18n/strings.g.dart';
 import 'package:lets_play_cities/i18n/last_seen.dart';
 import 'package:lets_play_cities/remote/account_manager.dart';
@@ -36,7 +37,9 @@ void inviteFriend(
 
   Navigator.push(
     context,
-    OnlineGameMasterScreen.createNavigationRoute(invite: friend),
+    OnlineGameMasterScreen.createNavigationRoute(
+      initialEvent: InvitePressed(friend),
+    ),
   );
 }
 

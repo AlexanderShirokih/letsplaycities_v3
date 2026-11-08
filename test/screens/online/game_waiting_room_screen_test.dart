@@ -10,9 +10,7 @@ import 'package:lets_play_cities/base/remote/bloc/waiting_room_bloc.dart'
     show WaitingRoomBloc, WaitingRoomState;
 import 'package:lets_play_cities/i18n/strings.g.dart';
 import 'package:lets_play_cities/remote/api_repository_factory.dart';
-import 'package:lets_play_cities/remote/auth.dart';
 import 'package:lets_play_cities/remote/game_connection.dart';
-import 'package:lets_play_cities/remote/model/friend_game_request.dart';
 import 'package:lets_play_cities/remote/model/social.dart';
 import 'package:lets_play_cities/remote/protocol/game_messages.dart';
 import 'package:lets_play_cities/screens/online/game_waiting_room_screen.dart';
@@ -92,31 +90,6 @@ void main() {
       expect(started.single.gameMode, mode);
     });
   }
-
-  testWidgets('an accepted invitation is answered over the connection', (
-    tester,
-  ) async {
-    await tester.pumpWidget(
-      app(
-        const GameWaitingRoomScreen(
-          isLocal: false,
-          request: FriendGameRequest(
-            target: BaseProfileInfo(userId: 3, login: 'Пётр'),
-            mode: FriendGameRequestType.join,
-          ),
-        ),
-      ),
-    );
-    await settle(tester);
-
-    expect(connection.sent, [const InviteReply(3, accept: true)]);
-    expect(find.text(_t.online.connectingToServer), findsOneWidget);
-
-    connection.receive(const InviteStatus(3, InviteStatusKind.expired));
-    await settle(tester);
-
-    expect(find.text(_t.online.invitationResult.replyExpired), findsOneWidget);
-  });
 
   testWidgets('a rebuild keeps the same waiting room bloc', (tester) async {
     await tester.pumpWidget(app(const GameWaitingRoomScreen(isLocal: true)));

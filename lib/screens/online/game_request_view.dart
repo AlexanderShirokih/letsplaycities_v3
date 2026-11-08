@@ -1,193 +1,149 @@
-import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:get_it/get_it.dart';
-import 'package:lets_play_cities/base/bloc/states.dart';
-import 'package:lets_play_cities/base/remote/bloc/game_request_bloc.dart';
-import 'package:lets_play_cities/base/remote/bloc/game_request_exception.dart';
-import 'package:lets_play_cities/base/remote/bloc/game_request_models.dart';
-import 'package:lets_play_cities/i18n/strings.g.dart';
-import 'package:lets_play_cities/remote/account_manager.dart';
-import 'package:lets_play_cities/remote/api_repository_factory.dart';
-import 'package:lets_play_cities/remote/model/cloud_messages.dart';
-import 'package:lets_play_cities/remote/model/profile_info.dart';
-import 'package:lets_play_cities/remote/usecase/fetch_opponent_profile.dart';
-import 'package:lets_play_cities/remote/usecase/handle_request_result.dart';
-import 'package:lets_play_cities/screens/online/game_waiting_room_screen.dart';
-import 'package:lets_play_cities/screens/online/network_avatar_building_mixin.dart';
-import 'package:lets_play_cities/utils/error_logger.dart';
+import 'dart:async';
+import 'dart:developer' as developer;
 
-/// First authenticates user in system and then shows game request
-class GameRequestView extends StatelessWidget with NetworkAvatarBuildingMixin {
+import 'package:flutter/material.dart';
+import 'package:get_it/get_it.dart';
+import 'package:lets_play_cities/base/remote/bloc/waiting_room_bloc.dart';
+import 'package:lets_play_cities/i18n/strings.g.dart';
+import 'package:lets_play_cities/remote/api_repository.dart';
+import 'package:lets_play_cities/remote/api_repository_factory.dart';
+import 'package:lets_play_cities/remote/client/remote_game_client.dart';
+import 'package:lets_play_cities/remote/game_connection.dart';
+import 'package:lets_play_cities/remote/model/cloud_messages.dart';
+import 'package:lets_play_cities/screens/common/d2/d2.dart';
+import 'package:lets_play_cities/screens/online/common_online_widgets.dart';
+import 'package:lets_play_cities/screens/online/game_master.dart';
+import 'package:lets_play_cities/screens/online/online_home_screen.dart';
+
+/// The content of the sheet for the push that invites to a game: who invites
+/// and «Принять» / «Отклонить». Both answers go over the one game
+/// connection: through the open «Онлайн», or, when none is open, accept
+/// opens it and decline connects for the reply alone.
+class GameRequestView extends StatefulWidget {
   final GameRequest request;
 
   const GameRequestView({super.key, required this.request});
 
   @override
-  Widget build(BuildContext context) => Container(
-    padding: const EdgeInsets.all(8.0),
-    height: MediaQuery.of(context).size.height * 0.3,
-    child: Column(
-      children: [
-        Text(
-          context.t.online.invitationFrom(login: request.login),
-          style: Theme.of(context).textTheme.headlineSmall,
-        ),
-        Expanded(
-          // Created once and closed with the sheet: the sheet rebuilds this
-          // view while it is dragged or the screen size changes.
-          child: BlocProvider<GameRequestBloc>(
-            create: (_) => GameRequestBloc(
-              FetchOpponentProfileUseCase(
-                GetIt.instance.get<AccountManager>(),
-                () => GetIt.instance.get<ApiRepositoryFactory>(),
-              ),
-              // A LAN game registers its own AccountManager and
-              // ApiRepositoryFactory in a GetIt scope, so the decline looks
-              // them up when it is sent.
-              HandleRequestResultUseCase(
-                () => GetIt.instance.get<AccountManager>(),
-                () => GetIt.instance.get<ApiRepositoryFactory>(),
-              ),
-              GetIt.instance.get<ErrorLogger>(),
-            )..add(InputGameRequestEvent(request)),
-            child:
-                BlocConsumer<GameRequestBloc, BaseState<BaseGameRequestData>>(
-                  builder: (context, state) {
-                    if (state is LoadingState<BaseGameRequestData>) {
-                      return _buildLoadingView(context);
-                    }
+  State<GameRequestView> createState() => _GameRequestViewState();
+}
 
-                    if (state is ErrorState<BaseGameRequestData>) {
-                      return _buildErrorView(
-                        (state.exception as GameRequestException).failReason,
-                        context,
-                      );
-                    }
+class _GameRequestViewState extends State<GameRequestView> {
+  final ApiRepository _repository = GetIt.instance
+      .get<ApiRepositoryFactory>()
+      .forUser();
 
-                    if (state is DataState<GotInputGameRequest>) {
-                      return _buildRequestView(state.data.requester, context);
-                    }
+  // Fetched once: the sheet rebuilds this view while it is dragged. The
+  // picture is a nicety, so a failure only leaves the initial.
+  late final Future<String?> _pictureUrl = _fetchPictureUrl();
 
-                    return Center(child: Text('...'));
-                  },
-                  listener: (context, state) {
-                    if (state is DataState<GameRequestProcessingResult>) {
-                      Navigator.pushReplacement(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => GameWaitingRoomScreenStandalone(
-                            request: state.data.request,
-                            isLocal: false,
-                          ),
-                        ),
-                      );
-                    }
+  Future<String?> _fetchPictureUrl() async {
+    try {
+      final profile = await _repository.user(widget.request.fromId);
 
-                    if (state is ErrorState<BaseGameRequestData>) {
-                      final exception = state.exception as GameRequestException;
-
-                      if (exception.failReason ==
-                          RequestFailReason.declinedByUser) {
-                        Navigator.pop(context);
-                      }
-                    }
-                  },
-                ),
-          ),
-        ),
-      ],
-    ),
-  );
-
-  Widget _buildLoadingView(BuildContext context) => Column(
-    mainAxisAlignment: MainAxisAlignment.center,
-    children: [
-      SizedBox(width: 42.0, height: 42.0, child: CircularProgressIndicator()),
-      Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: Text(context.t.online.loading),
-      ),
-    ],
-  );
-
-  Widget _buildErrorView(RequestFailReason failReason, BuildContext context) {
-    switch (failReason) {
-      case RequestFailReason.notLogged:
-        return Center(
-          child: Text(
-            context.t.online.acceptFailedNotSignedIn,
-            style: Theme.of(context).textTheme.titleLarge,
-            textAlign: TextAlign.center,
-          ),
-        );
-      case RequestFailReason.networkError:
-        return Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.wifi_off, size: 42.0),
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Text(context.t.online.loadingError),
-            ),
-          ],
-        );
-      case RequestFailReason.wrongAccount:
-        return Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            FaIcon(FontAwesomeIcons.userSlash, size: 42.0),
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Text(context.t.online.wrongAccount),
-            ),
-          ],
-        );
-      case RequestFailReason.exception:
-        return Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            FaIcon(FontAwesomeIcons.triangleExclamation, size: 42.0),
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Text(context.t.online.unknownError),
-            ),
-          ],
-        );
-      case RequestFailReason.declinedByUser:
-        return Center(child: Text(context.t.online.requestDeclined));
+      return _repository.avatarUrl(profile.user);
+    } catch (_) {
+      return null;
     }
   }
 
-  Widget _buildRequestView(ProfileInfo requester, BuildContext context) {
-    return Column(
-      children: [
-        ListTile(
-          contentPadding: EdgeInsets.all(10.0),
-          leading: buildAvatar(requester, 45.0),
-          title: Text(requester.login),
+  void _accept() {
+    final home = OnlineHomeHandle.current;
+    if (home != null) {
+      // Pops the sheet with everything else above «Онлайн»
+      home.accept(widget.request.fromId);
+
+      return;
+    }
+
+    final navigator = Navigator.of(context);
+    navigator.pop();
+    unawaited(
+      navigator.push(
+        OnlineGameMasterScreen.createNavigationRoute(
+          initialEvent: ReplyToInvite(widget.request.fromId, true),
         ),
-        Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              OutlinedButton(
-                onPressed: () => context.read<GameRequestBloc>().add(
-                  GameRequestResultEvent(RequestResult.declined),
-                ),
-                child: Text(context.t.decline),
+      ),
+    );
+  }
+
+  void _decline() {
+    final fromId = widget.request.fromId;
+    final home = OnlineHomeHandle.current;
+    Navigator.of(context).pop();
+
+    if (home != null) {
+      home.decline(fromId);
+    } else {
+      unawaited(_declineWithoutHome(fromId));
+    }
+  }
+
+  /// Connects for the reply alone and closes the connection after it
+  static Future<void> _declineWithoutHome(int fromId) async {
+    final client = RemoteGameClient(
+      GetIt.instance.get<GameConnection>(),
+      isLocal: false,
+    );
+
+    try {
+      await client.reply(fromId, false);
+      await client.disconnect();
+    } catch (e) {
+      // The invitation expires on the server anyway
+      developer.log('Decline failed: $e', name: 'GameRequestView');
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.t;
+    final c = D2Colors.of(context);
+    final name = widget.request.fromName;
+    // A running game cannot take another one: the server would answer
+    // invalid_state
+    final canAccept = OnlineHomeHandle.current?.isGameRunning != true;
+
+    return SingleChildScrollView(
+      padding: const EdgeInsets.fromLTRB(20, 8, 20, 20),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Center(
+            child: FutureBuilder<String?>(
+              future: _pictureUrl,
+              builder: (context, picture) => D2Avatar.user(
+                pictureUrl: picture.data,
+                initials: nameInitial(name),
+                size: 64,
               ),
-              ElevatedButton(
-                onPressed: () => context.read<GameRequestBloc>().add(
-                  GameRequestResultEvent(RequestResult.accepted),
-                ),
-                child: Text(context.t.accept),
-              ),
-            ],
+            ),
           ),
-        ),
-      ],
+          const SizedBox(height: 12),
+          Text(
+            t.online.invitesYou(name: name),
+            textAlign: TextAlign.center,
+            style: D2Text.title.copyWith(color: c.ink),
+          ),
+          const SizedBox(height: 16),
+          if (canAccept) ...[
+            D2Button(
+              label: t.accept,
+              size: D2ButtonSize.large,
+              expand: true,
+              onPressed: _accept,
+            ),
+            const SizedBox(height: 10),
+          ],
+          D2Button(
+            label: t.decline,
+            kind: D2ButtonKind.secondary,
+            expand: true,
+            onPressed: _decline,
+          ),
+        ],
+      ),
     );
   }
 }

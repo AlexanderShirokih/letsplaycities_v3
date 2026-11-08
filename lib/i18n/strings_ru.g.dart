@@ -1038,14 +1038,8 @@ class Translations$online$ru {
 	/// ru: 'Не удалось изменить аватар'
 	String get avatarChangeFailed => 'Не удалось изменить аватар';
 
-	/// ru: 'Приглашение в игру от {login}'
-	String invitationFrom({required Object login}) => 'Приглашение в игру от ${login}';
-
-	/// ru: 'Не удалось принять запрос от пользователя: Вы не авторизованы в аккаунте'
-	String get acceptFailedNotSignedIn => 'Не удалось принять запрос от пользователя: Вы не авторизованы в аккаунте';
-
-	/// ru: 'Вы получили приглашение от пользователя, но сейчас находитесь в другом аккаунте'
-	String get wrongAccount => 'Вы получили приглашение от пользователя, но сейчас находитесь в другом аккаунте';
+	/// ru: '{name} приглашает вас сыграть'
+	String invitesYou({required Object name}) => '${name} приглашает вас сыграть';
 
 	/// ru: 'Произошла неизвестная ошибка :('
 	String get unknownError => 'Произошла неизвестная ошибка :(';
@@ -1404,6 +1398,9 @@ class Translations$online$invitationResult$ru {
 
 	/// ru: 'Приглашение уже недействительно'
 	String get replyExpired => 'Приглашение уже недействительно';
+
+	/// ru: 'Не удалось принять приглашение'
+	String get replyRejected => 'Не удалось принять приглашение';
 }
 
 // Path: d2.nav

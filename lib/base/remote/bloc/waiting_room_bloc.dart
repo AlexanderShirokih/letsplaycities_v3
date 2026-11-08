@@ -46,6 +46,9 @@ class WaitingRoomBloc extends Bloc<WaitingRoomEvent, WaitingRoomState>
   StreamSubscription<Object?>? _waiting;
   StreamSubscription<Object?>? _closes;
 
+  /// A game of the last match runs
+  bool get isGameRunning => _gameClient.isGameRunning;
+
   /// Leaves the queue or withdraws the invitation, or leaves the game of a
   /// match that no screen will play. The connection is shared and stays open.
   @override
@@ -84,8 +87,7 @@ class WaitingRoomBloc extends Bloc<WaitingRoomEvent, WaitingRoomState>
 
         yield* _startRequest(event, Inviting(friend));
       case ReplyToInvite(:final fromId, accept: false):
-        _endRequest(withdraw: true);
-        yield const Idle();
+        // Not a request of its own: a search that runs goes on
         unawaited(
           _gameClient.reply(fromId, false).catchError((Object e) {
             // The invitation expires on the server anyway
@@ -210,6 +212,11 @@ class WaitingRoomBloc extends Bloc<WaitingRoomEvent, WaitingRoomState>
           when current is Inviting:
         _endRequest();
         yield RateLimited(current.target);
+      case protocol.ProtocolError(code: protocol.ProtocolError.invalidState)
+          when _source is ReplyToInvite:
+        // The accepted invitation will not start a game: nothing else comes
+        _endRequest();
+        yield const InviteReplyRejected();
       case protocol.ProtocolError(:final code):
         // invalid_state, bad_message: nothing the user can act on
         developer.log('Game server error: $code', name: 'WaitingRoomBloc');

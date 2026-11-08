@@ -7,6 +7,8 @@ import 'package:get_it/get_it.dart';
 import 'package:lets_play_cities/app_config.dart';
 import 'package:lets_play_cities/base/game/game_config.dart';
 import 'package:lets_play_cities/base/game/game_mode.dart';
+import 'package:lets_play_cities/base/remote/bloc/waiting_room_bloc.dart'
+    show InvitePressed;
 import 'package:lets_play_cities/base/preferences.dart';
 import 'package:lets_play_cities/i18n/strings.g.dart';
 import 'package:lets_play_cities/remote/api_repository_factory.dart';
@@ -131,7 +133,7 @@ void main() {
       RepositoryProvider<RemoteAccount>.value(
         value: _me,
         child: OnlineHomeScreen(
-          invite: invite,
+          initialEvent: invite == null ? null : InvitePressed(invite),
           clock: () => now,
           onStarting: (_, config) => started?.add(config),
         ),

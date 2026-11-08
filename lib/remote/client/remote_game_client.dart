@@ -123,6 +123,9 @@ class RemoteGameClient {
     return game != null && game.isRunning && !game._claimed;
   }
 
+  /// `true` while the game of the last match runs
+  bool get isGameRunning => _game?.isRunning == true;
+
   /// Closes the connection unless a game runs on it; the next request opens
   /// it again
   Future<void> disconnect() async {

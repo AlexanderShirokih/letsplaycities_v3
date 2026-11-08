@@ -1,5 +1,4 @@
 import 'package:equatable/equatable.dart';
-import 'package:lets_play_cities/remote/auth.dart';
 import 'package:meta/meta.dart';
 
 @sealed
@@ -7,36 +6,36 @@ class IncomingCloudMessage {
   const IncomingCloudMessage();
 }
 
-/// Describes game request results
-enum RequestResult { accepted, declined }
-
-/// Game request model received from remote service.
+/// Invitation to a game, the push `{type: "invite", fromId, fromName}`.
+/// The push does not say who it is for: the account that is signed in
+/// answers it.
 class GameRequest extends IncomingCloudMessage with Equatable {
-  /// Request sender login
-  final String login;
+  /// The `type` of the push data
+  static const pushType = 'invite';
 
-  /// Request sender ID
-  final int userId;
+  /// ID of the user who invites
+  final int fromId;
 
-  /// Request receiver target
-  final int targetId;
+  /// Name of the user who invites
+  final String fromName;
 
-  const GameRequest(this.login, this.userId, this.targetId);
+  const GameRequest(this.fromId, this.fromName);
+
+  /// Reads [data] of a push; `null` unless it is a well-formed invitation.
+  /// FCM delivers every value as a string.
+  static GameRequest? tryParse(Map<String, dynamic> data) {
+    if (data['type'] != pushType) return null;
+
+    final fromId = int.tryParse('${data['fromId']}');
+    final fromName = data['fromName'];
+    if (fromId == null || fromName is! String) return null;
+
+    return GameRequest(fromId, fromName);
+  }
 
   @override
   bool get stringify => true;
 
-  /// Creates [GameRequest] instance from [Map]
-  factory GameRequest.fromMap(Map<String, dynamic> data) => GameRequest(
-    data['login'],
-    int.parse(data['user_id']),
-    int.parse(data['target_id']),
-  );
-
-  /// Returns [BaseProfileInfo] containing requester login and ID
-  BaseProfileInfo get requester =>
-      BaseProfileInfo(userId: userId, login: login);
-
   @override
-  List<Object?> get props => [login, userId, targetId];
+  List<Object?> get props => [fromId, fromName];
 }

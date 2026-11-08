@@ -95,7 +95,7 @@ class AccountManagerImpl implements AccountManager {
       final account = _toAccount(await _auth.me());
       if (session == _session) {
         _keepAccount(account, token);
-        if (_fcmRefreshes == null) unawaited(_startFcmSync());
+        if (_fcmRefreshes == null) unawaited(_startFcmSync(session));
       }
 
       return account;
@@ -147,7 +147,7 @@ class AccountManagerImpl implements AccountManager {
     final account = await _startSession(result);
 
     if (result.user.avatarHash == null && network.pictureUri.isNotEmpty) {
-      unawaited(_uploadPicture(network.pictureUri));
+      unawaited(_uploadPicture(network.pictureUri, _session));
     }
 
     return account;
@@ -186,28 +186,33 @@ class AccountManagerImpl implements AccountManager {
     _keepAccount(account, result.token);
 
     // A slow FCM must not hold the sign-in; the errors are logged.
-    unawaited(_startFcmSync());
+    unawaited(_startFcmSync(_session));
     _changes.add(null);
 
     return account;
   }
 
-  /// Sends the FCM token now and each time it changes
-  Future<void> _startFcmSync() async {
+  /// Sends the FCM token now and each time it changes, for as long as
+  /// [session] lasts
+  Future<void> _startFcmSync(int session) async {
     try {
+      if (session != _session) return;
+
       _fcmRefreshes ??= _messaging.tokenRefreshes.listen(
-        (token) => unawaited(_sendFcmToken(token)),
+        (token) => unawaited(_sendFcmToken(token, session)),
         onError: _logger.error,
       );
 
-      await _sendFcmToken(await _messaging.getUserToken());
+      await _sendFcmToken(await _messaging.getUserToken(), session);
     } catch (e, s) {
       _logger.error(e, s);
     }
   }
 
-  Future<void> _sendFcmToken(String token) async {
-    if (token.isEmpty) return;
+  /// A token that was asked for in an older session belongs to nobody now:
+  /// the request would go out with the token of the next account.
+  Future<void> _sendFcmToken(String token, int session) async {
+    if (token.isEmpty || session != _session) return;
 
     try {
       await _auth.updateMe(fcmToken: token);
@@ -217,11 +222,14 @@ class AccountManagerImpl implements AccountManager {
     }
   }
 
-  /// Uploads the picture of the social network as the avatar
-  Future<void> _uploadPicture(String pictureUri) async {
+  /// Uploads the picture of the social network as the avatar of the account
+  /// of [session]
+  Future<void> _uploadPicture(String pictureUri, int session) async {
     try {
       await _apiRepositories.forUser().putAvatarFromUrl(pictureUri);
-      invalidate();
+
+      // Another account signed in meanwhile: its avatar stays as it is
+      if (session == _session) invalidate();
     } catch (e, s) {
       _logger.error(e, s);
     }

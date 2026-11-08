@@ -11,7 +11,7 @@ import 'package:lets_play_cities/base/themes/app_theme_mode.dart';
 import 'package:lets_play_cities/i18n/strings.g.dart';
 import 'package:lets_play_cities/remote/model/cloud_messages.dart';
 import 'package:lets_play_cities/remote/model/cloud_messaging_service.dart';
-import 'package:lets_play_cities/screens/common/d2/d2_theme.dart';
+import 'package:lets_play_cities/screens/common/d2/d2.dart';
 import 'package:lets_play_cities/screens/root/root_screen.dart';
 import 'package:lets_play_cities/screens/online/game_request_view.dart';
 
@@ -62,9 +62,9 @@ class LetsPlayCitiesApp extends StatelessWidget {
             .where((event) => event is GameRequest)
             .cast<GameRequest>(),
         onData: (request) {
-          showModalBottomSheet<void>(
-            context: context,
-            builder: (ctx) => GameRequestView(request: request),
+          showD2Sheet<void>(
+            context,
+            builder: (_) => GameRequestView(request: request),
           );
         },
         child: SafeArea(child: const RootScreen()),

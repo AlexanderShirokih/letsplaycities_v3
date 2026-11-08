@@ -132,26 +132,6 @@ class FakeApiRepository extends Fake implements ApiRepository {
     return profiles[id]!;
   }
 
-  /// The profile for the invite push, which still uses the old model
-  @override
-  Future<ProfileInfo> getProfileInfo(
-    BaseProfileInfo target, [
-    bool forceRefresh = false,
-  ]) async {
-    final profile = profiles[target.userId]!;
-
-    return ProfileInfo(
-      userId: profile.user.id,
-      login: profile.user.name,
-      pictureUrl: null,
-      role: Role.regular,
-      lastVisitDate: profile.user.lastSeenAt,
-      banStatus: BanStatus.notBanned,
-      friendshipStatus: FriendshipStatus.friends,
-      authType: AuthType.native,
-    );
-  }
-
   @override
   Future<void> putFriend(int userId) async {
     await _act('putFriend($userId)');

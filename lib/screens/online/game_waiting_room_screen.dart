@@ -12,7 +12,6 @@ import 'package:lets_play_cities/remote/api_repository_factory.dart';
 import 'package:lets_play_cities/remote/client/api_exception.dart';
 import 'package:lets_play_cities/remote/client/remote_game_client.dart';
 import 'package:lets_play_cities/remote/game_connection.dart';
-import 'package:lets_play_cities/remote/model/friend_game_request.dart';
 import 'package:lets_play_cities/remote/protocol/game_messages.dart'
     show InviteStatusKind, ProtocolError;
 import 'package:lets_play_cities/screens/common/d2/d2.dart';
@@ -70,19 +69,12 @@ String? waitingFailureText(Translations t, Exception error) => switch (error) {
   _ => null,
 };
 
-/// The waiting room of a LAN game and of an accepted invitation
+/// The waiting room of a LAN game
 class GameWaitingRoomScreenStandalone extends StatelessWidget {
-  /// The invitation that the user accepted, if any
-  final FriendGameRequest? request;
-
   /// Whether the game connection goes to a LAN host
   final bool isLocal;
 
-  const GameWaitingRoomScreenStandalone({
-    super.key,
-    this.request,
-    required this.isLocal,
-  });
+  const GameWaitingRoomScreenStandalone({super.key, required this.isLocal});
 
   @override
   Widget build(BuildContext context) {
@@ -99,9 +91,7 @@ class GameWaitingRoomScreenStandalone extends StatelessWidget {
                   : context.t.online.title,
               onBack: () => Navigator.of(context).maybePop(),
             ),
-            Expanded(
-              child: GameWaitingRoomScreen(request: request, isLocal: isLocal),
-            ),
+            Expanded(child: GameWaitingRoomScreen(isLocal: isLocal)),
           ],
         ),
       ),
@@ -111,9 +101,6 @@ class GameWaitingRoomScreenStandalone extends StatelessWidget {
 
 /// The search card alone: the waiting room until the game starts
 class GameWaitingRoomScreen extends StatelessWidget {
-  /// The invitation that the user accepted: the screen answers it
-  final FriendGameRequest? request;
-
   /// Whether the game connection goes to a LAN host
   final bool isLocal;
 
@@ -122,7 +109,6 @@ class GameWaitingRoomScreen extends StatelessWidget {
 
   const GameWaitingRoomScreen({
     super.key,
-    this.request,
     required this.isLocal,
     @visibleForTesting this.onStarting,
   });
@@ -130,15 +116,7 @@ class GameWaitingRoomScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) => BlocProvider<WaitingRoomBloc>(
     // Created once for this screen and closed with it; the connection stays
-    create: (_) {
-      final bloc = createWaitingRoomBloc(isLocal: isLocal);
-      final accepted = request;
-      if (accepted != null) {
-        bloc.add(ReplyToInvite(accepted.target.userId, true));
-      }
-
-      return bloc;
-    },
+    create: (_) => createWaitingRoomBloc(isLocal: isLocal),
     child: WaitingRoomView(
       onStarting: onStarting,
       child: ListView(
@@ -268,6 +246,10 @@ class WaitingRoomCard extends StatelessWidget {
         find(),
       ],
       RateLimited() => [note(t.online.rateLimited), find()],
+      InviteReplyRejected() => [
+        note(t.online.invitationResult.replyRejected),
+        find(),
+      ],
     };
 
     return Column(

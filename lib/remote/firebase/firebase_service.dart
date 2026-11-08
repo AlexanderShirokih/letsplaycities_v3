@@ -47,14 +47,14 @@ class FirebaseServices implements CloudMessagingService {
     var initialMsg = await _firebaseMessaging!.getInitialMessage();
 
     if (initialMsg != null) {
-      _handleAction(initialMsg.data);
+      handlePush(initialMsg.data);
     }
 
     FirebaseMessaging.onMessageOpenedApp.listen((event) {
-      _handleAction(event.data);
+      handlePush(event.data);
     });
     FirebaseMessaging.onMessage.listen((event) {
-      _handleAction(event.data);
+      handlePush(event.data);
     });
   }
 
@@ -94,19 +94,16 @@ class FirebaseServices implements CloudMessagingService {
     return messaging.onTokenRefresh;
   }
 
-  void _handleAction(Map<String, dynamic> data) {
-    final action = data['action'];
+  /// Turns the data of a push into a message; pushes of other kinds are
+  /// logged and dropped.
+  @visibleForTesting
+  void handlePush(Map<String, dynamic> data) {
+    final request = GameRequest.tryParse(data);
 
-    // We got a valid action
-    if (action != null) {
-      // Action type is friend-mode request
-      if (action == 'fm_request') {
-        _inputMessages.add(GameRequest.fromMap(data));
-      } else {
-        _logger.log('Received unknown remote action: $action');
-      }
+    if (request != null) {
+      _inputMessages.add(request);
     } else {
-      _logger.log('Got remote message, but action is null!');
+      _logger.log('Received unknown push: ${data['type']}');
     }
   }
 }

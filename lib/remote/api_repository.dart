@@ -3,9 +3,7 @@ import 'dart:typed_data';
 import 'package:dio/dio.dart';
 import 'package:lets_play_cities/app_config.dart';
 import 'package:lets_play_cities/remote/client/social_api.dart';
-import 'package:lets_play_cities/remote/model/auth_type.dart';
 import 'package:lets_play_cities/remote/model/lps_user.dart';
-import 'package:lets_play_cities/remote/model/profile_info.dart';
 import 'package:lets_play_cities/remote/model/social.dart';
 import 'package:lets_play_cities/utils/avatar_resize_mixin.dart';
 import 'package:lets_play_cities/utils/cache_list.dart';
@@ -178,39 +176,4 @@ class ApiRepository with AvatarResizeMixin {
 
   /// Removes the avatar of the signed-in user
   Future<void> deleteAvatar() => _api.deleteAvatar();
-
-  /// The profile of [target] in the old model of the invite push.
-  // replaced in protocol v1 task 7: the push shows an LpsUser
-  Future<ProfileInfo> getProfileInfo(
-    BaseProfileInfo target, [
-    bool forceRefresh = false,
-  ]) async {
-    final profile = await user(target.userId, forceRefresh);
-    final other = profile.user;
-
-    return ProfileInfo(
-      userId: other.id,
-      login: other.name,
-      pictureUrl: avatarUrl(other),
-      role: Role.regular,
-      lastVisitDate: other.lastSeenAt,
-      banStatus: switch (profile.blocked) {
-        Blocked.none => BanStatus.notBanned,
-        Blocked.byMe || Blocked.both => BanStatus.outputBan,
-        Blocked.me => BanStatus.inputBan,
-      },
-      friendshipStatus: switch (profile.friendship) {
-        Friendship.none => FriendshipStatus.notFriends,
-        Friendship.friends => FriendshipStatus.friends,
-        Friendship.outgoing => FriendshipStatus.inputRequest,
-        Friendship.incoming => FriendshipStatus.outputRequest,
-      },
-      authType: AuthType.native,
-    );
-  }
-
-  /// Protocol v1 has no REST call to decline a game request: the invitation
-  /// expires on its own.
-  // replaced in protocol v1 task 7: the decline goes through the game socket
-  Future<void> declineGameRequest(BaseProfileInfo requester) async {}
 }

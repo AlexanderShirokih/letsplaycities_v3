@@ -72,10 +72,8 @@ class ApiRepositoryFactory {
   ApiRepositoryFactory forServer(AppConfig server, TokenStore tokens) =>
       ApiRepositoryFactory._(server, pictureConfig, cache, tokens, _createDio);
 
-  /// Repository that acts as the signed-in user. [userId] is not needed
-  /// since protocol v1; the use cases of the invite push still pass it.
-  // replaced in protocol v1 task 7: the callers drop the argument
-  ApiRepository forUser([int userId = 0]) {
+  /// Repository that acts as the signed-in user
+  ApiRepository forUser() {
     final dio = _createDio(serverConfig, tokens);
     return ApiRepository(SocialApi(dio), cache, pictureConfig, dio);
   }

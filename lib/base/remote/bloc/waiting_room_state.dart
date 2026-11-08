@@ -61,6 +61,12 @@ class RateLimited extends WaitingRoomState {
   List<Object?> get props => [target];
 }
 
+/// The server refused the accepted invitation (`invalid_state`): it does
+/// not see the user free to play it
+class InviteReplyRejected extends WaitingRoomState {
+  const InviteReplyRejected();
+}
+
 /// The opponent is found: the screen starts the game of [config]
 class Starting extends WaitingRoomState {
   final GameConfig config;

@@ -86,9 +86,13 @@ class _RecordingLogger implements ErrorLogger {
 class _FakeRepository extends Fake implements ApiRepository {
   final pictures = <String>[];
 
+  /// When set, an upload waits for it
+  Completer<void>? uploadGate;
+
   @override
   Future<LpsUser> putAvatarFromUrl(String pictureURL) async {
     pictures.add(pictureURL);
+    await uploadGate?.future;
     return LpsUser.fromJson(userJson);
   }
 }
@@ -108,7 +112,7 @@ class _FakeFactory extends Fake implements ApiRepositoryFactory {
   final cache = ApiRepositoryCacheHolder();
 
   @override
-  ApiRepository forUser([int userId = 0]) => repository;
+  ApiRepository forUser() => repository;
 }
 
 FriendEntry friendEntry(int id) => FriendEntry(
@@ -414,6 +418,61 @@ void main() {
       await pumpEventQueue();
 
       expect(server.calls, isEmpty);
+    });
+  });
+
+  group('a session that ended', () {
+    test('a slow fcm token is not sent after the sign-out', () async {
+      server.on('POST', '/v1/auth/native', 200, _auth('t1'));
+      final gate = messaging.tokenGate = Completer<void>();
+      await manager.signInNative('Мария');
+      await manager.signOut();
+      server.requests.clear();
+
+      gate.complete();
+      await pumpEventQueue();
+
+      expect(server.calls, isNot(contains('PATCH /v1/me')));
+    });
+
+    test('a slow fcm token is not sent to the next account', () async {
+      server.on('POST', '/v1/auth/native', 200, _auth('t1'));
+      final gate = messaging.tokenGate = Completer<void>();
+      await manager.signInNative('Мария');
+      await manager.signOut();
+      messaging.tokenGate = null;
+      messaging.token = 'fcm-new';
+      await manager.signInNative('Мария');
+      await pumpEventQueue();
+      server.requests.clear();
+
+      // The token of the first session finally arrives
+      messaging.token = 'fcm-old';
+      gate.complete();
+      await pumpEventQueue();
+
+      expect(server.calls, isNot(contains('PATCH /v1/me')));
+    });
+
+    test('the picture of a social sign-in does not refresh the next '
+        'account', () async {
+      server.on('POST', '/v1/auth/social', 200, _auth('t1', avatarHash: null));
+      final gate = factory.repository.uploadGate = Completer<void>();
+      await manager.signInSocial(AuthType.vkontakte);
+      await manager.signOut();
+      server.on('POST', '/v1/auth/native', 200, _auth('t2'));
+      await manager.signInNative('Мария');
+      server.requests.clear();
+      var changes = 0;
+      final subscription = manager.accountChanges.listen((_) => changes++);
+      addTearDown(subscription.cancel);
+
+      gate.complete();
+      await pumpEventQueue();
+
+      expect(changes, 0);
+      await manager.getLastSignedInAccount();
+      expect(server.calls, isNot(contains('GET /v1/me')));
     });
   });
 

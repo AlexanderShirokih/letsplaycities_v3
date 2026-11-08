@@ -331,6 +331,34 @@ void main() {
     );
   });
 
+  test('invalid_state to an accepted invitation ends the request', () async {
+    bloc.add(const ReplyToInvite(2, true));
+    await pumpEventQueue();
+    connection.receive(
+      const protocol.ProtocolError(protocol.ProtocolError.invalidState),
+    );
+    await pumpEventQueue();
+
+    expect(bloc.state, const InviteReplyRejected());
+    expect(connection.sent, [const protocol.InviteReply(2, accept: true)]);
+  });
+
+  test('a declined invitation does not end the search that runs', () async {
+    bloc.add(const FindPressed());
+    await pumpEventQueue();
+    connection.receive(const protocol.Queued());
+    await pumpEventQueue();
+
+    bloc.add(const ReplyToInvite(3, false));
+    await pumpEventQueue();
+
+    expect(bloc.state, Queued(_now));
+    expect(connection.sent, [
+      const protocol.Find(),
+      const protocol.InviteReply(3, accept: false),
+    ]);
+  });
+
   test('a declined invitation is answered and stays idle', () async {
     bloc.add(const ReplyToInvite(3, false));
     await pumpEventQueue();
