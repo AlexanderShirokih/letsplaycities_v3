@@ -29,6 +29,12 @@ class HotseatHandoff extends StatefulWidget {
 
   const HotseatHandoff({super.key, required this.gate, required this.child});
 
+  /// `true` while the cover hides the game that [context] belongs to. The
+  /// game widgets that open something over the game close it then.
+  static bool isCovering(BuildContext context) =>
+      context.dependOnInheritedWidgetOfExactType<_Covering>()?.covering ??
+      false;
+
   @override
   State<HotseatHandoff> createState() => _HotseatHandoffState();
 }
@@ -100,7 +106,10 @@ class _HotseatHandoffState extends State<HotseatHandoff> {
       children: [
         ExcludeFocus(
           excluding: shown,
-          child: ExcludeSemantics(excluding: shown, child: widget.child),
+          child: ExcludeSemantics(
+            excluding: shown,
+            child: _Covering(covering: shown, child: widget.child),
+          ),
         ),
         if (shown) Positioned.fill(child: _buildCover(context)),
       ],
@@ -129,6 +138,15 @@ class _HotseatHandoffState extends State<HotseatHandoff> {
       onReady: widget.gate.release,
     );
   }
+}
+
+class _Covering extends InheritedWidget {
+  final bool covering;
+
+  const _Covering({required this.covering, required super.child});
+
+  @override
+  bool updateShouldNotify(_Covering old) => old.covering != covering;
 }
 
 /// A player shown on [HotseatTurnView]. A player with a [controller] has an
@@ -185,6 +203,8 @@ class HotseatTurnView extends StatelessWidget {
       color: c.bg,
       child: SafeArea(
         child: CustomScrollView(
+          // The moves feed under the cover is the primary scroll view
+          primary: false,
           slivers: [
             SliverFillRemaining(
               hasScrollBody: false,

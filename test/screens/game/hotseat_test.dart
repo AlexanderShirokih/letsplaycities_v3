@@ -10,9 +10,12 @@ import 'package:lets_play_cities/base/game/management.dart';
 import 'package:lets_play_cities/base/game/turn_gate.dart';
 import 'package:lets_play_cities/base/preferences.dart';
 import 'package:lets_play_cities/base/repos.dart';
+import 'package:lets_play_cities/base/stt/bloc/voice_recognition_bloc.dart';
+import 'package:lets_play_cities/base/stt/voice_recognition_service.dart';
 import 'package:lets_play_cities/base/users.dart';
 import 'package:lets_play_cities/i18n/strings.g.dart';
 import 'package:lets_play_cities/screens/common/d2/d2.dart';
+import 'package:lets_play_cities/screens/game/game_layout.dart';
 import 'package:lets_play_cities/screens/game/hotseat_handoff.dart';
 import 'package:lets_play_cities/screens/game/hotseat_setup_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -255,6 +258,62 @@ void main() {
 
       expect(pops, 1);
       expect(gate.waiting.value, same(second));
+    });
+
+    testWidgets('the game menu is out of reach under the handoff', (
+      tester,
+    ) async {
+      _useNarrowScreen(tester);
+      final repository = GameSessionRepository(session);
+      final voice = VoiceRecognitionBloc(
+        repository.sendInputWord,
+        StubVoiceRecognitionService(),
+      );
+      addTearDown(voice.close);
+      const config = GameConfig(gameMode: GameMode.playerVsPlayer);
+
+      await tester.pumpWidget(
+        _app(
+          Scaffold(
+            body: MultiRepositoryProvider(
+              providers: [
+                RepositoryProvider.value(value: repository),
+                RepositoryProvider.value(
+                  value: repository.createGameServiceEventsRepository(),
+                ),
+              ],
+              child: BlocProvider.value(
+                value: voice,
+                child: HotseatHandoff(
+                  gate: gate,
+                  child: GameLayout(config, onRegisterInputClear: (_) {}),
+                ),
+              ),
+            ),
+          ),
+          textScale: 1.3,
+        ),
+      );
+      await playFirstMove(tester);
+      events.add(OnUserSwitchedEvent(first, [first, second]));
+      await tester.pump();
+
+      // The menu is opened just before the city is accepted.
+      await tester.tap(find.text(t.game.pause));
+      await tester.pumpAndSettle();
+      expect(find.text(t.game.surrenderMenu), findsOneWidget);
+
+      gate.waitFor(second).ignore();
+      await tester.pumpAndSettle();
+
+      expect(find.text(t.hotseat.ready), findsOneWidget);
+      expect(find.text(t.game.surrenderMenu), findsNothing);
+
+      await tester.tap(find.text(t.game.pause), warnIfMissed: false);
+      await tester.pumpAndSettle();
+
+      expect(find.text(t.game.surrenderMenu), findsNothing);
+      expect(tester.takeException(), isNull);
     });
 
     testWidgets('handoff fits 320px at 1.3 text scale', (tester) async {

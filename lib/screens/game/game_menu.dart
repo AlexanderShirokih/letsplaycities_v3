@@ -8,18 +8,41 @@ import 'package:lets_play_cities/screens/common/d2/d2.dart';
 import 'package:lets_play_cities/screens/common/dialogs.dart';
 
 import 'first_time_onboarding_screen.dart';
+import 'hotseat_handoff.dart';
 
 /// «Пауза» button with the game menu: «Продолжить» and «Правила игры» in the
 /// local modes, «Выйти в меню» and «Сдаться…» in all of them.
 ///
+/// The menu closes when [HotseatHandoff] covers the game.
+///
 /// Requires [GameBloc].
-class GameMenuButton extends StatelessWidget {
+class GameMenuButton extends StatefulWidget {
   final GameConfig gameConfig;
 
   const GameMenuButton(this.gameConfig, {super.key});
 
   @override
+  State<GameMenuButton> createState() => _GameMenuButtonState();
+}
+
+class _GameMenuButtonState extends State<GameMenuButton> {
+  final _menu = MenuController();
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+
+    // The menu is drawn above the cover; it is closed after the build.
+    if (HotseatHandoff.isCovering(context)) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted && _menu.isOpen) _menu.close();
+      });
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final gameConfig = widget.gameConfig;
     final t = context.t;
     final c = D2Colors.of(context);
     final local = gameConfig.gameMode.isLocal;
@@ -50,6 +73,7 @@ class GameMenuButton extends StatelessWidget {
     );
 
     return MenuAnchor(
+      controller: _menu,
       alignmentOffset: const Offset(0, 8),
       style: MenuStyle(
         backgroundColor: WidgetStatePropertyAll(c.surface),
