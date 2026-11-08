@@ -114,44 +114,36 @@ void main() {
       });
     });
 
-    test('a word does not drop a deferred chat message', () {
-      inRepository((async, repository, session) {
-        repository.sendChatMessage('привет');
-        repository.sendChatMessage('как дела');
-
-        repository.sendInputWord('москва');
-        async.elapse(_debounce);
-
-        expect(session.messages, ['привет', 'как дела']);
-        expect(session.words, ['москва']);
-      });
-    });
-
-    test('a newer chat message replaces the deferred one', () {
+    test('quick chat messages all reach the session at once', () {
       inRepository((async, repository, session) {
         repository.sendChatMessage('привет');
         repository.sendChatMessage('как дела');
         repository.sendChatMessage('пока');
 
-        async.elapse(_debounce);
-
-        expect(session.messages, ['привет', 'пока']);
+        expect(session.messages, ['привет', 'как дела', 'пока']);
       });
     });
 
-    test('finishing the game drops deferred words and messages', () {
+    test('a chat message does not delay a word', () {
+      inRepository((async, repository, session) {
+        repository.sendChatMessage('привет');
+        repository.sendInputWord('москва');
+
+        expect(session.messages, ['привет']);
+        expect(session.words, ['москва']);
+      });
+    });
+
+    test('finishing the game drops deferred words', () {
       inRepository((async, repository, session) {
         repository.sendInputWord('москва');
         repository.sendInputWord('анапа');
-        repository.sendChatMessage('привет');
-        repository.sendChatMessage('как дела');
 
         repository.finish();
         async.elapse(_debounce * 2);
 
         expect(session.cancelled, isTrue);
         expect(session.words, ['москва']);
-        expect(session.messages, ['привет']);
       });
     });
   });
