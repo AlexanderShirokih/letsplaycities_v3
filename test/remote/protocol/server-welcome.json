@@ -1,0 +1,10 @@
+{
+  "type": "welcome",
+  "user": {
+    "id": 14397,
+    "name": "Мария",
+    "avatarHash": "3f7a9c1be2d84a55",
+    "provider": "google",
+    "lastSeenAt": 1762560000000
+  }
+}

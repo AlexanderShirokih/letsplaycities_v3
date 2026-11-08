@@ -1,3 +1,4 @@
+// replaced in protocol v1 task 8
 import 'package:equatable/equatable.dart';
 
 /// Base class for all outgoing socket messages

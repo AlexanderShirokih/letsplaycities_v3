@@ -1,0 +1,12 @@
+{
+  "type": "match",
+  "gameId": 58231,
+  "opponent": {
+    "id": 12408,
+    "name": "Дмитрий",
+    "avatarHash": null,
+    "friendship": "friends"
+  },
+  "youStart": true,
+  "moveTimeSec": 92
+}

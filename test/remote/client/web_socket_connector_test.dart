@@ -12,6 +12,8 @@ import 'package:lets_play_cities/remote/client/remote_game_client.dart';
 import 'package:lets_play_cities/remote/client/socket_api.dart';
 import 'package:lets_play_cities/remote/client/web_socket_connector.dart';
 import 'package:lets_play_cities/remote/core/json_message_converter.dart';
+import 'package:lets_play_cities/remote/client/api_exception.dart';
+import 'package:lets_play_cities/remote/client/base_socket_connector.dart';
 import 'package:lets_play_cities/remote/exceptions.dart';
 import 'package:lets_play_cities/remote/model/lps_user.dart';
 
@@ -64,6 +66,70 @@ void main() {
         connector.messageStream,
         emitsError(isA<ConnectionException>()),
       );
+    });
+  });
+
+  group('against a real server', () {
+    late HttpServer server;
+    late String uri;
+
+    setUp(() async {
+      server = await HttpServer.bind(InternetAddress.loopbackIPv4, 0);
+      uri = 'ws://127.0.0.1:${server.port}/v1/game';
+    });
+
+    tearDown(() => server.close(force: true));
+
+    test('sends the Authorization header', () async {
+      final received = Completer<String?>();
+      server.listen((request) async {
+        received.complete(request.headers.value('Authorization'));
+        final socket = await WebSocketTransformer.upgrade(request);
+        await socket.close();
+      });
+      final connector = WebSocketConnector(
+        uri,
+        headers: const {'Authorization': 'Bearer abc'},
+      );
+
+      connector.connect();
+
+      expect(await received.future, 'Bearer abc');
+      await connector.close();
+    });
+
+    for (final (status, matcher) in [
+      (401, isA<UnauthorizedException>()),
+      (403, isA<BannedException>()),
+    ]) {
+      test('$status upgrade maps to ${matcher.runtimeType}', () async {
+        server.listen((request) {
+          request.response.statusCode = status;
+          request.response.close();
+        });
+        final connector = WebSocketConnector(uri);
+
+        connector.connect();
+
+        await expectLater(connector.messageStream, emitsError(matcher));
+      });
+    }
+
+    test('close code reaches the stream', () async {
+      server.listen((request) async {
+        final socket = await WebSocketTransformer.upgrade(request);
+        await socket.close(1001, 'replaced');
+      });
+      final connector = WebSocketConnector(uri);
+
+      connector.connect();
+
+      final closed = await connector.messageStream.firstWhere(
+        (m) => m.type == SocketMessageType.closed,
+      );
+      expect(closed.type, SocketMessageType.closed);
+      expect(closed.closeCode, 1001);
+      expect(closed.closeReason, 'replaced');
     });
   });
 

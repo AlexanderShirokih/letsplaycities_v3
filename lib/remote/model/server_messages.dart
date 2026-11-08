@@ -1,3 +1,4 @@
+// replaced in protocol v1 task 8
 import 'package:equatable/equatable.dart';
 import 'package:lets_play_cities/base/data/word_result.dart';
 import 'package:lets_play_cities/remote/models.dart';

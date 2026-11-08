@@ -2,12 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get_it/get_it.dart';
 import 'package:lets_play_cities/app_config.dart';
+import 'package:lets_play_cities/app_injection.dart';
 import 'package:lets_play_cities/base/platform/device_name.dart';
+import 'package:lets_play_cities/base/preferences.dart';
 import 'package:lets_play_cities/base/remote/bloc/local_multiplayer_bloc.dart';
 import 'package:lets_play_cities/i18n/strings.g.dart';
 import 'package:lets_play_cities/remote/account_manager.dart';
 import 'package:lets_play_cities/remote/auth/token_store.dart';
 import 'package:lets_play_cities/remote/api_repository_factory.dart';
+import 'package:lets_play_cities/remote/game_connection.dart';
 import 'package:lets_play_cities/remote/remote_host.dart';
 import 'package:lets_play_cities/remote/server/server_game_controller.dart';
 import 'package:lets_play_cities/remote/server/user_lookup_repository.dart';
@@ -103,7 +106,16 @@ void pushLanGameScope(GetIt getIt, LocalMultiplayerStartGame game) {
     ..registerSingleton<ApiRepositoryFactory>(
       apiRepositories.forServer(game.configOverrides, MemoryTokenStore()),
     )
-    ..registerSingleton<UserLookupRepository>(UserLookupRepositoryImpl());
+    ..registerSingleton<UserLookupRepository>(UserLookupRepositoryImpl())
+    // The LAN host never gets the token of the main server
+    ..registerSingleton<GameConnection>(
+      createGameConnection(
+        url: game.configOverrides.gameSocketUrl,
+        headers: () async => const {},
+        playerName: () => getIt.get<GamePreferences>().lastNativeLogin,
+      ),
+      dispose: (connection) => connection.close(),
+    );
 }
 
 /// Name of this device, `null` when it is not known

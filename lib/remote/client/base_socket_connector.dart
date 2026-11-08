@@ -3,12 +3,15 @@ enum SocketMessageType { connected, data, closed }
 
 /// Container that wraps message.
 /// Message types [SocketMessageType.connected] or [SocketMessageType.closed]
-/// has no data.
+/// has no data. [SocketMessageType.closed] carries the WebSocket close code
+/// and reason when the peer sent them.
 class SocketMessage {
   final SocketMessageType type;
   final String? data;
+  final int? closeCode;
+  final String? closeReason;
 
-  SocketMessage(this.type, [this.data]);
+  SocketMessage(this.type, [this.data, this.closeCode, this.closeReason]);
 }
 
 abstract class AbstractSocketConnector {

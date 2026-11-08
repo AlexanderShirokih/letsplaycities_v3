@@ -28,6 +28,7 @@ import 'package:lets_play_cities/remote/auth/token_store.dart';
 import 'package:lets_play_cities/remote/city_requests_repository.dart';
 import 'package:lets_play_cities/remote/client/api_dio.dart';
 import 'package:lets_play_cities/remote/firebase/firebase_service.dart';
+import 'package:lets_play_cities/remote/game_connection.dart';
 import 'package:lets_play_cities/remote/google_services_achievements.dart';
 import 'package:lets_play_cities/remote/http_overrides.dart';
 import 'package:lets_play_cities/remote/model/cloud_messaging_service.dart';
@@ -136,6 +137,23 @@ Future<void> injectRootDependencies(AppConfig appConfig) async {
       getIt.get<TokenStore>(),
       onError: _logError,
     ),
+  );
+
+  // The one game socket of the signed-in user. Opened on the first use.
+  getIt.registerLazySingleton<GameConnection>(
+    () => createGameConnection(
+      url: getIt.get<AppConfig>().gameSocketUrl,
+      headers: () async {
+        final token = await getIt.get<TokenStore>().read();
+
+        return {
+          if (token != null && token.isNotEmpty)
+            'Authorization': 'Bearer $token',
+        };
+      },
+      playerName: () => getIt.get<GamePreferences>().lastNativeLogin,
+    ),
+    dispose: (connection) => connection.close(),
   );
 
   // Social sign-in and the device id
@@ -289,3 +307,23 @@ Future<void> injectRootDependencies(AppConfig appConfig) async {
 /// of the error: it waits for Firebase on the phones.
 void _logError(Object error, StackTrace stackTrace) =>
     GetIt.instance.get<ErrorLogger>().error(error, stackTrace);
+
+/// Game socket to [url] that says `hello` as the app: `lps-flutter/<version>`
+GameConnection createGameConnection({
+  required String url,
+  required Future<Map<String, String>> Function() headers,
+  required String Function() playerName,
+}) => GameConnection(
+  url: url,
+  headers: headers,
+  clientName: 'lps-flutter/${_appVersion()}',
+  playerName: playerName,
+);
+
+String _appVersion() {
+  try {
+    return VersionInfoService.instance.name;
+  } catch (_) {
+    return 'unknown';
+  }
+}

@@ -1,0 +1,7 @@
+{
+  "type": "gameOver",
+  "reason": "timeout",
+  "loser": 12408,
+  "words": 17,
+  "durationSec": 412
+}

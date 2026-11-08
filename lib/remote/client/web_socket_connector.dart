@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:lets_play_cities/remote/client/api_exception.dart';
 import 'package:lets_play_cities/remote/client/base_socket_connector.dart';
 import 'package:lets_play_cities/remote/exceptions.dart';
 import 'package:rxdart/rxdart.dart';
@@ -12,19 +13,26 @@ typedef WebSocketFactory = Future<WebSocket> Function(String uri);
 /// WebSocket implementation of socket commutator
 class WebSocketConnector implements AbstractSocketConnector {
   final String _uri;
-  final WebSocketFactory _openSocket;
+  final WebSocketFactory? _openSocket;
   final Duration _connectTimeout;
+
+  /// Sent with the upgrade request, e.g. `Authorization`
+  final Map<String, String> _headers;
 
   IOWebSocketChannel? _channel;
   Future? _workStreamDone;
 
   WebSocketConnector(
     this._uri, {
-    this._openSocket = WebSocket.connect,
+    this._openSocket,
     this._connectTimeout = const Duration(seconds: 10),
+    this._headers = const {},
   });
 
   StreamController<SocketMessage>? _streamController;
+
+  Future<WebSocket> _defaultOpen(String uri) =>
+      WebSocket.connect(uri, headers: _headers);
 
   @override
   void connect() {
@@ -35,7 +43,7 @@ class WebSocketConnector implements AbstractSocketConnector {
     }
 
     final controller = _streamController = StreamController.broadcast();
-    final opening = _openSocket(_uri);
+    final opening = (_openSocket ?? _defaultOpen)(_uri);
 
     opening
         .timeout(_connectTimeout)
@@ -45,8 +53,8 @@ class WebSocketConnector implements AbstractSocketConnector {
             webSocket.close();
             return;
           }
-          _channel = IOWebSocketChannel(webSocket);
-          final stream = _channel!.stream.asBroadcastStream();
+          final channel = _channel = IOWebSocketChannel(webSocket);
+          final stream = channel.stream.asBroadcastStream();
 
           _workStreamDone = controller.addStream(
             Rx.concat([
@@ -54,7 +62,16 @@ class WebSocketConnector implements AbstractSocketConnector {
               stream.map(
                 (event) => SocketMessage(SocketMessageType.data, event),
               ),
-              Stream.value(SocketMessage(SocketMessageType.closed)),
+              Rx.defer(
+                () => Stream.value(
+                  SocketMessage(
+                    SocketMessageType.closed,
+                    null,
+                    channel.closeCode,
+                    channel.closeReason,
+                  ),
+                ),
+              ),
             ]),
           );
         })
@@ -68,12 +85,24 @@ class WebSocketConnector implements AbstractSocketConnector {
             opening.then((webSocket) => webSocket.close(), onError: (_) {});
           }
           if (!controller.isClosed) {
-            controller.addError(
-              ConnectionException(error.toString()),
-              stackTrace,
-            );
+            controller.addError(_mapError(error), stackTrace);
           }
         });
+  }
+
+  /// An upgrade refused with 401 or 403 is an authorization failure of the
+  /// REST kind, anything else is a [ConnectionException].
+  Object _mapError(Object error) {
+    if (error is WebSocketException) {
+      switch (error.httpStatusCode) {
+        case 401:
+          return const UnauthorizedException(401, 'unauthorized');
+        case 403:
+          return const BannedException(403, 'banned');
+      }
+    }
+
+    return ConnectionException(error.toString());
   }
 
   @override

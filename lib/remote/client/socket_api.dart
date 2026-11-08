@@ -1,3 +1,4 @@
+// replaced in protocol v1 task 5
 import 'package:lets_play_cities/remote/client/base_socket_connector.dart';
 import 'package:lets_play_cities/remote/exceptions.dart';
 import 'package:lets_play_cities/remote/model/client_messages.dart';
