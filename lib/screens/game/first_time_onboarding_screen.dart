@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:lets_play_cities/base/game/game_config.dart';
+import 'package:lets_play_cities/screens/common/d2/d2.dart';
 import 'package:lets_play_cities/screens/game/game_screen.dart';
 
 /// Shows tips [strings] one by one with [duration] between them and then starts
@@ -73,28 +74,47 @@ class _FirstTimeOnBoardingScreenState extends State<FirstTimeOnBoardingScreen>
   @override
   Widget build(BuildContext context) {
     _controller.forward();
+    final c = D2Colors.of(context);
+    final tip = widget.strings[_currentTextId];
+
     return GestureDetector(
       onTap: () {
         // Speed up animation
         _controller.forward(from: 0.99);
       },
       child: Container(
-        // ignore: deprecated_member_use
-        color: Theme.of(context).colorScheme.background,
+        color: c.bg,
         child: Padding(
-          padding: const EdgeInsets.all(8.0),
+          padding: const EdgeInsets.all(16.0),
           child: Center(
             child: FadeTransition(
               opacity: _fadeAnimation,
               child: ScaleTransition(
                 scale: _scaleAnimation,
-                child: Text(
-                  widget.strings[_currentTextId],
-                  textAlign: TextAlign.center,
-                  overflow: TextOverflow.fade,
-                  style: Theme.of(context).textTheme.displaySmall!
-                      .copyWith(fontWeight: FontWeight.w800),
-                  textDirection: TextDirection.ltr,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (tip.isNotEmpty) ...[
+                      D2LetterTile(
+                        tip.characters.first.toUpperCase(),
+                        size: 64,
+                        semanticLabel: '',
+                      ),
+                      const SizedBox(height: 24),
+                    ],
+                    Text(
+                      tip,
+                      textAlign: TextAlign.center,
+                      overflow: TextOverflow.fade,
+                      style: D2Text.body.copyWith(
+                        fontSize: 24,
+                        fontWeight: FontWeight.w700,
+                        fontVariations: const [FontVariation('wght', 700)],
+                        color: c.ink,
+                      ),
+                      textDirection: TextDirection.ltr,
+                    ),
+                  ],
                 ),
               ),
             ),

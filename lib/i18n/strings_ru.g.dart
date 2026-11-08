@@ -1084,6 +1084,9 @@ class Translations$d2$ru {
 	/// ru: 'Закрыть'
 	String get close => 'Закрыть';
 
+	/// ru: 'Подробнее'
+	String get details => 'Подробнее';
+
 	/// ru: 'Сыграем в Города'
 	String get logoSemantics => 'Сыграем в Города';
 

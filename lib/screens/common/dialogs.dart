@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:lets_play_cities/i18n/strings.g.dart';
+import 'package:lets_play_cities/screens/common/d2/d2.dart';
 
 typedef ConfirmationCallback = void Function(bool isOk);
 
@@ -21,18 +22,24 @@ Future<bool?> showConfirmationDialog(
   context: context,
   builder: (BuildContext context) {
     final t = context.t;
-    return AlertDialog(
-      title: title == null ? null : Text(title),
-      content: Text(message),
+
+    return _D2Dialog(
+      title: title,
+      content: Text(
+        message,
+        style: D2Text.bodyRegular.copyWith(color: D2Colors.of(context).ink),
+      ),
       actions: [
-        TextButton(
+        D2Button(
+          label: t.no.toUpperCase(),
+          kind: D2ButtonKind.secondary,
           onPressed: () {
             Navigator.of(context).pop(false);
             callback?.call(false);
           },
-          child: Text(t.no.toUpperCase()),
         ),
-        TextButton(
+        D2Button(
+          label: t.yes.toUpperCase(),
           onPressed: () {
             Navigator.of(context).pop(true);
             if (onOk != null) {
@@ -41,13 +48,52 @@ Future<bool?> showConfirmationDialog(
               callback?.call(true);
             }
           },
-          child: Text(t.yes.toUpperCase()),
         ),
       ],
-      elevation: 20.0,
     );
   },
 );
+
+/// Dialog shell: radius 24, Unbounded title, buttons in a row
+class _D2Dialog extends StatelessWidget {
+  final String? title;
+  final Widget content;
+  final List<Widget> actions;
+
+  const _D2Dialog({this.title, required this.content, required this.actions});
+
+  @override
+  Widget build(BuildContext context) {
+    final c = D2Colors.of(context);
+
+    return Dialog(
+      backgroundColor: c.surface,
+      surfaceTintColor: Colors.transparent,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            if (title != null) ...[
+              Text(title!, style: D2Text.title.copyWith(color: c.ink)),
+              const SizedBox(height: 12),
+            ],
+            Flexible(child: SingleChildScrollView(child: content)),
+            const SizedBox(height: 16),
+            Wrap(
+              alignment: WrapAlignment.end,
+              spacing: 12,
+              runSpacing: 4,
+              children: actions,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
 
 /// Shows single choice dialog that can show list of items and cancel button.
 /// When user taps on item according index will returned.
@@ -95,44 +141,53 @@ class _SingleChoiceDialogState extends State<SingleChoiceDialog> {
   }
 
   @override
-  Widget build(BuildContext context) => AlertDialog(
-    contentPadding: EdgeInsets.fromLTRB(20.0, 18.0, 20.0, 0.0),
-    title: Text(widget._title),
-    content: RadioGroup<int>(
-      groupValue: _selectedItemId,
-      onChanged: (newValue) {
-        if (newValue != null) {
-          setState(() {
-            _selectedItemId = newValue;
-          });
-          _closeTimer?.cancel();
-          _closeTimer = Timer(Duration(milliseconds: 300), () {
-            // Once the dialog is closing (Cancel, barrier tap, back) it stays
-            // mounted during its exit animation, and pop() would close the
-            // route underneath it instead.
-            if (mounted && (ModalRoute.of(context)?.isCurrent ?? false)) {
-              Navigator.of(context).pop(newValue);
-            }
-          });
-        }
-      },
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: Iterable.generate(widget._choicesList.length, (i) => i)
-            .map(
-              (int index) => RadioListTile<int>(
-                title: Text(widget._choicesList[index]),
-                value: index,
-              ),
-            )
-            .toList(),
+  Widget build(BuildContext context) {
+    final c = D2Colors.of(context);
+
+    return _D2Dialog(
+      title: widget._title,
+      content: RadioGroup<int>(
+        groupValue: _selectedItemId,
+        onChanged: (newValue) {
+          if (newValue != null) {
+            setState(() {
+              _selectedItemId = newValue;
+            });
+            _closeTimer?.cancel();
+            _closeTimer = Timer(Duration(milliseconds: 300), () {
+              // Once the dialog is closing (Cancel, barrier tap, back) it stays
+              // mounted during its exit animation, and pop() would close the
+              // route underneath it instead.
+              if (mounted && (ModalRoute.of(context)?.isCurrent ?? false)) {
+                Navigator.of(context).pop(newValue);
+              }
+            });
+          }
+        },
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: Iterable.generate(widget._choicesList.length, (i) => i)
+              .map(
+                (int index) => RadioListTile<int>(
+                  contentPadding: EdgeInsets.zero,
+                  activeColor: c.violet,
+                  title: Text(
+                    widget._choicesList[index],
+                    style: D2Text.body.copyWith(color: c.ink),
+                  ),
+                  value: index,
+                ),
+              )
+              .toList(),
+        ),
       ),
-    ),
-    actions: [
-      TextButton(
-        onPressed: () => Navigator.of(context).pop(),
-        child: Text(context.t.cancel.toUpperCase()),
-      ),
-    ],
-  );
+      actions: [
+        D2Button(
+          label: context.t.cancel.toUpperCase(),
+          kind: D2ButtonKind.secondary,
+          onPressed: () => Navigator.of(context).pop(),
+        ),
+      ],
+    );
+  }
 }
