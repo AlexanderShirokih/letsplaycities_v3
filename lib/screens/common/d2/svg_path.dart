@@ -1,4 +1,3 @@
-import 'dart:math' as math;
 import 'dart:ui';
 
 /// Parses SVG path data [d] into a [Path].
@@ -110,7 +109,7 @@ Path parseSvgPath(String d) {
           path.arcToPoint(
             Offset(x, y),
             radius: Radius.elliptical(rx.abs(), ry.abs()),
-            rotation: rotation * math.pi / 180,
+            rotation: rotation,
             largeArc: large,
             clockwise: sweep,
           );

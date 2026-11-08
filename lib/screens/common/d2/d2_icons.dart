@@ -39,10 +39,6 @@ enum D2Glyph {
   ban,
   timer,
   warning,
-
-  /// Not in the task list, but used by the game-type switch in the mockups
-  classic,
-  route,
 }
 
 /// One stroked (or filled) path of a glyph, in a 24x24 view box
@@ -51,10 +47,8 @@ class _Shape {
 
   /// Overrides the stroke width of the icon, for dots and inner marks
   final double? width;
-  final bool filled;
-  final List<double>? dash;
 
-  const _Shape(this.d, {this.width, this.filled = false, this.dash});
+  const _Shape(this.d, {this.width});
 }
 
 String _n(double v) => v.toString();
@@ -228,20 +222,6 @@ final _glyphs = <D2Glyph, List<_Shape>>{
     const _Shape('M9.5 2.6h5'),
     const _Shape('M18.4 6.8l1.4-1.4'),
   ],
-  D2Glyph.classic: [
-    _Shape(_rect(1.5, 4.5, 9, 10.5, 2.6)),
-    _Shape(_rect(13.5, 9, 9, 10.5, 2.6)),
-    const _Shape('M4.6 7.9h3.4M4.6 7.9v4.4', width: 2),
-    const _Shape('M15.9 16.6l2.1-4.7 2.1 4.7M16.6 15.1h2.8', width: 2),
-  ],
-  D2Glyph.route: [
-    _Shape(_circle(5, 18.5, 2.3)),
-    const _Shape('M7.6 18.5h5.4a3.5 3.5 0 0 0 3.5-3.5', dash: [2.2, 3.2]),
-    const _Shape(
-      'M17.5 13.2s-4.2-3.7-4.2-7a4.2 4.2 0 0 1 8.4 0c0 3.3-4.2 7-4.2 7z',
-    ),
-    _Shape(_circle(17.5, 6.3, 1.2), filled: true),
-  ],
   D2Glyph.warning: [
     const _Shape('M12 3.3 2.6 19.8h18.8z'),
     const _Shape('M12 9.6v4.4'),
@@ -301,43 +281,13 @@ class _IconPainter extends CustomPainter {
         ..color = color
         ..isAntiAlias = true;
 
-      if (shape.filled) {
-        canvas.drawPath(path, paint..style = PaintingStyle.fill);
-        continue;
-      }
-
       paint
         ..style = PaintingStyle.stroke
         ..strokeWidth = shape.width ?? strokeWidth
         ..strokeCap = StrokeCap.round
         ..strokeJoin = StrokeJoin.round;
-      canvas.drawPath(
-        shape.dash == null ? path : _dashed(path, shape.dash!),
-        paint,
-      );
+      canvas.drawPath(path, paint);
     }
-  }
-
-  Path _dashed(Path source, List<double> pattern) {
-    final out = Path();
-
-    for (final metric in source.computeMetrics()) {
-      var pos = 0.0;
-      var i = 0;
-      while (pos < metric.length) {
-        final len = pattern[i % pattern.length];
-        if (i.isEven) {
-          out.addPath(
-            metric.extractPath(pos, (pos + len).clamp(0, metric.length)),
-            Offset.zero,
-          );
-        }
-        pos += len;
-        i++;
-      }
-    }
-
-    return out;
   }
 
   @override

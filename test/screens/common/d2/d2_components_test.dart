@@ -21,11 +21,38 @@ void main() {
   });
 
   testWidgets('disabled D2Button ignores taps', (tester) async {
-    await tester.pumpWidget(_wrap(const D2Button(label: 'Играть')));
-    await tester.tap(find.text('Играть'));
-    await tester.pumpAndSettle();
+    final handle = tester.ensureSemantics();
 
-    expect(find.text('Играть'), findsOneWidget);
+    await tester.pumpWidget(_wrap(const D2Button(label: 'Играть')));
+    final top = tester.getTopLeft(find.text('Играть')).dy;
+    final gesture = await tester.startGesture(
+      tester.getCenter(find.text('Играть')),
+    );
+    await tester.pump(const Duration(milliseconds: 200));
+    await tester.pump(const Duration(milliseconds: 200));
+
+    expect(tester.getTopLeft(find.text('Играть')).dy, top);
+    expect(
+      tester.getSemantics(find.text('Играть')),
+      isSemantics(label: 'Играть', isEnabled: false, isButton: true),
+    );
+
+    await gesture.up();
+    handle.dispose();
+  });
+
+  testWidgets('pressed D2Button sinks by its shadow height', (tester) async {
+    await tester.pumpWidget(_wrap(D2Button(label: 'Играть', onPressed: () {})));
+    final top = tester.getTopLeft(find.text('Играть')).dy;
+    final gesture = await tester.startGesture(
+      tester.getCenter(find.text('Играть')),
+    );
+    await tester.pump(const Duration(milliseconds: 200));
+    await tester.pump(const Duration(milliseconds: 200));
+
+    expect(tester.getTopLeft(find.text('Играть')).dy, top + 4);
+
+    await gesture.up();
   });
 
   testWidgets('D2Segmented reports picked value', (tester) async {
