@@ -82,7 +82,7 @@ class GameMessageCodec {
 
   Map<String, Object?> _serverToJson(ServerGameMessage message) =>
       switch (message) {
-        Welcome() => {'type': 'welcome', 'user': _userToJson(message.user)},
+        Welcome() => {'type': 'welcome', 'user': message.user.toJson()},
         Queued() => {'type': 'queued'},
         InviteStatus() => {
           'type': 'inviteStatus',
@@ -161,12 +161,4 @@ class GameMessageCodec {
       moveTimeSec: json['moveTimeSec'] as int,
     );
   }
-
-  Map<String, Object?> _userToJson(LpsUser user) => {
-    'id': user.id,
-    'name': user.name,
-    'avatarHash': user.avatarHash,
-    'provider': user.provider,
-    'lastSeenAt': user.lastSeenAt.millisecondsSinceEpoch,
-  };
 }

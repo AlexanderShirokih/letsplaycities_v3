@@ -141,7 +141,7 @@ Future<void> injectRootDependencies(AppConfig appConfig) async {
 
   // The one game socket of the signed-in user. Opened on the first use.
   getIt.registerLazySingleton<GameConnection>(
-    () => createGameConnection(
+    () => GameConnection.forApp(
       url: getIt.get<AppConfig>().gameSocketUrl,
       headers: () async {
         final token = await getIt.get<TokenStore>().read();
@@ -152,6 +152,7 @@ Future<void> injectRootDependencies(AppConfig appConfig) async {
         };
       },
       playerName: () => getIt.get<GamePreferences>().lastNativeLogin,
+      logger: getIt.get<ErrorLogger>(),
     ),
     dispose: (connection) => connection.close(),
   );
@@ -307,23 +308,3 @@ Future<void> injectRootDependencies(AppConfig appConfig) async {
 /// of the error: it waits for Firebase on the phones.
 void _logError(Object error, StackTrace stackTrace) =>
     GetIt.instance.get<ErrorLogger>().error(error, stackTrace);
-
-/// Game socket to [url] that says `hello` as the app: `lps-flutter/<version>`
-GameConnection createGameConnection({
-  required String url,
-  required Future<Map<String, String>> Function() headers,
-  required String Function() playerName,
-}) => GameConnection(
-  url: url,
-  headers: headers,
-  clientName: 'lps-flutter/${_appVersion()}',
-  playerName: playerName,
-);
-
-String _appVersion() {
-  try {
-    return VersionInfoService.instance.name;
-  } catch (_) {
-    return 'unknown';
-  }
-}

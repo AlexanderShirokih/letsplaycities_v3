@@ -165,4 +165,54 @@ void main() {
     expect(connectors.single.closed, isTrue);
     expect(connection.isConnected, isFalse);
   });
+
+  test('a socket error after the welcome is reported on closes', () async {
+    await connection.ensureConnected();
+    final closes = connection.closes.first;
+
+    connectors.single.controller.addError(StateError('broken'));
+
+    final close = await closes;
+    expect(close.code, isNull);
+    expect(close.reason, contains('broken'));
+    expect(connection.isConnected, isFalse);
+  });
+
+  test('an error before the welcome fails with its code', () async {
+    autoWelcome = false;
+    final future = connection.ensureConnected();
+    final failure = expectLater(
+      future,
+      throwsA(
+        isA<ProtocolErrorException>().having(
+          (e) => e.code,
+          'code',
+          'unsupported_protocol',
+        ),
+      ),
+    );
+    await pumpEventQueue();
+
+    connectors.single.controller
+      ..add(
+        SocketMessage(
+          SocketMessageType.data,
+          '{"type":"error","code":"unsupported_protocol"}',
+        ),
+      )
+      ..add(SocketMessage(SocketMessageType.closed, null, 1008, null));
+
+    await failure;
+  });
+
+  test('close() while ensureConnected is pending fails the waiter', () async {
+    autoWelcome = false;
+    final future = connection.ensureConnected();
+    final failure = expectLater(future, throwsA(isA<ConnectionException>()));
+    await pumpEventQueue();
+
+    await connection.close();
+
+    await failure;
+  });
 }

@@ -5,7 +5,10 @@ import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:get_it/get_it.dart';
 import 'package:lets_play_cities/app_config.dart';
+import 'package:lets_play_cities/base/preferences.dart';
 import 'package:lets_play_cities/base/remote/bloc/local_multiplayer_bloc.dart';
+import 'package:lets_play_cities/remote/game_connection.dart';
+import 'package:lets_play_cities/utils/error_logger.dart';
 import 'package:lets_play_cities/remote/api_repository_factory.dart';
 import 'package:lets_play_cities/remote/auth.dart';
 import 'package:lets_play_cities/remote/auth/token_store.dart';
@@ -51,6 +54,8 @@ class _FakeServer implements HttpClientAdapter {
 
 class _FakeAccountManager extends Fake implements AccountManager {}
 
+class _FakePreferences extends Fake implements GamePreferences {}
+
 void main() {
   final mainConfig = AppConfig.forHost('main.test');
   final lanConfig = AppConfig.lan('192.168.1.5');
@@ -81,7 +86,9 @@ void main() {
       ..registerSingleton<AppConfig>(mainConfig)
       ..registerSingleton<AccountManager>(_FakeAccountManager())
       ..registerSingleton<ApiRepositoryFactory>(mainApiRepositories)
-      ..registerSingleton<UserLookupRepository>(UserLookupRepositoryImpl());
+      ..registerSingleton<UserLookupRepository>(UserLookupRepositoryImpl())
+      ..registerSingleton<ErrorLogger>(SimpleErrorLogger())
+      ..registerSingleton<GamePreferences>(_FakePreferences());
   });
 
   void pushScope() => pushLanGameScope(
@@ -94,6 +101,21 @@ void main() {
 
     expect(getIt<AppConfig>(), lanConfig);
     expect(getIt<AccountManager>(), same(lanAccountManager));
+  });
+
+  test("the scope has its own game connection", () async {
+    final main = GameConnection.forApp(
+      url: 'wss://main.test/v1/game',
+      headers: () async => {'Authorization': 'Bearer main'},
+      playerName: () => '',
+    );
+    getIt.registerSingleton<GameConnection>(main);
+
+    pushScope();
+
+    expect(getIt<GameConnection>(), isNot(same(main)));
+    await getIt.popScope();
+    expect(getIt<GameConnection>(), same(main));
   });
 
   test('inside the scope the API factory sends the requests to the LAN '

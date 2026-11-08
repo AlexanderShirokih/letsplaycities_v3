@@ -1,11 +1,13 @@
 import 'dart:async';
 
+import 'package:lets_play_cities/base/platform/app_version.dart';
 import 'package:lets_play_cities/remote/client/base_socket_connector.dart';
 import 'package:lets_play_cities/remote/client/web_socket_connector.dart';
 import 'package:lets_play_cities/remote/exceptions.dart';
 import 'package:lets_play_cities/remote/model/lps_user.dart';
 import 'package:lets_play_cities/remote/protocol/game_message_codec.dart';
 import 'package:lets_play_cities/remote/protocol/game_messages.dart';
+import 'package:lets_play_cities/utils/error_logger.dart';
 
 /// Creates the transport to [url] that sends [headers] on the upgrade.
 typedef GameConnectorFactory = AbstractSocketConnector Function(
@@ -15,6 +17,15 @@ typedef GameConnectorFactory = AbstractSocketConnector Function(
 
 /// How a connection ended: the WebSocket close code and reason, if any
 typedef GameConnectionClose = ({int? code, String? reason});
+
+/// The server answered `hello` with `error{code}` and closed the socket
+class ProtocolErrorException extends RemoteException {
+  /// The `code` of the `error` message, e.g. `unsupported_protocol`
+  final String code;
+
+  const ProtocolErrorException(this.code)
+    : super('The game server rejected the connection: $code');
+}
 
 /// The one WebSocket of `WS /v1/game`, shared by everything that talks to the
 /// game server. The server keeps a single connection per user and a new one
@@ -29,6 +40,7 @@ class GameConnection {
   final String _clientName;
   final String Function() _playerName;
   final GameConnectorFactory _connectorFactory;
+  final ErrorLogger? _logger;
   final GameMessageCodec _codec = const GameMessageCodec();
 
   final _messages = StreamController<ServerGameMessage>.broadcast();
@@ -39,13 +51,39 @@ class GameConnection {
   Completer<LpsUser>? _ready;
   bool _welcomed = false;
 
+  /// `error` message received before the `welcome`
+  ProtocolError? _rejection;
+
   GameConnection({
     required this._url,
     required this._headers,
     required this._clientName,
     required this._playerName,
     GameConnectorFactory? connectorFactory,
+    this._logger,
   }) : _connectorFactory = connectorFactory ?? _webSocketConnector;
+
+  /// Connection that says `hello` as the app: `lps-flutter/<version>`
+  factory GameConnection.forApp({
+    required String url,
+    required Future<Map<String, String>> Function() headers,
+    required String Function() playerName,
+    ErrorLogger? logger,
+  }) => GameConnection(
+    url: url,
+    headers: headers,
+    clientName: 'lps-flutter/${_appVersion()}',
+    playerName: playerName,
+    logger: logger,
+  );
+
+  static String _appVersion() {
+    try {
+      return VersionInfoService.instance.name;
+    } catch (_) {
+      return 'unknown';
+    }
+  }
 
   static AbstractSocketConnector _webSocketConnector(
     String url,
@@ -112,9 +150,14 @@ class GameConnection {
         final ServerGameMessage message;
         try {
           message = _codec.decodeServer(event.data!);
-        } on FormatException {
+        } on FormatException catch (e, stackTrace) {
           // Not a message of this protocol; the server stays the authority.
+          _logger?.error(e, stackTrace);
+
           return;
+        }
+        if (message is ProtocolError && !completer.isCompleted) {
+          _rejection = message;
         }
         if (message is Welcome && !completer.isCompleted) {
           _welcomed = true;
@@ -123,8 +166,11 @@ class GameConnection {
         _messages.add(message);
       case SocketMessageType.closed:
         final wasReady = completer.isCompleted;
+        final rejection = _rejection;
         _reset(completer);
-        if (!wasReady) {
+        if (!wasReady && rejection != null) {
+          completer.completeError(ProtocolErrorException(rejection.code));
+        } else if (!wasReady) {
           completer.completeError(
             ConnectionException(
               'The server closed the socket before the welcome '
@@ -139,8 +185,14 @@ class GameConnection {
   void _fail(Completer<LpsUser> completer, Object error, StackTrace trace) {
     if (_ready != completer) return;
 
+    final wasReady = completer.isCompleted;
     _reset(completer);
-    if (!completer.isCompleted) completer.completeError(error, trace);
+    if (!wasReady) {
+      completer.completeError(error, trace);
+    } else {
+      // The socket broke mid-game: listeners learn it from [closes]
+      _closes.add((code: null, reason: error.toString()));
+    }
   }
 
   /// Forgets the socket of [completer] so that the next [ensureConnected]
@@ -154,6 +206,7 @@ class GameConnection {
     _connector = null;
     _subscription = null;
     _welcomed = false;
+    _rejection = null;
     unawaited(() async {
       await subscription?.cancel();
       await connector?.close();
@@ -170,7 +223,8 @@ class GameConnection {
     connector.sendData(_codec.encodeClient(message));
   }
 
-  /// Closes the socket; a later [ensureConnected] opens a new one
+  /// Closes the socket; a later [ensureConnected] opens a new one. Does not
+  /// emit on [closes]: the caller knows. A pending [ensureConnected] fails.
   Future<void> close() async {
     final completer = _ready;
     final connector = _connector;

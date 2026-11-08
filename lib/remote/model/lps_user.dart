@@ -41,6 +41,14 @@ class LpsUser extends Equatable {
     );
   }
 
+  Map<String, Object?> toJson() => {
+    'id': id,
+    'name': name,
+    'avatarHash': avatarHash,
+    'provider': provider,
+    'lastSeenAt': lastSeenAt.millisecondsSinceEpoch,
+  };
+
   /// `true` while less than [onlineWindow] passed since [lastSeenAt]
   bool isOnline(DateTime now) => now.difference(lastSeenAt) < onlineWindow;
 

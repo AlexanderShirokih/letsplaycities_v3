@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get_it/get_it.dart';
 import 'package:lets_play_cities/app_config.dart';
-import 'package:lets_play_cities/app_injection.dart';
 import 'package:lets_play_cities/base/platform/device_name.dart';
 import 'package:lets_play_cities/base/preferences.dart';
 import 'package:lets_play_cities/base/remote/bloc/local_multiplayer_bloc.dart';
@@ -109,10 +108,11 @@ void pushLanGameScope(GetIt getIt, LocalMultiplayerStartGame game) {
     ..registerSingleton<UserLookupRepository>(UserLookupRepositoryImpl())
     // The LAN host never gets the token of the main server
     ..registerSingleton<GameConnection>(
-      createGameConnection(
+      GameConnection.forApp(
         url: game.configOverrides.gameSocketUrl,
         headers: () async => const {},
         playerName: () => getIt.get<GamePreferences>().lastNativeLogin,
+        logger: getIt.get<ErrorLogger>(),
       ),
       dispose: (connection) => connection.close(),
     );
