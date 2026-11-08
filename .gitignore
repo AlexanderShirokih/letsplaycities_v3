@@ -44,3 +44,6 @@ app.*.map.json
 # Coverage HTML files
 /coverage/
 !/coverage/lcov.info
+
+# superpowers artifacts
+docs/superpowers/
