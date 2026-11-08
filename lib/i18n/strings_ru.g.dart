@@ -83,6 +83,7 @@ class Translations with BaseTranslations<AppLocale, Translations> {
 	late final Translations$multiplayer$ru multiplayer = Translations$multiplayer$ru._(_root);
 	late final Translations$online$ru online = Translations$online$ru._(_root);
 	late final Translations$misc$ru misc = Translations$misc$ru._(_root);
+	late final Translations$d2$ru d2 = Translations$d2$ru._(_root);
 }
 
 // Path: errors
@@ -769,6 +770,29 @@ class Translations$misc$ru {
 	String get gallery => 'Галерея';
 }
 
+// Path: d2
+class Translations$d2$ru {
+	Translations$d2$ru._(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// ru: 'Буква хода: {letter}'
+	String letterSemantics({required Object letter}) => 'Буква хода: ${letter}';
+
+	/// ru: 'Назад'
+	String get back => 'Назад';
+
+	/// ru: 'Закрыть'
+	String get close => 'Закрыть';
+
+	/// ru: 'Сыграем в Города'
+	String get logoSemantics => 'Сыграем в Города';
+
+	late final Translations$d2$nav$ru nav = Translations$d2$nav$ru._(_root);
+}
+
 // Path: game.combos
 class Translations$game$combos$ru {
 	Translations$game$combos$ru._(this._root);
@@ -947,4 +971,22 @@ class Translations$online$invitationResult$ru {
 
 	/// ru: 'Пользователь должен быть у вас в друзьях!'
 	String get notFriend => 'Пользователь должен быть у вас в друзьях!';
+}
+
+// Path: d2.nav
+class Translations$d2$nav$ru {
+	Translations$d2$nav$ru._(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// ru: 'Играть'
+	String get play => 'Играть';
+
+	/// ru: 'Города'
+	String get cities => 'Города';
+
+	/// ru: 'Профиль'
+	String get profile => 'Профиль';
 }

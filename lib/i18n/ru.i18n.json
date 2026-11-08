@@ -296,5 +296,16 @@
   "misc": {
     "camera": "Камера",
     "gallery": "Галерея"
+  },
+  "d2": {
+    "letter_semantics": "Буква хода: {letter}",
+    "back": "Назад",
+    "close": "Закрыть",
+    "logo_semantics": "Сыграем в Города",
+    "nav": {
+      "play": "Играть",
+      "cities": "Города",
+      "profile": "Профиль"
+    }
   }
 }
