@@ -5,6 +5,7 @@ import 'package:lets_play_cities/app_config.dart';
 import 'package:lets_play_cities/base/game/game_config.dart';
 import 'package:lets_play_cities/base/game/game_mode.dart';
 import 'package:lets_play_cities/base/game/management.dart';
+import 'package:lets_play_cities/base/game/player/surrender_exception.dart';
 import 'package:lets_play_cities/base/users.dart';
 import 'package:lets_play_cities/remote/auth.dart';
 import 'package:lets_play_cities/remote/exceptions.dart';
@@ -90,7 +91,7 @@ class RemoteGameClient {
       throw StateError('The match came before the welcome of the server');
     }
 
-    _game?._release();
+    _game?._abandon();
 
     final owner = Player(
       RemoteAccount(
@@ -250,10 +251,13 @@ class RemoteGame {
 
     final verdict = Completer<WordResultMsg?>();
     final subscription = _connection.messages.listen((message) {
-      if (message is WordResultMsg &&
-          message.by == _me &&
-          !verdict.isCompleted) {
+      if (verdict.isCompleted) return;
+
+      if (message is WordResultMsg && message.by == _me) {
         verdict.complete(message);
+      } else if (message is ProtocolError) {
+        // E.g. invalid_state: the server did not take the word as a move
+        verdict.complete(null);
       }
     });
     unawaited(
@@ -303,6 +307,16 @@ class RemoteGame {
       }
     }
 
+    _abandon();
+  }
+
+  /// Stops listening to the game and ends the move the opponent was making
+  /// with a surrender of the owner: the owner is the one who left
+  void _abandon() {
     _release();
+
+    final next = _nextWord;
+    _nextWord = null;
+    next?.completeError(SurrenderException(_owner, true));
   }
 }

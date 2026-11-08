@@ -119,8 +119,13 @@ class ScoreController {
   ///
   /// Games without score (last move wins) are counted too: nobody has points
   /// there, so only scored games that ended with no points are skipped.
+  /// A game on server authority always counts: the server has recorded it.
   void onGameFinished(GameResult gameResult) {
-    if (gameResult.hasScore && gameResult.owner.score <= 0) return;
+    if (!_mode.isServerAuthoritative &&
+        gameResult.hasScore &&
+        gameResult.owner.score <= 0) {
+      return;
+    }
 
     _allGroups[groupParts].main.asIntField().increase();
     _allGroups[groupParts][_translateGameMode(_mode)].asIntField().increase();

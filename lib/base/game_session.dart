@@ -101,9 +101,11 @@ class GameSession {
   /// lost
   Stream<GameEvent> Function(GameSession)? _externalEvents;
 
-  /// The end of the game that came from outside. It ends the game even if
-  /// it came while no move listened to the service events.
-  OnMoveFinished? _externalFinish;
+  /// The first end of the game that came from outside the moves: from the
+  /// server, from the fallback of a surrender or from the event channel. It
+  /// ends the game even if it came while no move listened to the service
+  /// events.
+  OnMoveFinished? _pendingFinish;
 
   void _listenToExternalEvents() {
     final externalEvents = _externalEvents;
@@ -116,7 +118,7 @@ class GameSession {
 
         if (event is OnMoveFinished &&
             event.endType != MoveFinishType.completed) {
-          _externalFinish ??= event;
+          _pendingFinish ??= event;
         }
 
         await _sendServiceEvent(event);
@@ -155,7 +157,16 @@ class GameSession {
     final sent = _serviceEventsSent.then((_) async {
       if (_serviceEvents.isClosed) return;
 
-      await _serviceEvents.addStream(eventChannel.sendEvent(event));
+      await _serviceEvents.addStream(
+        eventChannel.sendEvent(event).map((result) {
+          if (result is OnMoveFinished &&
+              result.endType != MoveFinishType.completed) {
+            _pendingFinish ??= result;
+          }
+
+          return result;
+        }),
+      );
     });
     _serviceEventsSent = sent.catchError((_) {});
 
@@ -193,8 +204,10 @@ class GameSession {
     _leaveFallback = Timer(leaveTimeout, () {
       if (!_gameRunning) return;
 
-      _gameRunning = false;
-      _sendServiceEvent(OnMoveFinished(MoveFinishType.surrender, owner));
+      // The game loop ends the game with it, even between two moves
+      final finish = OnMoveFinished(MoveFinishType.surrender, owner);
+      _pendingFinish ??= finish;
+      _sendServiceEvent(finish);
     });
 
     await _sendServiceEvent(LeaveRequested(owner));
@@ -250,7 +263,7 @@ class GameSession {
     _listenToExternalEvents();
 
     while (_gameRunning) {
-      final externalFinish = _externalFinish;
+      final externalFinish = _pendingFinish;
       if (externalFinish != null) {
         _gameRunning = false;
         yield externalFinish;
@@ -302,8 +315,9 @@ class GameSession {
       String city;
       try {
         city = await currentUser.onCreateWord(lastSuitableChar);
-      } on SurrenderException {
-        yield OnMoveFinished(MoveFinishType.surrender, currentUser);
+      } on SurrenderException catch (e) {
+        // A network opponent's move ends when the player leaves the game
+        yield OnMoveFinished(MoveFinishType.surrender, e.target);
         return;
       }
 

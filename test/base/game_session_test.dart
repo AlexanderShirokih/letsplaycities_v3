@@ -10,6 +10,7 @@ import 'package:lets_play_cities/base/game/combo.dart';
 import 'package:lets_play_cities/base/game/game_mode.dart';
 import 'package:lets_play_cities/base/game/game_result.dart';
 import 'package:lets_play_cities/base/game/management.dart';
+import 'package:lets_play_cities/base/game/player/surrender_exception.dart';
 import 'package:lets_play_cities/base/game/turn_gate.dart';
 import 'package:lets_play_cities/base/game_session.dart';
 import 'package:lets_play_cities/base/scoring.dart';
@@ -77,12 +78,21 @@ class _BrokenUser extends User {
 class _ServerChannel extends AbstractEventChannel {
   final leaves = <LeaveRequested>[];
 
+  /// When `true`, the ends of the game stay in the channel and never come out
+  bool holdFinishes = false;
+
   @override
   Stream<GameEvent> sendEvent(GameEvent event) {
     if (event is LeaveRequested) {
       leaves.add(event);
 
       return const Stream.empty();
+    }
+
+    if (holdFinishes &&
+        event is OnMoveFinished &&
+        event.endType != MoveFinishType.completed) {
+      return StreamController<GameEvent>().stream;
     }
 
     return Stream.value(
@@ -447,6 +457,97 @@ void main() {
 
         game.session.cancel();
         async.flushTimers();
+      });
+    });
+
+    test('timer restarts on own accepted word', () {
+      fakeAsync((async) {
+        final game = _ServerGame(timeLimit: 10);
+        final events = <GameEvent>[];
+        game.session.inputEvents.listen(events.add);
+        game.session.runMoves().ignore();
+        async.elapse(const Duration(milliseconds: 200));
+
+        async.elapse(const Duration(seconds: 6));
+        expect(events.whereType<TimeEvent>().last.secondsLeft, 5);
+
+        game.session.deliverUserInput('москва');
+        async.flushMicrotasks();
+        events.clear();
+        async.elapse(const Duration(seconds: 1));
+
+        expect(events.whereType<TimeEvent>().map((e) => e.secondsLeft), [10]);
+
+        game.session.cancel();
+        async.flushTimers();
+      });
+    });
+
+    test('fallback surrender is not lost when a move ends first', () {
+      fakeAsync((async) {
+        final game = _ServerGame(timeLimit: 0, ownerStarts: false);
+        GameResult? result;
+        Object? error;
+        game.session.runMoves().then<void>(
+          (value) => result = value,
+          onError: (Object e) => error = e,
+        );
+        async.elapse(const Duration(milliseconds: 200));
+
+        game.channel.holdFinishes = true;
+        game.session.surrender();
+        async.elapse(const Duration(milliseconds: 3100));
+
+        // The opponent's word ends the move while the fallback is on its way
+        game.opponent.words.add('москва');
+        async.flushMicrotasks();
+
+        expect(error, isNull);
+        expect(result!.finishType, MoveFinishType.surrender);
+        expect(result!.finishRequester, same(game.owner));
+        expect(result!.matchResult, MatchResult.lose);
+      });
+    });
+
+    test('a gameOver after the fallback ends nothing twice', () {
+      fakeAsync((async) {
+        final game = _ServerGame(timeLimit: 0);
+        final finishes = <OnMoveFinished>[];
+        game.session.inputEvents.listen((event) {
+          if (event is OnMoveFinished) finishes.add(event);
+        });
+        GameResult? result;
+        game.session.runMoves().then((value) => result = value);
+        async.elapse(const Duration(milliseconds: 200));
+
+        game.session.surrender();
+        async.elapse(const Duration(milliseconds: 3100));
+        expect(result!.finishRequester, same(game.owner));
+
+        game.server.add(
+          OnMoveFinished(MoveFinishType.surrender, game.opponent),
+        );
+        async.elapse(const Duration(seconds: 1));
+
+        expect(finishes, hasLength(1));
+        expect(result!.matchResult, MatchResult.lose);
+      });
+    });
+
+    test('a surrender names the user it gives up for', () {
+      fakeAsync((async) {
+        final game = _ServerGame(timeLimit: 0, ownerStarts: false);
+        GameResult? result;
+        game.session.runMoves().then((value) => result = value);
+        async.elapse(const Duration(milliseconds: 200));
+
+        // The owner leaves while the opponent moves
+        game.opponent.words.addError(SurrenderException(game.owner, true));
+        async.flushMicrotasks();
+
+        expect(result!.finishType, MoveFinishType.surrender);
+        expect(result!.finishRequester, same(game.owner));
+        expect(result!.matchResult, MatchResult.lose);
       });
     });
 

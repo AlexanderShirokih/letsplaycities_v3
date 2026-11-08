@@ -274,12 +274,34 @@ void main() {
     });
 
     test('scored games ending with no points are not counted', () {
-      final set = ScoringSet.initial();
-      final controller = _controller(set, mode: GameMode.network);
+      for (final mode in [GameMode.playerVsAndroid, GameMode.playerVsPlayer]) {
+        final set = ScoringSet.initial();
+        final controller = _controller(set, mode: mode);
 
-      controller.onGameFinished(_result(_player()));
+        controller.onGameFinished(_result(_player()));
 
-      expect(set, ScoringSet.initial());
+        expect(set, ScoringSet.initial(), reason: '$mode');
+      }
+    });
+
+    test('server games are counted with no points', () {
+      for (final mode in [GameMode.network, GameMode.multiplayer]) {
+        final set = ScoringSet.initial();
+        final controller = _controller(set, mode: mode);
+
+        controller.onGameFinished(
+          _result(_player(), matchResult: MatchResult.lose),
+        );
+        controller.onGameFinished(
+          _result(_player(), matchResult: MatchResult.win),
+        );
+
+        expect(set[groupParts].main.asIntField().value, 2, reason: '$mode');
+        if (mode == GameMode.network) {
+          expect(_int(set, groupOnline, fieldWins), 1);
+          expect(_int(set, groupOnline, fieldLose), 1);
+        }
+      }
     });
 
     test('are counted in LAST_MOVE games, where nobody has points', () {

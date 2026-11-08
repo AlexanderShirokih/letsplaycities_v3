@@ -25,8 +25,7 @@ class GameConfig {
 
   /// `true` when a server judges the moves, runs the clock and ends the game:
   /// the network game and the LAN game
-  bool get serverAuthoritative =>
-      gameMode == GameMode.network || gameMode == GameMode.multiplayer;
+  bool get serverAuthoritative => gameMode.isServerAuthoritative;
 
   const GameConfig({
     required this.gameMode,

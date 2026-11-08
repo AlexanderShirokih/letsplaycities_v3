@@ -6,6 +6,7 @@ import 'package:lets_play_cities/app_config.dart';
 import 'package:lets_play_cities/base/game/game_config.dart';
 import 'package:lets_play_cities/base/game/game_mode.dart';
 import 'package:lets_play_cities/base/game/management.dart';
+import 'package:lets_play_cities/base/game/player/surrender_exception.dart';
 import 'package:lets_play_cities/base/game_session.dart';
 import 'package:lets_play_cities/base/users.dart';
 import 'package:lets_play_cities/remote/account.dart';
@@ -290,6 +291,33 @@ void main() {
       );
 
       expect(await verdict, isNull);
+    });
+
+    test('sendWord ends without a verdict on a protocol error', () async {
+      await startGame();
+
+      final verdict = client.sendWord('москва');
+      connection.receive(const ProtocolError('invalid_state'));
+
+      expect(await verdict, isNull);
+    });
+
+    test('leaving while the opponent moves ends that move', () async {
+      final (config, _) = await startGame();
+      final move = expectLater(
+        opponent(config).onCreateWord('а'),
+        throwsA(
+          isA<SurrenderException>().having(
+            (e) => e.target,
+            'target',
+            same(owner(config)),
+          ),
+        ),
+      );
+
+      await opponent(config).close();
+
+      await move;
     });
 
     test('a lost socket ends the game as a disconnect of the owner', () async {
