@@ -24,6 +24,7 @@ class _FakeCountryRepository extends Fake implements CountryRepository {
   @override
   Future<List<CountryEntity>> getCountryList() async => const [
     CountryEntity('Россия', 91, false),
+    CountryEntity('Центрально-африканская республика', 236, false),
   ];
 }
 
@@ -76,6 +77,37 @@ void main() {
     await pumpScreen(tester, ScoringSet.initial());
 
     expect(find.text(t.stats.groups[groupCountries]!), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('a long country name fits a narrow screen with large text', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(320, 640);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+
+    final countries = ScoringSet.initial()[groupCountries]
+      ..child = [const PairedScoringField<String, int>('pval0', '236', 12345)];
+
+    await tester.pumpWidget(
+      RepositoryProvider<GamePreferences>.value(
+        value: _Prefs(jsonEncode(ScoringSet(groups: [countries]).toJson())),
+        child: withTranslations(
+          MaterialApp(
+            builder: (context, child) => MediaQuery(
+              data: MediaQuery.of(context)
+                  .copyWith(textScaler: const TextScaler.linear(1.3)),
+              child: child!,
+            ),
+            home: const StatisticsScreen(),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Центрально-африканская республика'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 }

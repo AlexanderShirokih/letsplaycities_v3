@@ -108,7 +108,11 @@ class _StatisticsList extends StatelessWidget {
       padding: const EdgeInsets.all(8.0),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [Text(name), Text(pair.value ?? '--')],
+        children: [
+          Expanded(child: Text(name)),
+          const SizedBox(width: 12.0),
+          Text(pair.value ?? '--'),
+        ],
       ),
     );
   }
