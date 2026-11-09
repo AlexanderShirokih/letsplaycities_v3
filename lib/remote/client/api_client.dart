@@ -7,6 +7,6 @@ abstract class LpsApiClient {
   /// Gets a list of city requests
   Future<List<CityRequest>> getCityRequests();
 
-  /// Sends a new city request
-  Future<void> sendCityRequest(SendCityRequest request);
+  /// Sends a new city request and returns the created one
+  Future<CityRequest> sendCityRequest(SendCityRequest request);
 }

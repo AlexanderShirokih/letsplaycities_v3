@@ -1,8 +1,10 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'dart:math';
 import 'dart:typed_data';
 
+import 'package:crypto/crypto.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:lets_play_cities/base/dictionary/dictionary_update_period.dart';
@@ -23,13 +25,15 @@ class _FakePrefs implements GamePreferences {
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
-/// Answers `/update` with [latestVersion] and `/data-<version>.db2` with
-/// [dictionaryResponse], or with 404 when it is `null`.
+/// Answers `/dictionary` with [meta], or with 404 when it is `null`, and
+/// `/dictionary/<version>.db2` with [dictionaryResponse].
 class _FakeServer implements HttpClientAdapter {
   final int latestVersion;
+  final Map<String, Object?>? meta;
   final ResponseBody Function()? dictionaryResponse;
+  final requests = <String>[];
 
-  _FakeServer(this.latestVersion, [this.dictionaryResponse]);
+  _FakeServer(this.latestVersion, this.meta, [this.dictionaryResponse]);
 
   @override
   Future<ResponseBody> fetch(
@@ -37,18 +41,18 @@ class _FakeServer implements HttpClientAdapter {
     Stream<Uint8List>? requestStream,
     Future<void>? cancelFuture,
   ) async {
-    if (options.path == '/update') {
+    requests.add(options.path);
+
+    if (options.path == '/dictionary' && meta != null) {
       return ResponseBody.fromString(
-        jsonEncode({
-          'dictionary': {'version': latestVersion},
-        }),
+        jsonEncode(meta),
         200,
         headers: {
           Headers.contentTypeHeader: [Headers.jsonContentType],
         },
       );
     }
-    if (options.path == '/data-$latestVersion.db2' &&
+    if (options.path == '/dictionary/$latestVersion.db2' &&
         dictionaryResponse != null) {
       return dictionaryResponse!();
     }
@@ -59,12 +63,15 @@ class _FakeServer implements HttpClientAdapter {
   void close({bool force = false}) {}
 }
 
+/// Describes [bytes] the way the server does.
+Map<String, Object?> _metaOf(int version, List<int> bytes) => {
+  'version': version,
+  'size': bytes.length,
+  'sha256': sha256.convert(bytes).toString(),
+};
+
 /// Sends [bytes] in four chunks, then fails with [error] if it is given.
-ResponseBody _dictionaryBody(
-  List<int> bytes, {
-  bool withLength = true,
-  Object? error,
-}) {
+ResponseBody _dictionaryBody(List<int> bytes, {Object? error}) {
   final chunk = (bytes.length / 4).ceil();
   Stream<Uint8List> chunks() async* {
     for (var start = 0; start < bytes.length; start += chunk) {
@@ -74,13 +81,7 @@ ResponseBody _dictionaryBody(
     if (error != null) throw error;
   }
 
-  return ResponseBody(
-    chunks(),
-    200,
-    headers: {
-      if (withLength) Headers.contentLengthHeader: ['${bytes.length}'],
-    },
-  );
+  return ResponseBody(chunks(), 200);
 }
 
 void main() {
@@ -94,9 +95,30 @@ void main() {
   File installed() => File('${supportDir.path}/data-last.db2');
   File installedMeta() => File('${supportDir.path}/data-last.db2.meta');
 
-  void serve(int latestVersion, [ResponseBody Function()? dictionary]) {
+  late _FakeServer server;
+
+  /// The server offers [bytes] as dictionary [version]; [body] replaces the
+  /// download, [meta] the description of the file.
+  void serve(
+    int version,
+    List<int> bytes, {
+    ResponseBody Function()? body,
+    Map<String, Object?>? meta,
+  }) {
+    server = _FakeServer(
+      version,
+      meta ?? _metaOf(version, bytes),
+      body ?? () => _dictionaryBody(bytes),
+    );
     http = Dio(BaseOptions(baseUrl: 'https://example.test'))
-      ..httpClientAdapter = _FakeServer(latestVersion, dictionary);
+      ..httpClientAdapter = server;
+  }
+
+  /// The server has no dictionary: `GET /dictionary` answers 404.
+  void serveNothing() {
+    server = _FakeServer(0, null);
+    http = Dio(BaseOptions(baseUrl: 'https://example.test'))
+      ..httpClientAdapter = server;
   }
 
   Stream<int> checkForUpdates() =>
@@ -140,10 +162,7 @@ void main() {
 
   test('installs a newer dictionary and reports progress up to 100', () async {
     final version = embeddedVersion + 1;
-    serve(
-      version,
-      () => _dictionaryBody(buildDictionaryFile(version, {'новоград': 91})),
-    );
+    serve(version, buildDictionaryFile(version, {'новоград': 91}));
 
     final progress = await runUpdate();
 
@@ -156,18 +175,111 @@ void main() {
     expect(dictionary.getAll().keys, ['новоград']);
   });
 
-  test('reports only 0 and 100 when the server sends no size', () async {
+  test('progress reports size', () async {
     final version = embeddedVersion + 1;
+    final bytes = buildDictionaryFile(version, {'новоград': 91});
+    serve(version, bytes);
+
+    final progress = await runUpdate();
+
+    // Four chunks of a quarter of the advertised size, the last one shorter
+    final chunk = (bytes.length / 4).ceil();
+    expect(progress.skip(1).take(5), [
+      0,
+      for (var i = 1; i <= 4; i++)
+        (min(chunk * i, bytes.length) * 100 / bytes.length).round(),
+    ]);
+  });
+
+  test('404 means no update', () async {
+    serveNothing();
+
+    expect(await runUpdate(), [-1]);
+
+    expect(server.requests, ['/dictionary']);
+    expect(await DictionaryFactory.latestVersion(), embeddedVersion);
+    expect(supportDir.listSync(), isEmpty);
+  });
+
+  test('does not download a dictionary that is not newer', () async {
+    serve(embeddedVersion, buildDictionaryFile(embeddedVersion, {'а': 91}));
+
+    await runUpdate();
+
+    expect(server.requests, ['/dictionary']);
+    expect(supportDir.listSync(), isEmpty);
+  });
+
+  test('sha mismatch keeps old dictionary', () async {
+    final previous = await installPrevious();
+    final version = embeddedVersion + 2;
+    final bytes = buildDictionaryFile(version, {'новоград': 91});
     serve(
       version,
-      () => _dictionaryBody(
-        buildDictionaryFile(version, {'новоград': 91}),
-        withLength: false,
-      ),
+      bytes,
+      meta: {
+        ..._metaOf(version, bytes),
+        'sha256': sha256.convert([1]).toString(),
+      },
     );
 
-    expect(await runUpdate(), [-1, 0, 100]);
-    expect(await installedVersion(), version);
+    await runUpdate();
+
+    await expectPreviousKept(previous);
+  });
+
+  test('size mismatch keeps old dictionary', () async {
+    final previous = await installPrevious();
+    final version = embeddedVersion + 2;
+    final bytes = buildDictionaryFile(version, {'новоград': 91});
+    serve(
+      version,
+      bytes,
+      meta: {..._metaOf(version, bytes), 'size': bytes.length + 1},
+    );
+
+    await runUpdate();
+
+    await expectPreviousKept(previous);
+  });
+
+  group('the check date', () {
+    final never = DateTime.fromMillisecondsSinceEpoch(0);
+
+    test('is not written when the check fails', () async {
+      http = Dio(BaseOptions(baseUrl: 'https://example.test'))
+        ..httpClientAdapter = _OfflineServer();
+
+      await runUpdate();
+
+      expect(prefs.lastDictionaryCheckDate, never);
+    });
+
+    test('is written after a check that finds nothing', () async {
+      serveNothing();
+
+      await runUpdate();
+
+      expect(prefs.lastDictionaryCheckDate.isAfter(never), isTrue);
+    });
+
+    test('is written after a successful check', () async {
+      final version = embeddedVersion + 1;
+      serve(version, buildDictionaryFile(version, {'новоград': 91}));
+
+      await runUpdate();
+
+      expect(prefs.lastDictionaryCheckDate.isAfter(never), isTrue);
+    });
+
+    test('a failed check does not burn the update window', () async {
+      http = Dio(BaseOptions(baseUrl: 'https://example.test'))
+        ..httpClientAdapter = _OfflineServer();
+      await runUpdate();
+      serveNothing();
+
+      expect(await runUpdate(), [-1]);
+    });
   });
 
   group('keeps the installed dictionary when', () {
@@ -180,7 +292,11 @@ void main() {
     });
 
     test('the dictionary file is missing on the server', () async {
-      serve(embeddedVersion + 2);
+      serve(
+        embeddedVersion + 2,
+        next,
+        body: () => ResponseBody.fromString('', 404),
+      );
 
       await runUpdate();
 
@@ -190,9 +306,9 @@ void main() {
     test('the connection breaks during the download', () async {
       serve(
         embeddedVersion + 2,
-        () => _dictionaryBody(
+        next,
+        body: () => _dictionaryBody(
           next.sublist(0, next.length ~/ 2),
-          withLength: false,
           error: const SocketException('Connection reset'),
         ),
       );
@@ -205,10 +321,8 @@ void main() {
     test('the download ends early', () async {
       serve(
         embeddedVersion + 2,
-        () => _dictionaryBody(
-          next.sublist(0, next.length - 3),
-          withLength: false,
-        ),
+        next,
+        body: () => _dictionaryBody(next.sublist(0, next.length - 3)),
       );
 
       await runUpdate();
@@ -217,7 +331,7 @@ void main() {
     });
 
     test('the update is cancelled during the download', () async {
-      serve(embeddedVersion + 2, () => _dictionaryBody(next));
+      serve(embeddedVersion + 2, next);
 
       final cancelled = Completer<void>();
       late StreamSubscription<int> subscription;
@@ -243,7 +357,7 @@ void main() {
           await Completer<void>().future;
         }
 
-        serve(embeddedVersion + 2, () => ResponseBody(body(), 200));
+        serve(embeddedVersion + 2, next, body: () => ResponseBody(body(), 200));
 
         final subscription = checkForUpdates().listen(null);
         // Once the first chunk is on disk the update is waiting for the next.
@@ -256,6 +370,19 @@ void main() {
       },
     );
   });
+}
+
+/// Fails every request as if the network were down.
+class _OfflineServer implements HttpClientAdapter {
+  @override
+  Future<ResponseBody> fetch(
+    RequestOptions options,
+    Stream<Uint8List>? requestStream,
+    Future<void>? cancelFuture,
+  ) async => throw const SocketException('Network is unreachable');
+
+  @override
+  void close({bool force = false}) {}
 }
 
 /// Waits until [file] holds [length] bytes.

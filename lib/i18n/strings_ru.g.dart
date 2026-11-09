@@ -1020,6 +1020,8 @@ class Translations$online$ru {
 		'not_found': 'Пользователь не найден',
 		'banned': 'Аккаунт заблокирован',
 		'too_many_requests': 'Слишком много запросов, попробуйте позже',
+		'bad_reason': 'Причина слишком длинная',
+		'bad_request': 'Название слишком длинное',
 	};
 
 	/// ru: '(one) {{count} слово} (few) {{count} слова} (many) {{count} слов} (other) {{count} слов}'

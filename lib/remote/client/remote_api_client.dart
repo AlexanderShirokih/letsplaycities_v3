@@ -1,9 +1,8 @@
 import 'package:dio/dio.dart';
-import 'package:flutter/foundation.dart';
 import 'package:lets_play_cities/base/cities_list/city_request.dart';
 import 'package:lets_play_cities/remote/auth/token_store.dart';
-import 'package:lets_play_cities/remote/client/api_exception.dart';
 import 'package:lets_play_cities/remote/client/api_client.dart';
+import 'package:lets_play_cities/remote/client/api_exception.dart';
 import 'package:lets_play_cities/remote/exceptions.dart';
 
 /// Remote server REST-api client of the city requests
@@ -17,11 +16,22 @@ class RemoteLpsApiClient extends LpsApiClient {
   Future<List<CityRequest>> getCityRequests() async {
     await _requireCredential();
 
-    final data = await _decodeJson(() => _httpClient.get('/cities/edit'));
+    final response = await _send(() => _httpClient.get('/city-edits'));
 
-    return (data as List<dynamic>)
+    return (response.data as List<dynamic>)
         .map((e) => CityRequest.fromJson(e))
         .toList(growable: false);
+  }
+
+  @override
+  Future<CityRequest> sendCityRequest(SendCityRequest request) async {
+    await _requireCredential();
+
+    final response = await _send(
+      () => _httpClient.post('/city-edits', data: request.toJson()),
+    );
+
+    return CityRequest.fromJson(response.data);
   }
 
   Future<void> _requireCredential() async {
@@ -31,89 +41,24 @@ class RemoteLpsApiClient extends LpsApiClient {
     }
   }
 
-  Future<Response<dynamic>> _requireOK(
-    Future<Response> Function() responseSupplier,
-  ) async {
+  /// Runs [request]. An answer of the server with an error comes out as the
+  /// [ApiException], except a rejected token, which is
+  /// [NotAuthorizedException]; a request that got no answer is a
+  /// [FetchingException].
+  Future<Response<dynamic>> _send(Future<Response> Function() request) async {
     try {
-      final response = await responseSupplier();
-
-      final status = response.statusCode ?? 0;
-      if (status < 200 || status >= 300) {
-        throw AuthorizationException.fromStatus(
-          response.statusMessage ?? 'No message',
-          response.statusCode ?? 0,
-        );
-      }
-      return response;
+      return await request();
     } on DioException catch (e) {
-      var description = 'no description';
+      final error = e.error;
 
-      final apiError = e.error;
-      final response = e.response;
-      if (apiError is UnauthorizedException) {
-        throw AccessDeniedException();
-      } else if (apiError is ApiException) {
-        description = '${apiError.code}: ${apiError.message}';
-      } else if (response == null) {
-        description = 'No response!';
-      } else if (response.data is String) {
-        description = response.data;
-      } else {
-        description = 'Response if empty or invalid';
-      }
+      if (error is UnauthorizedException) throw NotAuthorizedException();
+      if (error is ApiException) throw error;
 
       throw FetchingException(
-        _getDetailedData(e, description),
+        'City requests failed: ${e.message}',
         e.requestOptions.uri,
       );
     }
-  }
-
-  Future<dynamic> _decodeJson(
-    Future<Response> Function() response, {
-    bool requireOK = true,
-  }) async {
-    try {
-      if (requireOK) {
-        return (await _requireOK(response)).data;
-      } else {
-        return (await response()).data;
-      }
-    } on DioException catch (e) {
-      throw FetchingException(
-        'JSON decoding error. \n$e',
-        e.requestOptions.uri,
-      );
-    }
-  }
-
-  String _getDetailedData(DioException e, String description) {
-    if (kDebugMode) {
-      final stringBuilder = StringBuffer();
-      stringBuilder.write('Response Status code: ');
-      stringBuilder.writeln(e.response?.statusCode);
-      stringBuilder.write('Response Status message: ');
-      stringBuilder.writeln(e.response?.statusMessage);
-      stringBuilder.write('Request Headers: ');
-      stringBuilder.writeln(e.requestOptions.headers);
-      stringBuilder.write('Request URI: ');
-      stringBuilder.writeln(e.requestOptions.uri);
-      stringBuilder.write('Request QueryParams: ');
-      stringBuilder.writeln(e.requestOptions.queryParameters);
-
-      return stringBuilder.toString();
-    } else {
-      return '${e.message}, error=$description';
-    }
-  }
-
-  @override
-  Future<void> sendCityRequest(SendCityRequest request) async {
-    await _requireCredential();
-
-    await _requireOK(
-      () => _httpClient.post('/cities/edit', data: request.toJson()),
-    );
   }
 }
 

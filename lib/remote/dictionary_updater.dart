@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:crypto/crypto.dart';
 import 'package:dio/dio.dart';
 import 'package:lets_play_cities/base/dictionary/dictionary_update_period.dart';
 import 'package:lets_play_cities/base/dictionary/impl/dictionary_factory.dart';
@@ -30,9 +31,7 @@ class DictionaryUpdater {
       return Stream.empty();
     }
 
-    _prefs.lastDictionaryCheckDate = now;
-
-    return _fetchUpdates()
+    return _fetchUpdates(now)
         .handleError(
           (_) {}, // Eat SocketExceptions
           test: (error) => error is RemoteException,
@@ -43,16 +42,21 @@ class DictionaryUpdater {
         .distinct();
   }
 
-  Stream<int> _fetchUpdates() async* {
+  Stream<int> _fetchUpdates(DateTime checkTime) async* {
     yield -1; // Begin fetching updates
 
     final currentVersion = await DictionaryFactory.latestVersion();
-    final latestVersion = await _fetchLatestDictionaryVersion().timeout(
+    final latest = await _fetchLatestDictionary().timeout(
       Duration(seconds: 5),
-      onTimeout: () => 0,
+      onTimeout: () =>
+          throw RemoteException('Dictionary version fetch timeout'),
     );
 
-    if (currentVersion >= latestVersion) return;
+    // The check has succeeded, even if there is nothing to download. A failed
+    // check leaves the date alone, so the next start tries again.
+    _prefs.lastDictionaryCheckDate = checkTime;
+
+    if (latest == null || currentVersion >= latest.version) return;
 
     final databaseFile = await DictionaryFactory.internalDatabaseFile;
     final downloadFile = File('${databaseFile.path}.download');
@@ -62,15 +66,15 @@ class DictionaryUpdater {
     try {
       // Not `yield*`: it passes a download error on and then carries on,
       // which would install the incomplete file.
-      await for (final percent in _loadDictionaryData(
-        downloadFile,
-        latestVersion,
-      )) {
+      await for (final percent in _loadDictionaryData(downloadFile, latest)) {
         yield percent;
       }
 
-      await DictionaryFactory.verifyDictionaryFile(downloadFile, latestVersion);
-      await _install(downloadFile, databaseFile, latestVersion);
+      await DictionaryFactory.verifyDictionaryFile(
+        downloadFile,
+        latest.version,
+      );
+      await _install(downloadFile, databaseFile, latest.version);
     } catch (e) {
       throw RemoteException('Database updating failed: $e');
     } finally {
@@ -78,15 +82,12 @@ class DictionaryUpdater {
     }
   }
 
-  Stream<int> _loadDictionaryData(File output, int latestVersion) async* {
+  /// Downloads the dictionary described by [latest] into [output] and checks
+  /// its size and SHA-256. Progress is counted against `latest.size`.
+  Stream<int> _loadDictionaryData(File output, _DictionaryInfo latest) async* {
     final response = await _http.get(
-      '/data-$latestVersion.db2',
+      '/dictionary/${latest.version}.db2',
       options: Options(responseType: ResponseType.stream),
-    );
-
-    // `null` when the server does not send Content-Length
-    final total = int.tryParse(
-      response.headers.value(Headers.contentLengthHeader) ?? '',
     );
 
     var done = 0;
@@ -94,19 +95,32 @@ class DictionaryUpdater {
 
     await output.parent.create(recursive: true);
     final sink = output.openWrite();
+    final digest = _DigestCatcher();
+    final hash = sha256.startChunkedConversion(digest);
 
     try {
       await for (final List<int> portion in response.data.stream) {
         done += portion.length;
         sink.add(portion);
-        // Without a size there is no progress to report, but a value per
-        // chunk lets a cancelled update stop at the next chunk.
-        yield total != null && total > 0
-            ? (done * 100 / total).round().clamp(0, 100)
+        hash.add(portion);
+        // Every chunk yields, so a cancelled update stops at the next chunk.
+        yield latest.size > 0
+            ? (done * 100 / latest.size).round().clamp(0, 100)
             : 0;
       }
     } finally {
       await sink.close();
+    }
+
+    hash.close();
+
+    if (done != latest.size) {
+      throw RemoteException(
+        'Dictionary size is $done, expected ${latest.size}',
+      );
+    }
+    if (digest.value.toString() != latest.sha256) {
+      throw RemoteException('Dictionary SHA-256 does not match');
     }
 
     yield 100;
@@ -145,20 +159,47 @@ class DictionaryUpdater {
     }
   }
 
-  Future<int> _fetchLatestDictionaryVersion() async {
+  /// Reads the description of the dictionary on the server, `null` when the
+  /// server has none.
+  Future<_DictionaryInfo?> _fetchLatestDictionary() async {
     try {
-      final response = await _http.get('/update');
+      final response = await _http.get('/dictionary');
+      final data = response.data;
 
-      if (response.statusCode == 200) {
-        return response.data['dictionary']['version'] as int;
-      }
+      return _DictionaryInfo(
+        data['version'] as int,
+        data['size'] as int,
+        (data['sha256'] as String).toLowerCase(),
+      );
     } on DioException catch (e) {
+      if (e.response?.statusCode == 404) return null;
+
       throw FetchingException(
         'Dictionary version fetch error: ${e.error}',
         e.requestOptions.uri,
       );
+    } on TypeError catch (e) {
+      throw RemoteException('Dictionary description is invalid: $e');
     }
-
-    throw RemoteException('Update fetching failed!');
   }
+}
+
+/// Version, size and SHA-256 of a dictionary file on the server.
+class _DictionaryInfo {
+  final int version;
+  final int size;
+  final String sha256;
+
+  const _DictionaryInfo(this.version, this.size, this.sha256);
+}
+
+/// Keeps the digest that a chunked hash conversion ends with.
+class _DigestCatcher implements Sink<Digest> {
+  late Digest value;
+
+  @override
+  void add(Digest data) => value = data;
+
+  @override
+  void close() {}
 }

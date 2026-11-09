@@ -9,6 +9,7 @@ import 'package:lets_play_cities/base/repositories/cities/country_repository.dar
 import 'package:lets_play_cities/i18n/strings.g.dart';
 import 'package:lets_play_cities/remote/city_requests_repository.dart';
 import 'package:lets_play_cities/screens/common/d2/d2.dart';
+import 'package:lets_play_cities/screens/common/error_texts.dart';
 import 'package:lets_play_cities/screens/main/cites/list/widgets/add_city_layout.dart';
 import 'package:lets_play_cities/screens/main/cites/list/widgets/remove_city_layout.dart';
 import 'package:lets_play_cities/screens/main/cites/list/widgets/rename_city_layout.dart';
@@ -113,6 +114,9 @@ class _CityEditActionsScreenState extends State<CityEditActionsScreen> {
                   break;
                 case CityRequestSendingType.notAuthorized:
                   message = t.citiesRequest.signInToSend;
+                  break;
+                case CityRequestSendingType.rejected:
+                  message = errorText(t, state.error!);
                   break;
               }
 

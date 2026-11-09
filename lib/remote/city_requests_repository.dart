@@ -1,5 +1,7 @@
 import 'package:lets_play_cities/base/cities_list/city_request.dart';
 import 'package:lets_play_cities/remote/client/api_client.dart';
+import 'package:lets_play_cities/remote/client/api_exception.dart';
+import 'package:lets_play_cities/remote/client/remote_api_client.dart';
 import 'package:lets_play_cities/remote/exceptions.dart';
 
 class CityRequestsRepository {
@@ -16,9 +18,12 @@ class CityRequestsRepository {
   }
 
   /// Sends request for adding a new city to the database
-  /// Throws [FetchingException] on error
+  /// Returns the created request.
+  /// Throws [ApiException] when the server refuses the request
+  /// (`bad_reason`, `bad_request`, `too_many_requests`).
+  /// Throws [FetchingException] on a network error
   /// Throws [NotAuthorizedException] if user is not authorized
-  Future<void> sendAddCityRequest({
+  Future<CityRequest> sendAddCityRequest({
     required int newCountryCode,
     required String newCityName,
     required String reason,
@@ -31,9 +36,12 @@ class CityRequestsRepository {
   );
 
   /// Sends request for removing an existing city from the database
-  /// Throws [FetchingException] on error
+  /// Returns the created request.
+  /// Throws [ApiException] when the server refuses the request
+  /// (`bad_reason`, `bad_request`, `too_many_requests`).
+  /// Throws [FetchingException] on a network error
   /// Throws [NotAuthorizedException] if user is not authorized
-  Future<void> sendRemoveRequest({
+  Future<CityRequest> sendRemoveRequest({
     required int oldCountryCode,
     required String oldCityName,
     required String reason,
@@ -46,9 +54,12 @@ class CityRequestsRepository {
   );
 
   /// Sends request for editing an existing city in the database
-  /// Throws [FetchingException] on error
+  /// Returns the created request.
+  /// Throws [ApiException] when the server refuses the request
+  /// (`bad_reason`, `bad_request`, `too_many_requests`).
+  /// Throws [FetchingException] on a network error
   /// Throws [NotAuthorizedException] if user is not authorized
-  Future<void> sendEditRequest({
+  Future<CityRequest> sendEditRequest({
     required int newCountryCode,
     required String newCityName,
     required int oldCountryCode,

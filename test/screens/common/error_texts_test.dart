@@ -52,6 +52,16 @@ void main() {
       );
     });
 
+    test('words the refusals of a city request by their code', () {
+      for (final code in ['bad_reason', 'bad_request', 'too_many_requests']) {
+        expect(
+          errorText(t, ApiException(400, code)),
+          isNot(t.online.unkError),
+          reason: code,
+        );
+      }
+    });
+
     test('words a 401 like a refused access', () {
       expect(
         errorText(t, const UnauthorizedException(401, 'unauthorized')),

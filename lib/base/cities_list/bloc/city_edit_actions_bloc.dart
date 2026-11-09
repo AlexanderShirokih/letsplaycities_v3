@@ -7,6 +7,7 @@ import 'package:lets_play_cities/base/repositories/cities/city_repository.dart';
 import 'package:lets_play_cities/base/repositories/cities/country_repository.dart';
 import 'package:lets_play_cities/remote/auth.dart';
 import 'package:lets_play_cities/remote/city_requests_repository.dart';
+import 'package:lets_play_cities/remote/client/api_exception.dart';
 import 'package:lets_play_cities/remote/exceptions.dart';
 import 'package:lets_play_cities/utils/string_utils.dart';
 
@@ -115,6 +116,9 @@ class CityEditActionsBloc extends Bloc<CityEditActions, CityEditActionsState>
       yield CityRequestSent();
     } on NotAuthorizedException {
       yield CityRequestSendingError(CityRequestSendingType.notAuthorized);
+      yield currentState;
+    } on ApiException catch (e) {
+      yield CityRequestSendingError(CityRequestSendingType.rejected, e);
       yield currentState;
     } on RemoteException {
       yield CityRequestSendingError(CityRequestSendingType.network);
