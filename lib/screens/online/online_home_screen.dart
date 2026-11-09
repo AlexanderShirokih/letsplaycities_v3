@@ -14,27 +14,33 @@ import 'package:lets_play_cities/screens/online/friends.dart';
 import 'package:lets_play_cities/screens/online/game_master.dart';
 import 'package:lets_play_cities/screens/online/game_waiting_room_screen.dart';
 
-/// What a push of an invitation needs from the open «Онлайн» screen. There
-/// is one online bloc per game connection, so the push answers through the
-/// bloc of the screen that is open instead of building a second one.
+/// What a push of an invitation or an invitation from another screen needs
+/// from the open «Онлайн» screen. There is one online bloc per game
+/// connection, so they go through the bloc of the screen that is open
+/// instead of building a second one.
 class OnlineHomeHandle {
   /// The open screen, `null` while none is open
-  static OnlineHomeHandle? get current => _current;
+  static OnlineHomeHandle? get current => _open.lastOrNull;
 
-  static OnlineHomeHandle? _current;
+  /// The open screens, the newest last. More than one only while a screen
+  /// replaces another, e.g. after a sign-in again.
+  static final _open = <OnlineHomeHandle>[];
 
   final WaitingRoomBloc _bloc;
   final VoidCallback _showHome;
 
   OnlineHomeHandle._(this._bloc, this._showHome);
 
-  /// A game of the screen runs: it cannot take another one
-  bool get isGameRunning => _bloc.isGameRunning;
-
   /// Goes back to the screen and accepts the invitation of [fromId]
   void accept(int fromId) {
     _showHome();
     _bloc.add(ReplyToInvite(fromId, true));
+  }
+
+  /// Goes back to the screen and invites [friend]
+  void invite(LpsUser friend) {
+    _showHome();
+    _bloc.add(InvitePressed(friend));
   }
 
   /// Declines the invitation of [fromId]; whatever the screen does goes on
@@ -89,7 +95,7 @@ class _OnlineHomeScreenState extends State<OnlineHomeScreen>
     super.initState();
     WidgetsBinding.instance.addObserver(this);
 
-    OnlineHomeHandle._current = _handle;
+    OnlineHomeHandle._open.add(_handle);
 
     final initial = widget.initialEvent;
     if (initial != null) _bloc.add(initial);
@@ -97,7 +103,7 @@ class _OnlineHomeScreenState extends State<OnlineHomeScreen>
 
   @override
   void dispose() {
-    if (OnlineHomeHandle._current == _handle) OnlineHomeHandle._current = null;
+    OnlineHomeHandle._open.remove(_handle);
     WidgetsBinding.instance.removeObserver(this);
     _bloc.close();
     super.dispose();
@@ -117,10 +123,7 @@ class _OnlineHomeScreenState extends State<OnlineHomeScreen>
   }
 
   /// Invites [friend] from a screen above this one: back here first
-  void _invite(LpsUser friend) {
-    _showHome();
-    _bloc.add(InvitePressed(friend));
-  }
+  void _invite(LpsUser friend) => _handle.invite(friend);
 
   void _signInAgain() =>
       Navigator.of(context)

@@ -7,6 +7,7 @@ import 'package:lets_play_cities/base/preferences.dart';
 import 'package:lets_play_cities/i18n/strings.g.dart';
 import 'package:lets_play_cities/remote/api_repository_factory.dart';
 import 'package:lets_play_cities/remote/auth.dart';
+import 'package:lets_play_cities/remote/client/remote_game_client.dart';
 import 'package:lets_play_cities/remote/game_connection.dart';
 import 'package:lets_play_cities/remote/model/cloud_messages.dart';
 import 'package:lets_play_cities/remote/model/social.dart';
@@ -319,6 +320,34 @@ void main() {
         findsOneWidget,
       );
       expect(find.text(_t.online.connect), findsOneWidget);
+    });
+
+    testWidgets('during a game on the connection without a home accept is '
+        'hidden and decline keeps the connection', (tester) async {
+      final client = RemoteGameClient(connection, isLocal: false);
+      await tester.runAsync(client.find);
+      client.configFor(
+        const Match(
+          gameId: 1,
+          opponent: MatchOpponent(
+            id: 3,
+            name: 'Пётр',
+            friendship: Friendship.none,
+          ),
+          youStart: true,
+          moveTimeSec: 30,
+        ),
+      );
+      await pumpPlainApp(tester);
+      await showRequest(tester);
+
+      expect(find.text(_t.accept), findsNothing);
+
+      await tester.tap(find.text(_t.decline));
+      await settle(tester);
+
+      expect(connection.sent.last, const InviteReply(2, accept: false));
+      expect(connection.isConnected, isTrue);
     });
 
     testWidgets('during a network game accept is hidden', (tester) async {

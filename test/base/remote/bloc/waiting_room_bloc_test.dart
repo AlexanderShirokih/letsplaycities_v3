@@ -269,26 +269,21 @@ void main() {
     expect(slow.sent, isEmpty);
   });
 
-  test(
-    'closing while queued cancels, a match that crosses it is left',
-    () async {
-      bloc.add(const FindPressed());
-      await pumpEventQueue();
-      connection.receive(const protocol.Queued());
-      await pumpEventQueue();
+  test('closing while queued cancels and closes the connection', () async {
+    bloc.add(const FindPressed());
+    await pumpEventQueue();
+    connection.receive(const protocol.Queued());
+    await pumpEventQueue();
 
-      await bloc.close();
-      connection.receive(_match);
-      await pumpEventQueue();
+    await bloc.close();
+    // A match that crossed the cancel ends with the socket on the server
+    connection.receive(_match);
+    await pumpEventQueue();
 
-      expect(states.whereType<Starting>(), isEmpty);
-      expect(connection.sent, [
-        const protocol.Find(),
-        const protocol.Cancel(),
-        const protocol.Leave(),
-      ]);
-    },
-  );
+    expect(states.whereType<Starting>(), isEmpty);
+    expect(connection.sent, [const protocol.Find(), const protocol.Cancel()]);
+    expect(connection.isConnected, isFalse);
+  });
 
   test('invite while queued leaves the queue first', () async {
     bloc.add(const FindPressed());
@@ -468,6 +463,18 @@ void main() {
     await bloc.close();
 
     expect(connection.sent, [const protocol.Find()]);
+    expect(connection.isConnected, isTrue);
+  });
+
+  test('close keeps the connection of a game of another client', () async {
+    final other = RemoteGameClient(connection, isLocal: false);
+    await other.find();
+    other.configFor(_match);
+
+    await bloc.close();
+    await pumpEventQueue();
+
+    expect(connection.isConnected, isTrue);
   });
 
   test('the background cancels the search and closes the connection', () async {
@@ -507,4 +514,19 @@ void main() {
 
     expect(connection.isConnected, isTrue);
   });
+
+  test(
+    'the background keeps the connection of a game of another client',
+    () async {
+      final other = RemoteGameClient(connection, isLocal: false);
+      await other.find();
+      other.configFor(_match);
+
+      bloc.add(const AppPaused());
+      await pumpEventQueue();
+
+      expect(connection.isConnected, isTrue);
+      expect(connection.sent, [const protocol.Find()]);
+    },
+  );
 }

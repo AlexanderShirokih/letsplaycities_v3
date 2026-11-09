@@ -22,18 +22,23 @@ import 'package:lets_play_cities/screens/online/common_online_widgets.dart';
 import 'package:lets_play_cities/screens/online/friends.dart';
 import 'package:lets_play_cities/screens/online/game_master.dart';
 import 'package:lets_play_cities/screens/online/history.dart';
+import 'package:lets_play_cities/screens/online/online_home_screen.dart';
 
 import 'avatars/avatar_chooser.dart';
 
 /// Invites [friend] to a game with [onInvite], the invitation of the open
-/// «Онлайн». Without it «Онлайн» opens and invites the friend over the same
-/// game connection.
+/// «Онлайн». Without it the «Онлайн» that is open invites the friend, and
+/// when none is open, «Онлайн» opens and invites the friend: one online
+/// screen per game connection.
 void inviteFriend(
   BuildContext context,
   LpsUser friend,
   void Function(LpsUser friend)? onInvite,
 ) {
   if (onInvite != null) return onInvite(friend);
+
+  final home = OnlineHomeHandle.current;
+  if (home != null) return home.invite(friend);
 
   Navigator.push(
     context,

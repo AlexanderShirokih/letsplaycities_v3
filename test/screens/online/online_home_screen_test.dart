@@ -23,6 +23,7 @@ import 'package:lets_play_cities/screens/online/common_online_widgets.dart';
 import 'package:lets_play_cities/screens/online/friends.dart';
 import 'package:lets_play_cities/screens/online/login_screen.dart';
 import 'package:lets_play_cities/screens/online/online_home_screen.dart';
+import 'package:lets_play_cities/screens/online/profile.dart';
 
 import '../../i18n/translations_harness.dart';
 import '../../remote/fake_api_repository_factory.dart';
@@ -504,6 +505,84 @@ void main() {
     expect(find.byType(OnlineHomeScreen, skipOffstage: false), findsOneWidget);
     expect(find.text(_t.online.awaitingForInvite(login: 'Анна')), findsOne);
     expect(connection.sent, [const Invite(3)]);
+  });
+
+  testWidgets('Пригласить from a results opponent returns to the one home', (
+    tester,
+  ) async {
+    final connection = useFakeConnection();
+    repository.profiles = {
+      3: userProfile(3, 'Анна', friendship: Friendship.friends),
+    };
+    await tester.pumpWidget(app(home()));
+    await settle(tester);
+
+    // What a tap on the opponent of the results opens
+    unawaited(
+      tester
+          .state<NavigatorState>(find.byType(Navigator))
+          .push(
+            MaterialPageRoute<void>(
+              builder: (_) => const OnlineProfileViewStandalone(3),
+            ),
+          ),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.text(_t.online.invite));
+    await settle(tester);
+    await tester.pump(const Duration(seconds: 1));
+
+    expect(find.byType(OnlineHomeScreen, skipOffstage: false), findsOneWidget);
+    expect(find.byType(OnlineProfileViewStandalone), findsNothing);
+    expect(find.text(_t.online.awaitingForInvite(login: 'Анна')), findsOne);
+    expect(connection.connects, 1);
+    expect(connection.sent, [const Invite(3)]);
+  });
+
+  testWidgets('leaving the online home closes the connection', (tester) async {
+    final connection = useFakeConnection();
+    await tester.pumpWidget(app(const Scaffold(body: Text('menu'))));
+    unawaited(
+      tester
+          .state<NavigatorState>(find.byType(Navigator))
+          .push(MaterialPageRoute<void>(builder: (_) => home())),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.text(_t.online.connect));
+    await settle(tester);
+    connection.receive(const Queued());
+    await settle(tester);
+
+    tester.state<NavigatorState>(find.byType(Navigator)).pop();
+    await settle(tester);
+    await tester.pump(const Duration(seconds: 1));
+
+    expect(find.text('menu'), findsOneWidget);
+    expect(connection.sent, [const Find(), const Cancel()]);
+    expect(connection.isConnected, isFalse);
+  });
+
+  testWidgets('a home that closes above another leaves that one current', (
+    tester,
+  ) async {
+    useFakeConnection();
+    await tester.pumpWidget(app(home()));
+    await settle(tester);
+    final first = OnlineHomeHandle.current;
+
+    unawaited(
+      tester
+          .state<NavigatorState>(find.byType(Navigator))
+          .push(MaterialPageRoute<void>(builder: (_) => home())),
+    );
+    await tester.pumpAndSettle();
+    expect(OnlineHomeHandle.current, isNot(same(first)));
+
+    tester.state<NavigatorState>(find.byType(Navigator)).pop();
+    await tester.pumpAndSettle();
+
+    expect(first, isNotNull);
+    expect(OnlineHomeHandle.current, same(first));
   });
 
   testWidgets('the background cancels the search and closes the connection', (

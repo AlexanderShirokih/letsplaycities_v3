@@ -46,11 +46,9 @@ class WaitingRoomBloc extends Bloc<WaitingRoomEvent, WaitingRoomState>
   StreamSubscription<Object?>? _waiting;
   StreamSubscription<Object?>? _closes;
 
-  /// A game of the last match runs
-  bool get isGameRunning => _gameClient.isGameRunning;
-
   /// Leaves the queue or withdraws the invitation, or leaves the game of a
-  /// match that no screen will play. The connection is shared and stays open.
+  /// match that no screen will play, then closes the connection unless a
+  /// game runs on it.
   @override
   Future<void> close() async {
     _closing = true;
@@ -63,8 +61,10 @@ class WaitingRoomBloc extends Bloc<WaitingRoomEvent, WaitingRoomState>
     }
     _requestSent = false;
     _matchPending = false;
+
     // The subscriptions drop every event from now on: no need to wait
     unawaited(_stopListening());
+    unawaited(_gameClient.disconnect());
 
     return super.close();
   }

@@ -6,6 +6,7 @@ import 'package:lets_play_cities/base/remote/bloc/waiting_room_bloc.dart';
 import 'package:lets_play_cities/i18n/strings.g.dart';
 import 'package:lets_play_cities/remote/api_repository.dart';
 import 'package:lets_play_cities/remote/api_repository_factory.dart';
+import 'package:lets_play_cities/remote/client/remote_game_client.dart';
 import 'package:lets_play_cities/remote/game_connection.dart';
 import 'package:lets_play_cities/remote/model/cloud_messages.dart';
 import 'package:lets_play_cities/screens/common/d2/d2.dart';
@@ -95,7 +96,7 @@ class _GameRequestViewState extends State<GameRequestView> {
     // A running game cannot take another one: the server would answer
     // invalid_state
     final canAccept =
-        OnlineHomeHandle.current?.isGameRunning != true &&
+        !RemoteGameClient.isGameRunningOn(widget.connection) &&
         GetIt.instance.currentScopeName != lanGameScopeName;
 
     return SingleChildScrollView(

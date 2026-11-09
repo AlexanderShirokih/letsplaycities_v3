@@ -26,6 +26,15 @@ class RemoteGameClient {
   /// that a new request of any of them keeps its own match.
   static final _lateMatchGuards = Expando<StreamSubscription<Object?>>();
 
+  /// Per connection: the game of its last match, whichever client built it.
+  /// The server plays one game per user, so a game that runs holds the
+  /// connection for every client of it.
+  static final _games = Expando<RemoteGame>();
+
+  /// `true` while the game of the last match on [connection] runs
+  static bool isGameRunningOn(GameConnection connection) =>
+      _games[connection]?.isRunning == true;
+
   final GameConnection _connection;
 
   /// Whether the server is a LAN host rather than the main server: a local
@@ -61,13 +70,19 @@ class RemoteGameClient {
   /// Invites friend [userId]
   Future<void> invite(int userId) => _sendWhenConnected(Invite(userId));
 
-  /// Answers the invitation of [userId]
-  Future<void> reply(int userId, bool accept) =>
-      _sendWhenConnected(InviteReply(userId, accept: accept));
+  /// Answers the invitation of [userId]. A decline starts no game, so a
+  /// match that crosses an earlier cancel is still left.
+  Future<void> reply(int userId, bool accept) => _sendWhenConnected(
+    InviteReply(userId, accept: accept),
+    isRequest: accept,
+  );
 
-  Future<void> _sendWhenConnected(ClientGameMessage message) async {
+  Future<void> _sendWhenConnected(
+    ClientGameMessage message, {
+    bool isRequest = true,
+  }) async {
     // The next match answers this request
-    _disarmLateMatchGuard();
+    if (isRequest) _disarmLateMatchGuard();
 
     await connect();
 
@@ -78,7 +93,7 @@ class RemoteGameClient {
   /// `cancel` is left at once, so no game runs that nobody plays. Does
   /// nothing without a connection or while a game runs.
   void cancel() {
-    if (!_connection.isConnected || _game?.isRunning == true) return;
+    if (!_connection.isConnected || isGameRunning) return;
 
     _armLateMatchGuard();
     _connection.send(const Cancel());
@@ -123,13 +138,14 @@ class RemoteGameClient {
     return game != null && game.isRunning && !game._claimed;
   }
 
-  /// `true` while the game of the last match runs
-  bool get isGameRunning => _game?.isRunning == true;
+  /// `true` while a game runs on the connection, also one that another
+  /// client of it started
+  bool get isGameRunning => isGameRunningOn(_connection);
 
-  /// Closes the connection unless a game runs on it; the next request opens
-  /// it again
+  /// Closes the connection unless a game runs on it, also one of another
+  /// client; the next request opens it again
   Future<void> disconnect() async {
-    if (_game?.isRunning == true) return;
+    if (isGameRunning) return;
 
     await _connection.close();
   }
@@ -160,7 +176,11 @@ class RemoteGameClient {
         canReceiveMessages: _chatEnabled,
       ),
     );
-    final game = _game = RemoteGame._(_connection, me.id, owner);
+    final game = _game = _games[_connection] = RemoteGame._(
+      _connection,
+      me.id,
+      owner,
+    );
     final opponent = RemotePlayer(
       AdvancedAccountInfo(
         userId: match.opponent.id,

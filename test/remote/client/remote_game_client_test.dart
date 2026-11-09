@@ -135,6 +135,68 @@ void main() {
 
       expect(connection.sent.last, const Leave());
     });
+
+    test('a decline after the cancel keeps the late match left', () async {
+      await client.find();
+      client.cancel();
+      await client.reply(4, false);
+
+      connection.receive(_match());
+      await pumpEventQueue();
+
+      expect(connection.sent, [
+        const Find(),
+        const Cancel(),
+        const InviteReply(4, accept: false),
+        const Leave(),
+      ]);
+    });
+  });
+
+  group('a game on the shared connection', () {
+    test('is seen by every client of the connection', () async {
+      await startGame();
+      final other = RemoteGameClient(connection, isLocal: false);
+
+      expect(other.isGameRunning, isTrue);
+      expect(RemoteGameClient.isGameRunningOn(connection), isTrue);
+    });
+
+    test('keeps disconnect of another client from closing it', () async {
+      await startGame();
+      final other = RemoteGameClient(connection, isLocal: false);
+
+      await other.disconnect();
+
+      expect(connection.isConnected, isTrue);
+    });
+
+    test('keeps cancel of another client off the server', () async {
+      await startGame();
+      final other = RemoteGameClient(connection, isLocal: false);
+
+      other.cancel();
+
+      expect(connection.sent, [const Find()]);
+    });
+
+    test('ends for every client with the game', () async {
+      await startGame();
+      connection.receive(
+        const GameOver(
+          reason: GameOverReason.surrender,
+          loser: _opponentId,
+          words: 2,
+          durationSec: 20,
+        ),
+      );
+      await pumpEventQueue();
+      final other = RemoteGameClient(connection, isLocal: false);
+
+      expect(other.isGameRunning, isFalse);
+      await other.disconnect();
+      expect(connection.isConnected, isFalse);
+    });
   });
 
   group('configFor', () {
