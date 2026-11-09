@@ -8,6 +8,7 @@ import 'package:lets_play_cities/i18n/strings.g.dart';
 import 'package:lets_play_cities/remote/api_repository.dart';
 import 'package:lets_play_cities/remote/client/api_exception.dart';
 import 'package:lets_play_cities/screens/common/common_widgets.dart';
+import 'package:lets_play_cities/screens/common/d2/d2.dart';
 import 'package:lets_play_cities/screens/common/error_texts.dart';
 
 import 'common_online_widgets.dart';
@@ -46,22 +47,29 @@ mixin BaseListFetchingScreenMixin<T> on StatelessWidget {
     Object? moreError,
   ) => _showList(context, data, hasMore, moreError);
 
-  /// Creates slider widget which is [Colors.green] for left position
-  /// and [Colors.red] for right.
-  Widget createPositionedSlideBackground(bool isLeft, Widget child) =>
-      Container(
-        decoration: BoxDecoration(
-          color: isLeft ? Colors.green : Colors.red,
-          borderRadius: BorderRadius.circular(4.0),
+  /// Creates slider widget which is [D2Colors.mint] for left position
+  /// and [D2Colors.error] for right.
+  Widget createPositionedSlideBackground(
+    BuildContext context,
+    bool isLeft,
+    Widget child,
+  ) {
+    final c = D2Colors.of(context);
+
+    return Container(
+      decoration: BoxDecoration(
+        color: isLeft ? c.mint : c.error,
+        borderRadius: BorderRadius.circular(4.0),
+      ),
+      child: Align(
+        alignment: isLeft ? Alignment.centerLeft : Alignment.centerRight,
+        child: Padding(
+          padding: const EdgeInsets.only(right: 12.0),
+          child: child,
         ),
-        child: Align(
-          alignment: isLeft ? Alignment.centerLeft : Alignment.centerRight,
-          child: Padding(
-            padding: const EdgeInsets.only(right: 12.0),
-            child: child,
-          ),
-        ),
-      );
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) => MultiBlocProvider(

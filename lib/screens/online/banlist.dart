@@ -60,6 +60,7 @@ class OnlineBanlistScreen extends StatelessWidget
     BuildContext context,
     Translations t,
   ) => createPositionedSlideBackground(
+    context,
     false,
     Row(
       mainAxisSize: MainAxisSize.min,

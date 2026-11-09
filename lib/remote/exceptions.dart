@@ -8,14 +8,6 @@ class RemoteException implements Exception {
   String toString() => '$runtimeType: $description';
 }
 
-/// Indicates that unknown kind of message was received
-class UnknownMessageException extends RemoteException {
-  const UnknownMessageException(super.description);
-
-  UnknownMessageException.badEnumType(dynamic value)
-    : this('Unknown enum type: $value');
-}
-
 /// Used as wrapper for SocketException
 class ConnectionException extends RemoteException {
   const ConnectionException(super.message);
@@ -42,12 +34,6 @@ class AuthorizationException extends RemoteException {
 /// text for it; [description] is for logs.
 class AccessDeniedException extends AuthorizationException {
   AccessDeniedException() : super('Access denied (HTTP 401)');
-}
-
-/// Used when the user is logged in, but the request is intended for another account
-class WrongAccountException extends RemoteException {
-  const WrongAccountException()
-    : super('User logged in another account then intended');
 }
 
 /// Used when error happens during REST API fetch requests

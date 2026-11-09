@@ -394,9 +394,7 @@ class Translations$settings$ru {
 	late final Translations$settings$settingsItemTitles$ru settingsItemTitles = Translations$settings$settingsItemTitles$ru._(_root);
 	late final Translations$settings$difficulty$ru difficulty = Translations$settings$difficulty$ru._(_root);
 	late final Translations$settings$scoringType$ru scoringType = Translations$settings$scoringType$ru._(_root);
-	late final Translations$settings$onOff$ru onOff = Translations$settings$onOff$ru._(_root);
 	late final Translations$settings$dictUpdPeriod$ru dictUpdPeriod = Translations$settings$dictUpdPeriod$ru._(_root);
-	late final Translations$settings$moveTimer$ru moveTimer = Translations$settings$moveTimer$ru._(_root);
 	late final Translations$settings$groups$ru groups = Translations$settings$groups$ru._(_root);
 	late final Translations$settings$timer$ru timer = Translations$settings$timer$ru._(_root);
 	late final Translations$settings$themeMode$ru themeMode = Translations$settings$themeMode$ru._(_root);
@@ -1176,9 +1174,6 @@ class Translations$settings$settingsItemTitles$ru {
 	/// ru: 'Чат'
 	String get onlineChat => 'Чат';
 
-	/// ru: 'Статистика'
-	String get statistics => 'Статистика';
-
 	/// ru: 'Обновление словаря'
 	String get dictUpdates => 'Обновление словаря';
 
@@ -1222,21 +1217,6 @@ class Translations$settings$scoringType$ru {
 	String get lastMove => 'До сдачи';
 }
 
-// Path: settings.onOff
-class Translations$settings$onOff$ru {
-	Translations$settings$onOff$ru._(this._root);
-
-	final Translations _root; // ignore: unused_field
-
-	// Translations
-
-	/// ru: 'Выкл'
-	String get off => 'Выкл';
-
-	/// ru: 'Вкл'
-	String get on => 'Вкл';
-}
-
 // Path: settings.dictUpdPeriod
 class Translations$settings$dictUpdPeriod$ru {
 	Translations$settings$dictUpdPeriod$ru._(this._root);
@@ -1253,21 +1233,6 @@ class Translations$settings$dictUpdPeriod$ru {
 
 	/// ru: 'Каждый день'
 	String get daily => 'Каждый день';
-}
-
-// Path: settings.moveTimer
-class Translations$settings$moveTimer$ru {
-	Translations$settings$moveTimer$ru._(this._root);
-
-	final Translations _root; // ignore: unused_field
-
-	// Translations
-
-	/// ru: 'Выкл'
-	String get off => 'Выкл';
-
-	/// ru: '{n} мин'
-	String minutes({required Object n}) => '${n} мин';
 }
 
 // Path: settings.groups

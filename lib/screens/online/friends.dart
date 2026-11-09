@@ -360,7 +360,7 @@ class _FriendRow extends StatelessWidget {
               D2Button(
                 label: t.online.inviteShort,
                 kind: D2ButtonKind.accent,
-                semanticLabel: '${t.online.invite}: ${user.name}',
+                semanticLabel: t.online.inviteNamed(name: user.name),
                 onPressed: () => inviteFriend(context, user, onInvite),
               ),
             ],

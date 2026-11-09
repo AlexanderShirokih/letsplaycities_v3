@@ -79,4 +79,4 @@ jobs:
       # flutter generates android/local.properties and the Gradle wrapper
       # scripts (both gitignored) before invoking Gradle.
       - name: Build debug APK
-        run: flutter build apk --debug
+        run: flutter build apk --debug --dart-define=LPS_HOST=example.test

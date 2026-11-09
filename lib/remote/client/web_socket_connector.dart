@@ -16,6 +16,10 @@ class WebSocketConnector implements AbstractSocketConnector {
   final WebSocketFactory? _openSocket;
   final Duration _connectTimeout;
 
+  /// How often the socket that [_defaultOpen] opens pings the server: a
+  /// network that dropped the connection silently ends it with a close
+  final Duration _pingInterval;
+
   /// Sent with the upgrade request, e.g. `Authorization`
   final Map<String, String> _headers;
 
@@ -26,13 +30,15 @@ class WebSocketConnector implements AbstractSocketConnector {
     this._uri, {
     this._openSocket,
     this._connectTimeout = const Duration(seconds: 10),
+    this._pingInterval = const Duration(seconds: 20),
     this._headers = const {},
   });
 
   StreamController<SocketMessage>? _streamController;
 
-  Future<WebSocket> _defaultOpen(String uri) =>
-      WebSocket.connect(uri, headers: _headers);
+  Future<WebSocket> _defaultOpen(String uri) async =>
+      await WebSocket.connect(uri, headers: _headers)
+        ..pingInterval = _pingInterval;
 
   @override
   void connect() {

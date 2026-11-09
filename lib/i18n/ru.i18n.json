@@ -131,7 +131,6 @@
       "correction": "Автоисправление",
       "sound": "Звук",
       "online_chat": "Чат",
-      "statistics": "Статистика",
       "dict_updates": "Обновление словаря",
       "theme": "Тема"
     },
@@ -145,18 +144,10 @@
       "by_time": "По времени",
       "last_move": "До сдачи"
     },
-    "on_off": {
-      "off": "Выкл",
-      "on": "Вкл"
-    },
     "dict_upd_period": {
       "never": "Выкл",
       "three_hours": "Каждые 3ч",
       "daily": "Каждый день"
-    },
-    "move_timer": {
-      "off": "Выкл",
-      "minutes": "{n} мин"
     },
     "groups": {
       "game": "Игра",
