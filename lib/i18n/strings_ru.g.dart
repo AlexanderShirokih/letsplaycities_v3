@@ -397,10 +397,6 @@ class Translations$settings$ru {
 	late final Translations$settings$onOff$ru onOff = Translations$settings$onOff$ru._(_root);
 	late final Translations$settings$dictUpdPeriod$ru dictUpdPeriod = Translations$settings$dictUpdPeriod$ru._(_root);
 	late final Translations$settings$moveTimer$ru moveTimer = Translations$settings$moveTimer$ru._(_root);
-
-	/// ru: 'Просмотр статистики'
-	String get statisticSub => 'Просмотр статистики';
-
 	late final Translations$settings$groups$ru groups = Translations$settings$groups$ru._(_root);
 	late final Translations$settings$timer$ru timer = Translations$settings$timer$ru._(_root);
 	late final Translations$settings$themeMode$ru themeMode = Translations$settings$themeMode$ru._(_root);
@@ -461,9 +457,6 @@ class Translations$citiesList$ru {
 
 	/// ru: 'Города'
 	String get title => 'Города';
-
-	/// ru: 'Загрузка базы данных...'
-	String get loading => 'Загрузка базы данных...';
 
 	/// ru: 'Неизвестно'
 	String get unkCity => 'Неизвестно';
@@ -915,9 +908,6 @@ class Translations$online$ru {
 	/// ru: 'Отменить заявку'
 	String get cancelFriendshipRequest => 'Отменить заявку';
 
-	/// ru: '[Ваша заявка]'
-	String get myRequest => '[Ваша заявка]';
-
 	/// ru: 'Заблокировать'
 	String get ban => 'Заблокировать';
 
@@ -977,12 +967,6 @@ class Translations$online$ru {
 
 	/// ru: 'Здесь будут отображаться игроки, которых вы внесли в черный список'
 	String get noBlacklistPlaceholder => 'Здесь будут отображаться игроки, которых вы внесли в черный список';
-
-	/// ru: 'Администратор'
-	String get admin => 'Администратор';
-
-	/// ru: '[Заблокирован]'
-	String get banned => '[Заблокирован]';
 
 	/// ru: 'Пользователь добавил вас в чёрный список'
 	String get inputBan => 'Пользователь добавил вас в чёрный список';
@@ -1045,9 +1029,6 @@ class Translations$online$ru {
 
 	/// ru: '{name} приглашает вас сыграть'
 	String invitesYou({required Object name}) => '${name} приглашает вас сыграть';
-
-	/// ru: 'Произошла неизвестная ошибка :('
-	String get unknownError => 'Произошла неизвестная ошибка :(';
 }
 
 // Path: achievements

@@ -26,7 +26,10 @@ enum Layer {
 /// Assigns every file under `lib/` to a layer. The first matching rule wins,
 /// so the bloc rule has to come before the general `lib/base` rule.
 final _layerRules = <(Layer, RegExp)>[
-  (Layer.root, RegExp(r'^lib/(main|local_debug_main|app_injection|app_licenses)\.dart$')),
+  (
+    Layer.root,
+    RegExp(r'^lib/(main|local_debug_main|app_injection|app_licenses)\.dart$'),
+  ),
   (Layer.l0, RegExp(r'^lib/(utils/.+|app_config\.dart)$')),
   (Layer.bloc, RegExp(r'^lib/base/(.+/)?bloc/.+$')),
   (Layer.core, RegExp(r'^lib/base/.+$')),
