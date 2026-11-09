@@ -12,6 +12,7 @@ import 'package:lets_play_cities/base/users.dart';
 import 'package:lets_play_cities/remote/account.dart';
 import 'package:lets_play_cities/remote/auth.dart';
 import 'package:lets_play_cities/remote/client/remote_game_client.dart';
+import 'package:lets_play_cities/remote/game_connection.dart';
 import 'package:lets_play_cities/remote/model/social.dart';
 import 'package:lets_play_cities/remote/protocol/game_messages.dart';
 import 'package:lets_play_cities/remote/remote_player.dart';
@@ -429,6 +430,25 @@ void main() {
       await opponent(config).close();
 
       await move;
+    });
+
+    test('a sign-out ends the game as a loss of the owner', () async {
+      final (config, events) = await startGame();
+
+      await connection.close(reason: GameConnection.signedOut);
+      await pumpEventQueue();
+
+      expect(
+        events.single,
+        isA<OnMoveFinished>()
+            .having((e) => e.endType, 'endType', MoveFinishType.disconnected)
+            .having(
+              (e) => e.finishRequester,
+              'finishRequester',
+              same(owner(config)),
+            ),
+      );
+      expect(client.isGameRunning, isFalse);
     });
 
     test('a lost socket ends the game as a disconnect of the owner', () async {

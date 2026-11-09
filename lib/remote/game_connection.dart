@@ -104,6 +104,10 @@ class GameConnection {
     Map<String, String> headers,
   ) => WebSocketConnector(url, headers: headers);
 
+  /// Close reason of [close] when the user is signed out: the token is gone,
+  /// so a running game can't go on
+  static const signedOut = 'signed_out';
+
   /// Messages of the server, `welcome` included
   Stream<ServerGameMessage> get messages => _messages.stream;
 
@@ -255,9 +259,12 @@ class GameConnection {
     connector.sendData(_codec.encodeClient(message));
   }
 
-  /// Closes the socket; a later [ensureConnected] opens a new one. Does not
-  /// emit on [closes]: the caller knows. A pending [ensureConnected] fails.
-  Future<void> close() async {
+  /// Closes the socket; a later [ensureConnected] opens a new one. A pending
+  /// [ensureConnected] fails. Emits on [closes] only with a [reason] and only
+  /// for an open connection, so that a running game and a waiting request
+  /// end; without one the caller knows.
+  Future<void> close({String? reason}) async {
+    final wasOpen = _welcomed;
     final completer = _ready;
     final connector = _connector;
     final subscription = _subscription;
@@ -274,5 +281,7 @@ class GameConnection {
     }
     await subscription?.cancel();
     await connector?.close();
+
+    if (reason != null && wasOpen) _closes.add((code: null, reason: reason));
   }
 }

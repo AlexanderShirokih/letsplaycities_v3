@@ -68,7 +68,14 @@ class FakeGameConnection implements GameConnection {
   }
 
   @override
-  Future<void> close() async => _connected = false;
+  Future<void> close({String? reason}) async {
+    final wasConnected = _connected;
+    _connected = false;
+
+    if (reason != null && wasConnected) {
+      _closes.add((code: null, reason: reason));
+    }
+  }
 
   /// The server sends [message]
   void receive(ServerGameMessage message) => _messages.add(message);

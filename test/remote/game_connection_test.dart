@@ -166,6 +166,28 @@ void main() {
     expect(connection.isConnected, isFalse);
   });
 
+  test('a close for a sign-out is reported on closes', () async {
+    await connection.ensureConnected();
+    final closes = connection.closes.first;
+
+    await connection.close(reason: GameConnection.signedOut);
+
+    final close = await closes;
+    expect(close.code, isNull);
+    expect(close.reason, GameConnection.signedOut);
+    expect(connection.isConnected, isFalse);
+  });
+
+  test('a sign-out close of a closed connection reports nothing', () async {
+    final closes = <GameConnectionClose>[];
+    connection.closes.listen(closes.add);
+
+    await connection.close(reason: GameConnection.signedOut);
+    await pumpEventQueue();
+
+    expect(closes, isEmpty);
+  });
+
   test('a socket error after the welcome is reported on closes', () async {
     await connection.ensureConnected();
     final closes = connection.closes.first;

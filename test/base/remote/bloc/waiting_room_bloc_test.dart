@@ -201,6 +201,22 @@ void main() {
     },
   );
 
+  test('a close for a sign-out fails as unauthorized', () async {
+    bloc.add(const FindPressed());
+    await pumpEventQueue();
+    connection.drop(reason: GameConnection.signedOut);
+    await pumpEventQueue();
+
+    expect(
+      bloc.state,
+      isA<Failed>().having(
+        (s) => s.error,
+        'error',
+        isA<UnauthorizedException>(),
+      ),
+    );
+  });
+
   test('a close for a replacement fails with replaced', () async {
     bloc.add(const FindPressed());
     await pumpEventQueue();

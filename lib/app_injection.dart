@@ -131,30 +131,39 @@ Future<void> injectRootDependencies(AppConfig appConfig) async {
     ),
   );
 
-  // The one game socket of the signed-in user. Opened on the first use.
-  getIt.registerLazySingleton<GameConnection>(
-    () => GameConnection.forApp(
-      url: appConfig.gameSocketUrl,
-      headers: () async {
-        final token = await getIt.get<TokenStore>().read();
+  // The one game socket of the signed-in user. Opened on the first use. Held
+  // here too, so that the callbacks below never get the connection of a LAN
+  // scope.
+  late final GameConnection onlineConnection = GameConnection.forApp(
+    url: appConfig.gameSocketUrl,
+    headers: () async {
+      final token = await getIt.get<TokenStore>().read();
 
-        return {
-          if (token != null && token.isNotEmpty)
-            'Authorization': 'Bearer $token',
-        };
-      },
-      playerName: () => getIt.get<GamePreferences>().lastNativeLogin,
-      logger: getIt.get<ErrorLogger>(),
-      // Like a 401 of the REST API: the token is dropped and the next
-      // screen asks the user to sign in
-      onUnauthorized: (headers) => dropSentToken(
-        getIt.get<TokenStore>(),
-        _bearerToken(headers),
-        onSignedOut: getIt.get<ApiRepositoryFactory>().onTokenDropped,
-        onError: _logError,
-      ),
+      return {
+        if (token != null && token.isNotEmpty) 'Authorization': 'Bearer $token',
+      };
+    },
+    playerName: () => getIt.get<GamePreferences>().lastNativeLogin,
+    logger: getIt.get<ErrorLogger>(),
+    // Like a 401 of the REST API: the token is dropped and the next
+    // screen asks the user to sign in
+    onUnauthorized: (headers) => dropSentToken(
+      getIt.get<TokenStore>(),
+      _bearerToken(headers),
+      onSignedOut: getIt.get<ApiRepositoryFactory>().onTokenDropped,
+      onError: _logError,
     ),
+  );
+
+  getIt.registerLazySingleton<GameConnection>(
+    () => onlineConnection,
     dispose: (connection) => connection.close(),
+  );
+
+  // Without the token a running online game can't go on: it ends and the
+  // online screen asks to sign in
+  getIt.get<ApiRepositoryFactory>().tokenDrops.listen(
+    (_) => onlineConnection.close(reason: GameConnection.signedOut),
   );
 
   // Social sign-in and the device id
@@ -207,7 +216,8 @@ Future<void> injectRootDependencies(AppConfig appConfig) async {
       messaging: getIt.get<CloudMessagingService>(),
       logger: getIt.get<ErrorLogger>(),
       // The socket of the old account must not stay open
-      onSignedOut: () => getIt.get<GameConnection>().close(),
+      onSignedOut: () =>
+          onlineConnection.close(reason: GameConnection.signedOut),
     );
   }, dependsOn: [GamePreferences, CloudMessagingService]);
 

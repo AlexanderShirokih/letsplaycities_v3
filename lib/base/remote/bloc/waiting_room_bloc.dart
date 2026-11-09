@@ -5,6 +5,7 @@ import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lets_play_cities/base/bloc/sequential_event_mapping.dart';
 import 'package:lets_play_cities/base/game/game_config.dart';
+import 'package:lets_play_cities/remote/client/api_exception.dart';
 import 'package:lets_play_cities/remote/client/remote_game_client.dart';
 import 'package:lets_play_cities/remote/exceptions.dart';
 import 'package:lets_play_cities/remote/game_connection.dart';
@@ -132,14 +133,19 @@ class WaitingRoomBloc extends Bloc<WaitingRoomEvent, WaitingRoomState>
         if (request != _request) return;
 
         _endRequest();
-        yield Failed(
-          close.reason == protocol.ProtocolError.replaced
-              ? const ProtocolErrorException(protocol.ProtocolError.replaced)
-              : ConnectionException(
-                  'The game connection closed: ${close.code} ${close.reason}',
-                ),
-          retry: _source,
-        );
+        yield Failed(switch (close.reason) {
+          protocol.ProtocolError.replaced => const ProtocolErrorException(
+            protocol.ProtocolError.replaced,
+          ),
+          // The token is gone: the screen asks to sign in again
+          GameConnection.signedOut => const UnauthorizedException(
+            401,
+            'unauthorized',
+          ),
+          _ => ConnectionException(
+            'The game connection closed: ${close.code} ${close.reason}',
+          ),
+        }, retry: _source);
     }
   }
 
