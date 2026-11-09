@@ -148,6 +148,9 @@ class Translations$home$ru {
 
 	// Translations
 
+	/// ru: 'Города'
+	String get title => 'Города';
+
 	/// ru: 'С компьютером'
 	String get vsComputer => 'С компьютером';
 
@@ -232,11 +235,14 @@ class Translations$profile$ru {
 	/// ru: 'Чёрный список'
 	String get blacklist => 'Чёрный список';
 
+	/// ru: 'Статистика'
+	String get stats => 'Статистика';
+
 	/// ru: 'Настройки'
 	String get settings => 'Настройки';
 
-	/// ru: 'Войти в онлайн'
-	String get signIn => 'Войти в онлайн';
+	/// ru: 'Войти'
+	String get signIn => 'Войти';
 
 	/// ru: 'онлайн'
 	String get online => 'онлайн';
@@ -259,8 +265,8 @@ class Translations$game$ru {
 	/// ru: 'Использовать подсказку?'
 	String get showHelp => 'Использовать подсказку?';
 
-	/// ru: 'Подсказка пока не готова. Попробуйте позже'
-	String get hintNotReady => 'Подсказка пока не готова. Попробуйте позже';
+	/// ru: 'На эту букву подсказок больше нет'
+	String get hintUnavailable => 'На эту букву подсказок больше нет';
 
 	/// ru: 'Загрузка обновлений {percent}%'
 	String downloadingUpdates({required Object percent}) => 'Загрузка обновлений ${percent}%';
@@ -303,6 +309,9 @@ class Translations$game$ru {
 
 	/// ru: 'Подсказка'
 	String get hint => 'Подсказка';
+
+	/// ru: 'Подсказка через {time}'
+	String hintIn({required Object time}) => 'Подсказка через ${time}';
 
 	/// ru: 'Город на букву'
 	String get cityOnLetter => 'Город на букву';
@@ -398,9 +407,6 @@ class Translations$settings$ru {
 	late final Translations$settings$groups$ru groups = Translations$settings$groups$ru._(_root);
 	late final Translations$settings$timer$ru timer = Translations$settings$timer$ru._(_root);
 	late final Translations$settings$themeMode$ru themeMode = Translations$settings$themeMode$ru._(_root);
-
-	/// ru: 'Статистика'
-	String get stats => 'Статистика';
 
 	/// ru: 'Лицензии'
 	String get licenses => 'Лицензии';

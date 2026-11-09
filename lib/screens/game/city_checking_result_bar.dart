@@ -112,7 +112,8 @@ class _CityCheckingResultBarState extends State<CityCheckingResultBar>
     return Container();
   }
 
-  /// Lists at most five [corrections]; the box is as tall as its rows.
+  /// At most five [corrections] in one row that scrolls sideways, so that
+  /// they fit above the keyboard
   Widget _showCorrectionsBox(
     BuildContext context,
     GameSessionRepository repo,
@@ -131,34 +132,36 @@ class _CityCheckingResultBarState extends State<CityCheckingResultBar>
             context.t.game.corrections,
             style: D2Text.body.copyWith(fontSize: 13, color: c.inkSoft),
           ),
-          for (final correction in corrections.take(5))
-            Padding(
-              padding: const EdgeInsets.only(top: 6),
-              child: Material(
-                color: c.bg,
-                borderRadius: radius,
-                child: InkWell(
-                  borderRadius: radius,
-                  onTap: () => repo.sendInputWord(correction),
-                  child: Container(
-                    constraints: const BoxConstraints(minHeight: 44),
-                    padding: const EdgeInsets.symmetric(horizontal: 12),
-                    child: Row(
-                      children: [
-                        D2Icon(D2Glyph.cities, size: 20, color: c.inkSoft),
-                        const SizedBox(width: 10),
-                        Expanded(
+          const SizedBox(height: 6),
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              children: [
+                for (final (i, correction) in corrections.take(5).indexed)
+                  Padding(
+                    padding: EdgeInsets.only(left: i == 0 ? 0 : 8),
+                    child: Material(
+                      color: c.bg,
+                      borderRadius: radius,
+                      child: InkWell(
+                        borderRadius: radius,
+                        onTap: () => repo.sendInputWord(correction),
+                        child: Container(
+                          constraints: const BoxConstraints(minHeight: 44),
+                          padding: const EdgeInsets.symmetric(horizontal: 14),
+                          alignment: Alignment.center,
                           child: Text(
                             correction.toTitleCase(),
+                            maxLines: 1,
                             style: D2Text.body.copyWith(color: c.ink),
                           ),
                         ),
-                      ],
+                      ),
                     ),
                   ),
-                ),
-              ),
+              ],
             ),
+          ),
         ],
       ),
     );

@@ -19,6 +19,6 @@ void main() {
   });
 
   test('hint that is not ready', () {
-    expect(t.game.hintNotReady, 'Подсказка пока не готова. Попробуйте позже');
+    expect(t.game.hintUnavailable, 'На эту букву подсказок больше нет');
   });
 }

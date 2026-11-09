@@ -10,6 +10,7 @@ import 'package:lets_play_cities/base/preferences.dart';
 import 'package:lets_play_cities/base/themes/app_theme_mode.dart';
 import 'package:lets_play_cities/i18n/strings.g.dart';
 import 'package:lets_play_cities/screens/common/d2/d2.dart';
+import 'package:lets_play_cities/screens/settings/licenses_screen.dart';
 import 'package:lets_play_cities/screens/settings/settings_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -162,6 +163,6 @@ void main() {
     await tester.tap(row);
     await tester.pumpAndSettle();
 
-    expect(find.byType(LicensePage), findsOneWidget);
+    expect(find.byType(LicensesScreen), findsOneWidget);
   });
 }

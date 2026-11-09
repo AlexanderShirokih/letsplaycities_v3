@@ -1,11 +1,11 @@
 import 'dart:async';
 
+import 'package:clock/clock.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter/foundation.dart' show debugPrint;
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lets_play_cities/base/achievements/achievements.dart';
 import 'package:lets_play_cities/base/achievements/achievements_service.dart';
-import 'package:lets_play_cities/base/ads/advertising_helper.dart';
 import 'package:lets_play_cities/base/dictionary.dart';
 import 'package:lets_play_cities/base/dictionary/countrycode_overrides.dart';
 import 'package:lets_play_cities/base/dictionary/exclusion_messages.dart';
@@ -49,8 +49,10 @@ class GameBloc extends Bloc<GameStateEvent, GameLifecycleState>
   final DictionaryUpdater _dictionaryUpdater;
   final CountryCodeOverrides _codeOverrides;
   final GameConfig _gameConfig;
-  final AdManager _adManager;
   final AchievementsService _achievements;
+
+  /// How long the player waits for the next hint
+  static const hintCooldown = Duration(minutes: 2);
 
   OnUserInputAccepted? onUserInputAccepted;
   OnUserMoveBegins? onUserMoveBegins;
@@ -76,27 +78,9 @@ class GameBloc extends Bloc<GameStateEvent, GameLifecycleState>
     required this._playerNames,
     required this._codeOverrides,
     required this._dictionaryUpdater,
-    required this._adManager,
     required this._achievements,
   }) : super(InitialState()) {
     mapEventsSequentially(_mapEventToStateSafely);
-    _adManager.setUpAds(() {
-      if (state is GameState) {
-        final gameState = state as GameState;
-
-        final firstChar = findLastSuitableChar(
-          gameState.gameSessionRepository.lastAcceptedWord,
-        );
-
-        (gameState.dictionary as DictionaryDecorator)
-            .getRandomWord(firstChar.isEmpty ? 'а' : firstChar)
-            .then((word) {
-              if (word.isNotEmpty) {
-                gameState.gameSessionRepository.sendInputWord(word);
-              }
-            });
-      }
-    });
 
     add(const GameEventBeginDataLoading());
   }
@@ -133,13 +117,20 @@ class GameBloc extends Bloc<GameStateEvent, GameLifecycleState>
       // Shown as ErrorState by _mapEventToStateSafely.
       Error.throwWithStackTrace(event.error, event.stackTrace);
     } else if (event is GameEventShowHelp) {
-      final isReady = await _showHelp();
-      if (isReady) {
+      if (state is! GameState) return;
+      final hintReadyAt =
+          (state as GameState).gameSessionRepository.hintReadyAt;
+      final readyAt = hintReadyAt.value;
+      if (readyAt != null && clock.now().isBefore(readyAt)) return;
+
+      final given = await _showHelp();
+      if (given) {
+        hintReadyAt.value = clock.now().add(hintCooldown);
         await _achievements.unlockAchievement(Achievement.use3Tips);
         await _achievements.unlockAchievement(Achievement.use30Tips);
       } else {
         final savedState = state;
-        yield const GameNotificationState(GameNotification.hintNotReady);
+        yield const GameNotificationState(GameNotification.hintUnavailable);
         yield savedState;
       }
     } else {
@@ -247,5 +238,21 @@ class GameBloc extends Bloc<GameStateEvent, GameLifecycleState>
     }
   }
 
-  Future<bool> _showHelp() => _adManager.showRewarded();
+  /// Moves a random city on the letter of the move for the player. Returns
+  /// `false` when the dictionary has none left.
+  Future<bool> _showHelp() async {
+    if (state is! GameState) return false;
+    final gameState = state as GameState;
+
+    final firstChar = findLastSuitableChar(
+      gameState.gameSessionRepository.lastAcceptedWord,
+    );
+    final word = await (gameState.dictionary as DictionaryDecorator)
+        .getRandomWord(firstChar.isEmpty ? 'а' : firstChar);
+    if (word.isEmpty) return false;
+
+    gameState.gameSessionRepository.sendInputWord(word);
+
+    return true;
+  }
 }

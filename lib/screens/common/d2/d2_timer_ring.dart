@@ -3,7 +3,8 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:lets_play_cities/screens/common/d2/d2_colors.dart';
 
-/// Ring with an arc of [progress] (0..1) clockwise from 12 o'clock
+/// Ring with an arc of [progress] (0..1) that ends at 12 o'clock: as the
+/// progress falls, the arc empties clockwise like a clock hand
 class D2TimerRing extends StatelessWidget {
   final double progress;
   final Widget child;
@@ -51,7 +52,7 @@ class _RingPainter extends CustomPainter {
     if (progress > 0) {
       canvas.drawArc(
         rect,
-        -math.pi / 2,
+        -math.pi / 2 + 2 * math.pi * (1 - progress),
         2 * math.pi * progress,
         false,
         paint..color = arc,

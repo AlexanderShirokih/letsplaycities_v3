@@ -9,14 +9,14 @@ import 'package:lets_play_cities/screens/profile/passport_card.dart';
 class AchievementsRow extends StatelessWidget {
   /// Whether the achievement is received
   final bool Function(Achievement) isUnlocked;
+
+  /// Opens the leaderboard of Play Games
   final VoidCallback onRating;
-  final VoidCallback onAll;
 
   const AchievementsRow({
     super.key,
     required this.isUnlocked,
     required this.onRating,
-    required this.onAll,
   });
 
   @override
@@ -48,7 +48,10 @@ class AchievementsRow extends StatelessWidget {
                   onPressed: onRating,
                 ),
                 const SizedBox(width: 8),
-                ProfileLink(label: t.profile.all, onPressed: onAll),
+                ProfileLink(
+                  label: t.profile.all,
+                  onPressed: () => _showAll(context, all),
+                ),
               ],
             ),
           ],
@@ -65,6 +68,23 @@ class AchievementsRow extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+
+  void _showAll(BuildContext context, List<Achievement> all) {
+    showD2Sheet<void>(
+      context,
+      builder: (_) => SingleChildScrollView(
+        padding: const EdgeInsets.fromLTRB(8, 0, 8, 16),
+        child: Wrap(
+          alignment: WrapAlignment.center,
+          runSpacing: 12,
+          children: [
+            for (final a in all)
+              _AchievementTile(achievement: a, unlocked: isUnlocked(a)),
+          ],
+        ),
+      ),
     );
   }
 }

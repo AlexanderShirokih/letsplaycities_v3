@@ -137,6 +137,17 @@ void main() {
       expect(inputAcceptedCalls, 1);
     });
 
+    test(
+      'clear the input and score when the listener stops at the word',
+      () async {
+        // The move loop of the game session returns at the first accepted word
+        await endpoint().process(Accepted('москва', newPlayer())).first;
+
+        expect(inputAcceptedCalls, 1);
+        expect(scores.moves, hasLength(1));
+      },
+    );
+
     test('of an opponent are committed and scored too', () async {
       final opponent = FakeOpponent();
 

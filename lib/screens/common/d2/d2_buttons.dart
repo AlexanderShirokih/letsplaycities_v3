@@ -21,11 +21,17 @@ enum D2ButtonKind {
 
   /// Surface with an outline and regular text, like the sign-in buttons
   outline,
+
+  /// White with an outline on a colored card, the same in both themes
+  onCard,
 }
 
 enum D2ButtonSize {
   /// Height 44
   medium,
+
+  /// Height 48, Unbounded 15, like «Играть» on the home card
+  card,
 
   /// Height 58, Unbounded 18
   large,
@@ -196,10 +202,20 @@ class D2Button extends StatelessWidget {
         c.shadow.withAlpha(56),
       ),
       D2ButtonKind.outline => (c.surface, c.shadow, c.ink, c.shadow),
+      D2ButtonKind.onCard => (
+        D2Colors.light.surface,
+        c.shadow,
+        D2Colors.light.ink,
+        c.shadow,
+      ),
     };
 
     final bordered = border != null;
-    final fontSize = large ? 18.0 : 14.0;
+    final (height, radius, fontSize, iconSize, padding) = switch (size) {
+      D2ButtonSize.medium => (44.0, 14.0, 14.0, 20.0, 14.0),
+      D2ButtonSize.card => (48.0, 16.0, 15.0, 20.0, 20.0),
+      D2ButtonSize.large => (58.0, 18.0, 18.0, 24.0, 20.0),
+    };
     final style = switch (kind) {
       D2ButtonKind.outline => D2Text.body,
       D2ButtonKind.secondary when !large => D2Text.body.copyWith(fontSize: 15),
@@ -213,12 +229,12 @@ class D2Button extends StatelessWidget {
       dashed: !enabled,
       shadow: enabled ? shadow : const Color(0x00000000),
       shadowHeight: !bordered ? 3 : (large ? 5 : 4),
-      radius: large ? 18 : 14,
-      height: large ? 58 : 44,
+      radius: radius,
+      height: height,
       width: expand ? double.infinity : null,
       onPressed: onPressed,
       child: Padding(
-        padding: EdgeInsets.symmetric(horizontal: large ? 20 : 14),
+        padding: EdgeInsets.symmetric(horizontal: padding),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           mainAxisAlignment: MainAxisAlignment.center,
@@ -227,7 +243,7 @@ class D2Button extends StatelessWidget {
               leading!,
               const SizedBox(width: 12),
             ] else if (icon != null) ...[
-              D2Icon(icon!, size: large ? 24 : 20, color: textColor),
+              D2Icon(icon!, size: iconSize, color: textColor),
               const SizedBox(width: 8),
             ],
             Flexible(

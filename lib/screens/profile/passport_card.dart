@@ -85,8 +85,10 @@ class PassportCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
+          // As tall as the «Все» link, also without it
           Row(
             children: [
+              const SizedBox(height: 44),
               Expanded(
                 child: Wrap(
                   crossAxisAlignment: WrapCrossAlignment.end,

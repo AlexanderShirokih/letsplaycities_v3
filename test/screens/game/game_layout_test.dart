@@ -86,8 +86,6 @@ void main() {
                       value: voice,
                       child: GameLayout(
                         const GameConfig(gameMode: GameMode.playerVsAndroid),
-                        keyboardOpen:
-                            MediaQuery.viewInsetsOf(context).bottom > 0,
                         onRegisterInputClear: (_) {},
                       ),
                     ),
@@ -134,12 +132,17 @@ void main() {
   ) async {
     await pumpLayout(tester);
     expect(tester.takeException(), isNull);
-    expect(find.text(t.game.cityOnLetter), findsNothing);
+    // The score keeps its size with the keyboard open
+    expect(find.text(t.game.cityOnLetter), findsOneWidget);
     expectLastBubbleVisible(tester);
 
     await showResult(tester, const Corrections({'москва', 'мурманск'}));
     expect(tester.takeException(), isNull);
     expect(find.text('Мурманск'), findsOneWidget);
+    // The corrections stay above the keyboard of 280 on the 640 screen
+    for (final city in ['Москва', 'Мурманск']) {
+      expect(tester.getRect(find.text(city)).bottom, lessThanOrEqualTo(360));
+    }
     expectLastBubbleVisible(tester);
 
     await showResult(tester, const NotFound('масквабадская'));

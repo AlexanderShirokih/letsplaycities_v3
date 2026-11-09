@@ -26,6 +26,7 @@ import 'package:lets_play_cities/screens/profile/achievements_row.dart';
 import 'package:lets_play_cities/screens/profile/passport_card.dart';
 import 'package:lets_play_cities/screens/root/root_screen.dart';
 import 'package:lets_play_cities/screens/settings/settings_screen.dart';
+import 'package:lets_play_cities/screens/settings/stats/stats_screen.dart';
 
 /// Position of the profile among the root tabs
 const profileTabIndex = 2;
@@ -226,7 +227,7 @@ class _ProfileTabState extends State<ProfileTab> {
                 onAvatar: _online == null ? null : _chooseAvatar,
                 onSignIn: _signIn,
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: 18),
               FutureBuilder<Map<int, String>>(
                 future: _names,
                 builder: (context, names) => PassportCard(
@@ -240,7 +241,6 @@ class _ProfileTabState extends State<ProfileTab> {
               AchievementsRow(
                 isUnlocked: achievements.isUnlocked,
                 onRating: service.showLeaderboardScreen,
-                onAll: service.showAchievementsScreen,
               ),
               const SizedBox(height: 8),
               D2Card(padding: EdgeInsets.zero, child: _rows(context)),
@@ -275,6 +275,13 @@ class _ProfileTabState extends State<ProfileTab> {
               _openOnline(t.profile.blacklist, const OnlineBanlistScreen()),
         ),
       ],
+      _NavigationRow(
+        glyph: D2Glyph.gauge,
+        label: t.profile.stats,
+        onTap: () =>
+            Navigator.of(context)
+                .push(MaterialPageRoute(builder: (_) => StatisticsScreen())),
+      ),
       _NavigationRow(
         glyph: D2Glyph.settings,
         label: t.profile.settings,

@@ -24,6 +24,7 @@
     "second_player": "Игрок 2"
   },
   "home": {
+    "title": "Города",
     "vs_computer": "С компьютером",
     "two_players": "Вдвоём",
     "wifi": "По Wi-Fi",
@@ -61,15 +62,16 @@
     "friends": "Друзья",
     "history": "История",
     "blacklist": "Чёрный список",
+    "stats": "Статистика",
     "settings": "Настройки",
-    "sign_in": "Войти в онлайн",
+    "sign_in": "Войти",
     "online": "онлайн"
   },
   "game": {
     "go_to_menu": "Выйти в меню?",
     "surrender": "Завершить игру?",
     "show_help": "Использовать подсказку?",
-    "hint_not_ready": "Подсказка пока не готова. Попробуйте позже",
+    "hint_unavailable": "На эту букву подсказок больше нет",
     "downloading_updates": "Загрузка обновлений {percent}%",
     "checking_for_updates": "Проверка обновлений словаря",
     "loading_database": "Загрузка базы данных",
@@ -84,6 +86,7 @@
     "exit_to_menu": "Выйти в меню",
     "surrender_menu": "Сдаться…",
     "hint": "Подсказка",
+    "hint_in": "Подсказка через {time}",
     "city_on_letter": "Город на букву",
     "city_on_letter_hint(param=letter)": "Город на {letter}…",
     "city_hint": "Город…",
@@ -165,7 +168,6 @@
       "dark": "Тёмная",
       "system": "Как в системе"
     },
-    "stats": "Статистика",
     "licenses": "Лицензии"
   },
   "stats": {

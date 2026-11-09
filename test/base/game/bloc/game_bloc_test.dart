@@ -1,13 +1,13 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:clock/clock.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:lets_play_cities/base/achievements/achievements.dart';
 import 'package:lets_play_cities/base/achievements/achievements_service.dart';
-import 'package:lets_play_cities/base/ads/advertising_helper.dart';
 import 'package:lets_play_cities/base/data.dart';
 import 'package:lets_play_cities/base/dictionary.dart';
 import 'package:lets_play_cities/base/dictionary/countrycode_overrides.dart';
@@ -44,17 +44,6 @@ class _FakeExclusionMessages extends Fake implements ExclusionMessages {}
 class _NoOverrides implements CountryCodeOverrides {
   @override
   int? findOverride(String word) => null;
-}
-
-class _FakeAdManager extends Fake implements AdManager {
-  var setUps = 0;
-  var rewardedReady = false;
-
-  @override
-  void setUpAds(OnRewardedAdShown onAdShown) => setUps++;
-
-  @override
-  Future<bool> showRewarded() async => rewardedReady;
 }
 
 class _RecordingAchievements extends Fake implements AchievementsService {
@@ -128,7 +117,6 @@ Future<void> _pumpUntil(WidgetTester tester, bool Function() condition) async {
 void main() {
   late Directory supportDir;
   late _FakePreferences prefs;
-  late _FakeAdManager adManager;
   late _RecordingAchievements achievements;
   late _FakeDictionaryUpdater updater;
   late List<GameLifecycleState> states;
@@ -147,7 +135,6 @@ void main() {
       ),
       codeOverrides: _NoOverrides(),
       dictionaryUpdater: updater,
-      adManager: adManager,
       achievements: achievements,
     );
     bloc.stream.listen(states.add);
@@ -174,7 +161,6 @@ void main() {
     supportDir = Directory.systemTemp.createTempSync('game_bloc');
     fakeApplicationSupportDirectory(supportDir);
     prefs = _FakePreferences();
-    adManager = _FakeAdManager();
     achievements = _RecordingAchievements();
     updater = _FakeDictionaryUpdater();
     states = [];
@@ -198,7 +184,6 @@ void main() {
     await _pumpUntil(tester, () => bloc.state is GameState);
 
     expect(updater.checks, 1);
-    expect(adManager.setUps, 1);
     expect(states.take(4), [
       const CheckingForUpdatesState(CheckingForUpdatesStage.fetchingUpdate, -1),
       const CheckingForUpdatesState(CheckingForUpdatesStage.updating, 0),
@@ -262,27 +247,9 @@ void main() {
     await closeBloc(tester);
   });
 
-  testWidgets('help that is not ready yet is reported and the game goes on', (
+  testWidgets('a hint is given at once and unlocks use3Tips progress', (
     tester,
   ) async {
-    startBloc(const GameConfig(gameMode: GameMode.playerVsAndroid));
-    await _pumpUntil(tester, () => bloc.state is GameState);
-    final gameState = bloc.state;
-    states.clear();
-
-    bloc.add(const GameEventShowHelp());
-    await _pumpUntil(tester, () => states.length == 2);
-
-    expect(states, [
-      const GameNotificationState(GameNotification.hintNotReady),
-      gameState,
-    ]);
-    expect(achievements.unlocked, isEmpty);
-    await closeBloc(tester);
-  });
-
-  testWidgets('hint confirmation unlocks use3Tips progress', (tester) async {
-    adManager.rewardedReady = true;
     startBloc(const GameConfig(gameMode: GameMode.playerVsAndroid));
     await _pumpUntil(tester, () => bloc.state is GameState);
     states.clear();
@@ -295,6 +262,29 @@ void main() {
       Achievement.use30Tips,
     ]);
     expect(states, isEmpty);
+    await closeBloc(tester);
+  });
+
+  testWidgets('the next hint comes in two minutes', (tester) async {
+    startBloc(const GameConfig(gameMode: GameMode.playerVsAndroid));
+    await _pumpUntil(tester, () => bloc.state is GameState);
+    final hintReadyAt =
+        (bloc.state as GameState).gameSessionRepository.hintReadyAt;
+    expect(hintReadyAt.value, isNull);
+
+    bloc.add(const GameEventShowHelp());
+    await _pumpUntil(tester, () => achievements.unlocked.length == 2);
+
+    final readyAt = hintReadyAt.value!;
+    final wait = readyAt.difference(clock.now()).inSeconds;
+    expect(wait, inInclusiveRange(GameBloc.hintCooldown.inSeconds - 1, 120));
+
+    // A second hint before then is ignored
+    bloc.add(const GameEventShowHelp());
+    await tester.pump(const Duration(milliseconds: 200));
+
+    expect(achievements.unlocked, hasLength(2));
+    expect(hintReadyAt.value, readyAt);
     await closeBloc(tester);
   });
 

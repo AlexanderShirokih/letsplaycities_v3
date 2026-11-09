@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get_it/get_it.dart';
 import 'package:lets_play_cities/base/achievements/achievements_service.dart';
-import 'package:lets_play_cities/base/ads/advertising_helper.dart';
 import 'package:lets_play_cities/base/dictionary/countrycode_overrides.dart';
 import 'package:lets_play_cities/base/game/bloc/game_bloc.dart';
 import 'package:lets_play_cities/base/game/game_config.dart';
@@ -54,7 +53,6 @@ class GameScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = context.t;
-    final keyboardOpen = MediaQuery.viewInsetsOf(context).bottom > 0;
 
     return Scaffold(
       body: PopScope(
@@ -81,7 +79,6 @@ class GameScreen extends StatelessWidget {
                             return _buildGameStateLayout(
                               state,
                               gameConfig,
-                              keyboardOpen,
                               context.read<GameBloc>().turnGate,
                             );
                           } else if (state is CheckingForUpdatesState) {
@@ -118,8 +115,8 @@ class GameScreen extends StatelessWidget {
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
                                 content: Text(switch (state.notification) {
-                                  GameNotification.hintNotReady =>
-                                    t.game.hintNotReady,
+                                  GameNotification.hintUnavailable =>
+                                    t.game.hintUnavailable,
                                 }),
                               ),
                             );
@@ -182,7 +179,6 @@ GameBloc _createGameBloc(GameConfig gameConfig, Translations t) {
     ),
     codeOverrides: getIt.get<CountryCodeOverrides>(),
     dictionaryUpdater: DictionaryUpdater(prefs, getIt.get<Dio>()),
-    adManager: getIt.get<AdManager>(),
     achievements: getIt.get<AchievementsService>(),
   );
 }
@@ -191,7 +187,6 @@ GameBloc _createGameBloc(GameConfig gameConfig, Translations t) {
 Widget _buildGameStateLayout(
   GameState gameState,
   GameConfig gameConfig,
-  bool keyboardOpen,
   TurnGate? turnGate,
 ) => MultiRepositoryProvider(
   providers: [
@@ -225,7 +220,6 @@ Widget _buildGameStateLayout(
             child: Builder(
               builder: (context) => GameLayout(
                 gameConfig,
-                keyboardOpen: keyboardOpen,
                 onRegisterInputClear: (clear) =>
                     context.read<GameBloc>().onUserInputAccepted = clear,
               ),

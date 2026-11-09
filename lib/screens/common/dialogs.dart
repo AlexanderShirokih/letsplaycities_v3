@@ -80,11 +80,15 @@ class _D2Dialog extends StatelessWidget {
             ],
             Flexible(child: SingleChildScrollView(child: content)),
             const SizedBox(height: 16),
-            Wrap(
-              alignment: WrapAlignment.end,
-              spacing: 12,
-              runSpacing: 4,
-              children: actions,
+            // Full width, so that the buttons go to the right edge
+            SizedBox(
+              width: double.infinity,
+              child: Wrap(
+                alignment: WrapAlignment.end,
+                spacing: 12,
+                runSpacing: 4,
+                children: actions,
+              ),
             ),
           ],
         ),

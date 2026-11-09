@@ -79,7 +79,8 @@ class GameState extends GameLifecycleState {
 /// What [GameNotificationState] tells the player.
 enum GameNotification {
   /// The player asked for a hint, but no rewarded ad is loaded yet.
-  hintNotReady,
+  /// The dictionary has no city left on the letter of the move
+  hintUnavailable,
 }
 
 /// Used to show notification snackbar

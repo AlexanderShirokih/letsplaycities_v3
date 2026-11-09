@@ -66,8 +66,8 @@ class Endpoint extends EventHandler {
           .difference(_currentUserStartTime)
           .inMilliseconds;
 
-      yield event.clone(status: CityStatus.ok, countryCode: countryCode);
-
+      // Done before the yield: the move loop stops listening at the first
+      // accepted word, so nothing after the yield would run
       if (event.owner is Player) _onUserInputAccepted();
 
       comboSystem.addCity(
@@ -82,6 +82,8 @@ class Endpoint extends EventHandler {
           (key, value) => MapEntry<int, int>(key.index, value),
         ),
       );
+
+      yield event.clone(status: CityStatus.ok, countryCode: countryCode);
     } else {
       yield event;
     }

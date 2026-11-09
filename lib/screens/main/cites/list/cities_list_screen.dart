@@ -197,12 +197,15 @@ class _Header extends StatelessWidget {
             ),
             const SizedBox(width: 12),
             Flexible(
-              child: BlocBuilder<RequestsCountCubit, int?>(
-                builder: (context, count) => D2Button(
-                  label: t.citiesList.myRequests,
-                  kind: D2ButtonKind.secondary,
-                  badge: count,
-                  onPressed: onRequests,
+              child: Align(
+                alignment: Alignment.centerRight,
+                child: BlocBuilder<RequestsCountCubit, int?>(
+                  builder: (context, count) => D2Button(
+                    label: t.citiesList.myRequests,
+                    kind: D2ButtonKind.secondary,
+                    badge: count,
+                    onPressed: onRequests,
+                  ),
                 ),
               ),
             ),
@@ -235,7 +238,8 @@ class _SearchRow extends StatelessWidget {
         : t.citiesList.countriesN(count: selected.allowedCountryCodes.length);
 
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 4, 16, 0),
+      // The gap keeps the scrolled list off the search field
+      padding: const EdgeInsets.fromLTRB(16, 4, 16, 8),
       child: LayoutBuilder(
         builder: (context, constraints) => Row(
           children: [

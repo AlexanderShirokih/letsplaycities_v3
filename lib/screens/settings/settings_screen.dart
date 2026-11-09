@@ -13,8 +13,8 @@ import 'package:lets_play_cities/base/themes/app_theme_mode.dart';
 import 'package:lets_play_cities/i18n/enum_labels.dart';
 import 'package:lets_play_cities/i18n/strings.g.dart';
 import 'package:lets_play_cities/screens/common/d2/d2.dart';
+import 'package:lets_play_cities/screens/settings/licenses_screen.dart';
 import 'package:lets_play_cities/screens/settings/settings_mapping.dart';
-import 'package:lets_play_cities/screens/settings/stats/stats_screen.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -157,16 +157,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         ),
                       ),
                       _NavigationRow(
-                        glyph: D2Glyph.trophy,
-                        label: t.settings.stats,
-                        onTap: () => Navigator.of(context).push(
-                          MaterialPageRoute(builder: (_) => StatisticsScreen()),
-                        ),
-                      ),
-                      _NavigationRow(
                         glyph: D2Glyph.globe,
                         label: t.settings.licenses,
-                        onTap: () => showLicensePage(context: context),
+                        onTap: () => Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (_) => const LicensesScreen(),
+                          ),
+                        ),
                       ),
                     ],
                   ),

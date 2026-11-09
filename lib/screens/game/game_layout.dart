@@ -21,38 +21,67 @@ class GameLayout extends StatelessWidget {
   /// Room for one bubble of the feed
   static const minFeedHeight = 76.0;
 
+  /// Height of the input panel without the word checking result: the top
+  /// border, the paddings and the field
+  static const minInputHeight = 85.0;
+
+  /// A row of the word checking result: the caption and the corrections
+  static const resultHeight = 76.0;
+
   final GameConfig gameConfig;
 
   /// See [InputFieldsGroup.onRegisterInputClear]
   final ValueSetter<VoidCallback> onRegisterInputClear;
 
-  /// Makes the score compact. Read above the [Scaffold]: its body does not
-  /// see the bottom inset it resizes for.
-  final bool keyboardOpen;
-
   const GameLayout(
     this.gameConfig, {
     super.key,
     required this.onRegisterInputClear,
-    this.keyboardOpen = false,
   });
 
   @override
   Widget build(BuildContext context) => Column(
     children: [
       SafeArea(bottom: false, child: TopBar(gameConfig)),
-      ScorePanel(compact: keyboardOpen),
       Expanded(
         child: LayoutBuilder(
           builder: (context, box) => Column(
             children: [
-              const CitiesList(),
+              // Full size while the keyboard is open; only a screen too short
+              // for the feed, the input and its result scales the score down
               ConstrainedBox(
                 constraints: BoxConstraints(
-                  maxHeight: max(box.maxHeight - minFeedHeight, 0),
+                  maxHeight: max(
+                    box.maxHeight -
+                        minFeedHeight -
+                        minInputHeight -
+                        resultHeight,
+                    0,
+                  ),
                 ),
-                child: InputFieldsGroup(
-                  onRegisterInputClear: onRegisterInputClear,
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: SizedBox(
+                    width: box.maxWidth,
+                    child: const ScorePanel(),
+                  ),
+                ),
+              ),
+              Expanded(
+                child: LayoutBuilder(
+                  builder: (context, box) => Column(
+                    children: [
+                      const CitiesList(),
+                      ConstrainedBox(
+                        constraints: BoxConstraints(
+                          maxHeight: max(box.maxHeight - minFeedHeight, 0),
+                        ),
+                        child: InputFieldsGroup(
+                          onRegisterInputClear: onRegisterInputClear,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ],

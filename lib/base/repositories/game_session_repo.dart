@@ -1,5 +1,7 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
+
 import 'package:lets_play_cities/base/data.dart';
 import 'package:lets_play_cities/base/game/game_mode.dart';
 import 'package:lets_play_cities/base/game/game_result.dart';
@@ -25,6 +27,10 @@ class GameSessionRepository {
 
   /// `true` if this game mode supports players help
   bool get helpAvailable => _session.mode == GameMode.playerVsAndroid;
+
+  /// When the next hint of this game can be taken; `null` before the first
+  /// hint
+  final hintReadyAt = ValueNotifier<DateTime?>(null);
 
   /// `true` if this game mode supports messaging
   bool get messagingAvailable =>

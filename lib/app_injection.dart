@@ -9,7 +9,6 @@ import 'package:get_it/get_it.dart';
 import 'package:lets_play_cities/app_config.dart';
 import 'package:lets_play_cities/base/achievements/achievements_service.dart';
 import 'package:lets_play_cities/base/achievements/local_achievements.dart';
-import 'package:lets_play_cities/base/ads/advertising_helper.dart';
 import 'package:lets_play_cities/base/dictionary/countrycode_overrides.dart';
 import 'package:lets_play_cities/base/dictionary/impl/country_code_overrides_builder.dart';
 import 'package:lets_play_cities/base/dictionary/impl/dictionary_factory.dart';
@@ -249,11 +248,6 @@ Future<void> injectRootDependencies(AppConfig appConfig) async {
     Platform.isLinux
         ? StubVoiceRecognitionService()
         : VoiceRecognitionServiceImpl(),
-  );
-
-  /// Ad manager
-  getIt.registerSingleton<AdManager>(
-    Platform.isLinux ? StubAdManager() : GoogleAdManager(),
   );
 
   // The LAN host of this device, started by the «По Wi-Fi рядом» screen

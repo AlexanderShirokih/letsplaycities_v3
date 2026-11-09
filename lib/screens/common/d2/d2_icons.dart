@@ -46,6 +46,9 @@ enum D2Glyph {
   sound,
   moon,
   chevron,
+
+  /// «=» of a draw
+  equal,
 }
 
 /// One stroked (or filled) path of a glyph, in a 24x24 view box
@@ -197,6 +200,7 @@ final _glyphs = <D2Glyph, List<_Shape>>{
   D2Glyph.close: [const _Shape('M6 6l12 12M18 6 6 18')],
   D2Glyph.more: [const _Shape('M5.5 12h.01M12 12h.01M18.5 12h.01', width: 3.2)],
   D2Glyph.check: [const _Shape('M5 12.5l4.5 4.5L19 7.5')],
+  D2Glyph.equal: [const _Shape('M5.5 9h13M5.5 15h13', width: 3)],
   D2Glyph.trophy: [
     const _Shape('M7 3.8h10v5.4a5 5 0 0 1-10 0z'),
     const _Shape(

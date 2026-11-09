@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:get_it/get_it.dart';
-import 'package:lets_play_cities/base/ads/advertising_helper.dart';
 import 'package:lets_play_cities/base/game/combo.dart';
 import 'package:lets_play_cities/base/game/game_config.dart';
 import 'package:lets_play_cities/base/game/game_mode.dart';
@@ -45,21 +43,15 @@ class _GameResultsScreenState extends State<GameResultsScreen> {
   GameSummary get _summary => _gameResult.summary;
 
   @override
-  void initState() {
-    super.initState();
-    // Once per screen: build() runs again on every theme, locale or layout
-    // change. Ad errors are not shown to the user.
-    GetIt.instance.get<AdManager>().showInterstitial().ignore();
-  }
-
-  @override
   Widget build(BuildContext context) {
     final t = context.t;
 
     return Scaffold(
       body: Stack(
         children: [
-          const Align(alignment: Alignment.topCenter, child: _Confetti()),
+          // A celebration only of a win
+          if (_gameResult.matchResult == MatchResult.win)
+            const Align(alignment: Alignment.topCenter, child: _Confetti()),
           SafeArea(
             child: CustomScrollView(
               slivers: [
@@ -98,10 +90,10 @@ class _GameResultsScreenState extends State<GameResultsScreen> {
 
   Widget _buildHeader(BuildContext context, Translations t) {
     final c = D2Colors.of(context);
-    final glyph = switch (_gameResult.matchResult) {
-      MatchResult.win => D2Glyph.trophy,
-      MatchResult.lose => D2Glyph.surrender,
-      MatchResult.draw => D2Glyph.check,
+    final (glyph, tile) = switch (_gameResult.matchResult) {
+      MatchResult.win => (D2Glyph.trophy, c.yellow),
+      MatchResult.lose => (D2Glyph.surrender, c.yellow),
+      MatchResult.draw => (D2Glyph.equal, c.sky),
     };
 
     return Column(
@@ -110,7 +102,7 @@ class _GameResultsScreenState extends State<GameResultsScreen> {
           width: 68,
           height: 68,
           decoration: BoxDecoration(
-            color: c.yellow,
+            color: tile,
             borderRadius: BorderRadius.circular(20),
             boxShadow: [
               BoxShadow(

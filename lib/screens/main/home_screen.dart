@@ -9,6 +9,7 @@ import 'package:lets_play_cities/remote/auth.dart';
 import 'package:lets_play_cities/screens/common/d2/d2.dart';
 import 'package:lets_play_cities/screens/game/game_screen.dart';
 import 'package:lets_play_cities/screens/game/hotseat_setup_screen.dart';
+import 'package:lets_play_cities/screens/main/home_art.dart';
 import 'package:lets_play_cities/screens/multiplayer/local_multiplayer_screen.dart';
 import 'package:lets_play_cities/screens/online/game_master.dart';
 import 'package:lets_play_cities/screens/root/root_screen.dart';
@@ -90,8 +91,35 @@ class HomeScreen extends StatelessWidget {
             children: [
               Row(
                 children: [
-                  const D2Logo(size: 44),
-                  const Spacer(),
+                  Expanded(
+                    child: Semantics(
+                      label: t.d2.logoSemantics,
+                      header: true,
+                      excludeSemantics: true,
+                      child: Row(
+                        children: [
+                          const D2Logo(size: 34),
+                          const SizedBox(width: 6),
+                          // A large text scale shrinks the wordmark instead
+                          // of pushing the buttons out
+                          Flexible(
+                            child: FittedBox(
+                              fit: BoxFit.scaleDown,
+                              alignment: Alignment.centerLeft,
+                              child: Text(
+                                t.home.title,
+                                style: D2Text.title.copyWith(
+                                  fontSize: 20,
+                                  color: c.ink,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
                   D2IconButton(
                     D2Glyph.settings,
                     tooltip: t.home.settings,
@@ -124,35 +152,47 @@ class HomeScreen extends StatelessWidget {
               const SizedBox(height: 18),
               _ComputerCard(onPlay: a.playVsComputer),
               const SizedBox(height: 14),
-              Row(
-                children: [
-                  Expanded(
-                    child: _ModeTile(
-                      color: c.mint,
-                      glyph: D2Glyph.twoPlayers,
-                      label: t.home.twoPlayers,
-                      onTap: a.playTwoPlayers,
+              SizedBox(
+                height: 248,
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Expanded(
+                      child: _ModeTile(
+                        color: c.mint,
+                        art: HomeArt.twoPlayers,
+                        label: t.home.twoPlayers,
+                        fontSize: 17,
+                        onTap: a.playTwoPlayers,
+                      ),
                     ),
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: _ModeTile(
-                      color: c.sky,
-                      glyph: D2Glyph.wifi,
-                      label: t.home.wifi,
-                      onTap: a.playWifi,
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          Expanded(
+                            child: _ModeTile(
+                              color: c.sky,
+                              art: HomeArt.wifi,
+                              label: t.home.wifi,
+                              onTap: a.playWifi,
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                          Expanded(
+                            child: _ModeTile(
+                              color: c.yellow,
+                              art: HomeArt.online,
+                              label: t.home.online,
+                              onTap: a.playOnline,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: _ModeTile(
-                      color: c.yellow,
-                      glyph: D2Glyph.online,
-                      label: t.home.online,
-                      onTap: a.playOnline,
-                    ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ],
           ),
@@ -244,50 +284,41 @@ class _ComputerCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final c = D2Colors.of(context);
 
-    return Container(
+    return _Card(
+      color: c.orange,
       height: 200,
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: c.orange,
-        borderRadius: BorderRadius.circular(24),
-        boxShadow: [
-          BoxShadow(
-            color: c.shadow.withValues(alpha: 0.22),
-            offset: const Offset(0, 5),
-          ),
-        ],
-      ),
       child: Stack(
         children: [
-          Positioned(
-            top: 0,
-            right: 0,
-            child: Transform.rotate(
-              angle: 0.14,
-              child: D2Avatar.computer(size: 96),
-            ),
-          ),
-          Align(
-            alignment: Alignment.bottomLeft,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 190),
-                  child: Text(
-                    context.t.home.vsComputer,
-                    style: D2Text.title.copyWith(fontSize: 20, color: c.shadow),
+          const Positioned.fill(child: HomeCardArt(HomeArt.computer)),
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: Align(
+              alignment: Alignment.bottomLeft,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 190),
+                    child: Text(
+                      context.t.home.vsComputer,
+                      style: D2Text.title.copyWith(
+                        fontSize: 20,
+                        height: 1.15,
+                        color: c.shadow,
+                      ),
+                    ),
                   ),
-                ),
-                const SizedBox(height: 12),
-                D2Button(
-                  label: context.t.home.play,
-                  icon: D2Glyph.play,
-                  size: D2ButtonSize.large,
-                  onPressed: onPlay,
-                ),
-              ],
+                  const SizedBox(height: 12),
+                  D2Button(
+                    label: context.t.home.play,
+                    icon: D2Glyph.play,
+                    kind: D2ButtonKind.onCard,
+                    size: D2ButtonSize.card,
+                    onPressed: onPlay,
+                  ),
+                ],
+              ),
             ),
           ),
         ],
@@ -296,17 +327,49 @@ class _ComputerCard extends StatelessWidget {
   }
 }
 
+/// Colored card of the home screen with a radius of 24 and a soft shadow
+class _Card extends StatelessWidget {
+  final Color color;
+  final double? height;
+  final Widget child;
+
+  const _Card({required this.color, required this.child, this.height});
+
+  @override
+  Widget build(BuildContext context) {
+    final c = D2Colors.of(context);
+    final radius = BorderRadius.circular(24);
+
+    return Container(
+      height: height,
+      decoration: BoxDecoration(
+        color: color,
+        borderRadius: radius,
+        boxShadow: [
+          BoxShadow(
+            color: c.shadow.withValues(alpha: 0.22),
+            offset: const Offset(0, 5),
+          ),
+        ],
+      ),
+      child: ClipRRect(borderRadius: radius, child: child),
+    );
+  }
+}
+
 class _ModeTile extends StatelessWidget {
   final Color color;
-  final D2Glyph glyph;
+  final HomeArt art;
   final String label;
+  final double fontSize;
   final VoidCallback onTap;
 
   const _ModeTile({
     required this.color,
-    required this.glyph,
+    required this.art,
     required this.label,
     required this.onTap,
+    this.fontSize = 16,
   });
 
   @override
@@ -321,38 +384,26 @@ class _ModeTile extends StatelessWidget {
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
         onTap: onTap,
-        child: Container(
-          height: 112,
-          padding: const EdgeInsets.symmetric(horizontal: 4),
-          decoration: BoxDecoration(
-            color: color,
-            borderRadius: BorderRadius.circular(20),
-            boxShadow: [
-              BoxShadow(
-                color: c.shadow.withValues(alpha: 0.22),
-                offset: const Offset(0, 5),
-              ),
-            ],
-          ),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
+        child: _Card(
+          color: color,
+          child: Stack(
             children: [
-              Container(
-                width: 48,
-                height: 48,
-                decoration: BoxDecoration(
-                  color: c.surface,
-                  borderRadius: BorderRadius.circular(14),
+              Positioned.fill(child: HomeCardArt(art)),
+              Padding(
+                padding: const EdgeInsets.all(14),
+                child: Align(
+                  alignment: Alignment.bottomLeft,
+                  child: Text(
+                    label,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: D2Text.title.copyWith(
+                      fontSize: fontSize,
+                      height: 1.15,
+                      color: c.shadow,
+                    ),
+                  ),
                 ),
-                alignment: Alignment.center,
-                child: D2Icon(glyph, size: 28, color: c.shadow),
-              ),
-              const SizedBox(height: 10),
-              Text(
-                label,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: D2Text.title.copyWith(fontSize: 13, color: c.shadow),
               ),
             ],
           ),

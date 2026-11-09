@@ -82,7 +82,9 @@ class _FirstTimeOnBoardingScreenState extends State<FirstTimeOnBoardingScreen>
         // Speed up animation
         _controller.forward(from: 0.99);
       },
-      child: Container(
+      // Material gives the text its theme instead of the debug style with
+      // yellow underlines
+      child: Material(
         color: c.bg,
         child: Padding(
           padding: const EdgeInsets.all(16.0),
@@ -94,14 +96,6 @@ class _FirstTimeOnBoardingScreenState extends State<FirstTimeOnBoardingScreen>
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    if (tip.isNotEmpty) ...[
-                      D2LetterTile(
-                        tip.characters.first.toUpperCase(),
-                        size: 64,
-                        semanticLabel: '',
-                      ),
-                      const SizedBox(height: 24),
-                    ],
                     Text(
                       tip,
                       textAlign: TextAlign.center,
