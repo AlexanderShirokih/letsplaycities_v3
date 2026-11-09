@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:rxdart/rxdart.dart';
 import 'package:lets_play_cities/base/achievements/achievements.dart';
 import 'package:lets_play_cities/base/achievements/achievements_service.dart';
 import 'package:lets_play_cities/base/ads/advertising_helper.dart';
@@ -73,12 +74,16 @@ class _FakeDictionaryUpdater extends Fake implements DictionaryUpdater {
   final List<int> progress;
   var checks = 0;
 
-  _FakeDictionaryUpdater([this.progress = const []]);
+  /// Fails after [progress] with an error that is not a `RemoteException`.
+  final Object? failure;
+
+  _FakeDictionaryUpdater([this.progress = const [], this.failure]);
 
   @override
   Stream<int> checkForUpdates() {
     checks++;
-    return Stream.fromIterable(progress);
+    return Stream.fromIterable(progress)
+        .concatWith([if (failure != null) Stream<int>.error(failure!)]);
   }
 }
 
@@ -200,6 +205,18 @@ void main() {
       const CheckingForUpdatesState(CheckingForUpdatesStage.updating, 100),
       const DataLoadingState(),
     ]);
+    await closeBloc(tester);
+  });
+
+  testWidgets('a failed dictionary update does not stop a local game', (
+    tester,
+  ) async {
+    updater = _FakeDictionaryUpdater([-1], StateError('unexpected response'));
+    startBloc(const GameConfig(gameMode: GameMode.playerVsPlayer));
+
+    await _pumpUntil(tester, () => bloc.state is GameState);
+
+    expect(states.whereType<ErrorState>(), isEmpty);
     await closeBloc(tester);
   });
 

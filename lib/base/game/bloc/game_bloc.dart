@@ -150,7 +150,16 @@ class GameBloc extends Bloc<GameStateEvent, GameLifecycleState>
   /// Begins game loading sequence
   Stream<GameLifecycleState> _beginLoading() async* {
     if (_gameConfig.gameMode.isLocal) {
-      yield* _checkForUpdates();
+      // An update is optional: whatever goes wrong in it, the game starts
+      // with the dictionary it has.
+      try {
+        // `await for`, not `yield*`, so that an error reaches the catch
+        await for (final state in _checkForUpdates()) {
+          yield state;
+        }
+      } catch (e, stackTrace) {
+        addError(e, stackTrace);
+      }
     }
 
     yield DataLoadingState();
