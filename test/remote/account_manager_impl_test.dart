@@ -658,6 +658,20 @@ void main() {
       expect(server.requests.first.headers['Authorization'], 'Bearer session');
     });
 
+    test('a token that comes during the sign-out is not sent again', () async {
+      final gate = messaging.tokenGate = Completer<void>();
+      await manager.signInNative('Мария');
+      server.requests.clear();
+
+      final signingOut = manager.signOut();
+      gate.complete();
+      await signingOut;
+      await pumpEventQueue();
+
+      expect(server.calls, ['PATCH /v1/me', 'POST /v1/auth/logout']);
+      expect(server.bodyOf('PATCH', '/v1/me'), {'fcmToken': ''});
+    });
+
     test('signOut still logs out when the push token is not cleared', () async {
       server.fail('PATCH', '/v1/me', 500, 'internal');
 

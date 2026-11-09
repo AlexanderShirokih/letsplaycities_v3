@@ -163,7 +163,10 @@ class AccountManagerImpl implements AccountManager {
 
   @override
   Future<void> signOut() async {
-    // A refresh must not send the token again after it is cleared
+    // The work of the session ends now: neither a refresh nor a token that
+    // is still on its way may send the token again after it is cleared
+    _session++;
+    _signIn++;
     await _stopFcmSync();
 
     try {
@@ -179,8 +182,6 @@ class AccountManagerImpl implements AccountManager {
       // The token is dropped anyway; the server forgets it in time.
     }
 
-    _session++;
-    _signIn++;
     _preferences.signedOut = true;
     _forgetAccount();
     await _apiRepositories.tokens.clear();
