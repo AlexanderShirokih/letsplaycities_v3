@@ -1,8 +1,4 @@
-import 'dart:io';
-import 'dart:ui' as ui;
-
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
 import 'package:lets_play_cities/base/game/game_result.dart';
 import 'package:lets_play_cities/base/game/rules/route_leg.dart';
 import 'package:lets_play_cities/base/geo/world_outline.dart';
@@ -12,13 +8,9 @@ import 'package:lets_play_cities/i18n/strings.g.dart';
 import 'package:lets_play_cities/screens/common/d2/d2.dart';
 import 'package:lets_play_cities/screens/game/route/route_format.dart';
 import 'package:lets_play_cities/screens/game/route/route_map.dart';
-import 'package:path_provider/path_provider.dart';
 
 /// Side of the picture in logical pixels
 const double routeShareCardSize = 360;
-
-/// Pixel ratio of the picture: 360 * 3 = 1080 pixels per side
-const double routeShareCardPixelRatio = 3;
 
 /// The text that goes with the route picture: kilometers and countries of
 /// [owner] and the game link
@@ -158,60 +150,5 @@ class RouteShareCard extends StatelessWidget {
         ],
       ),
     );
-  }
-}
-
-/// Renders [card] off screen to a 1080x1080 PNG in the temporary directory
-/// (the file is overwritten) and returns its path.
-///
-/// The card is put into the overlay of [context], so it inherits the theme and
-/// the translations, and is removed as soon as it is captured.
-Future<String> renderRouteShareImage(
-  BuildContext context,
-  RouteShareCard card,
-) async {
-  final overlay = Overlay.of(context, rootOverlay: true);
-  final boundaryKey = GlobalKey();
-
-  // Placed far outside the screen so the user never sees it
-  final entry = OverlayEntry(
-    builder: (context) => Positioned(
-      left: -routeShareCardSize * 2,
-      top: 0,
-      width: routeShareCardSize,
-      height: routeShareCardSize,
-      // The picture has a fixed size, so the text must not grow with the
-      // system font size
-      child: MediaQuery(
-        data: MediaQuery.of(context).copyWith(textScaler: TextScaler.noScaling),
-        child: Material(
-          type: MaterialType.transparency,
-          child: RepaintBoundary(key: boundaryKey, child: card),
-        ),
-      ),
-    ),
-  );
-
-  overlay.insert(entry);
-
-  try {
-    // Wait for the card to be laid out and painted
-    await WidgetsBinding.instance.endOfFrame;
-
-    final boundary =
-        boundaryKey.currentContext!.findRenderObject()!
-            as RenderRepaintBoundary;
-    final image = await boundary.toImage(pixelRatio: routeShareCardPixelRatio);
-    final data = await image.toByteData(format: ui.ImageByteFormat.png);
-    image.dispose();
-
-    final dir = await getTemporaryDirectory();
-    final file = File('${dir.path}/route_share.png');
-    await file.writeAsBytes(data!.buffer.asUint8List(), flush: true);
-
-    return file.path;
-  } finally {
-    entry.remove();
-    entry.dispose();
   }
 }

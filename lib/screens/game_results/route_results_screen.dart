@@ -16,6 +16,7 @@ import 'package:lets_play_cities/screens/game/route/route_map.dart';
 import 'package:lets_play_cities/screens/game/user_avatar.dart';
 import 'package:lets_play_cities/screens/game_results/game_results_screen.dart';
 import 'package:lets_play_cities/screens/game_results/route_share_card.dart';
+import 'package:lets_play_cities/screens/game_results/share_image.dart';
 import 'package:lets_play_cities/utils/string_utils.dart';
 
 /// Shows when a Route game ends: kilometers of the players, the whole route
@@ -312,7 +313,7 @@ class _RouteResultsScreenState extends State<RouteResultsScreen> {
   Future<void> _share(BuildContext context) async {
     final text = routeShareText(context.t, _route, result.owner);
 
-    final path = await renderRouteShareImage(
+    final path = await renderShareImage(
       context,
       RouteShareCard(
         world: world,
@@ -321,6 +322,8 @@ class _RouteResultsScreenState extends State<RouteResultsScreen> {
         opponent: result.opponent,
         matchResult: result.matchResult,
       ),
+      size: const Size.square(routeShareCardSize),
+      fileName: 'route_share.png',
     );
 
     await Share.image(path, text);

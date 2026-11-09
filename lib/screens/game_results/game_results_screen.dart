@@ -1,5 +1,7 @@
+import 'dart:math' as math;
+
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:lets_play_cities/base/game/combo.dart';
 import 'package:lets_play_cities/base/game/game_config.dart';
 import 'package:lets_play_cities/base/game/game_mode.dart';
 import 'package:lets_play_cities/base/game/game_result.dart';
@@ -11,17 +13,13 @@ import 'package:lets_play_cities/i18n/strings.g.dart';
 import 'package:lets_play_cities/remote/account.dart';
 import 'package:lets_play_cities/remote/remote_player.dart';
 import 'package:lets_play_cities/screens/common/d2/d2.dart';
-import 'package:lets_play_cities/screens/game/cities_list.dart';
-import 'package:lets_play_cities/screens/game/combo_badge.dart';
 import 'package:lets_play_cities/screens/game/game_screen.dart';
 import 'package:lets_play_cities/screens/game/hotseat_setup_screen.dart';
 import 'package:lets_play_cities/screens/game/user_avatar.dart';
+import 'package:lets_play_cities/screens/game_results/game_share_card.dart';
+import 'package:lets_play_cities/screens/game_results/results_parts.dart';
+import 'package:lets_play_cities/screens/game_results/share_image.dart';
 import 'package:lets_play_cities/screens/online/profile.dart';
-import 'package:lets_play_cities/utils/minutes_seconds.dart';
-import 'package:lets_play_cities/utils/string_utils.dart';
-
-/// How many combos the results show
-const _kBestCombosCount = 3;
 
 /// Shows when the game ends
 class GameResultsScreen extends StatefulWidget {
@@ -29,7 +27,16 @@ class GameResultsScreen extends StatefulWidget {
 
   final GameConfig _gameConfig;
 
-  const GameResultsScreen(this._gameResult, this._gameConfig, {super.key});
+  /// Called by the button that shares the result; the result picture with
+  /// the text is shared when not set
+  final Future<void> Function(BuildContext context)? onShare;
+
+  const GameResultsScreen(
+    this._gameResult,
+    this._gameConfig, {
+    super.key,
+    this.onShare,
+  });
 
   @override
   State<GameResultsScreen> createState() => _GameResultsScreenState();
@@ -42,51 +49,55 @@ class _GameResultsScreenState extends State<GameResultsScreen> {
 
   GameSummary get _summary => _gameResult.summary;
 
+  /// Set while the picture is rendered and shared: more taps are ignored
+  var _sharing = false;
+
   @override
   Widget build(BuildContext context) {
     final t = context.t;
 
     return Scaffold(
-      body: Stack(
-        children: [
-          // A celebration only of a win
-          if (_gameResult.matchResult == MatchResult.win)
-            const Align(alignment: Alignment.topCenter, child: _Confetti()),
-          SafeArea(
-            child: CustomScrollView(
-              slivers: [
-                SliverFillRemaining(
-                  hasScrollBody: false,
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 36, 16, 22),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        _buildHeader(context, t),
-                        if (_gameResult.hasScore) ...[
-                          const SizedBox(height: 16),
-                          _buildScoreCard(context),
-                        ],
-                        if (_summary.citiesCount > 0) ...[
-                          const SizedBox(height: 12),
-                          _buildMetrics(context, t),
-                        ],
-                        ..._buildCombos(context, t),
-                        ..._buildRemoteOpponents(context, t),
+      body: _celebrate(
+        SafeArea(
+          child: CustomScrollView(
+            slivers: [
+              SliverFillRemaining(
+                hasScrollBody: false,
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 36, 16, 22),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      _buildHeader(context, t),
+                      if (_gameResult.hasScore) ...[
                         const SizedBox(height: 16),
-                        const Spacer(),
-                        _buildButtons(context, t),
+                        _buildScoreCard(context),
                       ],
-                    ),
+                      if (_summary.citiesCount > 0) ...[
+                        const SizedBox(height: 12),
+                        ResultMetrics(_summary),
+                      ],
+                      ..._buildCombos(context, t),
+                      ..._buildRemoteOpponents(context, t),
+                      const SizedBox(height: 16),
+                      const Spacer(),
+                      _buildButtons(context, t),
+                    ],
                   ),
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }
+
+  /// A celebration only of a win
+  Widget _celebrate(Widget content) =>
+      _gameResult.matchResult == MatchResult.win
+      ? _Confetti(child: content)
+      : content;
 
   Widget _buildHeader(BuildContext context, Translations t) {
     final c = D2Colors.of(context);
@@ -158,70 +169,8 @@ class _GameResultsScreenState extends State<GameResultsScreen> {
     );
   }
 
-  Widget _buildMetrics(BuildContext context, Translations t) {
-    final c = D2Colors.of(context);
-    final longest = _summary.longestCity;
-
-    return D2Card(
-      padding: EdgeInsets.zero,
-      child: Column(
-        children: [
-          IntrinsicHeight(
-            child: Row(
-              children: [
-                Expanded(
-                  child: _Metric(
-                    label: t.gameResults.cities,
-                    value: Text(
-                      '${_summary.citiesCount}',
-                      style: D2Text.title.copyWith(fontSize: 20, color: c.ink),
-                    ),
-                  ),
-                ),
-                Container(width: 2, color: c.bg),
-                Expanded(
-                  child: _Metric(
-                    label: t.gameResults.time,
-                    value: Text(
-                      formatClock(_summary.duration.inSeconds),
-                      style: D2Text.title.copyWith(fontSize: 20, color: c.ink),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          if (longest != null) ...[
-            Container(height: 2, color: c.bg),
-            _Metric(
-              label: t.gameResults.longestCity,
-              value: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  if (longest.countryCode > 0) ...[
-                    CityFlag(longest.countryCode),
-                    const SizedBox(width: 8),
-                  ],
-                  Flexible(
-                    child: Text.rich(
-                      cityNameSpans(longest.city.toTitleCase(), c),
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ],
-      ),
-    );
-  }
-
   Iterable<Widget> _buildCombos(BuildContext context, Translations t) sync* {
-    final best =
-        (_summary.bestCombos.entries.where((e) => e.value > 0).toList()
-              ..sort((a, b) => b.value.compareTo(a.value)))
-            .take(_kBestCombosCount);
+    final best = bestCombosOf(_summary);
 
     if (best.isEmpty) return;
 
@@ -231,17 +180,7 @@ class _GameResultsScreenState extends State<GameResultsScreen> {
       style: D2Text.section.copyWith(color: D2Colors.of(context).ink),
     );
     yield const SizedBox(height: 8);
-    yield IntrinsicHeight(
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          for (final (i, e) in best.indexed) ...[
-            if (i > 0) const SizedBox(width: 8),
-            Expanded(child: _ComboCard(e.key, e.value)),
-          ],
-        ],
-      ),
-    );
+    yield ResultCombos(best);
   }
 
   Iterable<Widget> _buildRemoteOpponents(
@@ -337,9 +276,7 @@ class _GameResultsScreenState extends State<GameResultsScreen> {
                   icon: D2Glyph.share,
                   kind: D2ButtonKind.secondary,
                   expand: true,
-                  onPressed: () => Share.text(
-                    t.gameResults.shareScore(score: _gameResult.owner.score),
-                  ),
+                  onPressed: _onSharePressed,
                 ),
               ),
             ],
@@ -347,6 +284,38 @@ class _GameResultsScreenState extends State<GameResultsScreen> {
         ),
       ],
     );
+  }
+
+  /// Shares the result once at a time and tells the user when it fails
+  Future<void> _onSharePressed() async {
+    if (_sharing) return;
+
+    _sharing = true;
+    final messenger = ScaffoldMessenger.of(context);
+    final failed = context.t.route.shareFailed;
+
+    try {
+      await (widget.onShare ?? _share)(context);
+    } catch (_) {
+      messenger.showSnackBar(SnackBar(content: Text(failed)));
+    } finally {
+      _sharing = false;
+    }
+  }
+
+  /// Renders the result picture and shares it with the text
+  Future<void> _share(BuildContext context) async {
+    final text = context.t.gameResults.shareScore(
+      score: _gameResult.owner.score,
+    );
+    final path = await renderShareImage(
+      context,
+      GameShareCard(_gameResult),
+      size: gameShareCardSize,
+      fileName: 'game_share.png',
+    );
+
+    await Share.image(path, text);
   }
 
   Iterable<RemotePlayer> _getRemoteOpponents() {
@@ -398,252 +367,210 @@ class _ScoreRow extends StatelessWidget {
   }
 }
 
-/// A [value] with its [label] below
-class _Metric extends StatelessWidget {
-  final String label;
-  final Widget value;
+/// Confetti of a win, 360x170 over the header as in the mockup: the pieces
+/// burst out of the trophy into their places and keep turning there
+class _Confetti extends StatefulWidget {
+  /// The screen over the confetti
+  final Widget child;
 
-  const _Metric({required this.label, required this.value});
+  const _Confetti({required this.child});
 
   @override
-  Widget build(BuildContext context) {
-    final c = D2Colors.of(context);
-
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(6, 10, 6, 11),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          value,
-          const SizedBox(height: 3),
-          Text(
-            label,
-            textAlign: TextAlign.center,
-            style: D2Text.small.copyWith(
-              fontWeight: FontWeight.w400,
-              color: c.inkSoft,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+  State<_Confetti> createState() => _ConfettiState();
 }
 
-/// The best level of one combo type
-class _ComboCard extends StatelessWidget {
-  final ComboType type;
-  final int level;
+class _ConfettiState extends State<_Confetti>
+    with SingleTickerProviderStateMixin {
+  /// Seconds since the screen opened
+  final _time = ValueNotifier<double>(0);
 
-  const _ComboCard(this.type, this.level);
+  late final _ticker = createTicker(
+    (elapsed) => _time.value = elapsed.inMicroseconds / 1e6,
+  );
 
   @override
-  Widget build(BuildContext context) {
-    final c = D2Colors.of(context);
-    final t = context.t;
-    final tile = switch (type) {
-      ComboType.quickTime => c.yellow,
-      ComboType.shortWord => c.sky,
-      ComboType.longWord => c.orange,
-      ComboType.sameCountry => c.edge,
-      ComboType.differentCountries => c.mint,
-    };
+  void didChangeDependencies() {
+    super.didChangeDependencies();
 
-    return Container(
-      padding: const EdgeInsets.fromLTRB(10, 10, 10, 11),
-      decoration: BoxDecoration(
-        color: c.surface,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [BoxShadow(color: c.edge, offset: const Offset(0, 3))],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            width: 34,
-            height: 34,
-            decoration: BoxDecoration(
-              color: tile,
-              borderRadius: BorderRadius.circular(11),
-            ),
-            alignment: Alignment.center,
-            child: D2Icon(
-              ComboBadgeWidget.glyphOf(type),
-              size: 22,
-              color: D2Colors.light.ink,
-              strokeWidth: 2.25,
-            ),
-          ),
-          const SizedBox(height: 6),
-          Text(
-            type.label(t),
-            style: D2Text.small.copyWith(
-              fontSize: 13,
-              fontWeight: FontWeight.w700,
-              color: c.ink,
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            t.gameResults.comboTimes(count: ComboSystem.badgeValue(level)),
-            style: D2Text.small.copyWith(
-              fontWeight: FontWeight.w400,
-              color: c.inkSoft,
-            ),
-          ),
-        ],
-      ),
-    );
+    if (MediaQuery.disableAnimationsOf(context)) {
+      // The pieces in their places, still
+      _ticker.stop();
+      _time.value = _MockupConfettiPainter.burst;
+    } else if (!_ticker.isActive) {
+      _ticker.start();
+    }
   }
-}
 
-/// Static confetti over the header, 360x170 as in the mockup
-class _Confetti extends StatelessWidget {
-  const _Confetti();
+  @override
+  void dispose() {
+    _ticker.dispose();
+    _time.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
-    final c = D2Colors.of(context);
+    final colors = _ConfettiColors.of(context);
 
-    return ExcludeSemantics(
-      child: CustomPaint(
-        size: const Size(360, 170),
-        painter: _ConfettiPainter(
-          orange: c.orange,
-          yellow: c.yellow,
-          mint: c.mint,
-          violet: c.violet,
-          sky: c.sky,
-          ink: c.shadow,
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        Align(
+          alignment: Alignment.topCenter,
+          child: ExcludeSemantics(
+            child: CustomPaint(
+              size: const Size(360, 170),
+              painter: _MockupConfettiPainter(
+                colors,
+                _time,
+                // The middle of the trophy tile, under the safe area
+                Offset(180, MediaQuery.paddingOf(context).top + 70),
+              ),
+            ),
+          ),
         ),
-      ),
+        widget.child,
+      ],
     );
   }
 }
 
-class _ConfettiPainter extends CustomPainter {
-  final Color orange;
-  final Color yellow;
-  final Color mint;
-  final Color violet;
-  final Color sky;
+class _ConfettiColors {
+  final List<Color> fills;
   final Color ink;
 
-  const _ConfettiPainter({
-    required this.orange,
-    required this.yellow,
-    required this.mint,
-    required this.violet,
-    required this.sky,
-    required this.ink,
-  });
+  _ConfettiColors(this.fills, this.ink);
+
+  factory _ConfettiColors.of(BuildContext context) {
+    final c = D2Colors.of(context);
+
+    return _ConfettiColors([
+      c.orange,
+      c.yellow,
+      c.mint,
+      c.violet,
+      c.sky,
+    ], c.shadow);
+  }
+
+  Color get orange => fills[0];
+
+  Color get yellow => fills[1];
+
+  Color get mint => fills[2];
+
+  Color get violet => fills[3];
+
+  Color get sky => fills[4];
+
+  @override
+  bool operator ==(Object other) =>
+      other is _ConfettiColors &&
+      other.ink == ink &&
+      listEquals(other.fills, fills);
+
+  @override
+  int get hashCode => Object.hash(ink, Object.hashAll(fills));
+}
+
+/// A piece outlined in [ink] as in the mockup
+void _drawPiece(Canvas canvas, Path path, Color fill, Color ink) {
+  canvas.drawPath(path, Paint()..color = fill);
+  canvas.drawPath(
+    path,
+    Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 2
+      ..strokeJoin = StrokeJoin.round
+      ..color = ink,
+  );
+}
+
+Path _rectPath(double x, double y, double w, double h) => Path()
+  ..addRRect(
+    RRect.fromRectAndRadius(
+      Rect.fromLTWH(x, y, w, h),
+      const Radius.circular(2.5),
+    ),
+  );
+
+Path _circlePath(double cx, double cy, double r) =>
+    Path()..addOval(Rect.fromCircle(center: Offset(cx, cy), radius: r));
+
+/// The triangle of the mockup: M x y l 7 14 h -14 z
+Path _trianglePath(double x, double y) => Path()
+  ..moveTo(x, y)
+  ..relativeLineTo(7, 14)
+  ..relativeLineTo(-14, 0)
+  ..close();
+
+/// The confetti of the mockup. The pieces start hidden behind the trophy
+/// at [origin] and fly out to their places, growing and turning. Then each
+/// one keeps turning slowly and bobbing a little
+class _MockupConfettiPainter extends CustomPainter {
+  final _ConfettiColors c;
+
+  /// Seconds since the screen opened
+  final ValueListenable<double> time;
+
+  final Offset origin;
+
+  _MockupConfettiPainter(this.c, this.time, this.origin) : super(repaint: time);
+
+  /// Seconds the burst lasts
+  static const burst = 0.75;
+
+  /// The pieces as the mockup draws them: path, fill, rotation in degrees
+  /// and the point it turns around
+  List<(Path, Color, double, Offset)> get _pieces => [
+    (_rectPath(40, 52, 14, 9), c.orange, 20, const Offset(47, 56)),
+    (_circlePath(84, 34, 6), c.yellow, 0, const Offset(84, 34)),
+    (_rectPath(70, 104, 12, 12), c.mint, -15, const Offset(76, 110)),
+    (_trianglePath(286, 44), c.violet, 20, const Offset(286, 51)),
+    (_rectPath(306, 100, 16, 10), c.sky, -30, const Offset(314, 105)),
+    (_circlePath(256, 30, 5), c.orange, 0, const Offset(256, 30)),
+    (_circlePath(24, 98, 4), c.violet, 0, const Offset(24, 98)),
+    (_rectPath(250, 120, 10, 10), c.yellow, 35, const Offset(255, 125)),
+    (_circlePath(336, 62, 4), c.mint, 0, const Offset(336, 62)),
+    (_trianglePath(112, 70), c.orange, -25, const Offset(112, 75)),
+  ];
 
   @override
   void paint(Canvas canvas, Size size) {
-    rect(40, 52, 14, 9, orange, 20, 47, 56, canvas);
-    circle(84, 34, 6, yellow, canvas);
-    rect(70, 104, 12, 12, mint, -15, 76, 110, canvas);
-    triangle(286, 44, violet, 20, 286, 51, canvas);
-    rect(306, 100, 16, 10, sky, -30, 314, 105, canvas);
-    circle(256, 30, 5, orange, canvas);
-    circle(24, 98, 4, violet, canvas);
-    rect(250, 120, 10, 10, yellow, 35, 255, 125, canvas);
-    circle(336, 62, 4, mint, canvas);
-    triangle(112, 70, orange, -25, 112, 75, canvas);
+    final pieces = _pieces;
+
+    final seconds = time.value;
+    final progress = (seconds / burst).clamp(0.0, 1.0);
+    final after = math.max(0.0, seconds - burst);
+
+    for (var i = 0; i < pieces.length; i++) {
+      final (path, fill, degrees, center) = pieces[i];
+      final start = i * 0.02;
+      final t = Interval(
+        start,
+        start + 0.8,
+        curve: Curves.easeOutCubic,
+      ).transform(progress);
+
+      // Each piece turns at its own pace, half of them the other way
+      final direction = i.isEven ? 1 : -1;
+      final turning = direction * (0.7 + (i % 3) * 0.35) * after;
+      final bob = 3 * math.sin(after * 2.4 + i) * math.min(1.0, after);
+
+      final position = Offset.lerp(origin, center, t)! + Offset(0, bob);
+      final spin = (1 - t) * direction * 0.5 * math.pi + turning;
+
+      canvas.save();
+      canvas.translate(position.dx, position.dy);
+      canvas.rotate(degrees * math.pi / 180 + spin);
+      canvas.scale(0.3 + 0.7 * t);
+      canvas.translate(-center.dx, -center.dy);
+      _drawPiece(canvas, path, fill, c.ink);
+      canvas.restore();
+    }
   }
-
-  void _draw(Canvas canvas, Path path, Color fill) {
-    canvas.drawPath(path, Paint()..color = fill);
-    canvas.drawPath(
-      path,
-      Paint()
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 2
-        ..strokeJoin = StrokeJoin.round
-        ..color = ink,
-    );
-  }
-
-  void _rotated(
-    Canvas canvas,
-    double degrees,
-    double cx,
-    double cy,
-    void Function() draw,
-  ) {
-    canvas.save();
-    canvas.translate(cx, cy);
-    canvas.rotate(degrees * 3.1415926535897932 / 180);
-    canvas.translate(-cx, -cy);
-    draw();
-    canvas.restore();
-  }
-
-  void rect(
-    double x,
-    double y,
-    double w,
-    double h,
-    Color fill,
-    double degrees,
-    double cx,
-    double cy,
-    Canvas canvas,
-  ) => _rotated(
-    canvas,
-    degrees,
-    cx,
-    cy,
-    () => _draw(
-      canvas,
-      Path()..addRRect(
-        RRect.fromRectAndRadius(
-          Rect.fromLTWH(x, y, w, h),
-          const Radius.circular(2.5),
-        ),
-      ),
-      fill,
-    ),
-  );
-
-  void circle(double cx, double cy, double r, Color fill, Canvas canvas) =>
-      _draw(
-        canvas,
-        Path()..addOval(Rect.fromCircle(center: Offset(cx, cy), radius: r)),
-        fill,
-      );
-
-  /// The triangle of the mockup: M x y l 7 14 h -14 z
-  void triangle(
-    double x,
-    double y,
-    Color fill,
-    double degrees,
-    double cx,
-    double cy,
-    Canvas canvas,
-  ) => _rotated(
-    canvas,
-    degrees,
-    cx,
-    cy,
-    () => _draw(
-      canvas,
-      Path()
-        ..moveTo(x, y)
-        ..relativeLineTo(7, 14)
-        ..relativeLineTo(-14, 0)
-        ..close(),
-      fill,
-    ),
-  );
 
   @override
-  bool shouldRepaint(_ConfettiPainter old) =>
-      old.orange != orange ||
-      old.yellow != yellow ||
-      old.mint != mint ||
-      old.violet != violet ||
-      old.sky != sky ||
-      old.ink != ink;
+  bool shouldRepaint(_MockupConfettiPainter old) =>
+      old.c != c || old.time != time || old.origin != origin;
 }

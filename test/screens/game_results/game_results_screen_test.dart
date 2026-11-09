@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -13,7 +15,9 @@ import 'package:lets_play_cities/base/preferences.dart';
 import 'package:lets_play_cities/base/users.dart';
 import 'package:lets_play_cities/i18n/strings.g.dart';
 import 'package:lets_play_cities/screens/game/hotseat_setup_screen.dart';
+import 'package:lets_play_cities/screens/common/d2/d2.dart';
 import 'package:lets_play_cities/screens/game_results/game_results_screen.dart';
+import 'package:lets_play_cities/screens/game_results/game_share_card.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../i18n/translations_harness.dart';
@@ -201,6 +205,92 @@ void main() {
       expect(find.text('Короткие города'), findsOneWidget);
       expect(find.text('Длинные города'), findsOneWidget);
       expect(find.text('Одна страна'), findsOneWidget);
+    });
+
+    const full = GameSummary(
+      citiesCount: 137,
+      duration: Duration(minutes: 58, seconds: 42),
+      longestCity: (city: 'петропавловск-камчатский', countryCode: 1),
+      bestCombos: {
+        ComboType.quickTime: 4,
+        ComboType.differentCountries: 6,
+        ComboType.longWord: 5,
+      },
+      playerCountries: {1},
+    );
+
+    testWidgets('the share picture fits every part', (tester) async {
+      final owner = _TestUser()..addPoints(1234);
+      final opponent = _TestUser()..addPoints(987);
+
+      await tester.pumpWidget(
+        withTranslations(
+          MaterialApp(
+            theme: buildD2Theme(Brightness.light),
+            home: Center(
+              child: GameShareCard(
+                GameResult(
+                  owner: owner,
+                  opponent: opponent,
+                  matchResult: MatchResult.win,
+                  finishType: MoveFinishType.surrender,
+                  hasScore: true,
+                  finishRequester: opponent,
+                  summary: full,
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+
+      expect(tester.takeException(), isNull);
+      expect(find.text('Победа!'), findsOneWidget);
+      expect(find.text('1234'), findsOneWidget);
+      expect(find.text('987'), findsOneWidget);
+      expect(find.text('137'), findsOneWidget);
+      expect(find.text('Разные страны'), findsOneWidget);
+    });
+
+    testWidgets('the share button shares the result once at a time', (
+      tester,
+    ) async {
+      final owner = _TestUser()..addPoints(10);
+      final sharing = Completer<void>();
+      var shares = 0;
+
+      tester.view.physicalSize = const Size(1080, 2400);
+      tester.view.devicePixelRatio = 3;
+      addTearDown(tester.view.reset);
+
+      await tester.pumpWidget(
+        withTranslations(
+          MaterialApp(
+            home: GameResultsScreen(
+              GameResult(
+                owner: owner,
+                matchResult: MatchResult.win,
+                finishType: MoveFinishType.surrender,
+                hasScore: true,
+                finishRequester: owner,
+                summary: full,
+              ),
+              const GameConfig(gameMode: GameMode.playerVsAndroid),
+              onShare: (_) {
+                shares++;
+                return sharing.future;
+              },
+            ),
+          ),
+        ),
+      );
+
+      await tester.tap(find.text('Поделиться'));
+      await tester.tap(find.text('Поделиться'));
+      sharing.complete();
+      await tester.pump();
+
+      expect(shares, 1);
     });
   });
 }
