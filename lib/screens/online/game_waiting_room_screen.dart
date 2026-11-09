@@ -136,7 +136,8 @@ class GameWaitingRoomScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => BlocProvider<WaitingRoomBloc>(
-    // Created once for this screen and closed with it; the connection stays
+    // Created once for this screen and closed with it; closing it also
+    // closes the connection unless a game runs on it
     create: (_) => createWaitingRoomBloc(isLocal: isLocal),
     child: WaitingRoomView(
       onStarting: onStarting,

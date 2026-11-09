@@ -33,7 +33,7 @@ class RemoteGameClient {
 
   /// `true` while the game of the last match on [connection] runs
   static bool isGameRunningOn(GameConnection connection) =>
-      _games[connection]?.isRunning == true;
+      connection.isConnected && _games[connection]?.isRunning == true;
 
   final GameConnection _connection;
 
