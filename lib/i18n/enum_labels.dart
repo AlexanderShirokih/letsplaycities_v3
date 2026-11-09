@@ -77,12 +77,15 @@ extension MoveFinishTypeLabel on MoveFinishType {
   /// How [name] ended the game, as the game results screen says it.
   ///
   /// A game does not end with a completed move, so
-  /// [MoveFinishType.completed] throws, as the screen did before.
+  /// [MoveFinishType.completed] throws, as the screen did before. A finished
+  /// route has no description: it is empty.
   String finishDescription(Translations t, String name) => switch (this) {
     MoveFinishType.timeout => t.gameResults.descTimeout(name: name),
     MoveFinishType.disconnected => t.gameResults.descDisconnected(name: name),
     MoveFinishType.surrender => t.gameResults.descSurrender(name: name),
     MoveFinishType.replaced => t.online.replaced,
     MoveFinishType.completed => throw StateError('Unknown move finish type!'),
+    // A finished route says nothing about its end, the results do not show it
+    MoveFinishType.routeCompleted => '',
   };
 }

@@ -308,7 +308,7 @@ class _GameResultsScreenState extends State<GameResultsScreen> {
           size: D2ButtonSize.large,
           expand: true,
           onPressed: () => _gameConfig.gameMode.isLocal
-              ? Navigator.pushReplacement(context, _replayRoute(_gameConfig))
+              ? Navigator.pushReplacement(context, replayRoute(_gameConfig))
               : (_gameConfig.gameMode == GameMode.multiplayer
                     ? Navigator.popUntil(
                         context,
@@ -358,8 +358,8 @@ class _GameResultsScreenState extends State<GameResultsScreen> {
 }
 
 /// A new local game: two players on one phone confirm their names and who
-/// moves first before it.
-Route<dynamic> _replayRoute(GameConfig config) =>
+/// moves first before it. The results of every variant replay through it.
+Route<dynamic> replayRoute(GameConfig config) =>
     config.gameMode == GameMode.playerVsPlayer
     ? MaterialPageRoute<void>(builder: (_) => const HotseatSetupScreen())
     : GameScreen.createGameScreenRoute(config);

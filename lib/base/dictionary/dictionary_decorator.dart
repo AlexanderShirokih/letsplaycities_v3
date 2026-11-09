@@ -18,6 +18,15 @@ class DictionaryDecorator extends DictionaryService {
   Future<String> getRandomWord(String firstChar) =>
       _dictionaryService.getRandomWordByDifficulty(firstChar, difficulty);
 
+  /// Returns the unused cities starting at [firstChar] up to [difficulty],
+  /// the one of the preferences by default.
+  @override
+  List<String> getCandidates(String firstChar, [Difficulty? difficulty]) =>
+      _dictionaryService.getCandidates(
+        firstChar,
+        difficulty ?? this.difficulty,
+      );
+
   /// Returns correction variants for [city] or empty list if there are no corrections available
   /// or corrections is disabled in preferences.
   @override

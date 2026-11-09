@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:lets_play_cities/base/game/game_item.dart';
+import 'package:lets_play_cities/base/game/rules/route_rules.dart';
 import 'package:lets_play_cities/i18n/strings.g.dart';
 import 'package:lets_play_cities/i18n/time_format.dart';
 import 'package:lets_play_cities/screens/common/d2/d2.dart';
@@ -8,11 +9,14 @@ import 'package:lets_play_cities/utils/minutes_seconds.dart';
 import 'package:lets_play_cities/utils/string_utils.dart';
 
 import 'cities_list.dart';
+import 'route/route_format.dart';
 
 /// A player shown on [HotseatTurnView]. A player with a [controller] has an
 /// editable name, [name] is the placeholder then.
 class HotseatPlayer {
   final String name;
+
+  /// Points, or km in a Route game
   final int score;
   final TextEditingController? controller;
   final String? fieldLabel;
@@ -26,7 +30,8 @@ class HotseatPlayer {
 }
 
 /// «Передайте телефон»: whose move is next, the score, the last city, the
-/// letter and the paused timer of the move, and «Я готов».
+/// letter and the paused timer of the move, and «Я готов». In a Route game
+/// the score is in km and the number of the move is shown.
 class HotseatTurnView extends StatelessWidget {
   /// Index in [players] of the player who moves next
   final int activeIndex;
@@ -38,6 +43,11 @@ class HotseatTurnView extends StatelessWidget {
 
   /// Seconds per move, `0` when the moves are not timed
   final int timeLimit;
+
+  /// Number of the next move in a Route game, from 1; `null` in the classic
+  /// game
+  final int? routeMove;
+
   final VoidCallback onBack;
   final VoidCallback onReady;
 
@@ -50,6 +60,7 @@ class HotseatTurnView extends StatelessWidget {
     required this.onBack,
     required this.onReady,
     this.lastCity,
+    this.routeMove,
   });
 
   @override
@@ -79,6 +90,21 @@ class HotseatTurnView extends StatelessWidget {
                           _buildTitle(c, t, active),
                           const SizedBox(height: 14),
                           _buildPlayers(),
+                          if (routeMove case final move?) ...[
+                            const SizedBox(height: 12),
+                            Text(
+                              t.route.move(
+                                n: move,
+                                total: RouteRules.movesPerPlayer,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: D2Text.section.copyWith(
+                                fontSize: 13,
+                                color: c.ink,
+                              ),
+                            ),
+                          ],
                           Expanded(child: _buildMove(context, c, t)),
                           D2Button(
                             label: t.hotseat.ready,
@@ -148,6 +174,7 @@ class HotseatTurnView extends StatelessWidget {
             players[i],
             number: i + 1,
             active: i == activeIndex,
+            km: routeMove != null,
           ),
         ),
       ],
@@ -211,7 +238,15 @@ class _PlayerCard extends StatelessWidget {
   final int number;
   final bool active;
 
-  const _PlayerCard(this.player, {required this.number, required this.active});
+  /// The score is in km
+  final bool km;
+
+  const _PlayerCard(
+    this.player, {
+    required this.number,
+    required this.active,
+    required this.km,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -283,7 +318,9 @@ class _PlayerCard extends StatelessWidget {
             FittedBox(
               fit: BoxFit.scaleDown,
               child: Text(
-                '${player.score}',
+                km
+                    ? '${formatKm(player.score)}$kmSpace${context.t.route.km}'
+                    : '${player.score}',
                 maxLines: 1,
                 style: D2Text.score.copyWith(
                   fontSize: 26,

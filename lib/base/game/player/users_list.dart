@@ -58,14 +58,16 @@ class UsersList {
   }
 
   /// Creates the users of a game on one device, named by [names].
+  /// [routeWord] picks the cities of the computer in a Route game.
   factory UsersList.forGameMode(
     GameMode gameMode,
     DictionaryDecorator dictionaryService,
-    DefaultPlayerNames names,
-  ) {
+    DefaultPlayerNames names, {
+    Future<String?> Function(String firstChar)? routeWord,
+  }) {
     switch (gameMode) {
       case GameMode.playerVsAndroid:
-        return _buildPvAList(dictionaryService, names);
+        return _buildPvAList(dictionaryService, names, routeWord);
       case GameMode.playerVsPlayer:
         return _buildPvPList(names);
       default:
@@ -76,11 +78,12 @@ class UsersList {
   static UsersList _buildPvAList(
     DictionaryDecorator dictionary,
     DefaultPlayerNames names,
+    Future<String?> Function(String firstChar)? routeWord,
   ) => UsersList([
     Player(
       LocalAccountInfo(name: names.player, picture: PlaceholderPictureSource()),
     ),
-    Android(dictionary, names.android),
+    Android(dictionary, names.android, routeWord: routeWord),
   ]);
 
   static UsersList _buildPvPList(DefaultPlayerNames names) => UsersList([

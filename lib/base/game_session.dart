@@ -9,7 +9,9 @@ import 'package:lets_play_cities/base/game/game_mode.dart';
 import 'package:lets_play_cities/base/game/game_result.dart';
 import 'package:lets_play_cities/base/game/game_summary.dart';
 import 'package:lets_play_cities/base/game/management.dart';
+import 'package:lets_play_cities/base/game/player/skip_move_exception.dart';
 import 'package:lets_play_cities/base/game/player/surrender_exception.dart';
+import 'package:lets_play_cities/base/game/rules/match_rules.dart';
 import 'package:lets_play_cities/base/game/turn_gate.dart';
 import 'package:lets_play_cities/base/scoring.dart';
 import 'package:lets_play_cities/base/users.dart';
@@ -50,6 +52,13 @@ class GameSession {
 
   final AchievementsService _achievements;
 
+  /// What moves bring, how a move that ran out of time ends, when the game
+  /// is over and who wins it
+  final MatchRules _rules;
+
+  /// The rules of this game, see [_rules]
+  MatchRules get rules => _rules;
+
   /// Called when the game ends, so the setting in effect at that moment counts
   final Difficulty Function() _wordsDifficulty;
 
@@ -88,6 +97,7 @@ class GameSession {
     required this.scoreController,
     required this._achievements,
     required this._wordsDifficulty,
+    required this._rules,
     Stream<GameEvent> Function(GameSession)? externalEvents,
     this.turnGate,
     this.serverAuthoritative = false,
@@ -133,6 +143,14 @@ class GameSession {
 
   String _lastAcceptedWord = '';
   int _playerMovesInGame = 0;
+
+  /// Counts the moves, so that a move ended by its timer ignores the word
+  /// its user gives later
+  int _moveIndex = 0;
+
+  /// Completes with `true` when the word of the current move that is being
+  /// checked is accepted, `null` while no word is checked
+  Completer<bool>? _wordInCheck;
 
   /// Last accepted word
   String get lastAcceptedWord => _lastAcceptedWord;
@@ -234,20 +252,20 @@ class GameSession {
       final summary = _summary.build();
 
       // Update achievements
-      await _updateAchievements();
+      if (_rules.countsStats) await _updateAchievements();
 
-      final gameResults = GameResultChecker(
+      final gameResults = _rules.result(
         users: usersList,
         owner: usersList.all.whereType<Player>().first,
-        scoringType: scoringType,
-        finishType: event.endType,
-        finishRequester: event.finishRequester,
+        finish: event,
         summary: summary,
         serverAuthoritative: serverAuthoritative,
-      ).getGameResults();
+      );
 
-      scoreController.onGameFinished(gameResults);
-      scoreController.commit();
+      if (_rules.countsStats) {
+        scoreController.onGameFinished(gameResults);
+        scoreController.commit();
+      }
 
       return gameResults;
     }
@@ -284,22 +302,48 @@ class GameSession {
 
       _summary.start();
 
+      final move = ++_moveIndex;
+      _wordInCheck = null;
+
+      OnMoveFinished? finish;
       yield* mergeStreamsWhile(
-        [_createTimer(), _makeMoveForCurrentUser(), _serviceEvents.stream],
+        [
+          _createTimer(move),
+          _makeMoveForCurrentUser(move),
+          _serviceEvents.stream,
+        ],
         (element) {
           final isMoveFinished = element is OnMoveFinished;
-          if (element is OnMoveFinished &&
-              element.endType != MoveFinishType.completed) {
-            _gameRunning = false;
+
+          if (element is OnMoveFinished) {
+            finish = element;
+
+            if (element.endType != MoveFinishType.completed) {
+              _gameRunning = false;
+            }
           }
           return !isMoveFinished;
         },
       );
+
+      final completed = finish;
+
+      if (_gameRunning &&
+          completed != null &&
+          completed.endType == MoveFinishType.completed &&
+          _rules.isOver) {
+        _gameRunning = false;
+        yield OnMoveFinished(
+          MoveFinishType.routeCompleted,
+          completed.finishRequester,
+        );
+        return;
+      }
     }
   }
 
-  /// Starts game turn for current user.
-  Stream<GameEvent> _makeMoveForCurrentUser() async* {
+  /// Starts game turn [move] for current user.
+  Stream<GameEvent> _makeMoveForCurrentUser(int move) async* {
     final lastSuitableChar = findLastSuitableChar(_lastAcceptedWord);
     final currentUser = usersList.current;
 
@@ -319,25 +363,65 @@ class GameSession {
         // A network opponent's move ends when the player leaves the game
         yield OnMoveFinished(MoveFinishType.surrender, e.target);
         return;
+      } on SkipMoveException catch (e) {
+        if (!_endMove(move)) return;
+
+        yield* _skipMove(e.target);
+        return;
       }
 
-      final results = eventChannel.sendEvent(RawWordEvent(city, currentUser));
-      await for (final event in results) {
-        yield event;
-        if (event is Accepted) {
-          if (event.owner is Player) _playerMovesInGame++;
-          _summary.onAccepted(event.owner, event.word, event.countryCode ?? 0);
+      // The timer ended the move while the word was being made
+      if (move != _moveIndex) return;
 
-          _lastAcceptedWord = event.word;
-          usersList.switchToNext();
-          yield OnMoveFinished(MoveFinishType.completed, currentUser);
-          return;
+      // A word that is being checked wins over the end of the time: the
+      // endpoint may already have counted it
+      final check = Completer<bool>();
+      _wordInCheck = check;
+
+      try {
+        final results = eventChannel.sendEvent(RawWordEvent(city, currentUser));
+        await for (final event in results) {
+          if (event is Accepted) check.complete(true);
+
+          yield event;
+
+          if (event is Accepted) {
+            if (event.owner is Player) _playerMovesInGame++;
+            _summary.onAccepted(
+              event.owner,
+              event.word,
+              event.countryCode ?? 0,
+            );
+
+            _lastAcceptedWord = event.word;
+            usersList.switchToNext();
+            yield OnMoveFinished(MoveFinishType.completed, currentUser);
+            return;
+          }
         }
+      } finally {
+        if (!check.isCompleted) check.complete(false);
       }
     }
   }
 
-  Stream<GameEvent> _createTimer() async* {
+  /// Ends [move] for good; `false` when it has already ended
+  bool _endMove(int move) {
+    if (move != _moveIndex) return false;
+
+    _moveIndex++;
+    return true;
+  }
+
+  /// Skips the move of [user]: the letter stays, the move passes on
+  Stream<GameEvent> _skipMove(User user) async* {
+    yield* eventChannel.sendEvent(MoveSkipped(user));
+    _rules.onSkipped(user);
+    usersList.switchToNext();
+    yield OnMoveFinished(MoveFinishType.completed, user);
+  }
+
+  Stream<GameEvent> _createTimer(int move) async* {
     if (timeLimit == 0) return;
     yield* Stream.periodic(
           const Duration(seconds: 1),
@@ -348,8 +432,22 @@ class GameSession {
         .takeWhile((_) => _gameRunning);
 
     // On server authority only the server ends a move that ran out of time
-    if (!serverAuthoritative) {
-      yield OnMoveFinished(MoveFinishType.timeout, usersList.current);
+    if (serverAuthoritative) return;
+
+    final current = usersList.current;
+
+    switch (_rules.onTimeout(current)) {
+      case TimeoutAction.endGame:
+        yield OnMoveFinished(MoveFinishType.timeout, current);
+      case TimeoutAction.skip:
+        // Ends the move before the user gives a word, so the word is ignored
+        if (!_endMove(move)) return;
+
+        // The word in check ends the move itself when it is accepted
+        final check = _wordInCheck;
+        if (check != null && await check.future) return;
+
+        yield* _skipMove(current);
     }
   }
 

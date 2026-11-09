@@ -25,6 +25,17 @@ void main() {
       expect(DictionaryServiceImpl(map).getAll(), allOf([isMap, equals(map)]));
     });
 
+    test('.getCandidates() lists the unused cities with a country up to '
+        'the difficulty', () {
+      final dictionary = DictionaryServiceImpl(map);
+      dictionary.markUsed('test');
+
+      expect(dictionary.getCandidates('t', Difficulty.easy), ['test2']);
+      expect(dictionary.getCandidates('h', Difficulty.hard), ['hello']);
+      expect(dictionary.getCandidates('w', Difficulty.medium), ['world2']);
+      expect(dictionary.getCandidates('n', Difficulty.hard), isEmpty);
+    });
+
     group('.getRandomWordByDifficulty()', () {
       late ScriptedRandom random;
       late DictionaryServiceImpl dictionary;

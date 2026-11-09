@@ -7,6 +7,7 @@ import 'package:lets_play_cities/base/game/combo.dart';
 import 'package:lets_play_cities/base/game/game_mode.dart';
 import 'package:lets_play_cities/base/game/handlers.dart';
 import 'package:lets_play_cities/base/game/management.dart';
+import 'package:lets_play_cities/base/game/rules/classic_rules.dart';
 import 'package:lets_play_cities/base/scoring.dart';
 import 'package:lets_play_cities/base/users.dart';
 
@@ -71,11 +72,14 @@ void main() {
       _NoOverrides(),
       () {},
       () {},
-      ScoreController(
-        ScoringSet.initial(),
+      ClassicRules(
+        ScoreController(
+          ScoringSet.initial(),
+          ScoringType.byScore,
+          GameMode.playerVsAndroid,
+          (_) {},
+        ),
         ScoringType.byScore,
-        GameMode.playerVsAndroid,
-        (_) {},
       ),
     );
 
@@ -104,7 +108,7 @@ void main() {
       overrides ?? _NoOverrides(),
       () => inputAcceptedCalls++,
       () {},
-      scores,
+      ClassicRules(scores, ScoringType.byScore),
     );
 
     test('take the overridden country code over the dictionary one', () async {
@@ -175,7 +179,7 @@ void main() {
         _NoOverrides(),
         () => inputAcceptedCalls++,
         () {},
-        scores,
+        ClassicRules(scores, ScoringType.byScore),
       );
       final events = <GameEvent>[
         const NotFound('масква'),
@@ -200,7 +204,7 @@ void main() {
         _NoOverrides(),
         () {},
         () => moveBeginsCalls++,
-        _SpyScoreController(),
+        ClassicRules(_SpyScoreController(), ScoringType.byScore),
       );
       final player = newPlayer();
       final opponent = FakeOpponent();
@@ -212,6 +216,25 @@ void main() {
 
       expect(await handler.process(toPlayer).toList(), [same(toPlayer)]);
       expect(moveBeginsCalls, 1);
+    });
+
+    test('a timed out local player gets the input cleared', () async {
+      var inputAcceptedCalls = 0;
+      final handler = Endpoint(
+        _FakeDictionary(),
+        _NoOverrides(),
+        () => inputAcceptedCalls++,
+        () {},
+        ClassicRules(_SpyScoreController(), ScoringType.byScore),
+      );
+      final ofOpponent = MoveSkipped(FakeOpponent());
+      final ofPlayer = MoveSkipped(newPlayer());
+
+      expect(await handler.process(ofOpponent).toList(), [same(ofOpponent)]);
+      expect(inputAcceptedCalls, 0);
+
+      expect(await handler.process(ofPlayer).toList(), [same(ofPlayer)]);
+      expect(inputAcceptedCalls, 1);
     });
   });
 
@@ -228,8 +251,13 @@ void main() {
       return result;
     }
 
-    Endpoint endpoint(ScoreController scores) =>
-        Endpoint(_FakeDictionary(), _NoOverrides(), () {}, () {}, scores);
+    Endpoint endpoint(ScoreController scores) => Endpoint(
+      _FakeDictionary(),
+      _NoOverrides(),
+      () {},
+      () {},
+      ClassicRules(scores, ScoringType.byScore),
+    );
 
     test('is counted from the last first char change', () {
       fakeAsync((async) {

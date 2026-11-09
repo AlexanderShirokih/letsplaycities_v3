@@ -11,6 +11,7 @@ import 'package:lets_play_cities/base/game/game_mode.dart';
 import 'package:lets_play_cities/base/game/game_result.dart';
 import 'package:lets_play_cities/base/game/management.dart';
 import 'package:lets_play_cities/base/game/player/surrender_exception.dart';
+import 'package:lets_play_cities/base/game/rules/classic_rules.dart';
 import 'package:lets_play_cities/base/game/turn_gate.dart';
 import 'package:lets_play_cities/base/game_session.dart';
 import 'package:lets_play_cities/base/scoring.dart';
@@ -136,20 +137,23 @@ class _ServerGame {
   late final GameSession session;
 
   _ServerGame({required int timeLimit, bool ownerStarts = true}) {
+    final scores = ScoreController(
+      ScoringSet.initial(),
+      ScoringType.byScore,
+      GameMode.network,
+      (_) {},
+    );
+
     session = GameSession(
       mode: GameMode.network,
       usersList: UsersList(ownerStarts ? [owner, opponent] : [opponent, owner]),
       eventChannel: channel,
       scoringType: ScoringType.byScore,
       timeLimit: timeLimit,
-      scoreController: ScoreController(
-        ScoringSet.initial(),
-        ScoringType.byScore,
-        GameMode.network,
-        (_) {},
-      ),
+      scoreController: scores,
       achievements: _RecordingAchievements(),
       wordsDifficulty: () => Difficulty.easy,
+      rules: ClassicRules(scores, ScoringType.byScore),
       externalEvents: (_) => server.stream,
       serverAuthoritative: true,
     );
@@ -165,22 +169,27 @@ GameSession _gatedSession(
   TurnGate gate, {
   required AbstractEventChannel channel,
   int timeLimit = 0,
-}) => GameSession(
-  mode: GameMode.playerVsPlayer,
-  usersList: UsersList([_player('first'), _player('second')]),
-  eventChannel: channel,
-  scoringType: ScoringType.byScore,
-  timeLimit: timeLimit,
-  scoreController: ScoreController(
+}) {
+  final scores = ScoreController(
     ScoringSet.initial(),
     ScoringType.byScore,
     GameMode.playerVsPlayer,
     (_) {},
-  ),
-  achievements: _RecordingAchievements(),
-  wordsDifficulty: () => Difficulty.easy,
-  turnGate: gate,
-);
+  );
+
+  return GameSession(
+    mode: GameMode.playerVsPlayer,
+    usersList: UsersList([_player('first'), _player('second')]),
+    eventChannel: channel,
+    scoringType: ScoringType.byScore,
+    timeLimit: timeLimit,
+    scoreController: scores,
+    achievements: _RecordingAchievements(),
+    wordsDifficulty: () => Difficulty.easy,
+    rules: ClassicRules(scores, ScoringType.byScore),
+    turnGate: gate,
+  );
+}
 
 void main() {
   test('timer does not tick while gate is closed', () {
@@ -314,6 +323,12 @@ void main() {
   testWidgets('ends the game loop with the error of a move', (tester) async {
     final channel = _RecordingChannel();
     final user = _BrokenUser();
+    final scores = ScoreController(
+      ScoringSet.initial(),
+      ScoringType.byScore,
+      GameMode.playerVsPlayer,
+      (_) {},
+    );
     final session = GameSession(
       mode: GameMode.playerVsPlayer,
       usersList: UsersList([
@@ -328,14 +343,10 @@ void main() {
       eventChannel: channel,
       scoringType: ScoringType.byScore,
       timeLimit: 0,
-      scoreController: ScoreController(
-        ScoringSet.initial(),
-        ScoringType.byScore,
-        GameMode.playerVsPlayer,
-        (_) {},
-      ),
+      scoreController: scores,
       achievements: _RecordingAchievements(),
       wordsDifficulty: () => Difficulty.easy,
+      rules: ClassicRules(scores, ScoringType.byScore),
     );
     var inputClosed = false;
     session.inputEvents.listen(null, onDone: () => inputClosed = true);
@@ -368,6 +379,12 @@ void main() {
         picture: PlaceholderPictureSource(),
       ),
     );
+    final scores = ScoreController(
+      ScoringSet.initial(),
+      ScoringType.byScore,
+      GameMode.playerVsAndroid,
+      (_) {},
+    );
     final session = GameSession(
       mode: GameMode.playerVsAndroid,
       usersList: UsersList([
@@ -382,17 +399,13 @@ void main() {
       eventChannel: _RecordingChannel(),
       scoringType: ScoringType.byScore,
       timeLimit: 0,
-      scoreController: ScoreController(
-        ScoringSet.initial(),
-        ScoringType.byScore,
-        GameMode.playerVsAndroid,
-        (_) {},
-      ),
+      scoreController: scores,
       achievements: achievements,
       wordsDifficulty: () {
         difficultyReads++;
         return difficulty;
       },
+      rules: ClassicRules(scores, ScoringType.byScore),
     );
     player.increaseScore(10);
 

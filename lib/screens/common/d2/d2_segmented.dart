@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:lets_play_cities/screens/common/d2/d2_colors.dart';
+import 'package:lets_play_cities/screens/common/d2/d2_icons.dart';
 import 'package:lets_play_cities/screens/common/d2/d2_text.dart';
 
 class D2Segmented<T> extends StatelessWidget {
@@ -7,11 +8,15 @@ class D2Segmented<T> extends StatelessWidget {
   final T? selected;
   final ValueChanged<T> onChanged;
 
+  /// Glyphs shown before the labels of the items that have one
+  final Map<T, D2Glyph> icons;
+
   const D2Segmented({
     super.key,
     required this.items,
     required this.selected,
     required this.onChanged,
+    this.icons = const {},
   });
 
   @override
@@ -45,13 +50,30 @@ class D2Segmented<T> extends StatelessWidget {
                     ),
                     child: FittedBox(
                       fit: BoxFit.scaleDown,
-                      child: Text(
-                        label,
-                        maxLines: 1,
-                        style: D2Text.body.copyWith(
-                          fontSize: 14,
-                          color: value == selected ? Colors.white : c.inkSoft,
-                        ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          if (icons[value] case final glyph?) ...[
+                            D2Icon(
+                              glyph,
+                              size: 20,
+                              color: value == selected
+                                  ? Colors.white
+                                  : c.inkSoft,
+                            ),
+                            const SizedBox(width: 8),
+                          ],
+                          Text(
+                            label,
+                            maxLines: 1,
+                            style: D2Text.body.copyWith(
+                              fontSize: 14,
+                              color: value == selected
+                                  ? Colors.white
+                                  : c.inkSoft,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ),

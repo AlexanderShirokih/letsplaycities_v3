@@ -59,7 +59,12 @@ class _HotseatSetupScreenState extends State<HotseatSetupScreen> {
 
     _prefs.hotseatNames = [for (final name in _names) name.text.trim()];
     Navigator.of(context).pushReplacement(
-      widget.gameRoute(const GameConfig(gameMode: GameMode.playerVsPlayer)),
+      widget.gameRoute(
+        GameConfig(
+          gameMode: GameMode.playerVsPlayer,
+          variant: _prefs.gameVariant,
+        ),
+      ),
     );
   }
 

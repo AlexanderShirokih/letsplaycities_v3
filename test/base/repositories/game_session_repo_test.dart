@@ -4,6 +4,7 @@ import 'package:lets_play_cities/base/achievements/achievements_service.dart';
 import 'package:lets_play_cities/base/data.dart';
 import 'package:lets_play_cities/base/dictionary.dart';
 import 'package:lets_play_cities/base/game/game_mode.dart';
+import 'package:lets_play_cities/base/game/rules/classic_rules.dart';
 import 'package:lets_play_cities/base/game/management.dart';
 import 'package:lets_play_cities/base/game_session.dart';
 import 'package:lets_play_cities/base/repos.dart';
@@ -15,26 +16,34 @@ class _PassThroughChannel extends AbstractEventChannel {
   Stream<GameEvent> sendEvent(GameEvent event) => Stream.value(event);
 }
 
-GameSession _session() => GameSession(
-  mode: GameMode.playerVsPlayer,
-  usersList: UsersList([
-    for (final name in ['first', 'second'])
-      Player(
-        LocalAccountInfo(name: name, picture: const PlaceholderPictureSource()),
-      ),
-  ]),
-  eventChannel: _PassThroughChannel(),
-  scoringType: ScoringType.byScore,
-  timeLimit: 0,
-  scoreController: ScoreController(
+GameSession _session() {
+  final scores = ScoreController(
     ScoringSet.initial(),
     ScoringType.byScore,
     GameMode.playerVsPlayer,
     (_) {},
-  ),
-  achievements: StubAchievementsService(),
-  wordsDifficulty: () => Difficulty.easy,
-);
+  );
+
+  return GameSession(
+    mode: GameMode.playerVsPlayer,
+    usersList: UsersList([
+      for (final name in ['first', 'second'])
+        Player(
+          LocalAccountInfo(
+            name: name,
+            picture: const PlaceholderPictureSource(),
+          ),
+        ),
+    ]),
+    eventChannel: _PassThroughChannel(),
+    scoringType: ScoringType.byScore,
+    timeLimit: 0,
+    scoreController: scores,
+    achievements: StubAchievementsService(),
+    wordsDifficulty: () => Difficulty.easy,
+    rules: ClassicRules(scores, ScoringType.byScore),
+  );
+}
 
 /// Records what the repository delivers to the session and when.
 class _RecordingSession extends Fake implements GameSession {

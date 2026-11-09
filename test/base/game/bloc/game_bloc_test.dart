@@ -230,6 +230,31 @@ void main() {
     expect(states.whereType<ErrorState>(), isEmpty);
   });
 
+  testWidgets('a route game plays on the bundled dictionary', (tester) async {
+    startBloc(
+      const GameConfig(
+        gameMode: GameMode.playerVsAndroid,
+        variant: GameVariant.route,
+      ),
+    );
+    await _pumpUntil(tester, () => bloc.state is GameState);
+
+    final game = bloc.state as GameState;
+    final repository = game.gameSessionRepository;
+    expect(updater.checks, 0);
+    expect(repository.routeState?.movesDone, 0);
+    expect(repository.world, isNotNull);
+    // The hint takes its cities from the dictionary the route has points for
+    expect(game.dictionary.getAll().length, repository.geo!.length);
+
+    // A hint in Route does not count for the achievements
+    bloc.add(const GameEventShowHelp());
+    await _pumpUntil(tester, () => repository.hintReadyAt.value != null);
+    expect(achievements.unlocked, isEmpty);
+
+    await closeBloc(tester);
+  });
+
   testWidgets('a network game does not check for dictionary updates', (
     tester,
   ) async {

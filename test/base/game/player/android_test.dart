@@ -2,6 +2,7 @@ import 'package:fake_async/fake_async.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:lets_play_cities/base/dictionary.dart';
 import 'package:lets_play_cities/base/game/combo.dart';
+import 'package:lets_play_cities/base/game/player/skip_move_exception.dart';
 import 'package:lets_play_cities/base/game/player/surrender_exception.dart';
 import 'package:lets_play_cities/base/users.dart';
 
@@ -100,5 +101,68 @@ void main() {
 
     expect(android.isTrusted, isTrue);
     expect(android.comboSystem.activeCombos, isEmpty);
+  });
+
+  group('in a route game', () {
+    test('never gives up while it has a city', () async {
+      final android = Android(
+        EndlessDictionary(Difficulty.easy),
+        'android',
+        moveDelay: Duration.zero,
+        random: FixedRandom(0),
+        routeWord: (firstChar) async => '$firstChar-route',
+      );
+
+      for (var move = 0; move < 100; move++) {
+        expect(await android.onCreateWord('а'), 'а-route');
+      }
+    });
+
+    test('skips the move at once when it has no city', () {
+      fakeAsync((async) {
+        final android = Android(
+          FakeDictionary(),
+          'android',
+          random: FixedRandom(0),
+          routeWord: (_) async => null,
+        );
+
+        Object? error;
+        android.onCreateWord('ы').catchError((Object e) {
+          error = e;
+          return '';
+        });
+        async.flushMicrotasks();
+
+        expect(
+          error,
+          isA<SkipMoveException>().having(
+            (e) => e.target,
+            'target',
+            same(android),
+          ),
+        );
+      });
+    });
+
+    test('answers with its city after the pause', () {
+      fakeAsync((async) {
+        final android = Android(
+          FakeDictionary(),
+          'android',
+          random: FixedRandom(0),
+          routeWord: (_) async => 'анапа',
+        );
+
+        String? word;
+        android.onCreateWord('а').then((w) => word = w);
+
+        async.elapse(const Duration(milliseconds: 1499));
+        expect(word, isNull);
+
+        async.elapse(const Duration(milliseconds: 1));
+        expect(word, 'анапа');
+      });
+    });
   });
 }

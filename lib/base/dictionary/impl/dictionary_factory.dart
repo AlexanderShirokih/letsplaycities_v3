@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:collection';
 import 'dart:convert';
 import 'dart:io';
 
@@ -117,6 +116,28 @@ class DictionaryFactory {
         .then((desc) => desc.getDictionary())
         .then((dict) => _updateCacheEntry(dict))
         .then((dict) => DictionaryServiceImpl(dict.data));
+  }
+
+  /// Loads the dictionary bundled with the app, bypassing the downloaded one
+  /// and the cache. [names] are in the record order of the dictionary file.
+  static Future<
+    ({DictionaryService dictionary, List<String> names, int version})
+  >
+  loadEmbedded() async {
+    final meta = jsonDecode(
+      await rootBundle.loadString('$_embeddedDictionaryPath.meta'),
+    );
+    final version = meta['version'] as int;
+    final dict = await _EmbeddedDescriptor(
+      _embeddedDictionaryPath,
+      version,
+    ).getDictionary();
+
+    return (
+      dictionary: DictionaryServiceImpl(dict.data),
+      names: dict.data.keys.toList(),
+      version: version,
+    );
   }
 
   _Dictionary _updateCacheEntry(_Dictionary dictionary) {
@@ -249,7 +270,8 @@ mixin _DictionaryParserMixin {
   }
 
   Map<String, CityProperties> _parseData(ByteData data, int count, int offset) {
-    final mapData = HashMap<String, CityProperties>();
+    // Literal map keeps insertion order, which geodata relies on
+    final mapData = <String, CityProperties>{};
 
     for (var i = 0; i < count + 1; i++) {
       try {

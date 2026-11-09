@@ -43,6 +43,12 @@ abstract class User {
     _score = (_score + points * comboSystem.multiplier).floor();
   }
 
+  /// Adds exactly [points] to the score, whatever the combos are.
+  /// Used by the modes that have no score multiplier.
+  void addPoints(int points) {
+    _score += points;
+  }
+
   /// Called by system when users turn begins
   /// [firstChar] is a first letter of that the city should begin.
   /// [firstChar] will be an empty string if it's should be the first word in game.

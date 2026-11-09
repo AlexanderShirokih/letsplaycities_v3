@@ -107,6 +107,16 @@ void main() {
       expect(find.byType(HotseatSetupScreen), findsNothing);
     });
 
+    testWidgets('setup starts the stored variant', (tester) async {
+      prefs.gameVariant = GameVariant.route;
+      await pumpSetup(tester);
+
+      await tester.tap(find.text(t.hotseat.ready));
+      await tester.pumpAndSettle();
+
+      expect(started.single.variant, GameVariant.route);
+    });
+
     testWidgets('setup shows the saved names', (tester) async {
       prefs.hotseatNames = ['Аня', 'Боря'];
       await pumpSetup(tester);

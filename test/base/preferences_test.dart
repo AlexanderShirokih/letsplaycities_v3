@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:lets_play_cities/base/dictionary.dart';
+import 'package:lets_play_cities/base/game/game_config.dart';
 import 'package:lets_play_cities/base/preferences.dart';
 import 'package:lets_play_cities/base/scoring.dart';
 import 'package:lets_play_cities/base/themes/app_theme_mode.dart';
@@ -66,6 +67,7 @@ void main() {
       expect(prefs.lastNativeLogin, isEmpty);
       expect(prefs.signedOut, isFalse);
       expect(prefs.hotseatNames, isEmpty);
+      expect(prefs.gameVariant, GameVariant.classic);
       expect(prefs.recentCountries, isEmpty);
     });
 
@@ -126,6 +128,13 @@ void main() {
 
       expect((await relaunch()).hotseatNames, ['Аня', 'Боря']);
       expect(await stored('hotseatNames'), ['Аня', 'Боря']);
+    });
+
+    test('prefs gameVariant round-trip', () async {
+      prefs.gameVariant = GameVariant.route;
+
+      expect((await relaunch()).gameVariant, GameVariant.route);
+      expect(await stored('gameVariant'), 'route');
     });
 
     test('prefs recentCountries round-trip, at most five', () async {

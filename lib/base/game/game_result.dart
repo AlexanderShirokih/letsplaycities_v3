@@ -1,6 +1,7 @@
 import 'package:equatable/equatable.dart';
 import 'package:lets_play_cities/base/game/game_summary.dart';
 import 'package:lets_play_cities/base/game/management.dart';
+import 'package:lets_play_cities/base/game/rules/route_leg.dart';
 import 'package:lets_play_cities/base/scoring.dart';
 import 'package:lets_play_cities/base/users.dart';
 
@@ -114,6 +115,9 @@ class GameResult extends Equatable {
   /// The first user other than [owner], `null` if there is none
   final User? opponent;
 
+  /// The final route of a Route match, `null` in the other modes
+  final RouteState? route;
+
   const GameResult({
     required this.owner,
     required this.matchResult,
@@ -122,6 +126,7 @@ class GameResult extends Equatable {
     required this.finishRequester,
     required this.summary,
     this.opponent,
+    this.route,
   });
 
   @override
@@ -133,5 +138,6 @@ class GameResult extends Equatable {
     finishRequester,
     summary,
     opponent,
+    route,
   ];
 }

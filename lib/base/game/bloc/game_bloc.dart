@@ -16,6 +16,7 @@ import 'package:lets_play_cities/base/game/game_result.dart';
 import 'package:lets_play_cities/base/game/handlers.dart';
 import 'package:lets_play_cities/base/game/player/default_player_names.dart';
 import 'package:lets_play_cities/base/game/turn_gate.dart';
+import 'package:lets_play_cities/base/geo/route_data.dart';
 import 'package:lets_play_cities/base/preferences.dart';
 import 'package:lets_play_cities/base/repositories/game_session_repo.dart';
 import 'package:lets_play_cities/base/scoring.dart';
@@ -126,8 +127,12 @@ class GameBloc extends Bloc<GameStateEvent, GameLifecycleState>
       final given = await _showHelp();
       if (given) {
         hintReadyAt.value = clock.now().add(hintCooldown);
-        await _achievements.unlockAchievement(Achievement.use3Tips);
-        await _achievements.unlockAchievement(Achievement.use30Tips);
+
+        // Route does not count for the achievements
+        if (_gameConfig.variant == GameVariant.classic) {
+          await _achievements.unlockAchievement(Achievement.use3Tips);
+          await _achievements.unlockAchievement(Achievement.use30Tips);
+        }
       } else {
         final savedState = state;
         yield const GameNotificationState(GameNotification.hintUnavailable);
@@ -140,7 +145,10 @@ class GameBloc extends Bloc<GameStateEvent, GameLifecycleState>
 
   /// Begins game loading sequence
   Stream<GameLifecycleState> _beginLoading() async* {
-    if (_gameConfig.gameMode.isLocal) {
+    final isRoute = _gameConfig.variant == GameVariant.route;
+
+    // Route plays on the bundled dictionary, an update does not reach it
+    if (_gameConfig.gameMode.isLocal && !isRoute) {
       // An update is optional: whatever goes wrong in it, the game starts
       // with the dictionary it has.
       try {
@@ -159,7 +167,9 @@ class GameBloc extends Bloc<GameStateEvent, GameLifecycleState>
       _prefs,
       _gameConfig.gameMode,
     );
-    final dictionary = await DictionaryFactory().createDictionary();
+    final routeData = isRoute ? await RouteData.load() : null;
+    final dictionary =
+        routeData?.dictionary ?? await DictionaryFactory().createDictionary();
     final exclusions = await ExclusionsFactory(
       CountryListLoaderServiceFactory().createCountryList(),
       _exclusionMessages,
@@ -169,6 +179,7 @@ class GameBloc extends Bloc<GameStateEvent, GameLifecycleState>
       DictionaryDecorator(dictionary, _prefs),
       exclusions,
       scoreController,
+      routeData: routeData,
     );
 
     add(const GameEventGameStart());
@@ -189,8 +200,12 @@ class GameBloc extends Bloc<GameStateEvent, GameLifecycleState>
       playerNames: _playerNames,
       onUserInputAccepted: () => onUserInputAccepted?.call(),
       onUserMoveBegins: () => onUserMoveBegins?.call(),
+      routeData: dataState.routeData,
     );
-    final repository = GameSessionRepository(session);
+    final repository = GameSessionRepository(
+      session,
+      routeData: dataState.routeData,
+    );
     _turnGate = session.turnGate;
 
     yield GameState(

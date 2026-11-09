@@ -20,6 +20,10 @@ abstract class DictionaryService {
     Difficulty difficulty,
   );
 
+  /// Returns the unused cities starting at [firstChar] that have a country
+  /// and are not harder than [difficulty].
+  List<String> getCandidates(String firstChar, Difficulty difficulty);
+
   /// Returns country code for [city] or `0` if country code for the [city] is not found.
   int getCountryCode(String city);
 

@@ -57,6 +57,8 @@ class _HintButton extends StatefulWidget {
 }
 
 class _HintButtonState extends State<_HintButton> {
+  static const _minWidth = 150.0;
+
   Timer? _ticks;
 
   @override
@@ -99,19 +101,24 @@ class _HintButtonState extends State<_HintButton> {
     final t = context.t;
     final left = _secondsLeft;
 
-    return D2Button(
-      label: left > 0 ? formatClock(left) : t.game.hint,
-      icon: D2Glyph.hint,
-      kind: D2ButtonKind.hint,
-      semanticLabel: left > 0 ? t.game.hintIn(time: formatClock(left)) : null,
-      onPressed: left > 0
-          ? null
-          : () => showConfirmationDialog(
-              context,
-              message: t.game.showHelp,
-              onOk: () =>
-                  context.read<GameBloc>().add(const GameEventShowHelp()),
-            ),
+    // The countdown digits differ in width, so a fixed minimum keeps the
+    // button from twitching every second
+    return ConstrainedBox(
+      constraints: const BoxConstraints(minWidth: _minWidth),
+      child: D2Button(
+        label: left > 0 ? formatClock(left) : t.game.hint,
+        icon: D2Glyph.hint,
+        kind: D2ButtonKind.hint,
+        semanticLabel: left > 0 ? t.game.hintIn(time: formatClock(left)) : null,
+        onPressed: left > 0
+            ? null
+            : () => showConfirmationDialog(
+                context,
+                message: t.game.showHelp,
+                onOk: () =>
+                    context.read<GameBloc>().add(const GameEventShowHelp()),
+              ),
+      ),
     );
   }
 }

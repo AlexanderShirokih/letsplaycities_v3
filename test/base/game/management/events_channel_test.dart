@@ -6,6 +6,7 @@ import 'package:lets_play_cities/base/dictionary/impl/dictionary_impl.dart';
 import 'package:lets_play_cities/base/game/game_mode.dart';
 import 'package:lets_play_cities/base/game/handlers.dart';
 import 'package:lets_play_cities/base/game/management.dart';
+import 'package:lets_play_cities/base/game/rules/classic_rules.dart';
 import 'package:lets_play_cities/base/scoring.dart';
 
 import '../handlers/fake_users.dart';
@@ -141,11 +142,14 @@ void main() {
           _NoOverrides(),
           () {},
           () {},
-          ScoreController(
-            ScoringSet.initial(),
+          ClassicRules(
+            ScoreController(
+              ScoringSet.initial(),
+              ScoringType.byScore,
+              GameMode.playerVsAndroid,
+              (_) {},
+            ),
             ScoringType.byScore,
-            GameMode.playerVsAndroid,
-            (_) {},
           ),
         ),
       ]);

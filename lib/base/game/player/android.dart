@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:lets_play_cities/base/data.dart';
 import 'package:lets_play_cities/base/dictionary.dart';
 import 'package:lets_play_cities/base/game/combo.dart';
+import 'package:lets_play_cities/base/game/player/skip_move_exception.dart';
 import 'package:lets_play_cities/base/game/player/surrender_exception.dart';
 import 'package:lets_play_cities/base/game/player/user.dart';
 
@@ -20,11 +21,16 @@ class Android extends User {
   /// Count of moves before Android surrenders
   int _estimatedMoves;
 
+  /// Picks the city of a Route game, `null` when there is none; Android then
+  /// skips the move and never surrenders
+  final Future<String?> Function(String firstChar)? _routeWord;
+
   Android(
     this._dictionary,
     String androidName, {
     this._moveDelay = const Duration(milliseconds: 1500),
     Random? random,
+    this._routeWord,
   }) : _estimatedMoves = _calculateEstimatedMoves(
          _dictionary.difficulty.index,
          random ?? Random(),
@@ -40,6 +46,17 @@ class Android extends User {
 
   @override
   Future<String> onCreateWord(String firstChar) async {
+    final routeWord = _routeWord;
+
+    if (routeWord != null) {
+      // Without a city the move is skipped at once, without the pause
+      final city = await routeWord(firstChar);
+      if (city == null) throw SkipMoveException(this);
+
+      await Future.delayed(_moveDelay);
+      return city;
+    }
+
     await Future.delayed(_moveDelay);
 
     final word = await _dictionary.getRandomWord(firstChar);

@@ -48,11 +48,24 @@ class GotDataState extends GameLifecycleState {
   /// Instance of class that handles scores and defines winner
   final ScoreController scoreController;
 
+  /// The data of a Route game, `null` in a classic one
+  final RouteData? routeData;
+
   /// Creates [DataLoadingState] containing loaded data
-  const GotDataState(this.dictionary, this.exclusions, this.scoreController);
+  const GotDataState(
+    this.dictionary,
+    this.exclusions,
+    this.scoreController, {
+    this.routeData,
+  });
 
   @override
-  List<Object?> get props => [dictionary, exclusions, scoreController];
+  List<Object?> get props => [
+    dictionary,
+    exclusions,
+    scoreController,
+    routeData,
+  ];
 }
 
 /// The state used during the game.

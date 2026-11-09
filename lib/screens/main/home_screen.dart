@@ -1,9 +1,11 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get_it/get_it.dart';
 import 'package:lets_play_cities/base/game/game_config.dart';
 import 'package:lets_play_cities/base/game/game_mode.dart';
+import 'package:lets_play_cities/base/preferences.dart';
 import 'package:lets_play_cities/i18n/strings.g.dart';
 import 'package:lets_play_cities/remote/auth.dart';
 import 'package:lets_play_cities/screens/common/d2/d2.dart';
@@ -33,14 +35,23 @@ class HomeActions {
     required this.openProfile,
   });
 
-  factory HomeActions.navigation(BuildContext context) {
+  /// [gameRoute] builds the route of a started game, it is replaceable for
+  /// tests
+  factory HomeActions.navigation(
+    BuildContext context, {
+    Route<dynamic> Function(GameConfig config) gameRoute =
+        GameScreen.createGameScreenRoute,
+  }) {
     void push(Route<void> Function() route) =>
         Navigator.of(context).push(route());
 
     return HomeActions(
       playVsComputer: () => push(
-        () => GameScreen.createGameScreenRoute(
-          GameConfig(gameMode: GameMode.playerVsAndroid),
+        () => gameRoute(
+          GameConfig(
+            gameMode: GameMode.playerVsAndroid,
+            variant: context.read<GamePreferences>().gameVariant,
+          ),
         ),
       ),
       playTwoPlayers: () => push(
@@ -56,7 +67,7 @@ class HomeActions {
   }
 }
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   final HomeActions? actions;
 
   /// Loads the signed-in account for the avatar; by default the
@@ -75,8 +86,20 @@ class HomeScreen extends StatelessWidget {
   });
 
   @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  late GameVariant _variant = context.read<GamePreferences>().gameVariant;
+
+  void _pickVariant(GameVariant variant) {
+    context.read<GamePreferences>().gameVariant = variant;
+    setState(() => _variant = variant);
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final a = actions ?? HomeActions.navigation(context);
+    final a = widget.actions ?? HomeActions.navigation(context);
     final t = context.t;
     final c = D2Colors.of(context);
 
@@ -137,11 +160,11 @@ class HomeScreen extends StatelessWidget {
                         onTap: a.openProfile,
                         child: _AccountAvatar(
                           load:
-                              loadAccount ??
+                              widget.loadAccount ??
                               () => GetIt.instance
                                   .get<AccountManager>()
                                   .getLastSignedInAccount(),
-                          changes: accountChanges,
+                          changes: widget.accountChanges,
                           fallbackName: t.players.player,
                         ),
                       ),
@@ -150,6 +173,8 @@ class HomeScreen extends StatelessWidget {
                 ],
               ),
               const SizedBox(height: 18),
+              _VariantSwitch(selected: _variant, onChanged: _pickVariant),
+              const SizedBox(height: 14),
               _ComputerCard(onPlay: a.playVsComputer),
               const SizedBox(height: 14),
               SizedBox(
@@ -203,6 +228,115 @@ class HomeScreen extends StatelessWidget {
 }
 
 /// Avatar of the signed-in account, or the initial of [fallbackName]
+/// «Классика | Маршрут» with a hint about the picked variant, as in D2-Home
+class _VariantSwitch extends StatelessWidget {
+  final GameVariant selected;
+  final ValueChanged<GameVariant> onChanged;
+
+  const _VariantSwitch({required this.selected, required this.onChanged});
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.t;
+    final c = D2Colors.of(context);
+
+    return Container(
+      padding: const EdgeInsets.fromLTRB(6, 6, 6, 12),
+      decoration: BoxDecoration(
+        color: c.surface,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [BoxShadow(color: c.edge, offset: const Offset(0, 3))],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
+              _variantButton(
+                c,
+                GameVariant.classic,
+                D2Glyph.classic,
+                t.route.variantClassic,
+              ),
+              const SizedBox(width: 6),
+              _variantButton(
+                c,
+                GameVariant.route,
+                D2Glyph.route,
+                t.route.variantRoute,
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8),
+            child: Semantics(
+              liveRegion: true,
+              child: Text(
+                selected == GameVariant.classic
+                    ? t.route.hintClassic
+                    : t.route.hintRoute,
+                textAlign: TextAlign.center,
+                style: D2Text.bodyRegular.copyWith(
+                  fontSize: 14,
+                  height: 1.3,
+                  color: c.inkSoft,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _variantButton(
+    D2Colors c,
+    GameVariant value,
+    D2Glyph glyph,
+    String label,
+  ) {
+    final isSelected = value == selected;
+    final fg = isSelected ? Colors.white : c.inkSoft;
+
+    return Expanded(
+      child: Semantics(
+        button: true,
+        selected: isSelected,
+        inMutuallyExclusiveGroup: true,
+        child: GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: () => onChanged(value),
+          child: Container(
+            height: 52,
+            padding: const EdgeInsets.symmetric(horizontal: 4),
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              color: isSelected ? c.violet : null,
+              borderRadius: BorderRadius.circular(14),
+            ),
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  D2Icon(glyph, size: 22, color: fg),
+                  const SizedBox(width: 8),
+                  Text(
+                    label,
+                    maxLines: 1,
+                    style: D2Text.section.copyWith(color: fg),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 class _AccountAvatar extends StatefulWidget {
   final Future<RemoteAccount?> Function() load;
   final Stream<void>? changes;

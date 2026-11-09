@@ -33,6 +33,35 @@
     "settings": "Настройки",
     "profile": "Профиль"
   },
+  "route": {
+    "variantClassic": "Классика",
+    "variantRoute": "Маршрут",
+    "hintClassic": "Город на последнюю букву предыдущего",
+    "hintRoute": "Очки — километры между городами",
+    "letterCaption": "Город на букву",
+    "move": "Ход {n} из {total}",
+    "km": "км",
+    "skipped": "пропуск хода",
+    "mapLabel(param=n)": {
+      "one": "Схема маршрута: {n} город, последний — {city}",
+      "few": "Схема маршрута: {n} города, последний — {city}",
+      "many": "Схема маршрута: {n} городов, последний — {city}",
+      "other": "Схема маршрута: {n} городов, последний — {city}"
+    },
+    "feedItem": "{owner}: {city} ({country}), плюс {km} км",
+    "you": "Вы",
+    "countries": "стран",
+    "longestLeg": "самый длинный\nперелёт",
+    "cities": "городов",
+    "share": "Поделиться маршрутом",
+    "shareFailed": "Не получилось поделиться",
+    "shareText(param=countries)": {
+      "one": "Мой маршрут в «Сыграем в Города»: {km} км, {countries} страна\nhttps://play.google.com/store/apps/details?id=ru.aleshi.letsplaycities",
+      "few": "Мой маршрут в «Сыграем в Города»: {km} км, {countries} страны\nhttps://play.google.com/store/apps/details?id=ru.aleshi.letsplaycities",
+      "many": "Мой маршрут в «Сыграем в Города»: {km} км, {countries} стран\nhttps://play.google.com/store/apps/details?id=ru.aleshi.letsplaycities",
+      "other": "Мой маршрут в «Сыграем в Города»: {km} км, {countries} стран\nhttps://play.google.com/store/apps/details?id=ru.aleshi.letsplaycities"
+    }
+  },
   "profile": {
     "title": "Профиль",
     "passport": "Паспорт",

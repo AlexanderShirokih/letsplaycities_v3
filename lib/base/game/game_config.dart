@@ -4,6 +4,15 @@ import 'package:lets_play_cities/base/game/management.dart';
 import 'package:lets_play_cities/base/game/player/users_list.dart';
 import 'package:lets_play_cities/base/game_session.dart';
 
+/// The rules a game is played by
+enum GameVariant {
+  /// The classic game of cities
+  classic,
+
+  /// The route: the players go from city to city and count the kilometres
+  route,
+}
+
 /// Configuration class to used start the game
 class GameConfig {
   /// Time limit per move (in seconds).
@@ -12,6 +21,9 @@ class GameConfig {
 
   /// Game mode
   final GameMode gameMode;
+
+  /// The rules the game is played by
+  final GameVariant variant;
 
   /// Game participants overrides
   final UsersList? usersListOverride;
@@ -29,6 +41,7 @@ class GameConfig {
 
   const GameConfig({
     required this.gameMode,
+    this.variant = GameVariant.classic,
     this.timeLimitOverride,
     this.usersListOverride,
     this.additionalEventHandlers,

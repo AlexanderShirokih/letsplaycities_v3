@@ -1,9 +1,11 @@
 import 'dart:async';
+import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lets_play_cities/base/data.dart';
 import 'package:lets_play_cities/base/game/game_item.dart';
+import 'package:lets_play_cities/base/game/rules/route_rules.dart';
 import 'package:lets_play_cities/base/game/turn_gate.dart';
 import 'package:lets_play_cities/base/repos.dart';
 import 'package:lets_play_cities/utils/string_utils.dart';
@@ -119,13 +121,20 @@ class _HotseatHandoffState extends State<HotseatHandoff> {
         .whereType<CityInfo>()
         .lastOrNull;
     final letter = findLastSuitableChar(_session.lastAcceptedWord);
+    final route = _session.routeState;
 
     return HotseatTurnView(
       activeIndex: identical(next, left) ? 0 : 1,
       players: [
         for (final user in [left, right])
-          HotseatPlayer(name: user.name, score: user.score),
+          HotseatPlayer(
+            name: user.name,
+            score: route == null ? user.score : route.km[user] ?? 0,
+          ),
       ],
+      routeMove: route == null
+          ? null
+          : min(route.movesOf(next) + 1, RouteRules.movesPerPlayer),
       lastCity: lastCity,
       letter: letter,
       timeLimit: _session.timeLimit,

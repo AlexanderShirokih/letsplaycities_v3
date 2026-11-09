@@ -71,6 +71,7 @@ class Translations with BaseTranslations<AppLocale, Translations> {
 	late final Translations$time$ru time = Translations$time$ru._(_root);
 	late final Translations$players$ru players = Translations$players$ru._(_root);
 	late final Translations$home$ru home = Translations$home$ru._(_root);
+	late final Translations$route$ru route = Translations$route$ru._(_root);
 	late final Translations$profile$ru profile = Translations$profile$ru._(_root);
 	late final Translations$game$ru game = Translations$game$ru._(_root);
 	late final Translations$hotseat$ru hotseat = Translations$hotseat$ru._(_root);
@@ -171,6 +172,76 @@ class Translations$home$ru {
 
 	/// ru: 'Профиль'
 	String get profile => 'Профиль';
+}
+
+// Path: route
+class Translations$route$ru {
+	Translations$route$ru._(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// ru: 'Классика'
+	String get variantClassic => 'Классика';
+
+	/// ru: 'Маршрут'
+	String get variantRoute => 'Маршрут';
+
+	/// ru: 'Город на последнюю букву предыдущего'
+	String get hintClassic => 'Город на последнюю букву предыдущего';
+
+	/// ru: 'Очки — километры между городами'
+	String get hintRoute => 'Очки — километры между городами';
+
+	/// ru: 'Город на букву'
+	String get letterCaption => 'Город на букву';
+
+	/// ru: 'Ход {n} из {total}'
+	String move({required Object n, required Object total}) => 'Ход ${n} из ${total}';
+
+	/// ru: 'км'
+	String get km => 'км';
+
+	/// ru: 'пропуск хода'
+	String get skipped => 'пропуск хода';
+
+	/// ru: '(one) {Схема маршрута: {n} город, последний — {city}} (few) {Схема маршрута: {n} города, последний — {city}} (many) {Схема маршрута: {n} городов, последний — {city}} (other) {Схема маршрута: {n} городов, последний — {city}}'
+	String mapLabel({required num n, required Object city}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('ru'))(n,
+		one: 'Схема маршрута: ${n} город, последний — ${city}',
+		few: 'Схема маршрута: ${n} города, последний — ${city}',
+		many: 'Схема маршрута: ${n} городов, последний — ${city}',
+		other: 'Схема маршрута: ${n} городов, последний — ${city}',
+	);
+
+	/// ru: '{owner}: {city} ({country}), плюс {km} км'
+	String feedItem({required Object owner, required Object city, required Object country, required Object km}) => '${owner}: ${city} (${country}), плюс ${km} км';
+
+	/// ru: 'Вы'
+	String get you => 'Вы';
+
+	/// ru: 'стран'
+	String get countries => 'стран';
+
+	/// ru: 'самый длинный перелёт'
+	String get longestLeg => 'самый длинный\nперелёт';
+
+	/// ru: 'городов'
+	String get cities => 'городов';
+
+	/// ru: 'Поделиться маршрутом'
+	String get share => 'Поделиться маршрутом';
+
+	/// ru: 'Не получилось поделиться'
+	String get shareFailed => 'Не получилось поделиться';
+
+	/// ru: '(one) {Мой маршрут в «Сыграем в Города»: {km} км, {countries} страна https://play.google.com/store/apps/details?id=ru.aleshi.letsplaycities} (few) {Мой маршрут в «Сыграем в Города»: {km} км, {countries} страны https://play.google.com/store/apps/details?id=ru.aleshi.letsplaycities} (many) {Мой маршрут в «Сыграем в Города»: {km} км, {countries} стран https://play.google.com/store/apps/details?id=ru.aleshi.letsplaycities} (other) {Мой маршрут в «Сыграем в Города»: {km} км, {countries} стран https://play.google.com/store/apps/details?id=ru.aleshi.letsplaycities}'
+	String shareText({required num countries, required Object km}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('ru'))(countries,
+		one: 'Мой маршрут в «Сыграем в Города»: ${km} км, ${countries} страна\nhttps://play.google.com/store/apps/details?id=ru.aleshi.letsplaycities',
+		few: 'Мой маршрут в «Сыграем в Города»: ${km} км, ${countries} страны\nhttps://play.google.com/store/apps/details?id=ru.aleshi.letsplaycities',
+		many: 'Мой маршрут в «Сыграем в Города»: ${km} км, ${countries} стран\nhttps://play.google.com/store/apps/details?id=ru.aleshi.letsplaycities',
+		other: 'Мой маршрут в «Сыграем в Города»: ${km} км, ${countries} стран\nhttps://play.google.com/store/apps/details?id=ru.aleshi.letsplaycities',
+	);
 }
 
 // Path: profile

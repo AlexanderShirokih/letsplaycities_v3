@@ -6,7 +6,11 @@ import 'package:lets_play_cities/base/data.dart';
 import 'package:lets_play_cities/base/game/game_mode.dart';
 import 'package:lets_play_cities/base/game/game_result.dart';
 import 'package:lets_play_cities/base/game/management.dart';
+import 'package:lets_play_cities/base/game/rules/route_rules.dart';
 import 'package:lets_play_cities/base/game_session.dart';
+import 'package:lets_play_cities/base/geo/geo_index.dart';
+import 'package:lets_play_cities/base/geo/route_data.dart';
+import 'package:lets_play_cities/base/geo/world_outline.dart';
 import 'package:lets_play_cities/base/repos.dart';
 import 'package:lets_play_cities/base/users.dart';
 import 'package:lets_play_cities/utils/debouncer.dart';
@@ -20,7 +24,27 @@ class GameSessionRepository {
 
   final GameSession _session;
 
-  GameSessionRepository(this._session);
+  final RouteData? _routeData;
+
+  /// [routeData] is the data of a Route game
+  GameSessionRepository(this._session, {this._routeData});
+
+  RouteRules? get _routeRules => switch (_session.rules) {
+    final RouteRules rules => rules,
+    _ => null,
+  };
+
+  /// The route now and after every move, `null` outside a Route game
+  Stream<RouteState>? get routeStates => _routeRules?.states;
+
+  /// The route now, `null` outside a Route game
+  RouteState? get routeState => _routeRules?.state;
+
+  /// The world map of a Route game
+  WorldOutline? get world => _routeData?.world;
+
+  /// The city coordinates of a Route game
+  GeoIndex? get geo => _routeData?.geo;
 
   Stream<WordCheckingResult> get wordCheckingResults =>
       _session.wordCheckingResults;

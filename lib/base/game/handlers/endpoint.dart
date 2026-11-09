@@ -6,7 +6,7 @@ import 'package:lets_play_cities/base/game/combo.dart';
 import 'package:lets_play_cities/base/game/handlers.dart';
 import 'package:lets_play_cities/base/game/management.dart';
 import 'package:lets_play_cities/base/game/player/player.dart';
-import 'package:lets_play_cities/base/scoring.dart';
+import 'package:lets_play_cities/base/game/rules/match_rules.dart';
 
 /// Callback hook used to notify UI that word is accepted and input fields
 /// can be cleared.
@@ -18,8 +18,8 @@ typedef OnUserMoveBegins = void Function();
 /// Intercepts [Accepted] words, commits them to the database
 /// and attaches country codes.
 class Endpoint extends EventHandler {
-  /// Handles users scores and checks the winner
-  final ScoreController _scoreController;
+  /// Decides what an accepted word brings
+  final MatchRules _rules;
 
   final DictionaryService _dictionaryService;
 
@@ -38,7 +38,7 @@ class Endpoint extends EventHandler {
     this._codeOverrides,
     this._onUserInputAccepted,
     this._onUserMoveBegins,
-    this._scoreController,
+    this._rules,
   );
 
   @override
@@ -51,6 +51,11 @@ class Endpoint extends EventHandler {
       if (event.nextUser is Player) {
         _onUserMoveBegins();
       }
+    }
+
+    // The half-typed word of a timed out player must not stay for the next one
+    if (event is MoveSkipped && event.owner is Player) {
+      _onUserInputAccepted();
     }
 
     if (event is Accepted) {
@@ -74,9 +79,10 @@ class Endpoint extends EventHandler {
         CityComboInfo.fromMoveParams(deltaTime, event.word, countryCode),
       );
 
-      _scoreController.onMoveFinished(
+      _rules.onAccepted(
         event.owner,
         event.word,
+        countryCode,
         deltaTime,
         comboSystem.activeCombos.map(
           (key, value) => MapEntry<int, int>(key.index, value),

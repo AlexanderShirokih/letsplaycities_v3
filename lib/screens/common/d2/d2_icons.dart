@@ -47,6 +47,12 @@ enum D2Glyph {
   moon,
   chevron,
 
+  /// Two cards of the classic game
+  classic,
+
+  /// Dotted path to a pin of the route game
+  route,
+
   /// «=» of a draw
   equal,
 }
@@ -265,6 +271,20 @@ final _glyphs = <D2Glyph, List<_Shape>>{
     const _Shape('M19.5 14.6A8 8 0 0 1 9.4 4.5a8 8 0 1 0 10.1 10.1z'),
   ],
   D2Glyph.chevron: [const _Shape('M9.5 6l6 6-6 6')],
+  D2Glyph.classic: [
+    _Shape(_rect(1.5, 4.5, 9, 10.5, 2.6)),
+    _Shape(_rect(13.5, 9, 9, 10.5, 2.6)),
+    const _Shape('M4.6 7.9h3.4M4.6 7.9v4.4', width: 2),
+    const _Shape('M15.9 16.6l2.1-4.7 2.1 4.7M16.6 15.1h2.8', width: 2),
+  ],
+  D2Glyph.route: [
+    _Shape(_circle(5, 18.5, 2.3)),
+    const _Shape('M7.6 18.5h5.4a3.5 3.5 0 0 0 3.5-3.5'),
+    const _Shape(
+      'M17.5 13.2s-4.2-3.7-4.2-7a4.2 4.2 0 0 1 8.4 0c0 3.3-4.2 7-4.2 7z',
+    ),
+    const _Shape('M17.5 6.3h.01', width: 3),
+  ],
 };
 
 final _paths = <D2Glyph, List<(Path, _Shape)>>{};

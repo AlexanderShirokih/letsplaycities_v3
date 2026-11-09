@@ -10,4 +10,8 @@ class Share {
   /// Share plain text with other apps
   static Future<void> text(String text) =>
       _shareChannel.invokeMethod('share_text', {'text': text});
+
+  /// Share the PNG file at [path] together with [text]
+  static Future<void> image(String path, String text) =>
+      _shareChannel.invokeMethod('share_image', {'path': path, 'text': text});
 }

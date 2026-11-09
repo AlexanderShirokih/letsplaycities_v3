@@ -49,6 +49,9 @@ enum MoveFinishType {
 
   /// The account signed in on another device and the server ended the game
   replaced,
+
+  /// The route reached its last move
+  routeCompleted,
 }
 
 /// Emits when users move ended (completed or failed)
@@ -60,6 +63,14 @@ class OnMoveFinished extends GameEvent {
   final User finishRequester;
 
   const OnMoveFinished(this.endType, this.finishRequester);
+}
+
+/// Emits when the time of [owner] ran out and the move passed to the next
+/// user
+class MoveSkipped extends GameEvent {
+  final User owner;
+
+  const MoveSkipped(this.owner);
 }
 
 /// Asks the server of a network game to let [owner] leave: the server ends

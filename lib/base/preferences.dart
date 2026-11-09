@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:lets_play_cities/base/dictionary.dart';
+import 'package:lets_play_cities/base/game/game_config.dart';
 import 'package:lets_play_cities/base/scoring.dart';
 import 'package:lets_play_cities/base/themes/app_theme_mode.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -81,6 +82,12 @@ abstract class GamePreferences {
   List<String> get hotseatNames;
 
   set hotseatNames(List<String> names);
+
+  /// Kind of game started from the home screen. [GameVariant.classic] by
+  /// default.
+  GameVariant get gameVariant;
+
+  set gameVariant(GameVariant variant);
 
   /// Country codes of the last applied cities filters, the latest first,
   /// at most [maxRecentCountries]
@@ -204,6 +211,16 @@ class SharedPreferencesGamePrefs extends GamePreferences {
   @override
   set hotseatNames(List<String> names) =>
       _prefs.setStringList('hotseatNames', names);
+
+  @override
+  GameVariant get gameVariant => GameVariant.values.firstWhere(
+    (variant) => variant.name == _prefs.getString('gameVariant'),
+    orElse: () => GameVariant.classic,
+  );
+
+  @override
+  set gameVariant(GameVariant variant) =>
+      _prefs.setString('gameVariant', variant.name);
 
   @override
   List<int> get recentCountries => [

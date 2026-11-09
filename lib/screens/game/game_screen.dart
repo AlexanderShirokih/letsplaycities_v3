@@ -9,6 +9,7 @@ import 'package:lets_play_cities/base/game/game_config.dart';
 import 'package:lets_play_cities/base/game/game_mode.dart';
 import 'package:lets_play_cities/base/game/player/default_player_names.dart';
 import 'package:lets_play_cities/base/game/turn_gate.dart';
+import 'package:lets_play_cities/base/geo/route_data.dart';
 import 'package:lets_play_cities/base/preferences.dart';
 import 'package:lets_play_cities/base/repos.dart';
 import 'package:lets_play_cities/base/stt/bloc/voice_recognition_bloc.dart';
@@ -23,8 +24,10 @@ import 'package:lets_play_cities/screens/game/first_time_onboarding_screen.dart'
 
 import '../common/common_widgets.dart';
 import '../game_results/game_results_screen.dart';
+import '../game_results/route_results_screen.dart';
 import 'game_layout.dart';
 import 'hotseat_handoff.dart';
+import 'route/route_game_layout.dart';
 
 /// Screen that shows all game-related interface
 class GameScreen extends StatelessWidget {
@@ -102,15 +105,7 @@ class GameScreen extends StatelessWidget {
                         },
                         listener: (context, state) {
                           if (state is GameResultsState) {
-                            replaceGameRoute(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) => GameResultsScreen(
-                                  state.gameResult,
-                                  state.gameConfig,
-                                ),
-                              ),
-                            );
+                            _showResults(context, state);
                           } else if (state is GameNotificationState) {
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
@@ -151,6 +146,24 @@ void replaceGameRoute(BuildContext context, Route<void> newRoute) {
     navigator.popUntil((route) => route == gameRoute);
   }
   navigator.pushReplacement(newRoute);
+}
+
+/// Opens the results of a finished game: the route ones wait for the world
+/// outline that their map needs.
+Future<void> _showResults(BuildContext context, GameResultsState state) async {
+  final result = state.gameResult;
+  final world = result.route == null ? null : await RouteData.loadWorld();
+
+  if (!context.mounted) return;
+
+  replaceGameRoute(
+    context,
+    MaterialPageRoute(
+      builder: (_) => world == null
+          ? GameResultsScreen(result, state.gameConfig)
+          : RouteResultsScreen(result, state.gameConfig, world: world),
+    ),
+  );
 }
 
 /// Called from the [BlocProvider.create] of [GameScreen]. The [Dio] goes to
@@ -218,11 +231,21 @@ Widget _buildGameStateLayout(
         children: [
           Expanded(
             child: Builder(
-              builder: (context) => GameLayout(
-                gameConfig,
-                onRegisterInputClear: (clear) =>
-                    context.read<GameBloc>().onUserInputAccepted = clear,
-              ),
+              builder: (context) {
+                void onRegisterInputClear(VoidCallback clear) =>
+                    context.read<GameBloc>().onUserInputAccepted = clear;
+
+                return switch (gameConfig.variant) {
+                  GameVariant.classic => GameLayout(
+                    gameConfig,
+                    onRegisterInputClear: onRegisterInputClear,
+                  ),
+                  GameVariant.route => RouteGameLayout(
+                    gameConfig,
+                    onRegisterInputClear: onRegisterInputClear,
+                  ),
+                };
+              },
             ),
           ),
           Builder(

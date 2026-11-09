@@ -19,24 +19,28 @@ class DictionaryServiceImpl extends DictionaryService {
   Map<String, CityProperties> getAll() => Map.unmodifiable(_data);
 
   @override
+  List<String> getCandidates(String firstChar, Difficulty difficulty) => _data
+      .entries
+      .where((e) => e.key.startsWith(firstChar))
+      .where(
+        (e) =>
+            !e.value.used &&
+            e.value.countryCode != 0 &&
+            e.value.difficulty <= difficulty.index,
+      )
+      .map((e) => e.key)
+      .toList(growable: false);
+
+  @override
   Future<String> getRandomWordByDifficulty(
     String firstChar,
     Difficulty difficulty,
   ) async {
-    final filtered = _data.entries
-        .where((e) => e.key.startsWith(firstChar))
-        .where(
-          (e) =>
-              !e.value.used &&
-              e.value.countryCode != 0 &&
-              e.value.difficulty <= difficulty.index,
-        )
-        .toList(growable: false);
+    final candidates = getCandidates(firstChar, difficulty);
 
-    if (filtered.isEmpty) return '';
+    if (candidates.isEmpty) return '';
 
-    final index = _random.nextInt(filtered.length);
-    return index >= filtered.length ? '' : filtered[index].key;
+    return candidates[_random.nextInt(candidates.length)];
   }
 
   @override
