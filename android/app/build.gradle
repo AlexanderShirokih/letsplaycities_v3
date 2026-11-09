@@ -98,7 +98,6 @@ dependencies {
 
     // Keep the BoM in sync with FirebaseSDKVersion of the firebase_core plugin.
     implementation platform("com.google.firebase:firebase-bom:35.1.0")
-    implementation "com.google.firebase:firebase-analytics"
 
     implementation "com.google.android.gms:play-services-auth:19.0.0"
     implementation "com.google.android.gms:play-services-games:21.0.0"
