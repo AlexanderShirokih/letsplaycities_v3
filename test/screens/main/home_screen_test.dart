@@ -23,16 +23,31 @@ Future<GamePreferences> _prefs([Map<String, Object> values = const {}]) async {
 Widget _provide(GamePreferences prefs, Widget child) =>
     RepositoryProvider<GamePreferences>.value(value: prefs, child: child);
 
-Widget _app(HomeActions actions, GamePreferences prefs) =>
-    RepositoryProvider<GamePreferences>.value(
-      value: prefs,
-      child: withTranslations(
-        MaterialApp(
-          theme: buildD2Theme(Brightness.light),
-          home: Scaffold(body: HomeScreen(actions: actions)),
-        ),
+/// Turns animations off for tests that wait for the screen to settle
+Widget _still(BuildContext context, Widget? child) => MediaQuery(
+  data: MediaQuery.of(context).copyWith(disableAnimations: true),
+  child: child!,
+);
+
+/// The drifting card backgrounds never settle, so the tests keep them still
+/// unless [animate] is set
+Widget _app(
+  HomeActions actions,
+  GamePreferences prefs, {
+  bool animate = false,
+}) => RepositoryProvider<GamePreferences>.value(
+  value: prefs,
+  child: withTranslations(
+    MaterialApp(
+      theme: buildD2Theme(Brightness.light),
+      builder: (context, child) => MediaQuery(
+        data: MediaQuery.of(context).copyWith(disableAnimations: !animate),
+        child: child!,
       ),
-    );
+      home: Scaffold(body: HomeScreen(actions: actions)),
+    ),
+  ),
+);
 
 final _noop = HomeActions(
   playVsComputer: () {},
@@ -52,6 +67,20 @@ void main() {
     expect(find.text('Вдвоём'), findsOneWidget);
     expect(find.text('По Wi-Fi'), findsOneWidget);
     expect(find.text('Онлайн'), findsOneWidget);
+  });
+
+  testWidgets('card backgrounds drift unless animations are off', (
+    tester,
+  ) async {
+    final prefs = await _prefs();
+
+    await tester.pumpWidget(_app(_noop, prefs, animate: true));
+    await tester.pump(const Duration(seconds: 1));
+    expect(tester.hasRunningAnimations, isTrue);
+
+    await tester.pumpWidget(_app(_noop, prefs));
+    await tester.pump();
+    expect(tester.hasRunningAnimations, isFalse);
   });
 
   testWidgets('home tiles call actions', (tester) async {
@@ -156,6 +185,7 @@ void main() {
         withTranslations(
           MaterialApp(
             theme: buildD2Theme(Brightness.light),
+            builder: _still,
             home: Scaffold(
               body: HomeScreen(
                 actions: _noop,

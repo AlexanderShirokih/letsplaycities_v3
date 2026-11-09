@@ -1,27 +1,190 @@
 import 'dart:math' as math;
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:lets_play_cities/screens/common/d2/d2.dart';
 
 /// The cards of the home screen
 enum HomeArt { computer, twoPlayers, wifi, online }
 
-/// Background of a home card: a pattern of letters and an illustration,
-/// drawn by the SVG of the D2-Home artboard
-class HomeCardArt extends StatelessWidget {
+/// Background of a home card: a chain of cities drifting in rows and an
+/// illustration, drawn by the SVG of the D2-Home artboard
+class HomeCardArt extends StatefulWidget {
   final HomeArt art;
 
   const HomeCardArt(this.art, {super.key});
 
   @override
-  Widget build(BuildContext context) => ExcludeSemantics(
-    child: CustomPaint(
-      size: Size.infinite,
-      painter: _HomeArtPainter(art, D2Colors.of(context)),
-    ),
-  );
+  State<HomeCardArt> createState() => _HomeCardArtState();
 }
 
+class _HomeCardArtState extends State<HomeCardArt>
+    with SingleTickerProviderStateMixin {
+  /// Seconds since the drift started
+  final _time = ValueNotifier<double>(0);
+
+  /// Drift in pixels per second, picked anew for each card so they move
+  /// out of step
+  final _speed = 3.5 + math.Random().nextDouble() * 3.5;
+
+  late final _ticker = createTicker(
+    (elapsed) => _time.value = elapsed.inMicroseconds / 1e6,
+  );
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+
+    final still = MediaQuery.disableAnimationsOf(context);
+
+    if (still && _ticker.isActive) {
+      _ticker.stop();
+      _time.value = 0;
+    } else if (!still && !_ticker.isActive) {
+      _ticker.start();
+    }
+  }
+
+  @override
+  void dispose() {
+    _ticker.dispose();
+    _time.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = D2Colors.of(context);
+
+    return ExcludeSemantics(
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          RepaintBoundary(
+            child: CustomPaint(
+              painter: _CityDriftPainter(widget.art, colors, _time, _speed),
+            ),
+          ),
+          CustomPaint(painter: _HomeArtPainter(widget.art, colors)),
+        ],
+      ),
+    );
+  }
+}
+
+/// A closed chain of cities: each one starts with the letter the previous
+/// one ends on, and the last one leads back to the first
+const _cities = [
+  'Амстердам',
+  'Мадрид',
+  'Дублин',
+  'Нью-Йорк',
+  'Каир',
+  'Рим',
+  'Мюнхен',
+  'Найроби',
+  'Измир',
+  'Рио-де-Жанейро',
+  'Осло',
+  'Оттава',
+  'Афины',
+  'Неаполь',
+  'Лиссабон',
+  'Новосибирск',
+  'Киото',
+  'Одесса',
+  'Анкара',
+  'Астана',
+  'Алматы',
+  'Тбилиси',
+  'Иокогама',
+  'Аккра',
+];
+
+/// The letter pattern of the artboard spelling the city chain, sliding to
+/// the left
+class _CityDriftPainter extends CustomPainter {
+  final HomeArt art;
+  final D2Colors c;
+  final ValueListenable<double> time;
+
+  /// Pixels per second
+  final double speed;
+
+  _CityDriftPainter(this.art, this.c, this.time, this.speed)
+    : super(repaint: time);
+
+  static const _step = 34.0;
+
+  /// The chain letter by letter with an empty cell between cities
+  static final _cells = '${_cities.join(' ')} '.toUpperCase();
+
+  final _letters = <String, TextPainter>{};
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    canvas.clipRect(Offset.zero & size);
+
+    final opacity = switch (art) {
+      HomeArt.computer || HomeArt.twoPlayers => 0.08,
+      HomeArt.wifi || HomeArt.online => 0.07,
+    };
+    final style = D2Text.display.copyWith(
+      fontSize: 20,
+      color: c.shadow.withValues(alpha: opacity),
+    );
+
+    final travelled = speed * time.value;
+    final passed = (travelled / _step).floor();
+    final shift = travelled - passed * _step;
+
+    // Each card and each row start somewhere else in the chain
+    final start = art.index * _cells.length ~/ HomeArt.values.length;
+
+    for (var row = 0; 14 + _step * row < size.height + 20; row++) {
+      final baseline = 14 + _step * row;
+      final first = start + row * 29 + passed;
+      var j = 0;
+
+      for (
+        var x = (row.isEven ? -6.0 : 11.0) - shift;
+        x < size.width + 10;
+        x += _step, j++
+      ) {
+        final letter = _cells[(first + j) % _cells.length];
+
+        if (letter != ' ') _paintLetter(canvas, letter, style, x, baseline);
+      }
+    }
+  }
+
+  void _paintLetter(
+    Canvas canvas,
+    String letter,
+    TextStyle style,
+    double x,
+    double baseline,
+  ) {
+    final painter = _letters.putIfAbsent(
+      letter,
+      () => TextPainter(
+        text: TextSpan(text: letter, style: style),
+        textDirection: TextDirection.ltr,
+        textScaler: TextScaler.noScaling,
+      )..layout(),
+    );
+    final ascent = painter.computeDistanceToActualBaseline(
+      TextBaseline.alphabetic,
+    );
+    painter.paint(canvas, Offset(x, baseline - ascent));
+  }
+
+  @override
+  bool shouldRepaint(_CityDriftPainter old) =>
+      old.art != art || old.c != c || old.time != time || old.speed != speed;
+}
+
+/// The illustration of a home card
 class _HomeArtPainter extends CustomPainter {
   final HomeArt art;
   final D2Colors c;
@@ -39,14 +202,6 @@ class _HomeArtPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     canvas.clipRect(Offset.zero & size);
 
-    final (letters, opacity) = switch (art) {
-      HomeArt.computer => ('ГОРОДАМСК', 0.08),
-      HomeArt.twoPlayers => ('ВДВОЁМ', 0.08),
-      HomeArt.wifi => ('WIFI', 0.07),
-      HomeArt.online => ('ОНЛАЙН', 0.07),
-    };
-    _pattern(canvas, size, letters, _ink.withValues(alpha: opacity));
-
     // The illustrations keep their artboard place on a wider card: at the
     // right edge, or in the middle for the tall card
     final extra = size.width - _artWidth;
@@ -62,21 +217,6 @@ class _HomeArtPainter extends CustomPainter {
         _wifi(canvas);
       case HomeArt.online:
         _online(canvas);
-    }
-  }
-
-  /// Rows of [letters] every 34 px, odd rows shifted by half a step
-  void _pattern(Canvas canvas, Size size, String letters, Color color) {
-    final style = D2Text.display.copyWith(fontSize: 20, color: color);
-    var i = 0;
-
-    for (var row = 0; 14 + 34.0 * row < size.height + 20; row++) {
-      final baseline = 14 + 34.0 * row;
-
-      for (var x = row.isEven ? -6.0 : 11.0; x < size.width + 10; x += 34) {
-        final letter = letters[i++ % letters.length];
-        _text(canvas, letter, style, x, baseline);
-      }
     }
   }
 
