@@ -190,20 +190,17 @@ class HotseatTurnView extends StatelessWidget {
       children: [
         const SizedBox(height: 18),
         if (city != null) ...[_LastCity(city), const SizedBox(height: 18)],
-        Text(
-          t.game.cityOnLetter,
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-          style: D2Text.body.copyWith(fontSize: 13, color: c.inkSoft),
-        ),
-        const SizedBox(height: 4),
-        D2TimerRing(
-          size: 132,
-          progress: timed ? 1 : 0,
-          child: D2LetterTile(
-            letter.isEmpty ? t.game.letterAny : letter.toUpperCase(),
-            size: 72,
-            semanticLabel: letter.isEmpty ? t.game.letterAnySemantics : null,
+        // The caption is only read out: the tile speaks for itself
+        Semantics(
+          label: t.game.cityOnLetter,
+          child: D2TimerRing(
+            size: 132,
+            progress: timed ? 1 : 0,
+            child: D2LetterTile(
+              letter.isEmpty ? t.game.letterAny : letter.toUpperCase(),
+              size: 72,
+              semanticLabel: letter.isEmpty ? t.game.letterAnySemantics : null,
+            ),
           ),
         ),
         if (timed) ...[

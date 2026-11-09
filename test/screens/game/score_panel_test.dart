@@ -90,7 +90,10 @@ void main() {
     await tester.pump();
 
     expect(find.text(t.game.letterAny), findsOneWidget);
-    expect(find.bySemanticsLabel(t.game.letterAnySemantics), findsOneWidget);
+    expect(
+      find.bySemanticsLabel(RegExp(t.game.letterAnySemantics)),
+      findsOneWidget,
+    );
   });
 
   testWidgets('ScorePanel shows no time row without a time limit', (

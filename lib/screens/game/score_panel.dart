@@ -105,19 +105,18 @@ class _ScorePanelState extends State<ScorePanel> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text(
-            t.game.cityOnLetter,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: D2Text.body.copyWith(fontSize: 13, color: c.inkSoft),
-          ),
-          const SizedBox(height: 4),
-          D2TimerRing(
-            progress: timed ? _secondsLeft / timeLimit : 0,
-            child: D2LetterTile(
-              _letter.isEmpty ? t.game.letterAny : _letter.toUpperCase(),
-              size: 56,
-              semanticLabel: _letter.isEmpty ? t.game.letterAnySemantics : null,
+          // The caption is only read out: the tile speaks for itself
+          Semantics(
+            label: t.game.cityOnLetter,
+            child: D2TimerRing(
+              progress: timed ? _secondsLeft / timeLimit : 0,
+              child: D2LetterTile(
+                _letter.isEmpty ? t.game.letterAny : _letter.toUpperCase(),
+                size: 56,
+                semanticLabel: _letter.isEmpty
+                    ? t.game.letterAnySemantics
+                    : null,
+              ),
             ),
           ),
           if (timed) ...[

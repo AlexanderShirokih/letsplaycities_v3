@@ -133,7 +133,7 @@ void main() {
     await pumpLayout(tester);
     expect(tester.takeException(), isNull);
     // The score keeps its size with the keyboard open
-    expect(find.text(t.game.cityOnLetter), findsOneWidget);
+    expect(find.bySemanticsLabel(RegExp(t.game.cityOnLetter)), findsOneWidget);
     expectLastBubbleVisible(tester);
 
     await showResult(tester, const Corrections({'москва', 'мурманск'}));
