@@ -113,7 +113,12 @@ Future<void> injectRootDependencies(AppConfig appConfig) async {
   // DIO client for the main server. A LAN game registers its own without
   // the token in its GetIt scope.
   getIt.registerFactory<Dio>(
-    () => createApiDio(appConfig, getIt.get<TokenStore>(), onError: _logError),
+    () => createApiDio(
+      appConfig,
+      getIt.get<TokenStore>(),
+      onSignedOut: () => getIt.get<ApiRepositoryFactory>().onTokenDropped(),
+      onError: _logError,
+    ),
   );
 
   // API clients for the main server, also in a LAN game: the LAN host has no
@@ -145,7 +150,7 @@ Future<void> injectRootDependencies(AppConfig appConfig) async {
       onUnauthorized: (headers) => dropSentToken(
         getIt.get<TokenStore>(),
         _bearerToken(headers),
-        onSignedOut: getIt.get<ApiRepositoryFactory>().cache.clear,
+        onSignedOut: getIt.get<ApiRepositoryFactory>().onTokenDropped,
         onError: _logError,
       ),
     ),

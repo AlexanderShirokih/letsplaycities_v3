@@ -37,7 +37,10 @@ class AccountManagerImpl implements AccountManager {
     required this._logger,
     DateTime Function()? clock,
     this._onSignedOut,
-  }) : _clock = clock ?? DateTime.now;
+  }) : _clock = clock ?? DateTime.now {
+    // A 401 of any request: the listeners see that nobody is signed in
+    _apiRepositories.tokenDrops.listen((_) => invalidate());
+  }
 
   RemoteAccount? _account;
   DateTime? _accountTime;
@@ -160,6 +163,16 @@ class AccountManagerImpl implements AccountManager {
 
   @override
   Future<void> signOut() async {
+    // A refresh must not send the token again after it is cleared
+    await _stopFcmSync();
+
+    try {
+      // The server stops pushing invitations to this device
+      await _auth.updateMe(fcmToken: '');
+    } catch (_) {
+      // The token of the account goes anyway
+    }
+
     try {
       await _auth.logout();
     } catch (_) {
@@ -170,8 +183,6 @@ class AccountManagerImpl implements AccountManager {
     _signIn++;
     _preferences.signedOut = true;
     _forgetAccount();
-    await _fcmRefreshes?.cancel();
-    _fcmRefreshes = null;
     await _apiRepositories.tokens.clear();
     _apiRepositories.cache.clear();
     try {
@@ -192,7 +203,9 @@ class AccountManagerImpl implements AccountManager {
     final account = _toAccount(result.user);
     _keepAccount(account, result.token);
 
-    // A slow FCM must not hold the sign-in; the errors are logged.
+    // The refreshes of the previous sign-in belong to it; a slow FCM must
+    // not hold the sign-in, the errors are logged.
+    unawaited(_stopFcmSync());
     unawaited(_startFcmSync(_signIn));
     _changes.add(null);
 
@@ -214,6 +227,13 @@ class AccountManagerImpl implements AccountManager {
     } catch (e, s) {
       _logger.error(e, s);
     }
+  }
+
+  /// Stops sending the refreshed FCM tokens
+  Future<void> _stopFcmSync() async {
+    final refreshes = _fcmRefreshes;
+    _fcmRefreshes = null;
+    await refreshes?.cancel();
   }
 
   /// A token that was asked for in an older session belongs to nobody now:

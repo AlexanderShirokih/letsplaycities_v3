@@ -10,6 +10,8 @@ import 'package:lets_play_cities/remote/api_repository.dart';
 import 'package:lets_play_cities/remote/auth/token_store.dart';
 import 'package:lets_play_cities/remote/client/api_interceptor.dart';
 
+import 'fake_server.dart';
+
 /// Answers every request with the body [respond] gives for it and records
 /// the requests.
 class _FakeServer implements HttpClientAdapter {
@@ -128,4 +130,28 @@ void main() {
       },
     );
   });
+
+  test(
+    'a 401 of the main server drops the token and tells tokenDrops',
+    () async {
+      final server = FakeServer()
+        ..fail('GET', '/v1/friends', 401, 'unauthorized');
+      final main = ApiRepositoryFactory.main(
+        mainServer,
+        tokens,
+        onError: (e, s) => fail('$e'),
+      );
+      final drops = <void>[];
+      main.tokenDrops.listen(drops.add);
+      main.cache.cachedFriends = [];
+
+      final dio = main.dio()..httpClientAdapter = server;
+      await expectLater(dio.get<Object>('/friends'), throwsA(anything));
+      await pumpEventQueue();
+
+      expect(await tokens.read(), isNull);
+      expect(main.cache.cachedFriends, isNull);
+      expect(drops, hasLength(1));
+    },
+  );
 }

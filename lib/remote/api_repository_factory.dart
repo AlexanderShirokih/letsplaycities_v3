@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:dio/dio.dart';
 import 'package:lets_play_cities/app_config.dart';
 import 'package:lets_play_cities/remote/api_repository.dart';
@@ -22,6 +24,8 @@ class ApiRepositoryFactory {
 
   final Dio Function(AppConfig, TokenStore) _createDio;
 
+  final _tokenDrops = StreamController<void>.broadcast();
+
   /// Builds clients for the server at [serverConfig], which also serves the
   /// pictures.
   ApiRepositoryFactory(
@@ -32,26 +36,36 @@ class ApiRepositoryFactory {
   );
 
   /// Builds clients for the main server at [config]. When the server rejects
-  /// the stored token, the token and the cache are dropped. [onError] gets
-  /// the errors of dropping the token.
+  /// the stored token, the token and the cache are dropped and [tokenDrops]
+  /// emits. [onError] gets the errors of dropping the token.
   factory ApiRepositoryFactory.main(
     AppConfig config,
     TokenStore tokens, {
     required void Function(Object error, StackTrace stackTrace) onError,
   }) {
-    final cache = ApiRepositoryCacheHolder();
+    late final ApiRepositoryFactory repositories;
 
-    return ApiRepositoryFactory(
+    return repositories = ApiRepositoryFactory(
       config,
-      cache,
+      ApiRepositoryCacheHolder(),
       tokens,
       (config, tokens) => createApiDio(
         config,
         tokens,
-        onSignedOut: cache.clear,
+        onSignedOut: repositories.onTokenDropped,
         onError: onError,
       ),
     );
+  }
+
+  /// Emits each time the server refused the stored token and it was dropped
+  Stream<void> get tokenDrops => _tokenDrops.stream;
+
+  /// The server refused the stored token and it was dropped: forgets the
+  /// data of the user and tells [tokenDrops]
+  void onTokenDropped() {
+    cache.clear();
+    _tokenDrops.add(null);
   }
 
   /// Repository that acts as the signed-in user

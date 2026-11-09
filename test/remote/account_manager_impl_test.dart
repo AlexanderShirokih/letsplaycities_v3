@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:typed_data';
 
+import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:lets_play_cities/app_config.dart';
 import 'package:lets_play_cities/base/preferences.dart';
@@ -122,6 +123,17 @@ class _FakeFactory extends Fake implements ApiRepositoryFactory {
   @override
   final cache = ApiRepositoryCacheHolder();
 
+  final _drops = StreamController<void>.broadcast();
+
+  @override
+  Stream<void> get tokenDrops => _drops.stream;
+
+  @override
+  void onTokenDropped() {
+    cache.clear();
+    _drops.add(null);
+  }
+
   @override
   ApiRepository forUser() => repository;
 }
@@ -148,6 +160,7 @@ void main() {
   late DateTime now;
   late _FakePreferences preferences;
   late AccountManagerImpl manager;
+  late Dio dio;
 
   setUp(() {
     server = FakeServer();
@@ -159,10 +172,10 @@ void main() {
     now = DateTime(2026, 11, 8, 12);
     preferences = _FakePreferences();
 
-    final dio = createApiDio(
+    dio = createApiDio(
       config,
       tokens,
-      onSignedOut: factory.cache.clear,
+      onSignedOut: factory.onTokenDropped,
       onError: logger.error,
     )..httpClientAdapter = server;
 
@@ -323,6 +336,27 @@ void main() {
       expect(server.calls, isNot(contains('GET /v1/me')));
     });
 
+    test(
+      'a token dropped by a 401 of another request tells the listeners',
+      () async {
+        server.on('POST', '/v1/auth/native', 200, _auth('new-token'));
+        await manager.signInNative('Мария');
+        await pumpEventQueue();
+        var changes = 0;
+        manager.accountChanges.listen((_) => changes++);
+        server.fail('PATCH', '/v1/me', 401, 'unauthorized');
+
+        await expectLater(
+          AuthApi(dio).updateMe(name: 'Анна'),
+          throwsA(anything),
+        );
+        await pumpEventQueue();
+
+        expect(changes, 1);
+        expect(await manager.getLastSignedInAccount(), isNull);
+      },
+    );
+
     test('invalidate makes the next account request ask the server', () async {
       server.on('POST', '/v1/auth/native', 200, _auth('new-token'));
       await manager.signInNative('Мария');
@@ -413,6 +447,23 @@ void main() {
       expect(account.userId, 14397);
       expect(logger.errors, isNotEmpty);
     });
+
+    test(
+      'a refreshed token is patched after a sign-in without a sign-out',
+      () async {
+        await manager.signInNative('Мария');
+        await pumpEventQueue();
+        await manager.signInNative('Мария');
+        await pumpEventQueue();
+        server.requests.clear();
+
+        messaging.refreshes.add('fcm-2');
+        await pumpEventQueue();
+
+        expect(server.calls, ['PATCH /v1/me']);
+        expect(server.bodyOf('PATCH', '/v1/me'), {'fcmToken': 'fcm-2'});
+      },
+    );
 
     test('a refreshed token is patched while signed in', () async {
       await manager.signInNative('Мария');
@@ -591,16 +642,30 @@ void main() {
 
         await manager.signOut();
 
-        expect(server.calls, ['POST /v1/auth/logout']);
-        expect(
-          server.requests.single.headers['Authorization'],
-          'Bearer session',
-        );
+        expect(server.calls, ['PATCH /v1/me', 'POST /v1/auth/logout']);
+        expect(server.requests.last.headers['Authorization'], 'Bearer session');
         expect(await tokens.read(), isNull);
         expect(factory.cache.cachedFriends, isNull);
         expect(await manager.getLastSignedInAccount(), isNull);
       },
     );
+
+    test('signOut stops the pushes to the device before logout', () async {
+      await manager.signOut();
+
+      expect(server.calls, ['PATCH /v1/me', 'POST /v1/auth/logout']);
+      expect(server.bodyOf('PATCH', '/v1/me'), {'fcmToken': ''});
+      expect(server.requests.first.headers['Authorization'], 'Bearer session');
+    });
+
+    test('signOut still logs out when the push token is not cleared', () async {
+      server.fail('PATCH', '/v1/me', 500, 'internal');
+
+      await manager.signOut();
+
+      expect(server.calls, ['PATCH /v1/me', 'POST /v1/auth/logout']);
+      expect(await tokens.read(), isNull);
+    });
 
     test('signOut without the network still signs out', () async {
       server.offline = true;
