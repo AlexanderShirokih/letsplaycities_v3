@@ -1,8 +1,12 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:lets_play_cities/app_config.dart';
+import 'package:lets_play_cities/base/preferences.dart';
 import 'package:lets_play_cities/base/remote/bloc/local_multiplayer_bloc.dart';
+import 'package:lets_play_cities/remote/auth.dart';
+import 'package:lets_play_cities/remote/model/lps_user.dart';
 import 'package:lets_play_cities/remote/remote_host.dart';
 import 'package:lets_play_cities/remote/server/server_game_controller.dart';
 import 'package:lets_play_cities/utils/error_logger.dart';
@@ -49,6 +53,23 @@ class _RecordingLogger implements ErrorLogger {
   void log(String message) {}
 }
 
+/// Answers [getLastSignedInAccount] with [account]
+class _FakeAccountManager extends Fake implements AccountManager {
+  Future<RemoteAccount?> Function() account = () async => null;
+
+  @override
+  Future<RemoteAccount?> getLastSignedInAccount() => account();
+}
+
+class _FakePreferences extends Fake implements GamePreferences {
+  @override
+  String lastNativeLogin = '';
+}
+
+RemoteAccount _account(String name) => RemoteAccount(
+  LpsUser(id: 7, name: name, provider: 'google', lastSeenAt: DateTime(2026)),
+);
+
 Future<void> _settle() async {
   for (var i = 0; i < 20; i++) {
     await Future<void>.delayed(Duration.zero);
@@ -57,13 +78,24 @@ Future<void> _settle() async {
 
 void main() {
   late _RecordingLogger logger;
+  late _FakeAccountManager accounts;
+  late _FakePreferences preferences;
 
   setUp(() {
     logger = _RecordingLogger();
+    accounts = _FakeAccountManager();
+    preferences = _FakePreferences();
   });
 
   LocalMultiplayerBloc createBloc(ServerGameController server) =>
-      LocalMultiplayerBloc(server: server, errorLogger: logger);
+      LocalMultiplayerBloc(
+        server: server,
+        errorLogger: logger,
+        accountManager: accounts,
+        preferences: preferences,
+        defaultPlayerName: 'Игрок',
+        accountTimeout: const Duration(milliseconds: 50),
+      );
 
   Future<List<LocalMultiplayerState>> statesAfter(
     LocalMultiplayerBloc bloc,
@@ -104,7 +136,7 @@ void main() {
 
     expect(states, [
       isA<LocalMultiplayerStartingServer>(),
-      LocalMultiplayerStartGame(AppConfig.lan('localhost')),
+      LocalMultiplayerStartGame(AppConfig.lan('localhost'), 'Игрок'),
     ]);
     expect(server.calls, ['setUp', 'runGame']);
     expect(logger.errors, isEmpty);
@@ -147,7 +179,9 @@ void main() {
 
     final states = await statesAfter(bloc, LocalMultiplayerConnect(host));
 
-    expect(states, [LocalMultiplayerStartGame(AppConfig.lan('192.168.1.10'))]);
+    expect(states, [
+      LocalMultiplayerStartGame(AppConfig.lan('192.168.1.10'), 'Игрок'),
+    ]);
     expect(server.calls, isEmpty);
 
     await bloc.close();
@@ -185,5 +219,53 @@ void main() {
     await bloc.close();
 
     expect(server.calls, ['close']);
+  });
+
+  group('the player name of the LAN game', () {
+    Future<String> nameOfGame() async {
+      final bloc = createBloc(_FakeServer());
+      final started = bloc.stream
+          .firstWhere((state) => state is LocalMultiplayerStartGame)
+          .timeout(const Duration(seconds: 5));
+      bloc.add(LocalMultiplayerCreate());
+
+      final state = await started as LocalMultiplayerStartGame;
+      await bloc.close();
+
+      return state.playerName;
+    }
+
+    test('is the name of the signed-in account', () async {
+      accounts.account = () async => _account('Google User');
+      preferences.lastNativeLogin = 'Вася';
+
+      expect(await nameOfGame(), 'Google User');
+    });
+
+    test('is the last native name without an account', () async {
+      preferences.lastNativeLogin = ' Вася ';
+
+      expect(await nameOfGame(), 'Вася');
+    });
+
+    test('is the last native name when the account fails', () async {
+      accounts.account = () async => throw const SocketException('offline');
+      preferences.lastNativeLogin = 'Вася';
+
+      expect(await nameOfGame(), 'Вася');
+    });
+
+    test('is the last native name when the account does not come', () async {
+      accounts.account = () => Completer<RemoteAccount?>().future;
+      preferences.lastNativeLogin = 'Вася';
+
+      expect(await nameOfGame(), 'Вася');
+    });
+
+    test('is the default name when no name is known', () async {
+      accounts.account = () async => throw const SocketException('offline');
+
+      expect(await nameOfGame(), 'Игрок');
+    });
   });
 }

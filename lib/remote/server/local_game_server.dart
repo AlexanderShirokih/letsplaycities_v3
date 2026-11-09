@@ -72,9 +72,10 @@ class LocalGameServer {
     this._clock = const SystemHostClock(),
   });
 
-  /// Plays with the client of [socket] until the socket ends
-  void serve(WebSocket socket) {
-    final session = _Session(socket, _codec);
+  /// Plays with the client of [socket] until the socket ends.
+  /// [isHostDevice] tells the player on the device of the host.
+  void serve(WebSocket socket, {bool isHostDevice = false}) {
+    final session = _Session(socket, _codec, isHostDevice: isHostDevice);
 
     if (_closed) {
       unawaited(session.close(WebSocketStatus.goingAway, 'closed'));
@@ -91,8 +92,8 @@ class LocalGameServer {
     );
   }
 
-  /// Ends the running games, the opponent of each player being the one who
-  /// left, and closes every socket
+  /// Ends the running games, the player on the device of the host being the
+  /// one who left, and closes every socket
   Future<void> close() async {
     _closed = true;
 
@@ -119,12 +120,18 @@ class LocalGameServer {
   }
 
   void _handle(_Session session, Object? frame) {
+    if (frame is! String) {
+      // As the main server does
+      _logger.log('A LAN client sent a binary frame');
+      unawaited(
+        session.close(WebSocketStatus.unsupportedData, 'unsupported_frame'),
+      );
+
+      return;
+    }
+
     final ClientGameMessage message;
     try {
-      if (frame is! String) {
-        throw const FormatException('A binary frame');
-      }
-
       message = _codec.decodeClient(frame);
     } on FormatException catch (e) {
       _logger.log('A LAN client sent a bad message: ${e.message}');
@@ -240,7 +247,10 @@ class _Session {
   /// The game the user plays
   _Room? room;
 
-  _Session(this._socket, this._codec);
+  /// The player on the device of the host
+  final bool isHostDevice;
+
+  _Session(this._socket, this._codec, {required this.isHostDevice});
 
   int get id => user!.id;
 
@@ -368,14 +378,15 @@ class _Room {
     _sendToBoth(_gameOver(reason, loser));
   }
 
-  /// Ends the game because the host closes: each player hears that the
-  /// opponent left
+  /// Ends the game because the host closes: the player on the device of the
+  /// host left
   void abort() {
-    if (!_end()) return;
+    final loser = _seats.firstWhere(
+      (seat) => seat.isHostDevice,
+      orElse: () => _seats.first,
+    );
 
-    for (final seat in _seats) {
-      seat.send(_gameOver(GameOverReason.opponentLeft, _opponentOf(seat)));
-    }
+    finish(GameOverReason.opponentLeft, loser: loser);
   }
 
   /// Returns `false` if the game is already over

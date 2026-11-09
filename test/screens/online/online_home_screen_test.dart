@@ -90,7 +90,7 @@ class _PictureFactory extends FakeApiRepositoryFactory {
   _PictureFactory(super.repository);
 
   @override
-  AppConfig get pictureConfig => AppConfig.forHost('lps.test');
+  AppConfig get serverConfig => AppConfig.forHost('lps.test');
 }
 
 /// Signs in until the token is dropped; then nobody is signed in.

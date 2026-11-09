@@ -5,6 +5,7 @@ import 'package:equatable/equatable.dart';
 import 'package:lets_play_cities/base/platform/app_version.dart';
 import 'package:lets_play_cities/base/platform/device_name.dart';
 import 'package:lets_play_cities/remote/server/client_failure_logging.dart';
+import 'package:lets_play_cities/remote/server/server_connection.dart';
 import 'package:lets_play_cities/utils/error_logger.dart';
 
 /// Describes main HTTP methods
@@ -40,11 +41,15 @@ abstract class RequestHandler {
   Future<dynamic> handleRequest(HttpRequest request);
 }
 
-/// Upgrades current connection to WebSocket and returns the [WebSocket]
+/// Upgrades current connection to WebSocket and returns its [LanClient]
 class WebSocketRequestHandler implements RequestHandler {
   @override
-  Future<WebSocket> handleRequest(HttpRequest request) =>
-      WebSocketTransformer.upgrade(request);
+  Future<LanClient> handleRequest(HttpRequest request) async {
+    final address = request.connectionInfo?.remoteAddress;
+    final socket = await WebSocketTransformer.upgrade(request);
+
+    return LanClient(socket, isHostDevice: address?.isLoopback ?? false);
+  }
 }
 
 /// Service request used to identify server

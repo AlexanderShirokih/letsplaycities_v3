@@ -109,10 +109,10 @@ class _FakeRepository extends Fake implements ApiRepository {
 }
 
 class _FakeFactory extends Fake implements ApiRepositoryFactory {
-  _FakeFactory(this.pictureConfig, this.tokens, this.repository);
+  _FakeFactory(this.serverConfig, this.tokens, this.repository);
 
   @override
-  final AppConfig pictureConfig;
+  final AppConfig serverConfig;
 
   @override
   final TokenStore tokens;

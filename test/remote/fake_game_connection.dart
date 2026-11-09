@@ -35,8 +35,14 @@ class FakeGameConnection implements GameConnection {
   /// Makes [send] fail
   bool failSend = false;
 
+  /// Makes [ensureConnected] fail with it
+  Object? connectError;
+
   @override
   Future<LpsUser> ensureConnected() async {
+    final error = connectError;
+    if (error != null) throw error;
+
     if (!_connected) connects++;
     _connected = true;
 

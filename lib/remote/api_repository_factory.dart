@@ -10,12 +10,8 @@ import 'package:lets_play_cities/remote/client/social_api.dart';
 /// Builds the [LpsApiClient] and [ApiRepository] instances that send their
 /// requests to one server as the user whose token the [tokens] hold.
 class ApiRepositoryFactory {
-  /// Server that receives the requests.
+  /// Server that receives the requests and serves the pictures.
   final AppConfig serverConfig;
-
-  /// The main server: the picture URLs in the replies point to it, also in
-  /// a LAN game.
-  final AppConfig pictureConfig;
 
   /// Shared by every repository that this factory builds.
   final ApiRepositoryCacheHolder cache;
@@ -26,14 +22,14 @@ class ApiRepositoryFactory {
 
   final Dio Function(AppConfig, TokenStore) _createDio;
 
-  /// Builds clients for the server at [config], which also serves the
+  /// Builds clients for the server at [serverConfig], which also serves the
   /// pictures.
   ApiRepositoryFactory(
-    AppConfig config,
-    ApiRepositoryCacheHolder cache,
-    TokenStore tokens,
-    Dio Function(AppConfig, TokenStore) createDio,
-  ) : this._(config, config, cache, tokens, createDio);
+    this.serverConfig,
+    this.cache,
+    this.tokens,
+    this._createDio,
+  );
 
   /// Builds clients for the main server at [config]. When the server rejects
   /// the stored token, the token and the cache are dropped. [onError] gets
@@ -58,21 +54,13 @@ class ApiRepositoryFactory {
     );
   }
 
-  ApiRepositoryFactory._(
-    this.serverConfig,
-    this.pictureConfig,
-    this.cache,
-    this.tokens,
-    this._createDio,
-  );
-
   /// Repository that acts as the signed-in user
   ApiRepository forUser() {
     final dio = _createDio(serverConfig, tokens);
-    return ApiRepository(SocialApi(dio), cache, pictureConfig, dio);
+    return ApiRepository(SocialApi(dio), cache, serverConfig, dio);
   }
 
-  /// Client of the sign-up and the city requests that acts as the signed-in
+  /// Client of the city requests that acts as the signed-in
   /// user.
   LpsApiClient clientFor() =>
       RemoteLpsApiClient(_createDio(serverConfig, tokens), tokens);

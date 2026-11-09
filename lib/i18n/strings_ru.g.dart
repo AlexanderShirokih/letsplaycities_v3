@@ -945,6 +945,9 @@ class Translations$online$ru {
 	/// ru: 'Обновите приложение'
 	String get updateApp => 'Обновите приложение';
 
+	/// ru: 'Игра уже идёт'
+	String get hostFull => 'Игра уже идёт';
+
 	/// ru: '{login} удален из друзей'
 	String removedFromFriends({required Object login}) => '${login} удален из друзей';
 

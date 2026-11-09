@@ -29,7 +29,7 @@ class _PictureFactory extends FakeApiRepositoryFactory {
   _PictureFactory() : super(FakeApiRepository());
 
   @override
-  AppConfig get pictureConfig => AppConfig.forHost('lps.test');
+  AppConfig get serverConfig => AppConfig.forHost('lps.test');
 }
 
 const _match = Match(
@@ -143,5 +143,16 @@ void main() {
     await settle(tester);
 
     expect(find.text(_t.online.replaced), findsOneWidget);
+  });
+
+  testWidgets('a full LAN host says the game is already on', (tester) async {
+    connection.connectError = const ProtocolErrorException(
+      ProtocolError.invalidState,
+    );
+    await tester.pumpWidget(app(const GameWaitingRoomScreen(isLocal: true)));
+    await tester.tap(find.text(_t.online.connect));
+    await settle(tester);
+
+    expect(find.text(_t.online.hostFull), findsOneWidget);
   });
 }

@@ -40,8 +40,8 @@ class ServerGameControllerImpl implements ServerGameController {
     final host = _host;
     if (host == null || !_connection.isOpened) return;
 
-    await for (final socket in _connection.connect()) {
-      host.serve(socket);
+    await for (final client in _connection.connect()) {
+      host.serve(client.socket, isHostDevice: client.isHostDevice);
     }
   }
 

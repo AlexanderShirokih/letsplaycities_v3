@@ -106,8 +106,6 @@ class _OnlineProfileViewStandaloneState
               RepositoryProvider<RemoteAccount>.value(
                 value: lastSignedInAccount.requireData!,
               ),
-              // Inside a LAN game's GetIt scope this is the factory for
-              // the LAN server.
               RepositoryProvider<ApiRepository>.value(
                 value: GetIt.instance.get<ApiRepositoryFactory>().forUser(),
               ),

@@ -116,8 +116,8 @@ Future<void> injectRootDependencies(AppConfig appConfig) async {
     () => createApiDio(appConfig, getIt.get<TokenStore>(), onError: _logError),
   );
 
-  // API clients for the main server. A LAN game registers its own factory in
-  // its GetIt scope, which shares this one's cache.
+  // API clients for the main server, also in a LAN game: the LAN host has no
+  // REST.
   getIt.registerSingleton<ApiRepositoryFactory>(
     ApiRepositoryFactory.main(
       appConfig,

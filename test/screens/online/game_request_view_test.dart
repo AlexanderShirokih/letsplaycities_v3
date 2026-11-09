@@ -30,7 +30,7 @@ class _PictureFactory extends FakeApiRepositoryFactory {
   _PictureFactory(super.repository);
 
   @override
-  AppConfig get pictureConfig => AppConfig.forHost('lps.test');
+  AppConfig get serverConfig => AppConfig.forHost('lps.test');
 }
 
 final _t = AppLocale.ru.buildSync();

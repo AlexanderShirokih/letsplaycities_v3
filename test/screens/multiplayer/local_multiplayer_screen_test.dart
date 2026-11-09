@@ -6,6 +6,7 @@ import 'package:get_it/get_it.dart';
 import 'package:lets_play_cities/app_config.dart';
 import 'package:lets_play_cities/base/preferences.dart';
 import 'package:lets_play_cities/remote/api_repository_factory.dart';
+import 'package:lets_play_cities/remote/auth.dart';
 import 'package:lets_play_cities/remote/auth/token_store.dart';
 import 'package:lets_play_cities/remote/server/server_game_controller.dart';
 import 'package:lets_play_cities/screens/common/d2/d2.dart';
@@ -48,6 +49,11 @@ class _FakeLogger implements ErrorLogger {
   void error(Object error, StackTrace stackTrace) {}
 }
 
+class _FakeAccountManager extends Fake implements AccountManager {
+  @override
+  Future<RemoteAccount?> getLastSignedInAccount() async => null;
+}
+
 class _FakePreferences extends Fake implements GamePreferences {
   @override
   String get lastNativeLogin => 'Вася';
@@ -71,7 +77,9 @@ void main() {
     final getIt = GetIt.instance;
     getIt
       ..registerSingleton<ServerGameController>(server)
-      ..registerSingleton<ErrorLogger>(_FakeLogger());
+      ..registerSingleton<ErrorLogger>(_FakeLogger())
+      ..registerSingleton<AccountManager>(_FakeAccountManager())
+      ..registerSingleton<GamePreferences>(_FakePreferences());
   });
 
   tearDown(() => GetIt.instance.reset());
@@ -129,7 +137,6 @@ void main() {
       ..unregister<ServerGameController>()
       ..registerSingleton<ServerGameController>(host)
       ..registerSingleton<AppConfig>(mainConfig)
-      ..registerSingleton<GamePreferences>(_FakePreferences())
       ..registerSingleton<ApiRepositoryFactory>(
         ApiRepositoryFactory.main(
           mainConfig,

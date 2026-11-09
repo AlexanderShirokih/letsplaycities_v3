@@ -26,12 +26,6 @@ class RemoteIOException extends RemoteException {
   const RemoteIOException(super.description);
 }
 
-/// Thrown by the LAN server when a client's connection ends before the
-/// message the server waits for arrives.
-class ClientDisconnectedException extends RemoteException {
-  const ClientDisconnectedException(super.description);
-}
-
 /// Used when some authorization error happened in REST service
 /// or Socket service
 class AuthorizationException extends RemoteException {

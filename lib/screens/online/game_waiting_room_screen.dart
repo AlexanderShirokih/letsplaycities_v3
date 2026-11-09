@@ -36,7 +36,7 @@ WaitingRoomBloc createWaitingRoomBloc({
       getIt.get<GameConnection>(),
       isLocal: isLocal,
       // The pictures are on the main server, also in a LAN game.
-      pictureConfig: getIt.get<ApiRepositoryFactory>().pictureConfig,
+      pictureConfig: getIt.get<ApiRepositoryFactory>().serverConfig,
       chatEnabled: getIt.get<GamePreferences>().onlineChatEnabled,
     ),
     clock: clock,
@@ -61,8 +61,8 @@ Future<void> declineInviteOverConnection(
   }
 }
 
-/// Pushes the game screen with the repository of the factory current when
-/// the game starts: in a LAN game the factory of the LAN scope.
+/// Pushes the game screen with a repository of the main server, also in a
+/// LAN game.
 void pushGameScreen(BuildContext context, GameConfig config) {
   final ApiRepository repository = GetIt.instance
       .get<ApiRepositoryFactory>()
@@ -84,6 +84,8 @@ String? waitingFailureText(Translations t, Exception error) => switch (error) {
   ProtocolErrorException(code: ProtocolError.replaced) => t.online.replaced,
   ProtocolErrorException(code: ProtocolError.unsupportedProtocol) =>
     t.online.updateApp,
+  // Only a full LAN host refuses the hello with it
+  ProtocolErrorException(code: ProtocolError.invalidState) => t.online.hostFull,
   ApiException() => errorText(t, error),
   _ => null,
 };

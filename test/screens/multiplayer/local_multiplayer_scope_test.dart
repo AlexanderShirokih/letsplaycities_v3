@@ -7,7 +7,6 @@ import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:get_it/get_it.dart';
 import 'package:lets_play_cities/app_config.dart';
-import 'package:lets_play_cities/base/preferences.dart';
 import 'package:lets_play_cities/base/remote/bloc/local_multiplayer_bloc.dart';
 import 'package:lets_play_cities/remote/api_repository_factory.dart';
 import 'package:lets_play_cities/remote/auth/token_store.dart';
@@ -60,24 +59,17 @@ class _MainTokens implements TokenStore {
   Future<void> clear() async {}
 }
 
-class _FakePreferences extends Fake implements GamePreferences {
-  @override
-  String lastNativeLogin = '';
-}
-
 void main() {
   final mainConfig = AppConfig.forHost('main.test');
   final lanConfig = AppConfig.lan('192.168.1.5');
 
   late GetIt getIt;
   late _MainTokens mainTokens;
-  late _FakePreferences preferences;
   late ApiRepositoryFactory mainApiRepositories;
 
   setUp(() {
     getIt = GetIt.asNewInstance();
     mainTokens = _MainTokens();
-    preferences = _FakePreferences();
     mainApiRepositories = ApiRepositoryFactory.main(
       mainConfig,
       mainTokens,
@@ -94,12 +86,14 @@ void main() {
           onError: (_, _) {},
         ),
       )
-      ..registerSingleton<ErrorLogger>(SimpleErrorLogger())
-      ..registerSingleton<GamePreferences>(preferences);
+      ..registerSingleton<ErrorLogger>(SimpleErrorLogger());
   });
 
-  void pushScope([AppConfig? config]) =>
-      pushLanGameScope(getIt, LocalMultiplayerStartGame(config ?? lanConfig));
+  void pushScope({AppConfig? config, String playerName = 'Вася'}) =>
+      pushLanGameScope(
+        getIt,
+        LocalMultiplayerStartGame(config ?? lanConfig, playerName),
+      );
 
   test('the scope registers the LAN config under its name', () {
     pushScope();
@@ -160,27 +154,21 @@ void main() {
     });
 
     Future<void> connect() async {
-      pushScope(AppConfig.lan('127.0.0.1', port: host.port));
+      pushScope(
+        config: AppConfig.lan('127.0.0.1', port: host.port),
+        playerName: 'Google User',
+      );
       await getIt.get<GameConnection>().ensureConnected();
     }
 
-    test('goes to /v1/game of the host without the main token', () async {
-      preferences.lastNativeLogin = 'Вася';
-
+    test('goes to /v1/game of the host without the main token and says '
+        'the name of the game', () async {
       await connect();
 
       expect(upgrades.single.value(HttpHeaders.authorizationHeader), isNull);
       expect(hellos.single['protocol'], 1);
-      expect(hellos.single['name'], 'Вася');
+      expect(hellos.single['name'], 'Google User');
       expect(mainTokens.reads, 0);
-    });
-
-    test('says «Игрок» when no name was ever entered', () async {
-      preferences.lastNativeLogin = '  ';
-
-      await connect();
-
-      expect(hellos.single['name'], 'Игрок');
     });
   });
 

@@ -28,10 +28,13 @@ class LocalMultiplayerStartGame extends LocalMultiplayerState {
   /// The LAN host of the game
   final AppConfig config;
 
-  const LocalMultiplayerStartGame(this.config);
+  /// The name the player says to the host
+  final String playerName;
+
+  const LocalMultiplayerStartGame(this.config, this.playerName);
 
   @override
-  List<Object> get props => [config];
+  List<Object> get props => [config, playerName];
 }
 
 /// Signals that user doesn't connected to the wi-fi network

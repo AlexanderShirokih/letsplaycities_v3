@@ -131,6 +131,43 @@ class _Client {
   }
 }
 
+/// The server of [_inner] where the first client is the host device: in
+/// the tests every client comes from the loopback
+class _FirstIsHost implements ServerConnection {
+  final WebSocketServerConnection _inner;
+
+  _FirstIsHost(this._inner);
+
+  @override
+  Future<void> start() => _inner.start();
+
+  @override
+  Stream<LanClient> connect() {
+    var index = 0;
+
+    return _inner.connect().map(
+      (client) => LanClient(client.socket, isHostDevice: index++ == 0),
+    );
+  }
+
+  @override
+  Future<void> close() => _inner.close();
+
+  @override
+  bool get isOpened => _inner.isOpened;
+}
+
+/// Waits until [condition] holds
+Future<void> _eventually(bool Function() condition) async {
+  final deadline = DateTime.now().add(_wait);
+
+  while (!condition()) {
+    if (DateTime.now().isAfter(deadline)) fail('The condition never held');
+
+    await Future<void>.delayed(const Duration(milliseconds: 10));
+  }
+}
+
 void main() {
   late _FakeClock clock;
   late _RecordingLogger logger;
@@ -152,7 +189,7 @@ void main() {
       address: InternetAddress.loopbackIPv4,
     );
     controller = ServerGameControllerImpl(
-      server,
+      _FirstIsHost(server),
       () => LocalGameServer(
         moveTimeSec: () => moveTimeSec,
         defaultPlayerName: 'Игрок',
@@ -467,9 +504,20 @@ void main() {
     final alice = await join('Alice');
     await join('Bob');
     await alice.connection.close();
-    await Future<void>.delayed(const Duration(milliseconds: 100));
 
-    final carol = await join('Carol');
+    // The host learns of the close a moment later
+    final deadline = DateTime.now().add(_wait);
+    late _Client carol;
+    while (true) {
+      try {
+        carol = await join('Carol');
+        break;
+      } on ProtocolErrorException {
+        if (DateTime.now().isAfter(deadline)) rethrow;
+
+        await Future<void>.delayed(const Duration(milliseconds: 10));
+      }
+    }
     expect(carol.me.id, 3);
   });
 
@@ -526,34 +574,55 @@ void main() {
     expect(socket.closeCode, 1008);
   });
 
-  test('closing the host ends the game and closes every socket', () async {
+  test('a binary frame closes the socket with unsupported_frame', () async {
+    final socket = await WebSocket.connect(url);
+    final done = socket.drain<void>();
+
+    socket.add([1, 2, 3]);
+    await done.timeout(_wait);
+
+    expect(socket.closeCode, WebSocketStatus.unsupportedData);
+    expect(socket.closeReason, 'unsupported_frame');
+  });
+
+  test('closing the host ends the game as a loss of the host device and '
+      'closes every socket', () async {
+    // Alice joined first: she plays on the host device
     final (alice, bob) = await match();
 
     await controller.close();
     await running.timeout(_wait);
 
-    expect(
-      await alice.next(),
-      const GameOver(
-        reason: GameOverReason.opponentLeft,
-        loser: 2,
-        words: 0,
-        durationSec: 0,
-      ),
+    const over = GameOver(
+      reason: GameOverReason.opponentLeft,
+      loser: 1,
+      words: 0,
+      durationSec: 0,
     );
-    expect(
-      await bob.next(),
-      const GameOver(
-        reason: GameOverReason.opponentLeft,
-        loser: 1,
-        words: 0,
-        durationSec: 0,
-      ),
-    );
+    expect(await alice.next(), over);
+    expect(await bob.next(), over);
 
-    await Future<void>.delayed(const Duration(milliseconds: 100));
-    expect(alice.closes, hasLength(1));
-    expect(bob.closes, hasLength(1));
+    await _eventually(() => alice.closes.isNotEmpty && bob.closes.isNotEmpty);
     expect(controller.isRunning, isFalse);
+  });
+
+  test('a client from the loopback is the host device', () async {
+    final loopback = WebSocketServerConnection(
+      RequestDispatcher.buildRequestDispatcher(logger),
+      port: 0,
+      address: InternetAddress.loopbackIPv4,
+    );
+    await loopback.start();
+    final accepted = loopback.connect().first;
+
+    final socket = await WebSocket.connect(
+      'ws://127.0.0.1:${loopback.port}/v1/game',
+    );
+    final client = await accepted.timeout(_wait);
+
+    expect(client.isHostDevice, isTrue);
+    await client.socket.close();
+    await socket.close();
+    await loopback.close();
   });
 }

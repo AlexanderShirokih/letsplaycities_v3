@@ -4,17 +4,27 @@ import 'package:lets_play_cities/app_config.dart';
 import 'package:lets_play_cities/remote/exceptions.dart';
 import 'package:lets_play_cities/remote/server/routes/routes.dart';
 
+/// A client of the LAN host
+class LanClient {
+  final WebSocket socket;
+
+  /// The client runs on the device of the host: it came from the loopback
+  final bool isHostDevice;
+
+  const LanClient(this.socket, {required this.isHostDevice});
+}
+
 /// Transport-level protocol connection
 abstract class ServerConnection {
   /// Opens the server connection
   Future<void> start();
 
-  /// The WebSockets of the clients that open the game route. Ends when the
-  /// server closes. Throws [RemoteException] if the server is not started.
-  Stream<WebSocket> connect();
+  /// The clients that open the game route. Ends when the server closes.
+  /// Throws [RemoteException] if the server is not started.
+  Stream<LanClient> connect();
 
-  /// Closes previously opened connection. Does not close the WebSockets
-  /// that [connect] gave.
+  /// Closes previously opened connection. Does not close the sockets of the
+  /// clients that [connect] gave.
   Future<void> close();
 
   /// Returns `true` if server has started and connected to the user
@@ -56,10 +66,10 @@ class WebSocketServerConnection implements ServerConnection {
   }
 
   @override
-  Stream<WebSocket> connect() => _started
+  Stream<LanClient> connect() => _started
       .asyncMap(_requestDispatcher.dispatchRequest)
-      .where((result) => result is WebSocket)
-      .cast<WebSocket>();
+      .where((result) => result is LanClient)
+      .cast<LanClient>();
 
   @override
   bool get isOpened => _server != null;

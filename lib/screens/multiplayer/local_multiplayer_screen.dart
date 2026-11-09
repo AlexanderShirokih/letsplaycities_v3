@@ -7,6 +7,7 @@ import 'package:lets_play_cities/base/platform/device_name.dart';
 import 'package:lets_play_cities/base/preferences.dart';
 import 'package:lets_play_cities/base/remote/bloc/local_multiplayer_bloc.dart';
 import 'package:lets_play_cities/i18n/strings.g.dart';
+import 'package:lets_play_cities/remote/account_manager.dart';
 import 'package:lets_play_cities/remote/auth/token_store.dart';
 import 'package:lets_play_cities/remote/client/api_dio.dart';
 import 'package:lets_play_cities/remote/game_connection.dart';
@@ -42,6 +43,9 @@ class LocalMultiplayerScreen extends StatelessWidget {
           create: (_) => LocalMultiplayerBloc(
             server: getIt.get<ServerGameController>(),
             errorLogger: getIt.get<ErrorLogger>(),
+            accountManager: getIt.get<AccountManager>(),
+            preferences: getIt.get<GamePreferences>(),
+            defaultPlayerName: t.players.player,
           ),
           child: BlocConsumer<LocalMultiplayerBloc, LocalMultiplayerState>(
             builder: (context, state) => Column(
@@ -95,13 +99,12 @@ class LocalMultiplayerScreen extends StatelessWidget {
 /// Pushes the [getIt] scope of the LAN game that [game] starts, named
 /// [lanGameScopeName]. Inside it the unnamed [AppConfig] is the LAN host and
 /// the [GameConnection] goes there without a token, saying the name of the
-/// player. The LAN host has no REST: the REST clients stay on the main
+/// player that [game] carries. The LAN host has no REST: the REST clients stay on the main
 /// server, and the [Dio] of the scope never carries the main token.
 @visibleForTesting
 void pushLanGameScope(GetIt getIt, LocalMultiplayerStartGame game) {
   final mainConfig = getIt.get<AppConfig>();
   final logger = getIt.get<ErrorLogger>();
-  final preferences = getIt.get<GamePreferences>();
 
   getIt
     ..pushNewScope(scopeName: lanGameScopeName)
@@ -114,21 +117,11 @@ void pushLanGameScope(GetIt getIt, LocalMultiplayerStartGame game) {
       GameConnection.forApp(
         url: game.config.gameSocketUrl,
         headers: () async => const {},
-        playerName: () => _lanPlayerName(preferences),
+        playerName: () => game.playerName,
         logger: logger,
       ),
       dispose: (connection) => connection.close(),
     );
-}
-
-/// The name of the player in a LAN game: the last name entered for the
-/// online game, «Игрок» if there is none. The name of a signed-in account
-/// is not known without a request, which a LAN without internet would not
-/// answer.
-String _lanPlayerName(GamePreferences preferences) {
-  final name = preferences.lastNativeLogin.trim();
-
-  return name.isEmpty ? t.players.player : name;
 }
 
 /// Name of this device, `null` when it is not known

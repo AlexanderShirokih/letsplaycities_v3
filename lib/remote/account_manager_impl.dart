@@ -250,7 +250,7 @@ class AccountManagerImpl implements AccountManager {
 
   RemoteAccount _toAccount(LpsUser user) => RemoteAccount(
     user,
-    avatarUrl: user.avatarUrl(_apiRepositories.pictureConfig),
+    avatarUrl: user.avatarUrl(_apiRepositories.serverConfig),
     canReceiveMessages: _preferences.onlineChatEnabled,
   );
 

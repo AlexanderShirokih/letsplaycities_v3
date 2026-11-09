@@ -385,6 +385,7 @@
     "replaced": "Вход с другого устройства",
     "rate_limited": "Подождите пару секунд",
     "update_app": "Обновите приложение",
+    "host_full": "Игра уже идёт",
     "removed_from_friends": "{login} удален из друзей",
     "banlist_entry_removed": "Запись удалена",
     "user_banned": "Пользователь заблокирован!",

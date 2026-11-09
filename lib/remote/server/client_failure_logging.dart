@@ -1,17 +1,15 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:lets_play_cities/remote/exceptions.dart';
 import 'package:lets_play_cities/utils/error_logger.dart';
 
 /// Whether [error] is a failure that a LAN client causes on its own: it
 /// stays silent ([TimeoutException]), drops the connection
-/// ([ClientDisconnectedException], [HttpException]), opens `/v1/game` in a
-/// browser, which fails the WebSocket upgrade ([WebSocketException]), or
-/// sends a malformed message ([FormatException]).
+/// ([HttpException]), opens `/v1/game` in a browser, which fails the
+/// WebSocket upgrade ([WebSocketException]), or sends a malformed message
+/// ([FormatException]).
 bool isClientFailure(Object error) =>
     error is TimeoutException ||
-    error is ClientDisconnectedException ||
     error is WebSocketException ||
     error is HttpException ||
     error is FormatException;
