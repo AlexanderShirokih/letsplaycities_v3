@@ -2,7 +2,10 @@ import 'package:equatable/equatable.dart';
 
 /// Defines global app constants, like remote server URL
 class AppConfig extends Equatable {
-  static const _kHost = String.fromEnvironment('LPS_HOST');
+  static const _kHost = String.fromEnvironment(
+    'LPS_HOST',
+    defaultValue: 'api.qdstudio.ru',
+  );
   static const _kPort = int.fromEnvironment('LPS_PORT', defaultValue: 443);
   static const _kSecure = bool.fromEnvironment(
     'LPS_SECURE',
@@ -42,22 +45,14 @@ class AppConfig extends Equatable {
   List<Object> get props => [host, port, isSecure, pinCertificate];
 
   /// Reads the main server settings from `--dart-define`:
-  /// `LPS_HOST`, `LPS_PORT` (443), `LPS_SECURE` (true), `LPS_PIN_CERT` (false).
-  /// Throws [StateError] when `LPS_HOST` is not set.
-  factory AppConfig.fromEnvironment() {
-    if (_kHost.isEmpty) {
-      throw StateError(
-        'The server host is not set: build with --dart-define=LPS_HOST=<host>',
-      );
-    }
-
-    return AppConfig.forHost(
-      _kHost,
-      port: _kPort,
-      isSecure: _kSecure,
-      pinCertificate: _kPinCertificate,
-    );
-  }
+  /// `LPS_HOST` (api.qdstudio.ru), `LPS_PORT` (443), `LPS_SECURE` (true),
+  /// `LPS_PIN_CERT` (false).
+  factory AppConfig.fromEnvironment() => AppConfig.forHost(
+    _kHost,
+    port: _kPort,
+    isSecure: _kSecure,
+    pinCertificate: _kPinCertificate,
+  );
 
   /// Main server at [host].
   factory AppConfig.forHost(

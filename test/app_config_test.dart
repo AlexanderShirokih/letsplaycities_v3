@@ -26,17 +26,12 @@ void main() {
     expect(config.gameSocketUrl, 'ws://192.168.1.5:8988/v1/game');
   });
 
-  test('environment without LPS_HOST fails fast', () {
+  test('environment defaults to the main server', () {
     // The tests run without --dart-define.
-    expect(
-      AppConfig.fromEnvironment,
-      throwsA(
-        isA<StateError>().having(
-          (e) => e.message,
-          'message',
-          contains('LPS_HOST'),
-        ),
-      ),
-    );
+    final config = AppConfig.fromEnvironment();
+
+    expect(config.restBaseUrl, 'https://api.qdstudio.ru:443/v1');
+    expect(config.gameSocketUrl, 'wss://api.qdstudio.ru:443/v1/game');
+    expect(config.pinCertificate, isFalse);
   });
 }
