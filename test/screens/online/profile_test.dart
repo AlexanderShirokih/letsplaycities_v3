@@ -1,12 +1,12 @@
 import 'dart:async';
 
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:get_it/get_it.dart';
 import 'package:lets_play_cities/i18n/strings.g.dart';
 import 'package:lets_play_cities/remote/auth.dart';
 import 'package:lets_play_cities/remote/model/lps_user.dart';
 import 'package:lets_play_cities/remote/model/social.dart';
+import 'package:lets_play_cities/screens/common/d2/d2.dart';
 import 'package:lets_play_cities/screens/online/profile.dart';
 
 import 'online_fakes.dart';
@@ -67,19 +67,19 @@ void main() {
       await showAlicesProfile(tester);
       final addToFriends = find.ancestor(
         of: find.text(t.online.addToFriend),
-        matching: find.byType(ElevatedButton),
+        matching: find.byType(D2Button),
       );
 
       await tester.tap(addToFriends);
       await pullToRefresh(tester);
 
-      expect(tester.widget<ElevatedButton>(addToFriends).onPressed, isNull);
+      expect(tester.widget<D2Button>(addToFriends).onPressed, isNull);
 
       request.complete();
       await tester.pumpAndSettle();
 
       expect(repository.log, ['putFriend(2)']);
-      expect(find.text(t.online.cancelFriendshipRequest), findsOne);
+      expect(find.text(t.online.cancelInvite), findsOne);
     });
 
     testWidgets('opening skips the cache, the reload after an action uses it', (
@@ -166,10 +166,82 @@ void main() {
         expect(invited, [2]);
       });
 
+      testWidgets('a friend has removal and ban in the menu', (tester) async {
+        await show(tester, friendship: Friendship.friends);
+
+        await tester.tap(find.byTooltip('Alice'));
+        await tester.pumpAndSettle();
+
+        expect(find.text(t.online.removeFromFriends), findsOneWidget);
+        expect(find.text(t.online.ban), findsOneWidget);
+
+        await tester.tap(find.text(t.online.removeFromFriends));
+        await tester.pumpAndSettle();
+
+        expect(repository.log, ['deleteFriend(2)']);
+      });
+
+      testWidgets('a stranger can only be banned from the menu', (
+        tester,
+      ) async {
+        await show(tester);
+
+        await tester.tap(find.byTooltip('Alice'));
+        await tester.pumpAndSettle();
+
+        expect(find.text(t.online.removeFromFriends), findsNothing);
+
+        await tester.tap(find.text(t.online.ban));
+        await tester.pumpAndSettle();
+
+        expect(repository.log, ['putBlock(2)']);
+      });
+
+      testWidgets('a sent request shows its status and can be cancelled', (
+        tester,
+      ) async {
+        await show(tester, friendship: Friendship.outgoing);
+
+        expect(find.text(t.online.requestSent), findsOneWidget);
+        expect(find.byTooltip('Alice'), findsOneWidget);
+
+        await tester.tap(find.text(t.online.cancelInvite));
+        await tester.pumpAndSettle();
+
+        expect(repository.log, ['deleteFriend(2)']);
+      });
+
+      testWidgets('an incoming request can be declined or accepted', (
+        tester,
+      ) async {
+        await show(tester, friendship: Friendship.incoming);
+
+        expect(find.text(t.online.wantsFriendship), findsOneWidget);
+
+        await tester.tap(find.text(t.accept));
+        await tester.pumpAndSettle();
+
+        expect(repository.log, ['putFriend(2)']);
+      });
+
+      testWidgets('a blocked player has no menu and a card with unban', (
+        tester,
+      ) async {
+        await show(tester, blocked: Blocked.byMe);
+
+        expect(find.text(t.online.inYourBlacklist), findsOneWidget);
+        expect(find.byTooltip('Alice'), findsNothing);
+
+        await tester.tap(find.text(t.online.unban));
+        await tester.pumpAndSettle();
+
+        expect(repository.log, ['deleteBlock(2)']);
+      });
+
       testWidgets('an outgoing request can be cancelled', (tester) async {
         await show(tester, friendship: Friendship.outgoing);
 
-        await tester.tap(find.text(t.online.cancelFriendshipRequest));
+        await tester.tap(find.text(t.online.cancelInvite));
         await tester.pumpAndSettle();
 
         expect(repository.log, ['deleteFriend(2)']);

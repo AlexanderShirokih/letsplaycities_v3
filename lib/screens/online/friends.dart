@@ -6,7 +6,6 @@ import 'package:lets_play_cities/i18n/strings.g.dart';
 import 'package:lets_play_cities/remote/model/lps_user.dart';
 import 'package:lets_play_cities/remote/model/social.dart';
 import 'package:lets_play_cities/screens/common/d2/d2.dart';
-import 'package:lets_play_cities/screens/common/utils.dart';
 import 'package:lets_play_cities/screens/online/profile.dart';
 
 import 'base_list_fetching_screen_mixin.dart';
@@ -42,14 +41,10 @@ class OnlineFriendsScreen extends StatelessWidget
   ) => _FriendsBody(entries: data, onInvite: onInvite);
 
   @override
-  Widget getOnListEmptyPlaceHolder(BuildContext context) => Text(
-    context.t.online.noFriendsPlaceholder,
-    textAlign: TextAlign.center,
-    style: withData<TextStyle, TextTheme>(
-      Theme.of(context).textTheme,
-      (textTheme) =>
-          textTheme.headlineSmall!.copyWith(color: textTheme.bodySmall!.color),
-    ),
+  Widget getOnListEmptyPlaceHolder(BuildContext context) => D2EmptyState(
+    art: const D2TileArt(glyph: D2Glyph.friends),
+    title: context.t.online.friendsEmptyTitle,
+    text: context.t.online.noFriendsPlaceholder,
   );
 }
 
@@ -243,7 +238,7 @@ class _RequestCard extends StatelessWidget {
                 Expanded(
                   child: D2Button(
                     label: t.online.declineFriendshipRequest,
-                    kind: D2ButtonKind.secondary,
+                    kind: D2ButtonKind.tonal,
                     expand: true,
                     onPressed: () => bloc.add(
                       UserEvent(
@@ -274,7 +269,7 @@ class _RequestCard extends StatelessWidget {
           else
             D2Button(
               label: t.online.cancelFriendshipRequest,
-              kind: D2ButtonKind.secondary,
+              kind: D2ButtonKind.tonal,
               expand: true,
               onPressed: () => bloc.add(
                 UserEvent(

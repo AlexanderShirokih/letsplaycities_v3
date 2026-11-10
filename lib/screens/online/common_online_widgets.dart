@@ -3,7 +3,6 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:lets_play_cities/i18n/strings.g.dart';
 import 'package:lets_play_cities/remote/api_repository.dart';
 import 'package:lets_play_cities/remote/model/lps_user.dart';
@@ -13,58 +12,60 @@ import 'package:lets_play_cities/screens/common/error_texts.dart';
 /// Shows widget with error messages
 Widget showError(BuildContext context, Object error) {
   final t = context.t;
-  return Stack(
-    children: [
-      SizedBox(height: 10.0, child: ListView()),
-      Center(
-        child: Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: error.toString().isEmpty
-                ? [
-                    Icon(
-                      Icons.wifi_off,
-                      size: 64.0,
-                      color: Theme.of(context).textTheme.bodySmall!.color,
-                    ),
-                    const SizedBox(height: 12),
-                    Text(t.online.loadingError),
-                  ]
-                : [
-                    FaIcon(
-                      FontAwesomeIcons.bug,
-                      size: 64.0,
-                      color: Theme.of(context).textTheme.bodySmall!.color,
-                    ),
-                    const SizedBox(height: 12),
-                    Text(
-                      t.online.unkError,
-                      style: Theme.of(context).textTheme.titleSmall,
-                    ),
-                    const SizedBox(height: 6),
-                    Text(errorText(t, error), textAlign: TextAlign.center),
-                  ],
+  final c = D2Colors.of(context);
+  final noConnection = error.toString().isEmpty;
+
+  return Center(
+    child: SingleChildScrollView(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          ExcludeSemantics(
+            child: FittedBox(
+              child: D2TileArt(
+                glyph: noConnection ? D2Glyph.wifi : D2Glyph.warning,
+              ),
+            ),
           ),
-        ),
+          const SizedBox(height: 16),
+          Text(
+            noConnection ? t.online.loadingError : t.online.unkError,
+            textAlign: TextAlign.center,
+            style: D2Text.title.copyWith(color: c.ink),
+          ),
+          if (!noConnection) ...[
+            const SizedBox(height: 8),
+            Text(
+              errorText(t, error),
+              textAlign: TextAlign.center,
+              style: D2Text.bodyRegular.copyWith(color: c.inkSoft),
+            ),
+          ],
+        ],
       ),
-    ],
+    ),
   );
 }
 
 /// Shows loading widget (progress indicatior with loading string)
-Widget showLoadingWidget(BuildContext context) => Center(
-  child: Column(
-    mainAxisSize: MainAxisSize.min,
-    mainAxisAlignment: MainAxisAlignment.center,
-    crossAxisAlignment: CrossAxisAlignment.center,
-    children: [
-      CircularProgressIndicator(),
-      SizedBox(height: 6.0),
-      Text(context.t.online.loading),
-    ],
-  ),
-);
+Widget showLoadingWidget(BuildContext context) {
+  final c = D2Colors.of(context);
+
+  return Center(
+    child: Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        CircularProgressIndicator(color: c.violet),
+        const SizedBox(height: 12),
+        Text(
+          context.t.online.loading,
+          style: D2Text.bodyRegular.copyWith(color: c.inkSoft),
+        ),
+      ],
+    ),
+  );
+}
 
 /// «Нет связи с сервером» of D2: the illustration, the title, [errorMessage]
 /// or the hint, «Повторить» that runs [onReload] and «В меню».

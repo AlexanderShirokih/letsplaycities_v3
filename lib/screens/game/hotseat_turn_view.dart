@@ -230,7 +230,7 @@ class HotseatTurnView extends StatelessWidget {
 }
 
 /// Number, name and score of a player; violet for the player who moves next
-class _PlayerCard extends StatelessWidget {
+class _PlayerCard extends StatefulWidget {
   final HotseatPlayer player;
   final int number;
   final bool active;
@@ -244,6 +244,35 @@ class _PlayerCard extends StatelessWidget {
     required this.active,
     required this.km,
   });
+
+  @override
+  State<_PlayerCard> createState() => _PlayerCardState();
+}
+
+class _PlayerCardState extends State<_PlayerCard> {
+  final _nameFocus = FocusNode();
+
+  HotseatPlayer get player => widget.player;
+  int get number => widget.number;
+  bool get active => widget.active;
+  bool get km => widget.km;
+
+  @override
+  void dispose() {
+    _nameFocus.dispose();
+    super.dispose();
+  }
+
+  /// The pencil starts the editing with the whole name selected
+  void _editName() {
+    final controller = player.controller!;
+
+    _nameFocus.requestFocus();
+    controller.selection = TextSelection(
+      baseOffset: 0,
+      extentOffset: controller.text.length,
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -262,10 +291,13 @@ class _PlayerCard extends StatelessWidget {
           )
         : TextField(
             controller: controller,
+            focusNode: _nameFocus,
             inputFormatters: [LengthLimitingTextInputFormatter(10)],
             style: nameStyle,
             cursorColor: onCard,
-            textInputAction: TextInputAction.next,
+            // «Готово» closes the keyboard, and so does a tap outside
+            textInputAction: TextInputAction.done,
+            onTapOutside: (_) => _nameFocus.unfocus(),
             decoration: InputDecoration(
               hintText: player.name,
               hintStyle: nameStyle.copyWith(color: soft),
@@ -305,10 +337,21 @@ class _PlayerCard extends StatelessWidget {
                         ? name
                         : Semantics(label: player.fieldLabel, child: name),
                   ),
-                  if (controller != null) ...[
-                    const SizedBox(width: 8),
-                    D2Icon(D2Glyph.edit, size: 16, color: soft),
-                  ],
+                  if (controller != null)
+                    ExcludeSemantics(
+                      child: GestureDetector(
+                        behavior: HitTestBehavior.opaque,
+                        onTap: _editName,
+                        child: SizedBox(
+                          width: 36,
+                          height: 44,
+                          child: Align(
+                            alignment: Alignment.centerRight,
+                            child: D2Icon(D2Glyph.edit, size: 16, color: soft),
+                          ),
+                        ),
+                      ),
+                    ),
                 ],
               ),
             ),

@@ -35,24 +35,26 @@ class AchievementsRow extends StatelessWidget {
           alignment: WrapAlignment.spaceBetween,
           crossAxisAlignment: WrapCrossAlignment.center,
           children: [
-            Text(
-              t.profile.achievements,
-              style: D2Text.section.copyWith(color: c.ink),
-            ),
-            Row(
-              mainAxisSize: MainAxisSize.min,
+            // «Рейтинг» stands by the title, «Все» alone at the right: two
+            // links side by side read as one.
+            Wrap(
+              spacing: 14,
+              crossAxisAlignment: WrapCrossAlignment.center,
               children: [
+                Text(
+                  t.profile.achievements,
+                  style: D2Text.section.copyWith(color: c.ink),
+                ),
                 ProfileLink(
                   label: t.profile.rating,
                   glyph: D2Glyph.trophy,
                   onPressed: onRating,
                 ),
-                const SizedBox(width: 8),
-                ProfileLink(
-                  label: t.profile.all,
-                  onPressed: () => _showAll(context, all),
-                ),
               ],
+            ),
+            ProfileLink(
+              label: t.profile.all,
+              onPressed: () => _showAll(context, all),
             ),
           ],
         ),

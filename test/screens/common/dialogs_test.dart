@@ -48,9 +48,39 @@ void main() {
     expect(find.text('Title'), findsOneWidget);
     expect(find.text('Message'), findsOneWidget);
 
-    await tester.tap(find.text(AppLocale.ru.buildSync().yes.toUpperCase()));
+    await tester.tap(find.text(AppLocale.ru.buildSync().yes));
     await tester.pumpAndSettle();
     expect(answer, isTrue);
+  });
+
+  testWidgets('confirmation dialog shows its own labels', (tester) async {
+    bool? answer;
+    await pumpNarrow(
+      tester,
+      Builder(
+        builder: (context) => TextButton(
+          onPressed: () => showConfirmationDialog(
+            context,
+            title: 'Title',
+            message: 'Message',
+            confirmLabel: 'Leave',
+            cancelLabel: 'Stay',
+            destructive: true,
+          ).then((v) => answer = v),
+          child: const Text('open'),
+        ),
+      ),
+    );
+
+    await tester.tap(find.text('open'));
+    await tester.pumpAndSettle();
+    expect(tester.takeException(), isNull);
+    expect(find.text('Leave'), findsOneWidget);
+    expect(find.text('Stay'), findsOneWidget);
+
+    await tester.tap(find.text('Stay'));
+    await tester.pumpAndSettle();
+    expect(answer, isFalse);
   });
 
   testWidgets('loading and error views fit 320 px with a large font', (
@@ -68,11 +98,12 @@ void main() {
 
     expect(tester.takeException(), isNull);
     expect(find.text('Loading'), findsOneWidget);
-    expect(find.text('trace-line'), findsNothing);
+    final trace = find.textContaining('trace-line', findRichText: true);
+    expect(trace, findsNothing);
 
     await tester.tap(find.text(AppLocale.ru.buildSync().d2.details));
     await tester.pump();
-    expect(find.text('trace-line'), findsOneWidget);
+    expect(trace, findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 }

@@ -20,60 +20,57 @@ class _ErrorHandlerViewState extends State<ErrorHandlerView> {
   Widget build(BuildContext context) {
     final t = context.t;
     final c = D2Colors.of(context);
+    const mono = TextStyle(
+      fontFamily: 'Menlo',
+      fontFamilyFallback: ['monospace', 'Courier'],
+      fontSize: 12,
+      height: 1.5,
+    );
 
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: D2Card(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              D2Icon(D2Glyph.warning, size: 32, color: c.error),
-              const SizedBox(height: 12),
-              Text(
-                t.errors.crashTitle,
-                textAlign: TextAlign.center,
-                style: D2Text.title.copyWith(color: c.ink),
-              ),
-              const SizedBox(height: 12),
-              Flexible(
-                child: ListView(
-                  shrinkWrap: true,
-                  children: [
-                    Text(
-                      widget._errorDescription,
-                      style: D2Text.bodyRegular.copyWith(color: c.ink),
-                    ),
-                    if (_expanded) ...[
-                      const SizedBox(height: 16),
-                      Text(
-                        widget._stackTrace,
-                        style: D2Text.caption.copyWith(color: c.inkSoft),
-                      ),
-                    ],
-                  ],
-                ),
-              ),
-              const SizedBox(height: 16),
-              Wrap(
-                spacing: 12,
-                runSpacing: 4,
-                alignment: WrapAlignment.center,
-                children: [
-                  D2Button(
-                    label: t.d2.details,
-                    kind: D2ButtonKind.secondary,
-                    onPressed: () => setState(() => _expanded = !_expanded),
-                  ),
-                  D2Button(
-                    label: t.back,
-                    onPressed: () => Navigator.maybePop(context),
-                  ),
+    return D2EmptyState(
+      art: D2TileArt(glyph: D2Glyph.warning, tileColor: c.yellow),
+      title: t.errors.crashTitle,
+      text: t.errors.crashHint,
+      extra: _expanded
+          ? Container(
+              width: double.infinity,
+              constraints: const BoxConstraints(maxHeight: 148),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+              decoration: BoxDecoration(
+                color: c.surface,
+                borderRadius: BorderRadius.circular(14),
+                boxShadow: [
+                  BoxShadow(color: c.edge, offset: const Offset(0, 3)),
                 ],
               ),
-            ],
-          ),
+              child: SingleChildScrollView(
+                child: Text.rich(
+                  TextSpan(
+                    style: mono.copyWith(color: c.ink),
+                    children: [
+                      TextSpan(text: widget._errorDescription),
+                      TextSpan(
+                        text: '\n${widget._stackTrace}',
+                        style: TextStyle(color: c.inkSoft),
+                      ),
+                    ],
+                  ),
+                  textAlign: TextAlign.start,
+                ),
+              ),
+            )
+          : null,
+      actionLabel: t.back,
+      actionIcon: D2Glyph.back,
+      onAction: () => Navigator.maybePop(context),
+      secondaryAction: Semantics(
+        expanded: _expanded,
+        child: D2Button(
+          label: _expanded ? t.errors.hideDetails : t.d2.details,
+          kind: D2ButtonKind.secondary,
+          size: D2ButtonSize.large,
+          expand: true,
+          onPressed: () => setState(() => _expanded = !_expanded),
         ),
       ),
     );

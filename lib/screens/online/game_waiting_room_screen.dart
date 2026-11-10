@@ -112,7 +112,11 @@ class GameWaitingRoomScreenStandalone extends StatelessWidget {
                   : context.t.online.title,
               onBack: () => Navigator.of(context).maybePop(),
             ),
-            Expanded(child: GameWaitingRoomScreen(isLocal: isLocal)),
+            Expanded(
+              // A LAN game has nobody to choose: the host waits for the
+              // guest and the guest for the host at once.
+              child: GameWaitingRoomScreen(isLocal: isLocal, autoFind: isLocal),
+            ),
           ],
         ),
       ),
@@ -125,12 +129,17 @@ class GameWaitingRoomScreen extends StatelessWidget {
   /// Whether the game connection goes to a LAN host
   final bool isLocal;
 
+  /// Starts looking for the opponent as the screen opens, without «Найти
+  /// соперника»
+  final bool autoFind;
+
   /// Starts the game; by default pushes the game screen
   final StartGame? onStarting;
 
   const GameWaitingRoomScreen({
     super.key,
     required this.isLocal,
+    this.autoFind = false,
     @visibleForTesting this.onStarting,
   });
 
@@ -138,12 +147,51 @@ class GameWaitingRoomScreen extends StatelessWidget {
   Widget build(BuildContext context) => BlocProvider<WaitingRoomBloc>(
     // Created once for this screen and closed with it; closing it also
     // closes the connection unless a game runs on it
-    create: (_) => createWaitingRoomBloc(isLocal: isLocal),
+    create: (_) {
+      final bloc = createWaitingRoomBloc(isLocal: isLocal);
+      if (autoFind) bloc.add(const FindPressed());
+
+      return bloc;
+    },
     child: WaitingRoomView(
       onStarting: onStarting,
-      child: ListView(
-        padding: const EdgeInsets.fromLTRB(16, 4, 16, 16),
-        children: const [WaitingRoomCard()],
+      child: Builder(
+        builder: (context) => ListView(
+          padding: const EdgeInsets.fromLTRB(16, 4, 16, 16),
+          children: [
+            WaitingRoomCard(
+              // With [autoFind] there is nothing to go back to here:
+              // «Отмена» leaves the screen instead of showing «Найти
+              // соперника».
+              onCancelled: autoFind
+                  ? () => Navigator.of(context).maybePop()
+                  : null,
+            ),
+            if (isLocal) ...[
+              const SizedBox(height: 16),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  D2Icon(
+                    D2Glyph.wifi,
+                    size: 18,
+                    color: D2Colors.of(context).inkSoft,
+                  ),
+                  const SizedBox(width: 8),
+                  Flexible(
+                    child: Text(
+                      context.t.multiplayer.sameWifi,
+                      style: D2Text.caption.copyWith(
+                        color: D2Colors.of(context).inkSoft,
+                        fontSize: 14,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ],
+        ),
       ),
     ),
   );
@@ -201,7 +249,10 @@ class WaitingRoomCard extends StatelessWidget {
   /// Time of the queue timer
   final DateTime Function()? clock;
 
-  const WaitingRoomCard({super.key, this.avatar, this.clock});
+  /// Called after «Отмена» has withdrawn the request
+  final VoidCallback? onCancelled;
+
+  const WaitingRoomCard({super.key, this.avatar, this.clock, this.onCancelled});
 
   @override
   Widget build(BuildContext context) =>
@@ -227,9 +278,12 @@ class WaitingRoomCard extends StatelessWidget {
 
     Widget cancel(String label) => D2Button(
       label: label,
-      kind: D2ButtonKind.secondary,
+      kind: D2ButtonKind.tonal,
       expand: true,
-      onPressed: () => bloc.add(const CancelPressed()),
+      onPressed: () {
+        bloc.add(const CancelPressed());
+        onCancelled?.call();
+      },
     );
 
     Widget title(String text) => Text(

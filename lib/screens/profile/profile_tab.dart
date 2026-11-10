@@ -327,11 +327,20 @@ class _ProfileTabState extends State<ProfileTab> {
 
     return Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (_) => RepositoryProvider<ApiRepository>.value(
+        builder: (context) => RepositoryProvider<ApiRepository>.value(
           value: online.repository,
           child: Scaffold(
-            appBar: AppBar(title: Text(title)),
-            body: screen,
+            body: SafeArea(
+              child: Column(
+                children: [
+                  D2ScreenHeader(
+                    title: title,
+                    onBack: () => Navigator.maybePop(context),
+                  ),
+                  Expanded(child: screen),
+                ],
+              ),
+            ),
           ),
         ),
       ),
@@ -467,7 +476,7 @@ class _Metrics extends StatelessWidget {
         spacing: 18,
         runSpacing: 4,
         children: [
-          _Metric('${local.games}', t.profile.games),
+          _Metric('${local.games}', t.stats.games(count: local.games)),
           _Metric(
             '${local.onlineWins}',
             t.profile.onlineWinsOf(count: local.onlineGames),

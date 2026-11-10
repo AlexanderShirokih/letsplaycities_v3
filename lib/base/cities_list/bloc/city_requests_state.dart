@@ -22,12 +22,15 @@ class CityRequestEntity extends Equatable {
 }
 
 class CityPendingItem {
+  /// Id of the request on the server
+  final int id;
   final CityRequestType type;
   final CityRequestEntity? source;
   final CityRequestEntity? target;
   final String reason;
 
   const CityPendingItem({
+    required this.id,
     this.source,
     this.target,
     required this.type,
@@ -66,13 +69,18 @@ class CityRequestItems extends CityRequestState {
   final List<CityPendingItem> pendingItems;
   final List<CityApprovedItem> approvedItems;
 
+  /// Why the last withdrawal failed, `null` when it did not. The list is
+  /// the one before it.
+  final Object? withdrawError;
+
   const CityRequestItems({
     required this.pendingItems,
     required this.approvedItems,
+    this.withdrawError,
   });
 
   @override
-  List<Object?> get props => [pendingItems, approvedItems];
+  List<Object?> get props => [pendingItems, approvedItems, withdrawError];
 }
 
 /// State used when data cannot be loaded

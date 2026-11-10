@@ -49,9 +49,6 @@ class Translations with BaseTranslations<AppLocale, Translations> {
 	/// ru: 'Назад'
 	String get back => 'Назад';
 
-	/// ru: 'Изменить'
-	String get edit => 'Изменить';
-
 	/// ru: 'Добавить'
 	String get add => 'Добавить';
 
@@ -98,11 +95,17 @@ class Translations$errors$ru {
 
 	// Translations
 
-	/// ru: 'Ой, кажется произошла ошибка😢'
-	String get crashTitle => 'Ой, кажется произошла ошибка😢';
+	/// ru: 'Что-то сломалось'
+	String get crashTitle => 'Что-то сломалось';
 
 	/// ru: 'У вас нет доступа к получению информации. Возможно истек срок жизни токенов доступа. Попробуйте очистить данные приложения'
 	String get accessDenied => 'У вас нет доступа к получению информации. Возможно истек срок жизни токенов доступа. Попробуйте очистить данные приложения';
+
+	/// ru: 'Вернитесь назад и попробуйте ещё раз'
+	String get crashHint => 'Вернитесь назад и попробуйте ещё раз';
+
+	/// ru: 'Скрыть'
+	String get hideDetails => 'Скрыть';
 }
 
 // Path: time
@@ -113,11 +116,11 @@ class Translations$time$ru {
 
 	// Translations
 
-	/// ru: '{minutes}мин {seconds}сек'
-	String minutesSeconds({required Object minutes, required Object seconds}) => '${minutes}мин ${seconds}сек';
+	/// ru: '{minutes} мин {seconds} с'
+	String minutesSeconds({required Object minutes, required Object seconds}) => '${minutes} мин ${seconds} с';
 
-	/// ru: '{seconds}сек'
-	String seconds({required Object seconds}) => '${seconds}сек';
+	/// ru: '{seconds} с'
+	String seconds({required Object seconds}) => '${seconds} с';
 }
 
 // Path: players
@@ -277,9 +280,6 @@ class Translations$profile$ru {
 	/// ru: 'Все'
 	String get all => 'Все';
 
-	/// ru: 'партий'
-	String get games => 'партий';
-
 	/// ru: '(one) {побед онлайн из {count}} (few) {побед онлайн из {count}} (many) {побед онлайн из {count}} (other) {побед онлайн из {count}}'
 	String onlineWinsOf({required num count}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('ru'))(count,
 		one: 'побед онлайн из ${count}',
@@ -330,8 +330,8 @@ class Translations$game$ru {
 	/// ru: 'Выйти в меню?'
 	String get goToMenu => 'Выйти в меню?';
 
-	/// ru: 'Завершить игру?'
-	String get surrender => 'Завершить игру?';
+	/// ru: 'Сдаться?'
+	String get surrender => 'Сдаться?';
 
 	/// ru: 'Использовать подсказку?'
 	String get showHelp => 'Использовать подсказку?';
@@ -425,6 +425,18 @@ class Translations$game$ru {
 	String get send => 'Отправить';
 
 	late final Translations$game$combos$ru combos = Translations$game$combos$ru._(_root);
+
+	/// ru: 'Партия закончится поражением'
+	String get surrenderMessage => 'Партия закончится поражением';
+
+	/// ru: 'Сдаться'
+	String get surrenderConfirm => 'Сдаться';
+
+	/// ru: 'Выйти'
+	String get exitConfirm => 'Выйти';
+
+	/// ru: 'Остаться'
+	String get stay => 'Остаться';
 }
 
 // Path: hotseat
@@ -494,23 +506,20 @@ class Translations$stats$ru {
 	/// ru: 'Статистика'
 	String get title => 'Статистика';
 
-	/// ru: 'Данные отсутствуют'
-	String get noData => 'Данные отсутствуют';
-
 	Map<String, String> get groups => {
 		'tt_n_pts': 'Всего сыграно партий',
 		'tt_onl': 'Онлайн',
 		'hscr': 'Рекорд',
 		'combo': 'Комбо',
-		'mst_frq_cts': 'Самые загадываемые города',
+		'mst_frq_cts': 'Частые города',
 		'msg_big_cts': 'Самые длинные города',
 		'countries': 'Страны',
 	};
 	Map<String, String> get fields => {
-		'pva': 'В режиме против Андроида',
-		'pvp': 'В режиме против Игрока',
-		'pvn': 'В режиме Мультиплеер',
-		'pvo': 'В режиме Онлайн',
+		'pva': 'С компьютером',
+		'pvp': 'Вдвоём',
+		'pvn': 'По Wi-Fi',
+		'pvo': 'Онлайн',
 		'tim': 'Общее время',
 		'win': 'Побед',
 		'los': 'Поражений',
@@ -520,6 +529,45 @@ class Translations$stats$ru {
 		'sc': 'Одна страна',
 		'dc': 'Разные страны',
 	};
+
+	/// ru: '(one) {партия} (few) {партии} (many) {партий} (other) {партий}'
+	String games({required num count}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('ru'))(count,
+		one: 'партия',
+		few: 'партии',
+		many: 'партий',
+		other: 'партий',
+	);
+
+	/// ru: '(one) {победа} (few) {победы} (many) {побед} (other) {побед}'
+	String wins({required num count}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('ru'))(count,
+		one: 'победа',
+		few: 'победы',
+		many: 'побед',
+		other: 'побед',
+	);
+
+	/// ru: '(one) {поражение} (few) {поражения} (many) {поражений} (other) {поражений}'
+	String losses({required num count}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('ru'))(count,
+		one: 'поражение',
+		few: 'поражения',
+		many: 'поражений',
+		other: 'поражений',
+	);
+
+	/// ru: 'Время в игре'
+	String get timeInGame => 'Время в игре';
+
+	/// ru: '{hours} ч {minutes} мин'
+	String durationHm({required Object hours, required Object minutes}) => '${hours} ч ${minutes} мин';
+
+	/// ru: '{minutes} мин'
+	String durationM({required Object minutes}) => '${minutes} мин';
+
+	/// ru: 'Пока пусто'
+	String get emptyTitle => 'Пока пусто';
+
+	/// ru: 'Статистика появится после первой партии'
+	String get emptyText => 'Статистика появится после первой партии';
 }
 
 // Path: citiesList
@@ -673,25 +721,25 @@ class Translations$citiesRequest$ru {
 
 	// Translations
 
-	/// ru: 'Изменение города'
-	String get titleEdit => 'Изменение города';
+	/// ru: 'Правка города'
+	String get titleEdit => 'Правка города';
 
-	/// ru: 'Добавление города'
-	String get titleAdd => 'Добавление города';
+	/// ru: 'Новый город'
+	String get titleAdd => 'Новый город';
 
 	/// ru: 'Удаление города'
 	String get titleRemove => 'Удаление города';
 
 	List<String> get commonRules => [
-		'Вы ввели город без опечатки. Например: *Кешенев* вместо *Кишинев*',
-		'Город не был переименован. Например: *Ленинград* вместо *Санкт-Петербург*',
-		'Город правильно транслитерирован. Например: *Йокогама* вместо *Иокогама*',
-		'Введённый город должен писаться слитно, без тире и пробелов. Например: *Йошкарола* вместо *Йошкар-Ола*',
-		'Введённый вами населённый пункт *имеет статус города*. Вы можете проверить это, например, в Википедии',
+		'Без опечаток\n~Кешенев~ → *Кишинёв*',
+		'Нынешнее название\n~Ленинград~ → *Санкт-Петербург*',
+		'Принятая транслитерация\n~Иокогама~ → *Йокогама*',
+		'Слитно, без дефисов и пробелов\n~Йошкар-Ола~ → *Йошкарола*',
+		'Это город, а не село или посёлок',
 	];
 	List<String> get removingRules => [
-		'Населенный пункт может быть удален если он не имеет статуса города',
-		'Если город был переименован или указан неверно, используйте форму изменения города',
+		'Удаляем только то, что не город\nСёла, посёлки, районы',
+		'Город переименован или записан с ошибкой?',
 	];
 
 	/// ru: 'Отправить'
@@ -712,35 +760,8 @@ class Translations$citiesRequest$ru {
 	/// ru: 'Заявка отправлена!'
 	String get requestSent => 'Заявка отправлена!';
 
-	/// ru: 'Предлагаемые изменения'
-	String get proposedChanges => 'Предлагаемые изменения';
-
-	/// ru: 'Причина изменения или ссылка на источник'
-	String get editReasonHint => 'Причина изменения или ссылка на источник';
-
-	/// ru: 'Перед отправкой заявки убедитесь в следующем'
-	String get beforeSending => 'Перед отправкой заявки убедитесь в следующем';
-
-	/// ru: 'Добавить город'
-	String get addCity => 'Добавить город';
-
-	/// ru: 'Причина добавления или ссылка на источник'
-	String get addReasonHint => 'Причина добавления или ссылка на источник';
-
-	/// ru: 'Удалить город'
-	String get removeCity => 'Удалить город';
-
-	/// ru: 'Причина удаления'
-	String get removeReason => 'Причина удаления';
-
-	/// ru: 'Причина удаления или ссылка на источник'
-	String get removeReasonHint => 'Причина удаления или ссылка на источник';
-
-	/// ru: 'Название города'
-	String get cityNameHint => 'Название города';
-
-	/// ru: 'Новое название города'
-	String get cityNameHelper => 'Новое название города';
+	/// ru: 'Перед отправкой'
+	String get beforeSending => 'Перед отправкой';
 
 	/// ru: 'Город не должен быть пустым'
 	String get cityNameEmpty => 'Город не должен быть пустым';
@@ -748,50 +769,68 @@ class Translations$citiesRequest$ru {
 	/// ru: 'Ищем список всех стран...'
 	String get searchingCountries => 'Ищем список всех стран...';
 
-	/// ru: 'Страна не определена'
-	String get countryNotSet => 'Страна не определена';
-
-	/// ru: 'Принадлежность к стране'
-	String get countryHelper => 'Принадлежность к стране';
-
 	/// ru: 'Нужно указать причину внесения изменений'
 	String get reasonRequired => 'Нужно указать причину внесения изменений';
 
-	/// ru: 'Заявки на изменение города'
-	String get listTitle => 'Заявки на изменение города';
+	/// ru: 'Мои заявки'
+	String get listTitle => 'Мои заявки';
 
 	/// ru: 'Для просмотра информации войдите в профиль'
 	String get signInToView => 'Для просмотра информации войдите в профиль';
 
-	/// ru: 'Здесь пока ничего нет. Вы можете самостоятельно отправлять заявки на изменение городов. Мы обязательно рассмотрим вашу заявку. Свои заявки и результаты рассмотрения вы сможете увидеть здесь'
-	String get listEmpty => 'Здесь пока ничего нет.\nВы можете самостоятельно отправлять заявки на изменение городов.\nМы обязательно рассмотрим вашу заявку. Свои заявки и результаты рассмотрения вы сможете увидеть здесь';
+	/// ru: 'Предложите город или правку — ответ появится здесь'
+	String get listEmpty => 'Предложите город или правку — ответ появится здесь';
 
-	/// ru: 'Заявки на рассмотрении'
-	String get pendingTitle => 'Заявки на рассмотрении';
+	/// ru: 'На рассмотрении'
+	String get pendingTitle => 'На рассмотрении';
 
-	/// ru: 'Ранее рассмотренные заявки'
-	String get reviewedTitle => 'Ранее рассмотренные заявки';
+	/// ru: 'Рассмотренные'
+	String get reviewedTitle => 'Рассмотренные';
 
-	/// ru: 'Что-то пошло не так'
-	String get unexpectedState => 'Что-то пошло не так';
+	/// ru: 'Ответ'
+	String get resultLabel => 'Ответ';
 
-	/// ru: 'Что-то пошло не так : {state}'
-	String unexpectedStateDetails({required Object state}) => 'Что-то пошло не так : ${state}';
+	/// ru: 'Отозвать'
+	String get withdraw => 'Отозвать';
 
-	/// ru: 'Не удалось загрузить данные :( {message}'
-	String listLoadingError({required Object message}) => 'Не удалось загрузить данные :(\n${message}';
+	/// ru: 'Заявка отозвана'
+	String get withdrawn => 'Заявка отозвана';
 
-	/// ru: 'У вас нет открытых заявок'
-	String get noPending => 'У вас нет открытых заявок';
+	/// ru: 'Добавить город'
+	String get typeAdd => 'Добавить город';
 
-	/// ru: 'У вас нет рассмотренных заявок'
-	String get noReviewed => 'У вас нет рассмотренных заявок';
+	/// ru: 'Изменить город'
+	String get typeEdit => 'Изменить город';
 
-	/// ru: 'Причина:'
-	String get reasonLabel => 'Причина:';
+	/// ru: 'Удалить город'
+	String get typeRemove => 'Удалить город';
 
-	/// ru: 'Результат:'
-	String get resultLabel => 'Результат:';
+	/// ru: 'Принята'
+	String get statusApproved => 'Принята';
+
+	/// ru: 'Отклонена'
+	String get statusDeclined => 'Отклонена';
+
+	/// ru: 'меняем на'
+	String get changesTo => 'меняем на';
+
+	/// ru: 'Заявок пока нет'
+	String get listEmptyTitle => 'Заявок пока нет';
+
+	/// ru: 'Сейчас в словаре'
+	String get currentCity => 'Сейчас в словаре';
+
+	/// ru: 'Название'
+	String get nameLabel => 'Название';
+
+	/// ru: 'Страна'
+	String get countryLabel => 'Страна';
+
+	/// ru: 'Причина или ссылка'
+	String get reasonFieldLabel => 'Причина или ссылка';
+
+	/// ru: 'Нужен вход'
+	String get signInTitle => 'Нужен вход';
 }
 
 // Path: firstTimeScreen
@@ -801,13 +840,45 @@ class Translations$firstTimeScreen$ru {
 	final Translations _root; // ignore: unused_field
 
 	// Translations
-	List<String> get messages => [
-		'Добро Пожаловать в игру!',
-		'Вы будете загадывать города с\nвашим оппонентом или андроидом по очереди',
-		'Каждое последующее слово \nдолжно начинаться на последнюю \nбукву предыдущего слова',
-		'Исключение составляют только: ь, ъ, ы, ё',
-		'Победителем считается тот, кто в конце игры набрал больше очков или сдался последним',
-	];
+
+	/// ru: 'На последнюю букву'
+	String get step1Title => 'На последнюю букву';
+
+	/// ru: 'Называйте города по очереди. Каждый начинается на букву, которой закончился предыдущий'
+	String get step1Text => 'Называйте города по очереди. Каждый начинается на букву, которой закончился предыдущий';
+
+	/// ru: 'Омск'
+	String get step1From => 'Омск';
+
+	/// ru: 'Киров'
+	String get step1To => 'Киров';
+
+	/// ru: 'Ь, Ъ, Ы и Ё пропускаем'
+	String get step2Title => 'Ь, Ъ, Ы и Ё пропускаем';
+
+	/// ru: 'Берите букву перед ними'
+	String get step2Text => 'Берите букву перед ними';
+
+	/// ru: 'Тверь'
+	String get step2From => 'Тверь';
+
+	/// ru: 'Рига'
+	String get step2To => 'Рига';
+
+	/// ru: 'Больше очков — победа'
+	String get step3Title => 'Больше очков — победа';
+
+	/// ru: 'Или соперник сдаётся первым'
+	String get step3Text => 'Или соперник сдаётся первым';
+
+	/// ru: 'Пропустить'
+	String get skip => 'Пропустить';
+
+	/// ru: 'Дальше'
+	String get next => 'Дальше';
+
+	/// ru: 'Шаг {step} из {total}'
+	String stepOf({required Object step, required Object total}) => 'Шаг ${step} из ${total}';
 }
 
 // Path: login
@@ -950,11 +1021,8 @@ class Translations$online$ru {
 	/// ru: 'Заблокированные игроки'
 	String get blacklistTab => 'Заблокированные игроки';
 
-	/// ru: 'Профиль'
-	String get profileTab => 'Профиль';
-
-	/// ru: 'Ваша история игр'
-	String get battleHistory => 'Ваша история игр';
+	/// ru: 'Ваши партии'
+	String get battleHistory => 'Ваши партии';
 
 	/// ru: 'Загрузка...'
 	String get loading => 'Загрузка...';
@@ -974,14 +1042,14 @@ class Translations$online$ru {
 	/// ru: 'Удалить из друзей'
 	String get removeFromFriends => 'Удалить из друзей';
 
-	/// ru: 'Принять заявку'
-	String get acceptFriendshipRequest => 'Принять заявку';
+	/// ru: 'Принять'
+	String get acceptFriendshipRequest => 'Принять';
 
-	/// ru: 'Отклонить заявку'
-	String get declineFriendshipRequest => 'Отклонить заявку';
+	/// ru: 'Отклонить'
+	String get declineFriendshipRequest => 'Отклонить';
 
-	/// ru: 'Отменить заявку'
-	String get cancelFriendshipRequest => 'Отменить заявку';
+	/// ru: 'Отменить'
+	String get cancelFriendshipRequest => 'Отменить';
 
 	/// ru: 'Заблокировать'
 	String get ban => 'Заблокировать';
@@ -1034,17 +1102,14 @@ class Translations$online$ru {
 	/// ru: 'Заявка отклонена'
 	String get requestDeclined => 'Заявка отклонена';
 
-	/// ru: 'У вас пока нет друзей. Вы можете добавить друга во время онлайн игры.'
-	String get noFriendsPlaceholder => 'У вас пока нет друзей. Вы можете добавить друга во время онлайн игры.';
+	/// ru: 'Добавляйте соперников в друзья после партии'
+	String get noFriendsPlaceholder => 'Добавляйте соперников в друзья после партии';
 
-	/// ru: 'История игр пока пуста. Сыграйте хотя бы одну игру.'
-	String get noHistoryPlaceholder => 'История игр пока пуста. Сыграйте хотя бы одну игру.';
+	/// ru: 'Друзей пока нет'
+	String get friendsEmptyTitle => 'Друзей пока нет';
 
-	/// ru: 'Здесь будут отображаться игроки, которых вы внесли в черный список'
-	String get noBlacklistPlaceholder => 'Здесь будут отображаться игроки, которых вы внесли в черный список';
-
-	/// ru: 'Пользователь добавил вас в чёрный список'
-	String get inputBan => 'Пользователь добавил вас в чёрный список';
+	/// ru: 'Игрок добавил вас в чёрный список'
+	String get inputBan => 'Игрок добавил вас в чёрный список';
 
 	/// ru: 'Заявки в друзья'
 	String get friendRequests => 'Заявки в друзья';
@@ -1079,6 +1144,7 @@ class Translations$online$ru {
 		'not_found': 'Пользователь не найден',
 		'banned': 'Аккаунт заблокирован',
 		'too_many_requests': 'Слишком много запросов, попробуйте позже',
+		'already_reviewed': 'Заявка уже рассмотрена',
 		'bad_reason': 'Причина слишком длинная',
 		'bad_request': 'Не удалось отправить запрос',
 	};
@@ -1104,6 +1170,73 @@ class Translations$online$ru {
 
 	/// ru: '{name} приглашает вас сыграть'
 	String invitesYou({required Object name}) => '${name} приглашает вас сыграть';
+
+	/// ru: 'Хочет добавить вас в друзья'
+	String get wantsFriendship => 'Хочет добавить вас в друзья';
+
+	/// ru: 'В вашем чёрном списке'
+	String get inYourBlacklist => 'В вашем чёрном списке';
+
+	/// ru: 'Партий пока нет'
+	String get historyEmptyTitle => 'Партий пока нет';
+
+	/// ru: 'Список пуст'
+	String get blacklistEmptyTitle => 'Список пуст';
+
+	/// ru: 'в друзьях'
+	String get friendMark => 'в друзьях';
+
+	/// ru: 'Добавляйте соперников в друзья после партии. Здесь их можно будет позвать в игру'
+	String get friendsHint => 'Добавляйте соперников в друзья после партии. Здесь их можно будет позвать в игру';
+
+	/// ru: 'Аватар'
+	String get avatarTitle => 'Аватар';
+
+	/// ru: 'Разблокировать: {name}'
+	String unbanNamed({required Object name}) => 'Разблокировать: ${name}';
+
+	List<String> get months => [
+		'Январь',
+		'Февраль',
+		'Март',
+		'Апрель',
+		'Май',
+		'Июнь',
+		'Июль',
+		'Август',
+		'Сентябрь',
+		'Октябрь',
+		'Ноябрь',
+		'Декабрь',
+	];
+	List<String> get monthsGenitive => [
+		'января',
+		'февраля',
+		'марта',
+		'апреля',
+		'мая',
+		'июня',
+		'июля',
+		'августа',
+		'сентября',
+		'октября',
+		'ноября',
+		'декабря',
+	];
+	List<String> get monthsShort => [
+		'янв',
+		'фев',
+		'мар',
+		'апр',
+		'мая',
+		'июн',
+		'июл',
+		'авг',
+		'сен',
+		'окт',
+		'ноя',
+		'дек',
+	];
 }
 
 // Path: achievements
@@ -1168,11 +1301,11 @@ class Translations$misc$ru {
 
 	// Translations
 
-	/// ru: 'Камера'
-	String get camera => 'Камера';
+	/// ru: 'Сделать фото'
+	String get camera => 'Сделать фото';
 
-	/// ru: 'Галерея'
-	String get gallery => 'Галерея';
+	/// ru: 'Выбрать из галереи'
+	String get gallery => 'Выбрать из галереи';
 }
 
 // Path: d2

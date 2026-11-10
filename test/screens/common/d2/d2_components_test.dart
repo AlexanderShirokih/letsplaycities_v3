@@ -167,4 +167,41 @@ void main() {
 
     expect(find.text('лист'), findsOneWidget);
   });
+
+  testWidgets('D2EmptyState fits a short screen and runs its action', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(320, 420);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    var taps = 0;
+
+    await tester.pumpWidget(
+      _wrap(
+        D2EmptyState(
+          art: const D2TileArt(glyph: D2Glyph.cities, badge: D2Glyph.plus),
+          title: 'Заявок пока нет',
+          text: 'Предложите город или правку — ответ появится здесь',
+          actionLabel: 'Предложить город',
+          onAction: () => taps++,
+        ),
+      ),
+    );
+
+    expect(tester.takeException(), isNull);
+    expect(find.text('Заявок пока нет'), findsOneWidget);
+
+    await tester.tap(find.text('Предложить город'));
+
+    expect(taps, 1);
+  });
+
+  testWidgets('D2EmptyState without an action shows no button', (tester) async {
+    await tester.pumpWidget(
+      _wrap(const D2EmptyState(art: D2BarsArt(), title: 'Пока пусто')),
+    );
+
+    expect(tester.takeException(), isNull);
+    expect(find.byType(D2Button), findsNothing);
+  });
 }

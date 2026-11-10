@@ -16,6 +16,10 @@ enum D2ButtonKind {
   /// Surface without an outline
   secondary,
 
+  /// Like [secondary] for a place on a surface card: filled with the
+  /// background color, so it does not merge with the card
+  tonal,
+
   /// Yellow without an outline
   hint,
 
@@ -195,6 +199,7 @@ class D2Button extends StatelessWidget {
       D2ButtonKind.primary => (c.orange, c.shadow, c.ink, c.shadow),
       D2ButtonKind.accent => (c.violet, c.shadow, Colors.white, c.shadow),
       D2ButtonKind.secondary => (c.surface, null, c.ink, c.edge),
+      D2ButtonKind.tonal => (c.bg, null, c.ink, c.edge),
       D2ButtonKind.hint => (
         c.yellow,
         null,
@@ -218,7 +223,8 @@ class D2Button extends StatelessWidget {
     };
     final style = switch (kind) {
       D2ButtonKind.outline => D2Text.body,
-      D2ButtonKind.secondary when !large => D2Text.body.copyWith(fontSize: 15),
+      D2ButtonKind.secondary ||
+      D2ButtonKind.tonal when !large => D2Text.body.copyWith(fontSize: 15),
       _ => D2Text.cta.copyWith(fontSize: fontSize),
     };
     final textColor = enabled ? fg : c.inkSoft;

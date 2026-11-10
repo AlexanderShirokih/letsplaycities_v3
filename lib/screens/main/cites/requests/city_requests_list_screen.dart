@@ -7,20 +7,66 @@ import 'package:lets_play_cities/base/dictionary/country_entity.dart';
 import 'package:lets_play_cities/base/repositories/cities/country_repository.dart';
 import 'package:lets_play_cities/i18n/strings.g.dart';
 import 'package:lets_play_cities/remote/city_requests_repository.dart';
+import 'package:lets_play_cities/screens/common/common_widgets.dart';
 import 'package:lets_play_cities/screens/common/d2/d2.dart';
 import 'package:lets_play_cities/screens/common/error_texts.dart';
+import 'package:lets_play_cities/screens/main/cites/model/city_edit_action.dart';
 import 'package:shimmer/shimmer.dart';
 
+import 'city_edit_actions_screen.dart';
 import 'widget/request_item_card.dart';
 
 /// Show a list of all (pending and approved) city editing requests
-class CityRequestsListScreen extends StatelessWidget {
+class CityRequestsListScreen extends StatefulWidget {
   const CityRequestsListScreen({super.key});
+
+  @override
+  State<CityRequestsListScreen> createState() => _CityRequestsListScreenState();
+}
+
+class _CityRequestsListScreenState extends State<CityRequestsListScreen> {
+  /// Ids of the requests being withdrawn: they leave the list at once, the
+  /// server is asked when the undo snackbar is gone
+  final _withdrawn = <int>{};
+
+  void _withdraw(BuildContext context, int id) {
+    final bloc = context.read<CityRequestBloc>();
+    setState(() => _withdrawn.add(id));
+
+    showUndoSnackbar(
+      context,
+      context.t.citiesRequest.withdrawn,
+      onComplete: () {
+        if (!bloc.isClosed) bloc.add(CityRequestWithdraw(id));
+      },
+      onUndo: () {
+        if (mounted) setState(() => _withdrawn.remove(id));
+      },
+    );
+  }
+
+  /// A new list from the server has no withdrawn requests in it; after a
+  /// failed withdrawal they come back.
+  void _onState(BuildContext context, CityRequestState state) {
+    if (state is! CityRequestItems) return;
+
+    final ids = {for (final e in state.pendingItems) e.id};
+    setState(
+      () => _withdrawn.removeWhere(
+        (id) => !ids.contains(id) || state.withdrawError != null,
+      ),
+    );
+
+    final error = state.withdrawError;
+    if (error != null) {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(errorText(context.t, error))));
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     final t = context.t;
-    final c = D2Colors.of(context);
 
     return Scaffold(
       body: SafeArea(
@@ -36,73 +82,107 @@ class CityRequestsListScreen extends StatelessWidget {
                   GetIt.instance.get<CityRequestsRepository>(),
                   GetIt.instance.get<CountryRepository>(),
                 ),
-                child: Builder(
-                  builder: (context) {
-                    return RefreshIndicator(
-                      onRefresh: () async {
-                        context.read<CityRequestBloc>().add(
-                          CityRequestFetchData(),
-                        );
-                      },
-                      child: BlocConsumer<CityRequestBloc, CityRequestState>(
-                        listener: (context, state) {
-                          if (state is NotAuthorizedError) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text(t.citiesRequest.signInToView),
-                              ),
-                            );
-                          }
-                        },
-                        builder: (context, state) {
-                          if (state is CityRequestItems &&
-                              state.pendingItems.isEmpty &&
-                              state.approvedItems.isEmpty) {
-                            return Padding(
-                              padding: const EdgeInsets.all(24.0),
-                              child: Center(
-                                child: Text(
-                                  t.citiesRequest.listEmpty,
-                                  textAlign: TextAlign.center,
-                                  style: D2Text.body.copyWith(color: c.ink),
-                                ),
-                              ),
-                            );
-                          }
+                child: BlocConsumer<CityRequestBloc, CityRequestState>(
+                  listener: _onState,
+                  builder: (context, state) => switch (_shown(state)) {
+                    CityRequestInitial() => _scrollable(
+                      context,
+                      children: [_shimmer(context)],
+                    ),
+                    CityRequestItems(:final pendingItems, :final approvedItems)
+                        when pendingItems.isEmpty && approvedItems.isEmpty =>
+                      D2EmptyState(
+                        art: const D2TileArt(
+                          glyph: D2Glyph.cities,
+                          badge: D2Glyph.plus,
+                        ),
+                        title: t.citiesRequest.listEmptyTitle,
+                        text: t.citiesRequest.listEmpty,
+                        actionLabel: t.citiesList.proposeCity,
+                        actionIcon: D2Glyph.plus,
+                        onAction: () async {
+                          final bloc = context.read<CityRequestBloc>();
 
-                          return SingleChildScrollView(
-                            child: Padding(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 26.0,
-                                vertical: 32.0,
-                              ),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    t.citiesRequest.pendingTitle,
-                                    style: D2Text.section.copyWith(
-                                      color: c.ink,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 12.0),
-                                  _createPendingRequests(context),
-                                  const SizedBox(height: 28.0),
-                                  Text(
-                                    t.citiesRequest.reviewedTitle,
-                                    style: D2Text.section.copyWith(
-                                      color: c.ink,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 12.0),
-                                  _createApprovedRequests(context),
-                                ],
+                          await Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => const CityEditActionsScreen(
+                                action: CityEditAction.add,
                               ),
                             ),
                           );
+
+                          // The request sent from the form is in the list
+                          // at once
+                          if (!bloc.isClosed) bloc.add(CityRequestFetchData());
                         },
                       ),
-                    );
+                    CityRequestItems(
+                      :final pendingItems,
+                      :final approvedItems,
+                    ) =>
+                      RefreshIndicator(
+                        onRefresh: () async {
+                          context.read<CityRequestBloc>().add(
+                            CityRequestFetchData(),
+                          );
+                        },
+                        child: _scrollable(
+                          context,
+                          children: [
+                            if (pendingItems.isNotEmpty)
+                              _section(
+                                context,
+                                t.citiesRequest.pendingTitle,
+                                pendingItems.length,
+                                [
+                                  for (final e in pendingItems)
+                                    RequestItemCard(
+                                      cardType: _mapItemType(e.type),
+                                      reason: e.reason,
+                                      result: '',
+                                      from: _mapCityItem(e.source),
+                                      to: _mapCityItem(e.target),
+                                      onWithdraw: () =>
+                                          _withdraw(context, e.id),
+                                    ),
+                                ],
+                              ),
+                            if (approvedItems.isNotEmpty)
+                              _section(
+                                context,
+                                t.citiesRequest.reviewedTitle,
+                                approvedItems.length,
+                                [
+                                  for (final e in approvedItems)
+                                    RequestItemCard(
+                                      cardType: _mapItemType(e.type),
+                                      reason: e.reason,
+                                      result: e.result,
+                                      from: _mapCityItem(e.source),
+                                      to: _mapCityItem(e.target),
+                                      isApproved: e.isApproved,
+                                    ),
+                                ],
+                              ),
+                          ],
+                        ),
+                      ),
+                    NotAuthorizedError() => D2EmptyState(
+                      art: const D2TileArt(glyph: D2Glyph.profile),
+                      title: t.citiesRequest.signInTitle,
+                      text: t.citiesRequest.signInToView,
+                    ),
+                    CityRequestError(:final error) => D2EmptyState(
+                      art: const D2TileArt(glyph: D2Glyph.wifi),
+                      title: t.online.loadingError,
+                      text: errorText(t, error),
+                      actionLabel: t.online.reload,
+                      onAction: () => context.read<CityRequestBloc>().add(
+                        CityRequestFetchData(),
+                      ),
+                    ),
+                    _ => const SizedBox.shrink(),
                   },
                 ),
               ),
@@ -113,67 +193,80 @@ class CityRequestsListScreen extends StatelessWidget {
     );
   }
 
-  Widget _createPendingRequests(BuildContext context) {
-    return BlocBuilder<CityRequestBloc, CityRequestState>(
-      builder: (context, state) {
-        if (state is CityRequestInitial) {
-          return Shimmer.fromColors(
-            baseColor: D2Colors.of(context).edge,
-            highlightColor: D2Colors.of(context).surface,
-            direction: ShimmerDirection.ltr,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: List.generate(
-                3,
-                (_) => RequestItemCardShimmered(isApprovable: false),
+  /// [state] without the requests being withdrawn
+  CityRequestState _shown(CityRequestState state) =>
+      state is CityRequestItems && _withdrawn.isNotEmpty
+      ? CityRequestItems(
+          pendingItems: [
+            for (final e in state.pendingItems)
+              if (!_withdrawn.contains(e.id)) e,
+          ],
+          approvedItems: state.approvedItems,
+        )
+      : state;
+
+  Widget _scrollable(BuildContext context, {required List<Widget> children}) =>
+      ListView(
+        padding: const EdgeInsets.fromLTRB(16, 6, 16, 24),
+        children: children,
+      );
+
+  /// Section title with the number of requests, and the cards under it
+  Widget _section(
+    BuildContext context,
+    String title,
+    int count,
+    List<Widget> cards,
+  ) {
+    final c = D2Colors.of(context);
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 10),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Semantics(
+            header: true,
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(4, 0, 4, 8),
+              child: Text.rich(
+                TextSpan(
+                  text: title,
+                  children: [
+                    TextSpan(
+                      text: '  $count',
+                      style: D2Text.small.copyWith(
+                        fontSize: 14,
+                        color: c.inkSoft,
+                      ),
+                    ),
+                  ],
+                ),
+                style: D2Text.section.copyWith(color: c.ink),
               ),
             ),
-          );
-        } else if (state is CityRequestItems) {
-          return _showPendingItems(context, state.pendingItems);
-        } else if (state is CityRequestError) {
-          return _createLoadingError(
-            context,
-            _ErrorType.network,
-            message: errorText(context.t, state.error),
-          );
-        } else if (state is NotAuthorizedError) {
-          return _createLoadingError(context, _ErrorType.authorization);
-        } else {
-          return Text(context.t.citiesRequest.unexpectedState);
-        }
-      },
+          ),
+          ...cards,
+        ],
+      ),
     );
   }
 
-  Widget _createApprovedRequests(BuildContext context) {
-    return BlocBuilder<CityRequestBloc, CityRequestState>(
-      builder: (context, state) {
-        if (state is CityRequestInitial) {
-          return Shimmer.fromColors(
-            baseColor: D2Colors.of(context).edge,
-            highlightColor: D2Colors.of(context).surface,
-            direction: ShimmerDirection.ltr,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: List.generate(
-                5,
-                (_) => RequestItemCardShimmered(isApprovable: true),
-              ),
-            ),
-          );
-        } else if (state is CityRequestItems) {
-          return _showApprovedItems(context, state.approvedItems);
-        } else if (state is CityRequestError) {
-          return _createLoadingError(context, _ErrorType.network);
-        } else if (state is NotAuthorizedError) {
-          return _createLoadingError(context, _ErrorType.authorization);
-        } else {
-          return Text(
-            context.t.citiesRequest.unexpectedStateDetails(state: state),
-          );
-        }
-      },
+  Widget _shimmer(BuildContext context) {
+    final c = D2Colors.of(context);
+
+    return Shimmer.fromColors(
+      baseColor: c.edge,
+      highlightColor: c.surface,
+      direction: ShimmerDirection.ltr,
+      child: Column(
+        children: [
+          for (var i = 0; i < 3; i++)
+            const RequestItemCardShimmered(isApprovable: false),
+          for (var i = 0; i < 3; i++)
+            const RequestItemCardShimmered(isApprovable: true),
+        ],
+      ),
     );
   }
 
@@ -196,101 +289,4 @@ class CityRequestsListScreen extends StatelessWidget {
       CountryEntity(source.countryName, source.countryCode, false),
     );
   }
-
-  Widget _createLoadingError(
-    BuildContext context,
-    _ErrorType errorType, {
-    String message = '',
-  }) {
-    return Center(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          _getErrorIcon(errorType, D2Colors.of(context).inkSoft),
-          const SizedBox(height: 4.0),
-          Text(
-            context.t.citiesRequest.listLoadingError(message: message),
-            style: D2Text.caption.copyWith(color: D2Colors.of(context).inkSoft),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _getErrorIcon(_ErrorType errorType, Color color) {
-    switch (errorType) {
-      case _ErrorType.network:
-        return D2Icon(D2Glyph.wifi, color: color);
-      case _ErrorType.authorization:
-        return D2Icon(D2Glyph.profile, color: color);
-    }
-  }
-
-  Widget _showPendingItems(
-    BuildContext context,
-    List<CityPendingItem> pendingItems,
-  ) {
-    final t = context.t;
-    final c = D2Colors.of(context);
-
-    if (pendingItems.isEmpty) {
-      return Center(
-        child: Text(
-          t.citiesRequest.noPending,
-          style: D2Text.bodyRegular.copyWith(color: c.inkSoft),
-        ),
-      );
-    }
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: pendingItems
-          .map(
-            (e) => RequestItemCard(
-              cardType: _mapItemType(e.type),
-              reason: e.reason,
-              result: '',
-              from: _mapCityItem(e.source),
-              to: _mapCityItem(e.target),
-            ),
-          )
-          .toList(growable: false),
-    );
-  }
-
-  Widget _showApprovedItems(
-    BuildContext context,
-    List<CityApprovedItem> approvedItems,
-  ) {
-    final t = context.t;
-    final c = D2Colors.of(context);
-
-    if (approvedItems.isEmpty) {
-      return Center(
-        child: Text(
-          t.citiesRequest.noReviewed,
-          style: D2Text.bodyRegular.copyWith(color: c.inkSoft),
-        ),
-      );
-    }
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: approvedItems
-          .map(
-            (e) => RequestItemCard(
-              reason: e.reason,
-              result: e.result,
-              cardType: _mapItemType(e.type),
-              from: _mapCityItem(e.source),
-              to: _mapCityItem(e.target),
-              isApproved: e.isApproved,
-            ),
-          )
-          .toList(growable: false),
-    );
-  }
 }
-
-enum _ErrorType { network, authorization }

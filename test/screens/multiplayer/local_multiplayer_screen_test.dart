@@ -12,6 +12,7 @@ import 'package:lets_play_cities/remote/server/server_game_controller.dart';
 import 'package:lets_play_cities/screens/common/d2/d2.dart';
 import 'package:lets_play_cities/screens/multiplayer/lan_scope.dart';
 import 'package:lets_play_cities/screens/multiplayer/local_multiplayer_screen.dart';
+import 'package:lets_play_cities/screens/online/game_waiting_room_screen.dart';
 import 'package:lets_play_cities/utils/error_logger.dart';
 
 import '../../i18n/translations_harness.dart';
@@ -153,14 +154,25 @@ void main() {
     await tester.pump(const Duration(seconds: 1));
 
     expect(GetIt.instance.currentScopeName, lanGameScopeName);
-    expect(find.text('Найти соперника'), findsOneWidget);
+    // The waiting room looks for the guest at once, without a button
+    expect(find.byType(GameWaitingRoomScreen), findsOneWidget);
+    expect(find.text('Найти соперника'), findsNothing);
     expect(host.isRunning, isTrue);
 
     await tester.tap(find.byTooltip('Назад').last);
     for (var i = 0; i < 5; i++) {
       await tester.pump();
     }
-    await tester.pump(const Duration(seconds: 1));
+    // The waiting room has opened a real socket: it closes in real time,
+    // and its timeout is in the fake one
+    await tester.runAsync(
+      () => Future<void>.delayed(const Duration(milliseconds: 500)),
+    );
+    await tester.pump(const Duration(seconds: 11));
+    await tester.runAsync(
+      () => Future<void>.delayed(const Duration(milliseconds: 200)),
+    );
+    await tester.pump();
 
     expect(GetIt.instance.currentScopeName, isNot(lanGameScopeName));
     expect(host.closeCalls, 1);

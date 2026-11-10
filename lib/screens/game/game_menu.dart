@@ -51,24 +51,26 @@ class _GameMenuButtonState extends State<GameMenuButton> {
     // gone once the menu closes.
     void exitToMenu() => showConfirmationDialog(
       context,
-      message: t.game.goToMenu,
+      title: t.game.goToMenu,
+      confirmLabel: t.game.exitConfirm,
+      cancelLabel: t.game.stay,
       onOk: () => Navigator.of(context).pop(),
     );
 
     void surrender() => showConfirmationDialog(
       context,
-      message: t.game.surrender,
+      title: t.game.surrender,
+      message: t.game.surrenderMessage,
+      confirmLabel: t.game.surrenderConfirm,
+      cancelLabel: t.game.stay,
+      destructive: true,
       onOk: () => context.read<GameBloc>().add(const GameEventSurrender()),
     );
 
     void showRules() => Navigator.of(context).push(
       MaterialPageRoute<void>(
-        builder: (context) => FirstTimeOnBoardingScreen(
-          gameConfig: gameConfig,
-          duration: const Duration(seconds: 4),
-          strings: context.t.firstTimeScreen.messages,
-          replay: true,
-        ),
+        builder: (context) =>
+            FirstTimeOnBoardingScreen(gameConfig: gameConfig, replay: true),
       ),
     );
 

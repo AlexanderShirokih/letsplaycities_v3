@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get_it/get_it.dart';
@@ -63,8 +65,26 @@ String? _describeAccountError(
   return null;
 }
 
-Widget _divider(BuildContext context) =>
-    Divider(height: 18.0, thickness: 1.0, color: D2Colors.of(context).edge);
+/// The screen of a profile: a header with back and [actions] over [child]
+class _ProfileFrame extends StatelessWidget {
+  final List<Widget> actions;
+  final Widget child;
+
+  const _ProfileFrame({this.actions = const [], required this.child});
+
+  @override
+  Widget build(BuildContext context) => SafeArea(
+    child: Column(
+      children: [
+        D2ScreenHeader(
+          onBack: () => Navigator.of(context).maybePop(),
+          actions: actions,
+        ),
+        Expanded(child: child),
+      ],
+    ),
+  );
+}
 
 /// Shows user profile independently from already injected providers
 class OnlineProfileViewStandalone extends StatefulWidget {
@@ -92,21 +112,28 @@ class _OnlineProfileViewStandaloneState
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder<RemoteAccount?>(
-      future: _account,
-      builder: (context, lastSignedInAccount) {
-        if (lastSignedInAccount.connectionState != ConnectionState.done) {
-          return LoadingView(context.t.online.fetchingProfile);
-        }
-        if (!lastSignedInAccount.hasData) {
-          return ConnectionErrorView(
-            onReload: _reload,
-            errorMessage: _describeAccountError(context.t, lastSignedInAccount),
-          );
-        }
-        return Scaffold(
-          appBar: AppBar(title: Text(context.t.online.profileTab)),
-          body: MultiRepositoryProvider(
+    return Scaffold(
+      backgroundColor: D2Colors.of(context).bg,
+      body: FutureBuilder<RemoteAccount?>(
+        future: _account,
+        builder: (context, lastSignedInAccount) {
+          if (lastSignedInAccount.connectionState != ConnectionState.done) {
+            return _ProfileFrame(
+              child: LoadingView(context.t.online.fetchingProfile),
+            );
+          }
+          if (!lastSignedInAccount.hasData) {
+            return _ProfileFrame(
+              child: ConnectionErrorView(
+                onReload: _reload,
+                errorMessage: _describeAccountError(
+                  context.t,
+                  lastSignedInAccount,
+                ),
+              ),
+            );
+          }
+          return MultiRepositoryProvider(
             providers: [
               RepositoryProvider<RemoteAccount>.value(
                 value: lastSignedInAccount.requireData!,
@@ -116,9 +143,9 @@ class _OnlineProfileViewStandaloneState
               ),
             ],
             child: OnlineProfileView(userId: widget.userId),
-          ),
-        );
-      },
+          );
+        },
+      ),
     );
   }
 }
@@ -146,7 +173,7 @@ class OnlineProfileView extends StatefulWidget {
     void Function(LpsUser friend)? onInvite,
   }) => MaterialPageRoute(
     builder: (ctx) => Scaffold(
-      appBar: AppBar(title: Text(ctx.t.online.profileTab)),
+      backgroundColor: D2Colors.of(ctx).bg,
       body: RepositoryProvider.value(
         value: context.read<ApiRepository>(),
         child: OnlineProfileView(userId: userId, onInvite: onInvite),
@@ -154,6 +181,8 @@ class OnlineProfileView extends StatefulWidget {
     ),
   );
 }
+
+enum _ProfileMenu { remove, ban }
 
 class _OnlineProfileViewState extends State<OnlineProfileView> {
   // The cached profile shows an old online status
@@ -192,51 +221,69 @@ class _OnlineProfileViewState extends State<OnlineProfileView> {
     future: _account,
     builder: (context, account) {
       if (account.connectionState != ConnectionState.done) {
-        return LoadingView('...');
+        return _ProfileFrame(
+          child: LoadingView(context.t.online.fetchingProfile),
+        );
       }
       if (!account.hasData) {
-        return ConnectionErrorView(
-          onReload: _reloadAccount,
-          errorMessage: _describeAccountError(context.t, account),
+        return _ProfileFrame(
+          child: ConnectionErrorView(
+            onReload: _reloadAccount,
+            errorMessage: _describeAccountError(context.t, account),
+          ),
         );
       }
 
       final owner = account.requireData!;
       final isOwner = _isOwner(owner);
 
-      return withData<Widget, ApiRepository>(
-        context.watch<ApiRepository>(),
-        (repo) => RefreshIndicator(
+      return withData<Widget, ApiRepository>(context.watch<ApiRepository>(), (
+        repo,
+      ) {
+        Widget refreshable(Widget child) => RefreshIndicator(
           onRefresh: () => isOwner ? _refreshOwner() : Future.sync(_update),
-          child: isOwner
-              ? _buildProfileView(
-                  true,
-                  context,
-                  UserProfile(
-                    user: owner.user,
-                    friendship: Friendship.none,
-                    blocked: Blocked.none,
-                  ),
-                )
-              : FutureBuilder<UserProfile>(
-                  future: repo.user(widget.userId!, _shouldUpdate),
-                  builder: (context, snap) {
-                    if (snap.hasData) {
-                      _shouldUpdate = false;
-                      return _buildProfileView(
-                        false,
-                        context,
-                        snap.requireData,
-                      );
-                    } else if (snap.hasError) {
-                      return showError(context, snap.error!);
-                    } else {
-                      return showLoadingWidget(context);
-                    }
-                  },
+          child: child,
+        );
+
+        if (isOwner) {
+          return _ProfileFrame(
+            child: refreshable(
+              _buildProfileView(
+                true,
+                context,
+                UserProfile(
+                  user: owner.user,
+                  friendship: Friendship.none,
+                  blocked: Blocked.none,
                 ),
-        ),
-      );
+              ),
+            ),
+          );
+        }
+
+        return FutureBuilder<UserProfile>(
+          future: repo.user(widget.userId!, _shouldUpdate),
+          builder: (context, snap) {
+            if (snap.hasData) {
+              _shouldUpdate = false;
+              final data = snap.requireData;
+
+              return _ProfileFrame(
+                actions: [_buildMenu(data, context)],
+                child: refreshable(_buildProfileView(false, context, data)),
+              );
+            }
+
+            return _ProfileFrame(
+              child: refreshable(
+                snap.hasError
+                    ? showError(context, snap.error!)
+                    : showLoadingWidget(context),
+              ),
+            );
+          },
+        );
+      });
     },
   );
 
@@ -247,10 +294,9 @@ class _OnlineProfileViewState extends State<OnlineProfileView> {
   ) {
     final t = context.t;
     return ListView(
-      padding: const EdgeInsets.only(bottom: 16.0),
+      padding: const EdgeInsets.fromLTRB(16, 10, 16, 16),
       children: [
-        ..._buildTopBlock(isOwner, data, context, t),
-        ..._buildIdBlock(data, context),
+        _buildTopBlock(isOwner, data, context, t),
         ..._buildActionsBlock(isOwner, data, context, t),
         ..._buildNavigationBlock(isOwner, context, t),
         ..._buildRelatedHistoryBlock(isOwner, context, t),
@@ -258,53 +304,119 @@ class _OnlineProfileViewState extends State<OnlineProfileView> {
     );
   }
 
-  Iterable<Widget> _buildTopBlock(
+  Widget _buildTopBlock(
     bool isOwner,
     UserProfile data,
     BuildContext context,
     Translations t,
-  ) sync* {
+  ) {
     final c = D2Colors.of(context);
     final user = data.user;
-    yield Container(
-      padding: EdgeInsets.all(24.0),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          InkWell(
-            onTap: isOwner
-                ? () => showModalBottomSheet(
-                    context: context,
-                    builder: (_) => AvatarChooserView(
-                      context.read<ApiRepository>(),
-                      onAvatarUpdated: _reloadAccount,
-                    ),
-                  )
-                : null,
-            child: lpsUserAvatar(context, user, size: 72.0),
+
+    return Row(
+      children: [
+        InkWell(
+          onTap: isOwner
+              ? () => showD2Sheet<void>(
+                  context,
+                  builder: (_) => AvatarChooserView(
+                    context.read<ApiRepository>(),
+                    onAvatarUpdated: _reloadAccount,
+                  ),
+                )
+              : null,
+          child: Transform.rotate(
+            angle: -3 * math.pi / 180,
+            child: Container(
+              padding: const EdgeInsets.all(4),
+              decoration: BoxDecoration(
+                color: c.surface,
+                borderRadius: BorderRadius.circular(20),
+                boxShadow: [
+                  BoxShadow(
+                    color: c.shadow.withValues(alpha: 0.22),
+                    offset: const Offset(0, 5),
+                  ),
+                ],
+              ),
+              child: lpsUserAvatar(context, user, size: 58),
+            ),
           ),
-          Flexible(
-            child: Padding(
-              padding: const EdgeInsets.only(left: 20.0, top: 8.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+        ),
+        const SizedBox(width: 16),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                user.name,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: D2Text.title.copyWith(fontSize: 20, color: c.ink),
+              ),
+              const SizedBox(height: 5),
+              Wrap(
+                spacing: 12,
+                crossAxisAlignment: WrapCrossAlignment.center,
                 children: [
                   Text(
-                    user.name,
-                    style: D2Text.title.copyWith(color: c.ink),
-                    overflow: TextOverflow.clip,
+                    'ID ${user.id}',
+                    style: D2Text.caption.copyWith(color: c.inkSoft),
                   ),
-                  const SizedBox(height: 12.0),
                   _showOnlineStatus(isOwner, t, user),
                 ],
               ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  /// The «⋮» menu of the header
+  Widget _buildMenu(UserProfile data, BuildContext context) {
+    final t = context.t;
+    final c = D2Colors.of(context);
+    final user = data.user;
+    final canRemove =
+        data.friendship == Friendship.friends && !data.blocked.isBlockingMe;
+
+    // The blocked user has no menu: «Разблокировать» is on the card
+    if (data.blocked.isBlockedByMe) return const SizedBox.shrink();
+
+    return BlocBuilder<UserActionsBloc, UserActionsState>(
+      bloc: _userActionsBloc,
+      builder: (context, state) => PopupMenuButton<_ProfileMenu>(
+        enabled: state is! UserProcessingActionState,
+        tooltip: user.name,
+        icon: D2Icon(D2Glyph.more, size: 22, color: c.ink),
+        onSelected: (item) => _userActionsBloc.add(switch (item) {
+          _ProfileMenu.remove => UserEvent(
+            user,
+            UserUserAction.removeFromFriends,
+          ),
+          _ProfileMenu.ban => UserEvent(
+            user,
+            UserUserAction.banUser,
+            confirmationMessage: t.online.userBanned,
+          ),
+        }),
+        itemBuilder: (_) => [
+          if (canRemove)
+            PopupMenuItem(
+              value: _ProfileMenu.remove,
+              child: Text(t.online.removeFromFriends, style: D2Text.body),
+            ),
+          PopupMenuItem(
+            value: _ProfileMenu.ban,
+            child: Text(
+              t.online.ban,
+              style: D2Text.body.copyWith(color: c.error),
             ),
           ),
         ],
       ),
     );
-    yield _divider(context);
   }
 
   Iterable<Widget> _buildActionsBlock(
@@ -317,38 +429,20 @@ class _OnlineProfileViewState extends State<OnlineProfileView> {
 
     final userActionsBloc = _userActionsBloc;
 
+    yield const SizedBox(height: 20);
     yield BlocConsumer<UserActionsBloc, UserActionsState>(
       bloc: userActionsBloc,
       builder: (context, state) {
         if (state is UserActionErrorState) {
           return showError(context, state.error);
         }
-        final isProcessing = state is UserProcessingActionState;
-        return Column(
-          children: [
-            if (data.blocked.isBlockingMe)
-              Padding(
-                padding: const EdgeInsets.only(bottom: 12.0),
-                child: Text(
-                  t.online.inputBan,
-                  style: D2Text.body.copyWith(
-                    color: D2Colors.of(context).error,
-                  ),
-                ),
-              ),
-            Wrap(
-              alignment: WrapAlignment.center,
-              spacing: 12.0,
-              runSpacing: 12.0,
-              children: _actionButtons(
-                data,
-                context,
-                userActionsBloc,
-                t,
-                isProcessing,
-              ),
-            ),
-          ],
+
+        return _buildAction(
+          data,
+          context,
+          userActionsBloc,
+          t,
+          state is UserProcessingActionState,
         );
       },
       listener: (context, state) {
@@ -375,69 +469,179 @@ class _OnlineProfileViewState extends State<OnlineProfileView> {
         }
       },
     );
-    yield _divider(context);
   }
 
-  /// The buttons of the profile by [UserProfile.friendship] and
+  /// The action of the profile by [UserProfile.friendship] and
   /// [UserProfile.blocked]. Nobody can be invited or asked to be a friend
   /// while either user blocks the other.
-  List<Widget> _actionButtons(
+  Widget _buildAction(
     UserProfile data,
     BuildContext context,
     UserActionsBloc bloc,
     Translations t,
     bool disabled,
   ) {
+    final c = D2Colors.of(context);
     final user = data.user;
 
-    Widget unblock() => _createButton(
-      t.online.unban,
-      disabled
-          ? null
-          : () => bloc.add(
-              UserEvent(
-                user,
-                UserUserAction.unbanUser,
-                confirmationMessage: t.online.userUnbanned,
-              ),
+    VoidCallback? act(UserEvent event) =>
+        disabled ? null : () => bloc.add(event);
+
+    Widget blockedMe() => Row(
+      children: [
+        D2Icon(D2Glyph.ban, size: 20, color: c.error),
+        const SizedBox(width: 8),
+        Expanded(
+          child: Text(
+            t.online.inputBan,
+            style: D2Text.bodyRegular.copyWith(
+              fontWeight: FontWeight.w500,
+              fontVariations: const [FontVariation('wght', 500)],
+              color: c.error,
             ),
+          ),
+        ),
+      ],
     );
 
-    if (data.blocked.isBlockedByMe) return [unblock()];
-    if (data.blocked.isBlockingMe) return const [];
-
-    return [
-      _getFriendshipButton(data, bloc, t, disabled),
-      if (data.friendship == Friendship.friends)
-        _createButton(
-          t.online.invite,
-          disabled ? null : () => inviteFriend(context, user, widget.onInvite),
-        )
-      else
-        _createButton(
-          t.online.ban,
-          disabled
-              ? null
-              : () => bloc.add(
-                  UserEvent(
-                    user,
-                    UserUserAction.banUser,
-                    confirmationMessage: t.online.userBanned,
+    if (data.blocked.isBlockedByMe) {
+      final card = D2Card(
+        padding: const EdgeInsets.all(12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Row(
+              children: [
+                D2Icon(D2Glyph.ban, size: 20, color: c.ink),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    t.online.inYourBlacklist,
+                    style: D2Text.bodyRegular.copyWith(
+                      fontWeight: FontWeight.w500,
+                      fontVariations: const [FontVariation('wght', 500)],
+                      color: c.ink,
+                    ),
                   ),
                 ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            D2Button(
+              label: t.online.unban,
+              kind: D2ButtonKind.tonal,
+              expand: true,
+              onPressed: act(
+                UserEvent(
+                  user,
+                  UserUserAction.unbanUser,
+                  confirmationMessage: t.online.userUnbanned,
+                ),
+              ),
+            ),
+          ],
         ),
-    ];
-  }
+      );
 
-  Iterable<Widget> _buildIdBlock(UserProfile data, BuildContext context) sync* {
-    yield Container(
-      alignment: Alignment.center,
-      child: Text(
-        'ID ${data.user.id}',
-        style: D2Text.body.copyWith(color: D2Colors.of(context).inkSoft),
-      ),
-    );
-    yield _divider(context);
+      if (!data.blocked.isBlockingMe) return card;
+
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [blockedMe(), const SizedBox(height: 12), card],
+      );
+    }
+
+    if (data.blocked.isBlockingMe) return blockedMe();
+
+    switch (data.friendship) {
+      case Friendship.friends:
+        return D2Button(
+          label: t.online.invite,
+          icon: D2Glyph.play,
+          kind: D2ButtonKind.accent,
+          size: D2ButtonSize.large,
+          expand: true,
+          onPressed: disabled
+              ? null
+              : () => inviteFriend(context, user, widget.onInvite),
+        );
+      case Friendship.none:
+        return D2Button(
+          label: t.online.addToFriend,
+          icon: D2Glyph.userPlus,
+          kind: D2ButtonKind.accent,
+          size: D2ButtonSize.large,
+          expand: true,
+          onPressed: act(UserEvent(user, UserUserAction.addToFriends)),
+        );
+      case Friendship.outgoing:
+        return D2Card(
+          padding: const EdgeInsets.fromLTRB(14, 8, 8, 8),
+          child: Row(
+            children: [
+              Expanded(
+                child: Text(
+                  t.online.requestSent,
+                  style: D2Text.bodyRegular.copyWith(
+                    fontWeight: FontWeight.w500,
+                    fontVariations: const [FontVariation('wght', 500)],
+                    color: c.ink,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 12),
+              D2Button(
+                label: t.online.cancelInvite,
+                kind: D2ButtonKind.tonal,
+                onPressed: act(UserEvent(user, UserUserAction.cancelRequest)),
+              ),
+            ],
+          ),
+        );
+      case Friendship.incoming:
+        return D2Card(
+          padding: const EdgeInsets.all(12),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text(
+                t.online.wantsFriendship,
+                style: D2Text.bodyRegular.copyWith(
+                  fontWeight: FontWeight.w500,
+                  fontVariations: const [FontVariation('wght', 500)],
+                  color: c.ink,
+                ),
+              ),
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  Expanded(
+                    child: D2Button(
+                      label: t.decline,
+                      kind: D2ButtonKind.tonal,
+                      expand: true,
+                      onPressed: act(
+                        UserEvent(user, UserUserAction.declineRequest),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: D2Button(
+                      label: t.accept,
+                      kind: D2ButtonKind.accent,
+                      expand: true,
+                      onPressed: act(
+                        UserEvent(user, UserUserAction.acceptRequest),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        );
+    }
   }
 
   Iterable<Widget> _buildNavigationBlock(
@@ -446,136 +650,111 @@ class _OnlineProfileViewState extends State<OnlineProfileView> {
     Translations t,
   ) sync* {
     if (!isOwner) return;
-    yield _buildNavigationButton(
-      D2Glyph.friends,
-      t.online.friendsTab,
-      () => OnlineFriendsScreen(onInvite: widget.onInvite),
+    yield const SizedBox(height: 20);
+    yield D2Card(
+      padding: EdgeInsets.zero,
+      child: Column(
+        children: [
+          _buildNavigationButton(
+            D2Glyph.friends,
+            t.online.friendsTab,
+            () => OnlineFriendsScreen(onInvite: widget.onInvite),
+          ),
+          _buildNavigationButton(
+            D2Glyph.history,
+            t.online.historyTab,
+            () => OnlineHistoryScreen(onInvite: widget.onInvite),
+          ),
+          _buildNavigationButton(
+            D2Glyph.ban,
+            t.online.blacklistTab,
+            () => OnlineBanlistScreen(),
+          ),
+        ],
+      ),
     );
-    yield _buildNavigationButton(
-      D2Glyph.history,
-      t.online.historyTab,
-      () => OnlineHistoryScreen(onInvite: widget.onInvite),
-    );
-    yield _buildNavigationButton(
-      D2Glyph.ban,
-      t.online.blacklistTab,
-      () => OnlineBanlistScreen(),
-    );
-    yield _divider(context);
   }
 
   Widget _buildNavigationButton(
     D2Glyph icon,
     String label,
     Widget Function() destinationScreen,
-  ) => ListTile(
-    onTap: () => Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (ctx) => MultiRepositoryProvider(
-          providers: [
-            RepositoryProvider.value(value: context.read<ApiRepository>()),
-          ],
-          child: Scaffold(
-            appBar: AppBar(title: Text(label)),
-            body: destinationScreen(),
+  ) {
+    final c = D2Colors.of(context);
+
+    return InkWell(
+      onTap: () => Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (ctx) => MultiRepositoryProvider(
+            providers: [
+              RepositoryProvider.value(value: context.read<ApiRepository>()),
+            ],
+            child: Scaffold(
+              body: SafeArea(
+                child: Column(
+                  children: [
+                    D2ScreenHeader(
+                      title: label,
+                      onBack: () => Navigator.maybePop(ctx),
+                    ),
+                    Expanded(child: destinationScreen()),
+                  ],
+                ),
+              ),
+            ),
           ),
         ),
       ),
-    ),
-    leading: D2Icon(icon),
-    title: Text(label, style: D2Text.body),
-  );
-
-  Widget _createButton(String label, VoidCallback? onPressed) => ElevatedButton(
-    style: ElevatedButton.styleFrom(
-      padding: const EdgeInsets.symmetric(horizontal: 18.0, vertical: 18.0),
-      shape: _createRoundedBorder(),
-      backgroundColor: D2Colors.of(context).violet,
-      foregroundColor: Theme.of(context).colorScheme.onPrimary,
-      textStyle: D2Text.body,
-    ),
-    onPressed: onPressed,
-    child: Text(label),
-  );
-
-  Widget _getFriendshipButton(
-    UserProfile data,
-    UserActionsBloc bloc,
-    Translations t,
-    bool disabled,
-  ) {
-    final user = data.user;
-
-    switch (data.friendship) {
-      case Friendship.none:
-        return _createButton(
-          t.online.addToFriend,
-          disabled
-              ? null
-              : () => bloc.add(UserEvent(user, UserUserAction.addToFriends)),
-        );
-      case Friendship.friends:
-        return _createButton(
-          t.online.removeFromFriends,
-          disabled
-              ? null
-              : () =>
-                    bloc.add(UserEvent(user, UserUserAction.removeFromFriends)),
-        );
-      case Friendship.outgoing:
-        return _createButton(
-          t.online.cancelFriendshipRequest,
-          disabled
-              ? null
-              : () => bloc.add(UserEvent(user, UserUserAction.cancelRequest)),
-        );
-      case Friendship.incoming:
-        return _AcceptOrDeclineButton(
-          t,
-          onResult: disabled
-              ? null
-              : (isAccepted) => bloc.add(
-                  UserEvent(
-                    user,
-                    isAccepted
-                        ? UserUserAction.acceptRequest
-                        : UserUserAction.declineRequest,
-                  ),
-                ),
-        );
-    }
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(minHeight: 52),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 14),
+          child: Row(
+            children: [
+              D2Icon(icon, size: 22, color: c.ink),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(label, style: D2Text.body.copyWith(color: c.ink)),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 
-  RoundedRectangleBorder _createRoundedBorder() => RoundedRectangleBorder(
-    borderRadius: BorderRadius.circular(12.0),
-    side: BorderSide.none,
-  );
-
   Widget _showOnlineStatus(bool isOwner, Translations t, LpsUser user) {
+    final c = D2Colors.of(context);
     final now = DateTime.now();
     final online = isOwner || user.isOnline(now);
 
     return online
         ? Row(
+            mainAxisSize: MainAxisSize.min,
             children: [
               Container(
-                width: 10.0,
-                height: 10.0,
+                width: 9,
+                height: 9,
                 decoration: BoxDecoration(
-                  color: D2Colors.of(context).mint,
+                  color: c.mint,
                   shape: BoxShape.circle,
                 ),
               ),
-              const SizedBox(width: 6.0),
-              Text(t.online.lastSeen.now, style: D2Text.bodyRegular),
+              const SizedBox(width: 6),
+              Text(
+                t.online.lastSeen.now,
+                style: D2Text.caption.copyWith(
+                  fontWeight: FontWeight.w500,
+                  fontVariations: const [FontVariation('wght', 500)],
+                  color: c.ink,
+                ),
+              ),
             ],
           )
         : Text(
             formatLastSeen(t, user.lastSeenAt, now),
-            style: D2Text.bodyRegular.copyWith(
-              color: D2Colors.of(context).inkSoft,
-            ),
+            style: D2Text.caption.copyWith(color: c.inkSoft),
           );
   }
 
@@ -585,19 +764,13 @@ class _OnlineProfileViewState extends State<OnlineProfileView> {
     Translations t,
   ) sync* {
     if (isOwner) return;
-    yield Padding(
-      padding: const EdgeInsets.all(12.0),
-      child: Text(
-        t.online.battleHistory,
-        style: D2Text.section.copyWith(color: D2Colors.of(context).ink),
-      ),
-    );
+    yield const SizedBox(height: 20);
     yield OnlineHistoryScreen(
       withUser: widget.userId,
       embedded: true,
+      embeddedTitle: t.online.battleHistory,
       onInvite: widget.onInvite,
     );
-    yield _divider(context);
   }
 
   /// Asks the server for the own account again
@@ -620,63 +793,4 @@ class _OnlineProfileViewState extends State<OnlineProfileView> {
 
   bool _isOwner(RemoteAccount account) =>
       widget.userId == null || widget.userId == account.userId;
-}
-
-class _AcceptOrDeclineButton extends StatefulWidget {
-  final Translations t;
-  final void Function(bool)? onResult;
-
-  const _AcceptOrDeclineButton(this.t, {required this.onResult});
-
-  @override
-  State<_AcceptOrDeclineButton> createState() => __AcceptOrDeclineButtonState();
-}
-
-class __AcceptOrDeclineButtonState extends State<_AcceptOrDeclineButton> {
-  late final List<String> _values;
-
-  int _selected = 0;
-
-  @override
-  void initState() {
-    super.initState();
-    _values = [
-      widget.t.online.acceptFriendshipRequest,
-      widget.t.online.declineFriendshipRequest,
-    ];
-  }
-
-  @override
-  Widget build(BuildContext context) => Container(
-    padding: EdgeInsets.only(left: 10.0),
-    decoration: BoxDecoration(
-      borderRadius: BorderRadius.circular(12.0),
-      color: D2Colors.of(context).violet,
-    ),
-    child: DropdownButton(
-      value: _selected,
-      elevation: 5,
-      dropdownColor: D2Colors.of(context).violet,
-      iconEnabledColor: Theme.of(context).colorScheme.onPrimary,
-      items: widget.onResult == null
-          ? null
-          : [0, 1]
-                .map(
-                  (e) => DropdownMenuItem(
-                    value: e,
-                    child: Text(
-                      _values[e],
-                      style: D2Text.body.copyWith(
-                        color: Theme.of(context).colorScheme.onPrimary,
-                      ),
-                    ),
-                  ),
-                )
-                .toList(),
-      onChanged: (int? newValue) => setState(() {
-        _selected = newValue ?? 0;
-        widget.onResult!(_selected == 0);
-      }),
-    ),
-  );
 }

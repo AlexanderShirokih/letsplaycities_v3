@@ -34,6 +34,13 @@ class RemoteLpsApiClient extends LpsApiClient {
     return CityRequest.fromJson(response.data);
   }
 
+  @override
+  Future<void> deleteCityRequest(int id) async {
+    await _requireCredential();
+
+    await _send(() => _httpClient.delete('/city-edits/$id'));
+  }
+
   Future<void> _requireCredential() async {
     final token = await _tokens.read();
     if (token == null || token.isEmpty) {

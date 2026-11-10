@@ -126,6 +126,31 @@ void main() {
       expect(find.text(t.hotseat.turnOf(name: 'Аня')), findsOneWidget);
     });
 
+    testWidgets('the pencil edits the name, «Готово» closes the keyboard', (
+      tester,
+    ) async {
+      await pumpSetup(tester);
+
+      final field = find.byType(TextField).first;
+      expect(
+        tester.widget<TextField>(field).textInputAction,
+        TextInputAction.done,
+      );
+      expect(tester.widget<TextField>(field).focusNode!.hasFocus, isFalse);
+
+      await tester.tap(
+        find
+            .byWidgetPredicate((w) => w is D2Icon && w.glyph == D2Glyph.edit)
+            .first,
+      );
+      await tester.pump();
+      expect(tester.widget<TextField>(field).focusNode!.hasFocus, isTrue);
+
+      await tester.testTextInput.receiveAction(TextInputAction.done);
+      await tester.pump();
+      expect(tester.widget<TextField>(field).focusNode!.hasFocus, isFalse);
+    });
+
     testWidgets('names are at most 10 characters', (tester) async {
       await pumpSetup(tester);
 

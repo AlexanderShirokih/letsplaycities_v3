@@ -55,6 +55,19 @@ enum D2Glyph {
 
   /// «=» of a draw
   equal,
+
+  /// Picture of the gallery
+  gallery,
+  camera,
+
+  /// A person with «+»: ask to be a friend
+  userPlus,
+
+  /// A person with «−»: remove from friends
+  userMinus,
+
+  /// Arrow from the old city to the new one in an edit request
+  turnRight,
 }
 
 /// One stroked (or filled) path of a glyph, in a 24x24 view box
@@ -112,10 +125,11 @@ final _glyphs = <D2Glyph, List<_Shape>>{
   ],
   D2Glyph.phone: [_Shape(_rect(6, 2.5, 12, 19, 3.5)), const _Shape('M11 18h2')],
   D2Glyph.wifi: [
-    const _Shape('M3.5 9.2a12 12 0 0 1 17 0'),
-    const _Shape('M7 12.8a7 7 0 0 1 10 0'),
-    const _Shape('M10.2 16.3a2.7 2.7 0 0 1 3.6 0'),
-    const _Shape('M12 19.6h.01', width: 3.4),
+    // Two arcs and the dot: a third arc next to the dot merges with it
+    // into a blot at small sizes
+    const _Shape('M3.5 10.2a12 12 0 0 1 17 0'),
+    const _Shape('M7.2 14a6.8 6.8 0 0 1 9.6 0'),
+    const _Shape('M12 18.6h.01', width: 3.4),
   ],
   D2Glyph.online: _globe,
   D2Glyph.globe: _globe,
@@ -285,7 +299,30 @@ final _glyphs = <D2Glyph, List<_Shape>>{
     ),
     const _Shape('M17.5 6.3h.01', width: 3),
   ],
+  D2Glyph.gallery: [
+    _Shape(_rect(3.5, 5, 17, 14, 2.8)),
+    _Shape(_circle(9, 10, 1.7)),
+    const _Shape('M4.5 17l4.7-4.4 3.8 3.4 2.8-2.4 4 3.4'),
+  ],
+  D2Glyph.camera: [
+    const _Shape(
+      'M4.5 8.5h3L9 6h6l1.5 2.5h3a1 1 0 0 1 1 1V18a1 1 0 0 1-1 1h-15a1 1 0 0 1-1-1V9.5a1 1 0 0 1 1-1z',
+    ),
+    _Shape(_circle(12, 13.3, 3.3)),
+  ],
+  D2Glyph.userPlus: [..._person, const _Shape('M18.5 8v6M15.5 11h6')],
+  D2Glyph.userMinus: [..._person, const _Shape('M16 11h5')],
+  D2Glyph.turnRight: [
+    const _Shape('M6 5v7.5h11'),
+    const _Shape('M13.5 8.5l4 4-4 4'),
+  ],
 };
+
+/// Head and shoulders, shifted left to leave room for a mark
+final _person = [
+  _Shape(_circle(9, 8.5, 3.6)),
+  const _Shape('M2.8 20c.7-3.6 3.1-5.6 6.2-5.6s5.5 2 6.2 5.6'),
+];
 
 final _paths = <D2Glyph, List<(Path, _Shape)>>{};
 
@@ -334,9 +371,20 @@ class _IconPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     canvas.scale(size.width / 24, size.height / 24);
 
+    // A translucent color would add up where the strokes of two shapes
+    // overlap, so the icon is drawn opaque and faded as a whole.
+    final translucent = color.a < 1 && shapes.length > 1;
+    final stroke = translucent ? color.withValues(alpha: 1) : color;
+    if (translucent) {
+      canvas.saveLayer(
+        const Rect.fromLTWH(-2, -2, 28, 28),
+        Paint()..color = Color.fromRGBO(0, 0, 0, color.a),
+      );
+    }
+
     for (final (path, shape) in shapes) {
       final paint = Paint()
-        ..color = color
+        ..color = stroke
         ..isAntiAlias = true;
 
       paint
@@ -346,6 +394,8 @@ class _IconPainter extends CustomPainter {
         ..strokeJoin = StrokeJoin.round;
       canvas.drawPath(path, paint);
     }
+
+    if (translucent) canvas.restore();
   }
 
   @override

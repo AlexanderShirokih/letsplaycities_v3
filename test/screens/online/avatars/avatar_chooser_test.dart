@@ -6,6 +6,7 @@ import 'package:get_it/get_it.dart';
 import 'package:lets_play_cities/remote/account_manager.dart';
 import 'package:lets_play_cities/remote/client/api_exception.dart';
 import 'package:lets_play_cities/i18n/strings.g.dart';
+import 'package:lets_play_cities/screens/common/d2/d2.dart';
 import 'package:lets_play_cities/screens/online/avatars/avatar_chooser.dart';
 
 import '../../../i18n/translations_harness.dart';
@@ -33,10 +34,8 @@ void main() {
           home: Scaffold(
             body: Builder(
               builder: (context) => TextButton(
-                onPressed: () => showModalBottomSheet<void>(
-                  context: context,
-                  builder: (_) => chooser(),
-                ),
+                onPressed: () =>
+                    showD2Sheet<void>(context, builder: (_) => chooser()),
                 child: const Text('open'),
               ),
             ),
@@ -47,6 +46,15 @@ void main() {
     await tester.tap(find.text('open'));
     await tester.pumpAndSettle();
   }
+
+  testWidgets('the sheet has a title and three actions', (tester) async {
+    await openChooser(tester);
+
+    expect(find.text(t.online.avatarTitle), findsOneWidget);
+    expect(find.text(t.misc.gallery), findsOneWidget);
+    expect(find.text(t.misc.camera), findsOneWidget);
+    expect(find.text(t.delete), findsOneWidget);
+  });
 
   testWidgets('a failed removal closes the sheet with a message', (
     tester,

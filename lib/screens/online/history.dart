@@ -1,13 +1,11 @@
-import 'package:intl/intl.dart';
 import 'package:flutter/material.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 import 'package:lets_play_cities/base/remote/bloc/user_actions_bloc.dart';
 import 'package:lets_play_cities/i18n/strings.g.dart';
-import 'package:lets_play_cities/remote/model/lps_user.dart';
 import 'package:lets_play_cities/i18n/time_format.dart';
+import 'package:lets_play_cities/remote/model/lps_user.dart';
 import 'package:lets_play_cities/remote/model/social.dart';
-import 'package:lets_play_cities/screens/common/utils.dart';
+import 'package:lets_play_cities/screens/common/d2/d2.dart';
 import 'package:lets_play_cities/screens/online/base_list_fetching_screen_mixin.dart';
 import 'package:lets_play_cities/screens/online/common_online_widgets.dart';
 import 'package:lets_play_cities/screens/online/profile.dart';
@@ -17,9 +15,8 @@ import 'package:lets_play_cities/screens/online/profile.dart';
 /// Requires the [ApiRepository] of the signed-in user in the widget tree.
 class OnlineHistoryScreen extends StatelessWidget
     with BaseListFetchingScreenMixin<HistoryGame> {
-  static final DateFormat _timeFormat = DateFormat('dd.MM.yyyy');
-
-  /// If `true` - column container will used instead of listview
+  /// If `true` - a compact card of the games is shown instead of the list
+  /// grouped by months
   final bool embedded;
 
   @override
@@ -36,93 +33,290 @@ class OnlineHistoryScreen extends StatelessWidget
   /// «Онлайн»
   final void Function(LpsUser friend)? onInvite;
 
+  /// Header over the [embedded] card. Not shown with the card when there
+  /// are no games.
+  final String? embeddedTitle;
+
   const OnlineHistoryScreen({
     super.key,
     this.withUser,
     this.embedded = false,
+    this.embeddedTitle,
     this.onInvite,
   });
 
   @override
-  Widget getOnListEmptyPlaceHolder(BuildContext context) => Text(
-    context.t.online.noHistoryPlaceholder,
-    textAlign: TextAlign.center,
-    style: withData<TextStyle, TextTheme>(
-      Theme.of(context).textTheme,
-      (textTheme) =>
-          textTheme.headlineSmall!.copyWith(color: textTheme.bodySmall!.color),
-    ),
-  );
+  Widget getOnListEmptyPlaceHolder(BuildContext context) => embedded
+      ? const SizedBox.shrink()
+      : D2EmptyState(
+          art: const D2TileArt(glyph: D2Glyph.history),
+          title: context.t.online.historyEmptyTitle,
+        );
 
   @override
-  Widget buildItem(BuildContext context, HistoryGame data) => Card(
-    elevation: 4.0,
-    child: ListTile(
+  Widget buildItem(BuildContext context, HistoryGame data) =>
+      _HistoryRow(game: data, onInvite: onInvite);
+
+  @override
+  Widget buildBody(
+    BuildContext context,
+    List<HistoryGame> data,
+    bool hasMore,
+    Object? moreError,
+  ) {
+    if (embedded) {
+      final title = embeddedTitle;
+
+      return Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (title != null)
+            Padding(
+              padding: const EdgeInsets.only(left: 4, bottom: 8),
+              child: Text(
+                title,
+                style: D2Text.section.copyWith(color: D2Colors.of(context).ink),
+              ),
+            ),
+          _CompactGames(games: data),
+        ],
+      );
+    }
+
+    // Grouped on every build from all the loaded pages, so a month that
+    // continues on the next page keeps its single header.
+    final now = DateTime.now();
+    final groups = <List<HistoryGame>>[];
+    for (final game in data) {
+      if (groups.isNotEmpty && _sameMonth(groups.last.first, game)) {
+        groups.last.add(game);
+      } else {
+        groups.add([game]);
+      }
+    }
+    final footer = buildPagingFooter(context, hasMore, moreError, data.length);
+    final items = <Widget>[
+      for (var i = 0; i < groups.length; i++) ...[
+        if (i > 0) const SizedBox(height: 18),
+        _MonthHeader(date: groups[i].first.startedAt, now: now),
+        const SizedBox(height: 8),
+        _RowsCard(
+          rows: [for (final game in groups[i]) buildItem(context, game)],
+        ),
+      ],
+      ?footer,
+    ];
+
+    // Built lazily, so the next page is asked for near the end of the list
+    return ListView.builder(
+      padding: const EdgeInsets.fromLTRB(16, 6, 16, 16),
+      itemCount: items.length,
+      itemBuilder: (context, i) => items[i],
+    );
+  }
+
+  static bool _sameMonth(HistoryGame a, HistoryGame b) =>
+      a.startedAt.year == b.startedAt.year &&
+      a.startedAt.month == b.startedAt.month;
+}
+
+/// The year is left out for the current one
+String _withYear(String text, DateTime date, DateTime now) =>
+    date.year == now.year ? text : '$text ${date.year}';
+
+class _MonthHeader extends StatelessWidget {
+  final DateTime date;
+  final DateTime now;
+
+  const _MonthHeader({required this.date, required this.now});
+
+  @override
+  Widget build(BuildContext context) => Padding(
+    padding: const EdgeInsets.only(left: 4),
+    child: Text(
+      _withYear(context.t.online.months[date.month - 1], date, now),
+      style: D2Text.section.copyWith(color: D2Colors.of(context).ink),
+    ),
+  );
+}
+
+/// [rows] in one card, divided by lines
+class _RowsCard extends StatelessWidget {
+  final List<Widget> rows;
+
+  const _RowsCard({required this.rows});
+
+  @override
+  Widget build(BuildContext context) {
+    final c = D2Colors.of(context);
+
+    return D2Card(
+      padding: EdgeInsets.zero,
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(18),
+        child: Column(
+          children: [
+            for (var i = 0; i < rows.length; i++) ...[
+              if (i > 0) Container(height: 2, color: c.bg),
+              rows[i],
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _HistoryRow extends StatelessWidget {
+  final HistoryGame game;
+  final void Function(LpsUser friend)? onInvite;
+
+  const _HistoryRow({required this.game, required this.onInvite});
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.t;
+    final c = D2Colors.of(context);
+    final date = game.startedAt;
+
+    return InkWell(
       onTap: () => Navigator.push(
         context,
         OnlineProfileView.createRoute(
           context,
-          userId: data.opponent.id,
+          userId: game.opponent.id,
           onInvite: onInvite,
         ),
       ),
-      contentPadding: EdgeInsets.all(8.0),
-      leading: Stack(
-        alignment: Alignment.bottomRight,
-        fit: StackFit.loose,
-        children: [
-          lpsUserAvatar(context, data.opponent, size: 48),
-          if (data.isFriend)
-            FaIcon(
-              FontAwesomeIcons.userGroup,
-              color: Theme.of(context).primaryColor,
-            ),
-        ],
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(minHeight: 66),
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(12, 10, 10, 10),
+          child: Row(
+            children: [
+              Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  lpsUserAvatar(context, game.opponent),
+                  if (game.isFriend)
+                    Positioned(
+                      right: -5,
+                      bottom: -5,
+                      child: Semantics(
+                        label: t.online.friendMark,
+                        child: Container(
+                          width: 20,
+                          height: 20,
+                          alignment: Alignment.center,
+                          decoration: BoxDecoration(
+                            color: c.violet,
+                            shape: BoxShape.circle,
+                            border: Border.all(color: c.surface, width: 2),
+                          ),
+                          child: D2Icon(
+                            D2Glyph.check,
+                            size: 11,
+                            color: D2Colors.light.surface,
+                            strokeWidth: 3.4,
+                          ),
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      game.opponent.name,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: D2Text.body.copyWith(fontSize: 15, color: c.ink),
+                    ),
+                    const SizedBox(height: 3),
+                    Text(
+                      '${t.online.wordsCount(count: game.words)}'
+                      ' · ${formatMinutesSeconds(t, game.durationSec)}',
+                      style: D2Text.caption.copyWith(color: c.inkSoft),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 12),
+              Text(
+                '${date.day} ${t.online.monthsShort[date.month - 1]}',
+                style: D2Text.caption.copyWith(color: c.inkSoft),
+              ),
+            ],
+          ),
+        ),
       ),
-      title: Text(data.opponent.name),
-      subtitle: Builder(builder: (context) => _buildSubtitle(context, data)),
-    ),
-  );
+    );
+  }
+}
 
-  Widget _buildSubtitle(BuildContext context, HistoryGame data) {
+/// The games with one user in one card: date, words and duration
+class _CompactGames extends StatelessWidget {
+  final List<HistoryGame> games;
+
+  const _CompactGames({required this.games});
+
+  @override
+  Widget build(BuildContext context) {
     final t = context.t;
-    return Align(
-      alignment: Alignment.centerLeft,
-      child: withData<Widget, Color>(
-        Theme.of(context).textTheme.bodySmall!.color!,
-        (color) => Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 8.0),
+    final c = D2Colors.of(context);
+    final now = DateTime.now();
+
+    return _RowsCard(
+      rows: [
+        for (final game in games)
+          ConstrainedBox(
+            constraints: const BoxConstraints(minHeight: 48),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
               child: Row(
                 children: [
-                  FaIcon(FontAwesomeIcons.calendar, color: color),
-                  const SizedBox(width: 8),
-                  Text(_timeFormat.format(data.startedAt)),
-                  const SizedBox(width: 8),
-                  FaIcon(FontAwesomeIcons.stopwatch, color: color),
-                  const SizedBox(width: 6),
+                  Expanded(
+                    child: Text(
+                      _withYear(
+                        '${game.startedAt.day} '
+                        '${t.online.monthsGenitive[game.startedAt.month - 1]}',
+                        game.startedAt,
+                        now,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: D2Text.body.copyWith(fontSize: 15, color: c.ink),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
                   Text(
-                    formatMinutesSeconds(t, data.durationSec),
-                    overflow: TextOverflow.clip,
+                    t.online.wordsCount(count: game.words),
+                    style: D2Text.bodyRegular.copyWith(
+                      fontSize: 14,
+                      color: c.inkSoft,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  ConstrainedBox(
+                    constraints: const BoxConstraints(minWidth: 76),
+                    child: Text(
+                      formatMinutesSeconds(t, game.durationSec),
+                      textAlign: TextAlign.right,
+                      style: D2Text.bodyRegular.copyWith(
+                        fontSize: 14,
+                        color: c.inkSoft,
+                      ),
+                    ),
                   ),
                 ],
               ),
             ),
-            Row(
-              children: [
-                FaIcon(FontAwesomeIcons.star, color: color),
-                const SizedBox(width: 4),
-                Text(
-                  t.online.wordsCount(count: data.words),
-                  overflow: TextOverflow.clip,
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
+          ),
+      ],
     );
   }
 }

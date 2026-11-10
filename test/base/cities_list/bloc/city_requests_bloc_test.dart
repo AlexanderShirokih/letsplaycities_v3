@@ -12,8 +12,18 @@ class _FakeCityRequestsRepository implements CityRequestsRepository {
 
   _FakeCityRequestsRepository(this.requests);
 
+  /// Fails the withdrawal with it
+  Object? withdrawFailure;
+
   @override
   Future<List<CityRequest>> getRequests() async => requests;
+
+  @override
+  Future<void> withdrawRequest(int id) async {
+    if (withdrawFailure != null) throw withdrawFailure!;
+
+    requests.removeWhere((e) => e.id == id);
+  }
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
@@ -56,6 +66,54 @@ void main() {
         countryCode: 0,
       ),
     );
+    await bloc.close();
+  });
+
+  test(
+    'a withdrawn request leaves the list without the loading state',
+    () async {
+      final repository = _FakeCityRequestsRepository([_removeVifleem]);
+      final bloc = CityRequestBloc(
+        repository,
+        CountryRepository(
+          FakeCountryLoaderFactory(() async => _countries),
+          'Неизвестно',
+        ),
+      );
+      await pumpEventQueue();
+      expect((bloc.state as CityRequestItems).pendingItems.single.id, 1);
+
+      final states = <CityRequestState>[];
+      final subscription = bloc.stream.listen(states.add);
+      bloc.add(const CityRequestWithdraw(1));
+      await pumpEventQueue();
+
+      expect(states, hasLength(1));
+      expect((states.single as CityRequestItems).pendingItems, isEmpty);
+      await subscription.cancel();
+      await bloc.close();
+    },
+  );
+
+  test('a failed withdrawal keeps the list and reports the error', () async {
+    final failure = Exception('refused');
+    final repository = _FakeCityRequestsRepository([_removeVifleem])
+      ..withdrawFailure = failure;
+    final bloc = CityRequestBloc(
+      repository,
+      CountryRepository(
+        FakeCountryLoaderFactory(() async => _countries),
+        'Неизвестно',
+      ),
+    );
+    await pumpEventQueue();
+
+    bloc.add(const CityRequestWithdraw(1));
+    await pumpEventQueue();
+
+    final state = bloc.state as CityRequestItems;
+    expect(state.pendingItems.single.id, 1);
+    expect(state.withdrawError, failure);
     await bloc.close();
   });
 

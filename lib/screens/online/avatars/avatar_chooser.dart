@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:lets_play_cities/base/remote/bloc/avatar_bloc.dart';
 import 'package:lets_play_cities/i18n/strings.g.dart';
 import 'package:get_it/get_it.dart';
 import 'package:lets_play_cities/remote/account_manager.dart';
 import 'package:lets_play_cities/remote/api_repository.dart';
+import 'package:lets_play_cities/screens/common/d2/d2.dart';
 import 'package:lets_play_cities/screens/common/error_texts.dart';
 
 /// Used to update or delete user avatar
@@ -40,6 +40,8 @@ class _AvatarChooserViewState extends State<AvatarChooserView> {
   @override
   Widget build(BuildContext context) {
     final t = context.t;
+    final c = D2Colors.of(context);
+
     return SafeArea(
       child: BlocConsumer<AvatarBloc, AvatarState>(
         bloc: _avatarBloc,
@@ -49,30 +51,42 @@ class _AvatarChooserViewState extends State<AvatarChooserView> {
               alignment: Alignment.center,
               width: 64,
               height: 64,
-              child: CircularProgressIndicator(),
+              child: CircularProgressIndicator(color: c.violet),
             );
-          } else {
-            return Column(
+          }
+
+          return Padding(
+            padding: const EdgeInsets.fromLTRB(16, 6, 16, 20),
+            child: Column(
               mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(4, 0, 4, 6),
+                  child: Text(
+                    t.online.avatarTitle,
+                    style: D2Text.title.copyWith(color: c.ink),
+                  ),
+                ),
                 _buildItem(
-                  FontAwesomeIcons.images,
+                  D2Glyph.gallery,
                   t.misc.gallery,
                   AvatarEvent.pickGalleryAvatarEvent,
                 ),
                 _buildItem(
-                  FontAwesomeIcons.camera,
+                  D2Glyph.camera,
                   t.misc.camera,
                   AvatarEvent.pickCameraAvatarEvent,
                 ),
                 _buildItem(
-                  FontAwesomeIcons.trash,
+                  D2Glyph.trash,
                   t.delete,
                   AvatarEvent.removeAvatarEvent,
+                  destructive: true,
                 ),
               ],
-            );
-          }
+            ),
+          );
         },
         listener: (context, state) {
           if (state is AvatarDoneState) {
@@ -96,11 +110,40 @@ class _AvatarChooserViewState extends State<AvatarChooserView> {
     );
   }
 
-  Widget _buildItem(FaIconData icon, String title, AvatarEvent event) {
-    return ListTile(
-      leading: FaIcon(icon),
-      title: Text(title),
+  Widget _buildItem(
+    D2Glyph icon,
+    String title,
+    AvatarEvent event, {
+    bool destructive = false,
+  }) {
+    final c = D2Colors.of(context);
+    final color = destructive ? c.error : c.ink;
+
+    return InkWell(
       onTap: () => _avatarBloc.add(event),
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(minHeight: 56),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 4),
+          child: Row(
+            children: [
+              Container(
+                width: 38,
+                height: 38,
+                decoration: BoxDecoration(
+                  color: destructive ? c.error.withValues(alpha: 0.12) : c.bg,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Center(child: D2Icon(icon, size: 22, color: color)),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(title, style: D2Text.body.copyWith(color: color)),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }

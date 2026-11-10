@@ -43,11 +43,7 @@ class GameScreen extends StatelessWidget {
               .get<GamePreferences>()
               .isFirstLaunch;
           if (isFirstTime && gameConfig.gameMode.isLocal) {
-            return FirstTimeOnBoardingScreen(
-              gameConfig: gameConfig,
-              duration: const Duration(seconds: 4),
-              strings: context.t.firstTimeScreen.messages,
-            );
+            return FirstTimeOnBoardingScreen(gameConfig: gameConfig);
           }
           return GameScreen(gameConfig);
         },
@@ -65,7 +61,9 @@ class GameScreen extends StatelessWidget {
           final navigator = Navigator.of(context);
           final shouldPop = await showConfirmationDialog(
             context,
-            message: t.game.goToMenu,
+            title: t.game.goToMenu,
+            confirmLabel: t.game.exitConfirm,
+            cancelLabel: t.game.stay,
           );
           if (shouldPop == true) navigator.pop();
         },

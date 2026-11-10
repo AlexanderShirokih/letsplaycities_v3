@@ -47,27 +47,29 @@ mixin BaseListFetchingScreenMixin<T> on StatelessWidget {
     Object? moreError,
   ) => _showList(context, data, hasMore, moreError);
 
-  /// Creates slider widget which is [D2Colors.mint] for left position
-  /// and [D2Colors.error] for right.
-  Widget createPositionedSlideBackground(
+  /// The end of a paged list: asks for the next page once it is built, or
+  /// offers a retry if the last page failed. `null` if there is nothing
+  /// more to load. [loaded] is the count of the loaded items: the footer is
+  /// built again with every page, so it asks for the next one.
+  Widget? buildPagingFooter(
     BuildContext context,
-    bool isLeft,
-    Widget child,
+    bool hasMore,
+    Object? moreError,
+    int loaded,
   ) {
-    final c = D2Colors.of(context);
+    if (moreError != null) {
+      return _RetryMore(
+        error: moreError,
+        onRetry: () =>
+            context.read<UserListActionsBloc>().add(const UserFetchMoreEvent()),
+      );
+    }
+    if (!hasMore) return null;
 
-    return Container(
-      decoration: BoxDecoration(
-        color: isLeft ? c.mint : c.error,
-        borderRadius: BorderRadius.circular(4.0),
-      ),
-      child: Align(
-        alignment: isLeft ? Alignment.centerLeft : Alignment.centerRight,
-        child: Padding(
-          padding: const EdgeInsets.only(right: 12.0),
-          child: child,
-        ),
-      ),
+    return _LoadMore(
+      key: ValueKey(loaded),
+      onVisible: () =>
+          context.read<UserListActionsBloc>().add(const UserFetchMoreEvent()),
     );
   }
 
@@ -174,7 +176,7 @@ mixin BaseListFetchingScreenMixin<T> on StatelessWidget {
         ),
       );
       // The failed action left the cached list as it was, so reloading from
-      // the cache brings back the row the user swiped away.
+      // the cache brings back the row the user removed.
       reloadList(false);
     }
   }
@@ -184,53 +186,48 @@ mixin BaseListFetchingScreenMixin<T> on StatelessWidget {
     List<T> data,
     bool hasMore,
     Object? moreError,
-  ) => scrollable
-      ? ListView.builder(
-          padding: EdgeInsets.all(8.0),
-          itemCount: data.length + (hasMore || moreError != null ? 1 : 0),
-          itemBuilder: (ctx, i) => i < data.length
-              ? buildItem(context, data[i])
-              : moreError != null
-              ? _RetryMore(
-                  error: moreError,
-                  onRetry: () => context.read<UserListActionsBloc>().add(
-                    const UserFetchMoreEvent(),
-                  ),
-                )
-              : _LoadMore(
-                  onVisible: () => context.read<UserListActionsBloc>().add(
-                    const UserFetchMoreEvent(),
-                  ),
-                ),
-        )
-      : Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: Column(
-            children: List.generate(
-              data.length,
-              (i) => buildItem(context, data[i]),
-            ),
-          ),
-        );
+  ) {
+    final footer = buildPagingFooter(context, hasMore, moreError, data.length);
 
-  Widget _showPlaceholder(BuildContext context) => Stack(
-    children: [
-      SizedBox(height: 10.0, child: ListView()),
-      Center(
-        child: Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: getOnListEmptyPlaceHolder(context),
-        ),
-      ),
-    ],
-  );
+    return scrollable
+        ? ListView.builder(
+            padding: const EdgeInsets.fromLTRB(16, 6, 16, 16),
+            itemCount: data.length + (footer == null ? 0 : 1),
+            itemBuilder: (ctx, i) =>
+                i < data.length ? buildItem(context, data[i]) : footer!,
+          )
+        : Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Column(
+              children: List.generate(
+                data.length,
+                (i) => buildItem(context, data[i]),
+              ),
+            ),
+          );
+  }
+
+  // Scrollable, so that the list can still be pulled to refresh
+  Widget _showPlaceholder(BuildContext context) => scrollable
+      ? LayoutBuilder(
+          builder: (context, constraints) => ListView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            children: [
+              SizedBox(
+                height: constraints.maxHeight,
+                child: getOnListEmptyPlaceHolder(context),
+              ),
+            ],
+          ),
+        )
+      : getOnListEmptyPlaceHolder(context);
 }
 
 /// The end of a paged list: asks for the next page once it is built
 class _LoadMore extends StatefulWidget {
   final VoidCallback onVisible;
 
-  const _LoadMore({required this.onVisible});
+  const _LoadMore({super.key, required this.onVisible});
 
   @override
   State<_LoadMore> createState() => _LoadMoreState();
@@ -244,9 +241,11 @@ class _LoadMoreState extends State<_LoadMore> {
   }
 
   @override
-  Widget build(BuildContext context) => const Padding(
-    padding: EdgeInsets.all(16.0),
-    child: Center(child: CircularProgressIndicator()),
+  Widget build(BuildContext context) => Padding(
+    padding: const EdgeInsets.all(16),
+    child: Center(
+      child: CircularProgressIndicator(color: D2Colors.of(context).violet),
+    ),
   );
 }
 
@@ -258,13 +257,36 @@ class _RetryMore extends StatelessWidget {
   const _RetryMore({required this.error, required this.onRetry});
 
   @override
-  Widget build(BuildContext context) => Padding(
-    padding: const EdgeInsets.all(8.0),
-    child: Column(
-      children: [
-        Text(errorText(context.t, error), textAlign: TextAlign.center),
-        TextButton(onPressed: onRetry, child: Text(context.t.online.reload)),
-      ],
-    ),
-  );
+  Widget build(BuildContext context) {
+    final c = D2Colors.of(context);
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: Column(
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              D2Icon(D2Glyph.warning, size: 20, color: c.error),
+              const SizedBox(width: 8),
+              Flexible(
+                child: Text(
+                  errorText(context.t, error),
+                  textAlign: TextAlign.center,
+                  style: D2Text.bodyRegular.copyWith(color: c.inkSoft),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          D2Button(
+            label: context.t.online.reload,
+            icon: D2Glyph.replay,
+            kind: D2ButtonKind.secondary,
+            onPressed: onRetry,
+          ),
+        ],
+      ),
+    );
+  }
 }

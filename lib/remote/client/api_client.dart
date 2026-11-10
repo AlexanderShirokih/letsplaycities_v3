@@ -9,4 +9,7 @@ abstract class LpsApiClient {
 
   /// Sends a new city request and returns the created one
   Future<CityRequest> sendCityRequest(SendCityRequest request);
+
+  /// Withdraws the own city request [id] that is not reviewed yet
+  Future<void> deleteCityRequest(int id);
 }

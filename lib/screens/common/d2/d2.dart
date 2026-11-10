@@ -4,6 +4,7 @@ export 'd2_brand_marks.dart';
 export 'd2_buttons.dart';
 export 'd2_card.dart';
 export 'd2_colors.dart';
+export 'd2_empty_state.dart';
 export 'd2_header.dart';
 export 'd2_icons.dart';
 export 'd2_letter_tile.dart';

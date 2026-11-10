@@ -91,6 +91,43 @@ void main() {
     });
   }
 
+  testWidgets('autoFind searches at once, cancel leaves the screen', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      withTranslations(
+        MaterialApp(
+          home: Builder(
+            builder: (context) => TextButton(
+              onPressed: () => Navigator.of(context).push(
+                MaterialPageRoute<void>(
+                  builder: (_) =>
+                      const GameWaitingRoomScreenStandalone(isLocal: true),
+                ),
+              ),
+              child: const Text('open'),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.tap(find.text('open'));
+    await settle(tester);
+    await tester.pump(const Duration(milliseconds: 400));
+
+    expect(find.text(_t.online.connect), findsNothing);
+    expect(find.text(_t.cancel), findsOneWidget);
+
+    await tester.tap(find.text(_t.cancel));
+    await settle(tester);
+    // The route goes away with its transition
+    await tester.pump(const Duration(seconds: 1));
+    await tester.pump(const Duration(seconds: 1));
+
+    expect(find.byType(GameWaitingRoomScreen), findsNothing);
+    expect(find.text('open'), findsOneWidget);
+  });
+
   testWidgets('a rebuild keeps the same waiting room bloc', (tester) async {
     await tester.pumpWidget(app(const GameWaitingRoomScreen(isLocal: true)));
     final bloc = blocOf(tester);

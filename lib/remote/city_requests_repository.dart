@@ -17,6 +17,13 @@ class CityRequestsRepository {
     return _client.getCityRequests();
   }
 
+  /// Withdraws the own request [id] while it is not reviewed.
+  /// Throws [ApiException] when the server refuses (`not_found`,
+  /// `already_reviewed`).
+  /// Throws [FetchingException] on a network error
+  /// Throws [NotAuthorizedException] if user is not authorized
+  Future<void> withdrawRequest(int id) => _client.deleteCityRequest(id);
+
   /// Sends request for adding a new city to the database
   /// Returns the created request.
   /// Throws [ApiException] when the server refuses the request

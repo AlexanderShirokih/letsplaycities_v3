@@ -154,4 +154,44 @@ void main() {
     expect(find.text('Недавние'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
+
+  testWidgets('country picker returns the tapped country', (tester) async {
+    tester.view.physicalSize = const Size(800, 1600);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+
+    CountryEntity? picked;
+
+    await tester.pumpWidget(
+      withTranslations(
+        MaterialApp(
+          theme: buildD2Theme(Brightness.light),
+          home: Scaffold(
+            body: Builder(
+              builder: (context) => TextButton(
+                onPressed: () async {
+                  picked = await showCountryPickerSheet(
+                    context,
+                    countries: _countries,
+                    selected: 91,
+                  );
+                },
+                child: const Text('open'),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.tap(find.text('open'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Применить'), findsNothing);
+    expect(find.text('Недавние'), findsNothing);
+
+    await tester.tap(find.text('Испания'));
+    await tester.pumpAndSettle();
+
+    expect(picked, _countries[1]);
+  });
 }

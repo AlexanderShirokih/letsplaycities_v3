@@ -114,7 +114,7 @@ class _HintButtonState extends State<_HintButton> {
             ? null
             : () => showConfirmationDialog(
                 context,
-                message: t.game.showHelp,
+                title: t.game.showHelp,
                 onOk: () =>
                     context.read<GameBloc>().add(const GameEventShowHelp()),
               ),

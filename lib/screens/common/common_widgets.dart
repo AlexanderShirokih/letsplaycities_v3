@@ -1,29 +1,118 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:lets_play_cities/i18n/strings.g.dart';
 import 'package:lets_play_cities/screens/common/d2/d2.dart';
 
-/// Shows card with progress bar and message
-class LoadingView extends StatelessWidget {
+/// Two letter tiles hopping one after another and a message under them
+class LoadingView extends StatefulWidget {
   final String _text;
 
   const LoadingView(this._text, {super.key});
 
   @override
+  State<LoadingView> createState() => _LoadingViewState();
+}
+
+class _LoadingViewState extends State<LoadingView>
+    with SingleTickerProviderStateMixin {
+  static const _cycle = Duration(milliseconds: 1100);
+
+  /// Delay of the second tile as a part of the cycle: 0.22 s of 1.1 s
+  static const _delay = 0.2;
+
+  late final AnimationController _controller = AnimationController(
+    vsync: this,
+    duration: _cycle,
+  );
+
+  /// Up for the first 28% of the cycle, down until 55%, then at rest
+  static final _hop = TweenSequence<double>([
+    TweenSequenceItem(
+      tween: Tween(
+        begin: 0.0,
+        end: -16.0,
+      ).chain(CurveTween(curve: Curves.easeOut)),
+      weight: 28,
+    ),
+    TweenSequenceItem(
+      tween: Tween(
+        begin: -16.0,
+        end: 0.0,
+      ).chain(CurveTween(curve: Curves.easeIn)),
+      weight: 27,
+    ),
+    TweenSequenceItem(tween: ConstantTween(0.0), weight: 45),
+  ]);
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+
+    if (MediaQuery.disableAnimationsOf(context)) {
+      _controller.stop();
+      _controller.value = 0;
+    } else if (!_controller.isAnimating) {
+      _controller.repeat();
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  Widget _tile(String letter, D2TileColor color, double angle, double phase) =>
+      AnimatedBuilder(
+        animation: _controller,
+        builder: (context, child) => Transform.translate(
+          offset: Offset(0, _hop.transform((_controller.value - phase) % 1)),
+          child: child,
+        ),
+        child: Transform.rotate(
+          angle: angle * pi / 180,
+          child: ExcludeSemantics(
+            child: D2LetterTile(letter, size: 58, height: 62, color: color),
+          ),
+        ),
+      );
+
+  @override
   Widget build(BuildContext context) {
     final c = D2Colors.of(context);
 
-    return Center(
-      child: D2Card(
-        padding: const EdgeInsets.all(20),
+    // Material: the view is also shown with no Scaffold above it, where the
+    // text would get the debug style on a black background
+    return Material(
+      color: c.bg,
+      child: Center(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            CircularProgressIndicator(color: c.violet),
-            const SizedBox(height: 14),
-            Text(
-              _text,
-              textAlign: TextAlign.center,
-              style: D2Text.body.copyWith(color: c.ink),
+            SizedBox(
+              height: 86,
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  _tile('Г', D2TileColor.white, -6, 0),
+                  const SizedBox(width: 10),
+                  _tile('А', D2TileColor.orange, 5, _delay),
+                ],
+              ),
+            ),
+            const SizedBox(height: 30),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Semantics(
+                liveRegion: true,
+                child: Text(
+                  widget._text,
+                  textAlign: TextAlign.center,
+                  style: D2Text.body.copyWith(color: c.inkSoft),
+                ),
+              ),
             ),
           ],
         ),

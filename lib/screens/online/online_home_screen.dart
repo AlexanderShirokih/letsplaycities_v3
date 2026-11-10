@@ -178,13 +178,23 @@ class _OnlineHomeScreenState extends State<OnlineHomeScreen>
                                 lpsUserAvatar(context, account.user, size: 64),
                           ),
                         ),
-                        FutureBuilder<List<FriendEntry>>(
-                          future: _friends,
-                          builder: (context, snapshot) => _FriendsBlock(
-                            friends: _freshFriends(snapshot.data ?? const []),
-                            onInvite: _invite,
-                            onAll: _openFriends,
-                          ),
+                        // While an opponent is being looked for or waited
+                        // for, nothing else is offered.
+                        BlocBuilder<WaitingRoomBloc, WaitingRoomState>(
+                          buildWhen: (a, b) => _isBusy(a) != _isBusy(b),
+                          builder: (context, state) => _isBusy(state)
+                              ? const SizedBox.shrink()
+                              : FutureBuilder<List<FriendEntry>>(
+                                  future: _friends,
+                                  builder: (context, snapshot) => _FriendsBlock(
+                                    loaded: snapshot.hasData,
+                                    friends: _freshFriends(
+                                      snapshot.data ?? const [],
+                                    ),
+                                    onInvite: _invite,
+                                    onAll: _openFriends,
+                                  ),
+                                ),
                         ),
                       ],
                     ),
@@ -198,6 +208,11 @@ class _OnlineHomeScreenState extends State<OnlineHomeScreen>
     );
   }
 
+  static bool _isBusy(WaitingRoomState state) => switch (state) {
+    Connecting() || Queued() || Inviting() || Starting() => true,
+    _ => false,
+  };
+
   static List<LpsUser> _freshFriends(List<FriendEntry> entries) =>
       ([
             for (final entry in entries)
@@ -207,13 +222,16 @@ class _OnlineHomeScreenState extends State<OnlineHomeScreen>
           .toList();
 }
 
-/// «Друзья» with «Все друзья», hidden without friends
+/// «Друзья» with «Все друзья». Without friends a hint of what will be here,
+/// and nothing until the list is [loaded] or if it failed to load.
 class _FriendsBlock extends StatelessWidget {
+  final bool loaded;
   final List<LpsUser> friends;
   final void Function(LpsUser friend) onInvite;
   final VoidCallback onAll;
 
   const _FriendsBlock({
+    required this.loaded,
     required this.friends,
     required this.onInvite,
     required this.onAll,
@@ -221,10 +239,49 @@ class _FriendsBlock extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (friends.isEmpty) return const SizedBox.shrink();
+    if (!loaded) return const SizedBox.shrink();
 
     final t = context.t;
     final c = D2Colors.of(context);
+
+    if (friends.isEmpty) {
+      return Padding(
+        padding: const EdgeInsets.only(top: 20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(
+              t.online.friendsTab,
+              style: D2Text.section.copyWith(fontSize: 16, color: c.ink),
+            ),
+            const SizedBox(height: 10),
+            Container(
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(18),
+                border: Border.all(color: c.edge, width: 2),
+              ),
+              child: Row(
+                children: [
+                  D2Icon(D2Glyph.friends, size: 24, color: c.inkSoft),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      t.online.friendsHint,
+                      style: D2Text.bodyRegular.copyWith(
+                        fontSize: 14,
+                        height: 1.35,
+                        color: c.inkSoft,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      );
+    }
 
     return Padding(
       padding: const EdgeInsets.only(top: 16),

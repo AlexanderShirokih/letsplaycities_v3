@@ -13,6 +13,9 @@ class RequestItemCard extends StatelessWidget {
   final String reason;
   final String result;
 
+  /// Withdraws the request; `null` for a reviewed one, which has no button
+  final VoidCallback? onWithdraw;
+
   const RequestItemCard({
     super.key,
     required this.cardType,
@@ -21,64 +24,52 @@ class RequestItemCard extends StatelessWidget {
     this.isApproved,
     this.from,
     this.to,
+    this.onWithdraw,
   });
 
   @override
   Widget build(BuildContext context) {
-    final c = D2Colors.of(context);
     final t = context.t;
+    final c = D2Colors.of(context);
 
-    return ConstrainedBox(
-      constraints: BoxConstraints(maxWidth: 340.0),
-      child: Padding(
-        padding: const EdgeInsets.only(bottom: 10.0),
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 10),
+      child: SizedBox(
+        width: double.infinity,
         child: D2Card(
+          padding: const EdgeInsets.all(12),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Expanded(
-                    child: Text(
-                      _getItemTypeTitle(t),
-                      style: D2Text.small.copyWith(color: c.inkSoft),
+              _header(context),
+              const SizedBox(height: 10),
+              if (cardType == RequestItemType.edit)
+                _editedCity(context)
+              else if ((to ?? from) != null)
+                _cityRow(context, (to ?? from)!),
+              if (reason.isNotEmpty || result.isNotEmpty) ...[
+                const SizedBox(height: 10),
+                DecoratedBox(
+                  decoration: BoxDecoration(
+                    color: c.bg,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: SizedBox(
+                    width: double.infinity,
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(10, 8, 10, 9),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          if (reason.isNotEmpty) _note(c, null, reason),
+                          if (reason.isNotEmpty && result.isNotEmpty)
+                            const SizedBox(height: 6),
+                          if (result.isNotEmpty)
+                            _note(c, t.citiesRequest.resultLabel, result),
+                        ],
+                      ),
                     ),
                   ),
-                  _createApprovalMark(c),
-                ],
-              ),
-              const SizedBox(height: 4.0),
-              if (from != null) _createCityItem(context, from!),
-              if (cardType == RequestItemType.edit)
-                Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 4.0),
-                  child: Center(
-                    child: RotatedBox(
-                      quarterTurns: 1,
-                      child: D2Icon(D2Glyph.send, size: 22, color: c.inkSoft),
-                    ),
-                  ),
-                ),
-              if (to != null) ...[
-                _createCityItem(context, to!),
-                const SizedBox(height: 6.0),
-              ],
-              if (cardType == RequestItemType.edit)
-                const SizedBox(height: 12.0),
-              if (reason.isNotEmpty)
-                _createTextWithInlinedTitle(
-                  context,
-                  title: t.citiesRequest.reasonLabel,
-                  content: reason,
-                ),
-              if (result.isNotEmpty) ...[
-                const SizedBox(height: 4.0),
-                _createTextWithInlinedTitle(
-                  context,
-                  title: t.citiesRequest.resultLabel,
-                  content: result,
                 ),
               ],
             ],
@@ -88,27 +79,134 @@ class RequestItemCard extends StatelessWidget {
     );
   }
 
-  Widget _createCityItem(BuildContext context, CityItem cityItem) {
+  Widget _header(BuildContext context) {
+    final t = context.t;
     final c = D2Colors.of(context);
+    // No icon: a plus or a pencil here looks like a button
+    final label = switch (cardType) {
+      RequestItemType.add => t.citiesRequest.typeAdd,
+      RequestItemType.edit => t.citiesRequest.typeEdit,
+      RequestItemType.remove => t.citiesRequest.typeRemove,
+    };
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 4.0, vertical: 4.0),
+    return ConstrainedBox(
+      constraints: const BoxConstraints(minHeight: 26),
+      child: Row(
+        children: [
+          Expanded(
+            child: Text(
+              label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: D2Text.small.copyWith(fontSize: 13, color: c.inkSoft),
+            ),
+          ),
+          if (isApproved != null) ...[
+            const SizedBox(width: 8),
+            _statusPill(context, isApproved!),
+          ],
+          if (onWithdraw != null)
+            TextButton(
+              onPressed: onWithdraw,
+              style: TextButton.styleFrom(
+                foregroundColor: c.violet,
+                minimumSize: const Size(44, 44),
+                padding: const EdgeInsets.symmetric(horizontal: 8),
+                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                textStyle: D2Text.body.copyWith(fontSize: 14),
+              ),
+              child: Text(t.citiesRequest.withdraw),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _statusPill(BuildContext context, bool approved) {
+    final t = context.t;
+    final c = D2Colors.of(context);
+    // The error red is too dim as a text on a dark surface, so there the
+    // pill is filled with it.
+    final dark = Theme.of(context).brightness == Brightness.dark;
+    final color = approved
+        ? c.ink
+        : dark
+        ? Colors.white
+        : c.error;
+
+    return Container(
+      height: 26,
+      padding: const EdgeInsets.fromLTRB(7, 0, 10, 0),
+      decoration: BoxDecoration(
+        color: approved
+            ? c.mint.withValues(alpha: 0.25)
+            : dark
+            ? c.error
+            : c.error.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(13),
+      ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          CityFlag(
-            cityItem.country.countryCode,
-            width: 28,
-            height: 20,
-            radius: 4,
+          D2Icon(
+            approved ? D2Glyph.check : D2Glyph.close,
+            size: 16,
+            color: color,
           ),
-          const SizedBox(width: 8.0),
-          Flexible(
-            child: Text(
-              cityItem.cityName,
-              style: D2Text.body.copyWith(color: c.ink),
-              overflow: TextOverflow.ellipsis,
+          const SizedBox(width: 4),
+          Text(
+            approved
+                ? t.citiesRequest.statusApproved
+                : t.citiesRequest.statusDeclined,
+            style: D2Text.small.copyWith(fontSize: 13, color: color),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// City with its country; [strike] marks the name that is going away
+  Widget _cityRow(
+    BuildContext context,
+    CityItem city, {
+    bool strike = false,
+    bool showCountry = true,
+  }) {
+    final c = D2Colors.of(context);
+
+    return ConstrainedBox(
+      constraints: const BoxConstraints(minHeight: 32),
+      child: Row(
+        children: [
+          CityFlag(city.country.countryCode, width: 28, height: 20, radius: 4),
+          const SizedBox(width: 10),
+          Expanded(
+            // The smaller country stands on the baseline of the name
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.baseline,
+              textBaseline: TextBaseline.alphabetic,
+              children: [
+                Flexible(
+                  child: Text(
+                    city.cityName,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style:
+                        (strike
+                                ? D2Text.bodyRegular.copyWith(fontSize: 16)
+                                : D2Text.body)
+                            .copyWith(
+                              height: 1.25,
+                              decoration: strike
+                                  ? TextDecoration.lineThrough
+                                  : null,
+                              color: strike ? c.inkSoft : c.ink,
+                            ),
+                  ),
+                ),
+                if (showCountry && city.country.name.isNotEmpty)
+                  _countryName(c, city.country.name),
+              ],
             ),
           ),
         ],
@@ -116,49 +214,101 @@ class RequestItemCard extends StatelessWidget {
     );
   }
 
-  Widget _createTextWithInlinedTitle(
-    BuildContext context, {
-    required String title,
-    required String content,
-  }) {
-    final c = D2Colors.of(context);
-
-    return Text.rich(
-      TextSpan(
-        children: [
-          TextSpan(
-            text: '$title ',
-            style: D2Text.body.copyWith(fontSize: 13, color: c.ink),
-          ),
-          TextSpan(text: content),
-        ],
+  /// The country after the city name. Its width is capped, so a long city
+  /// name gets the rest of the row instead of a half of it.
+  Widget _countryName(D2Colors c, String name) => Padding(
+    padding: const EdgeInsets.only(left: 10),
+    child: ConstrainedBox(
+      constraints: const BoxConstraints(maxWidth: 110),
+      child: Text(
+        name,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+        style: D2Text.caption.copyWith(color: c.inkSoft),
       ),
-      style: D2Text.caption.copyWith(color: c.ink),
+    ),
+  );
+
+  /// Old name struck out, the new one under it
+  Widget _editedCity(BuildContext context) {
+    final t = context.t;
+    final c = D2Colors.of(context);
+    final old = from;
+    final changed = to;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        if (old != null) _cityRow(context, old, strike: true),
+        if (old != null && changed != null) const SizedBox(height: 2),
+        if (changed != null)
+          ConstrainedBox(
+            constraints: const BoxConstraints(minHeight: 32),
+            child: Row(
+              children: [
+                Semantics(
+                  label: t.citiesRequest.changesTo,
+                  excludeSemantics: true,
+                  child: SizedBox(
+                    width: 28,
+                    child: Center(
+                      child: D2Icon(
+                        D2Glyph.turnRight,
+                        size: 20,
+                        color: c.inkSoft,
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.baseline,
+                    textBaseline: TextBaseline.alphabetic,
+                    children: [
+                      Flexible(
+                        child: Text(
+                          changed.cityName,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: D2Text.body.copyWith(
+                            height: 1.25,
+                            color: c.ink,
+                          ),
+                        ),
+                      ),
+                      // The country is named again only when the request
+                      // moves the city to another one.
+                      if (old != null &&
+                          changed.country.countryCode !=
+                              old.country.countryCode &&
+                          changed.country.name.isNotEmpty)
+                        _countryName(c, changed.country.name),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+      ],
     );
   }
 
-  Widget _createApprovalMark(D2Colors c) {
-    final approved = isApproved;
-
-    if (approved == null) {
-      return const SizedBox();
-    } else if (approved) {
-      return D2Icon(D2Glyph.check, size: 22, color: c.mint);
-    } else {
-      return D2Icon(D2Glyph.close, size: 22, color: c.error);
-    }
-  }
-
-  String _getItemTypeTitle(Translations t) {
-    switch (cardType) {
-      case RequestItemType.edit:
-        return t.edit;
-      case RequestItemType.add:
-        return t.add;
-      case RequestItemType.remove:
-        return t.delete;
-    }
-  }
+  Widget _note(D2Colors c, String? label, String text) => Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      if (label != null)
+        Text(label, style: D2Text.small.copyWith(color: c.inkSoft)),
+      Text(
+        text,
+        style: D2Text.bodyRegular.copyWith(
+          fontSize: 14,
+          height: 1.4,
+          color: c.ink,
+        ),
+      ),
+    ],
+  );
 }
 
 /// Describes card type
@@ -174,40 +324,50 @@ class RequestItemCardShimmered extends StatelessWidget {
   Widget build(BuildContext context) {
     final c = D2Colors.of(context);
 
-    return ConstrainedBox(
-      constraints: BoxConstraints(maxWidth: 340.0),
-      child: Padding(
-        padding: const EdgeInsets.only(bottom: 10.0),
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 10),
+      child: SizedBox(
+        width: double.infinity,
         child: D2Card(
+          padding: const EdgeInsets.all(12),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  _block(c, 65, 12),
-                  if (isApprovable) _block(c, 20, 20),
-                ],
-              ),
-              const SizedBox(height: 4.0),
-              Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 4.0,
-                  vertical: 4.0,
-                ),
+              SizedBox(
+                height: 26,
                 child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.center,
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    _block(c, 28, 20),
-                    const SizedBox(width: 8.0),
-                    Flexible(child: _block(c, 197, 16)),
+                    _block(c, 90, 14),
+                    if (isApprovable) _block(c, 84, 26, radius: 13),
                   ],
                 ),
               ),
-              const SizedBox(height: 12.0),
-              _block(c, 197, 16),
+              const SizedBox(height: 10),
+              Row(
+                children: [
+                  _block(c, 28, 20),
+                  const SizedBox(width: 10),
+                  Flexible(child: _block(c, 160, 16)),
+                ],
+              ),
+              const SizedBox(height: 10),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.fromLTRB(10, 8, 10, 9),
+                decoration: BoxDecoration(
+                  color: c.edge,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _block(c, 50, 10, color: c.surface),
+                    const SizedBox(height: 6),
+                    _block(c, 197, 14, color: c.surface),
+                  ],
+                ),
+              ),
             ],
           ),
         ),
@@ -215,12 +375,18 @@ class RequestItemCardShimmered extends StatelessWidget {
     );
   }
 
-  Widget _block(D2Colors c, double width, double height) => Container(
+  Widget _block(
+    D2Colors c,
+    double width,
+    double height, {
+    double radius = 4,
+    Color? color,
+  }) => Container(
     width: width,
     height: height,
     decoration: BoxDecoration(
-      color: c.edge,
-      borderRadius: BorderRadius.circular(4),
+      color: color ?? c.edge,
+      borderRadius: BorderRadius.circular(radius),
     ),
   );
 }

@@ -25,12 +25,36 @@ class CityRequestBloc extends Bloc<CityRequestEvent, CityRequestState>
   Stream<CityRequestState> _mapEventToState(CityRequestEvent event) async* {
     if (event is CityRequestFetchData) {
       yield* _loadData();
+    } else if (event is CityRequestWithdraw) {
+      yield* _withdraw(event.id);
     }
   }
 
-  Stream<CityRequestState> _loadData() async* {
+  /// The list stays on the screen: after the withdrawal it is loaded again
+  /// without the loading state, and a failure comes with the list as it was.
+  Stream<CityRequestState> _withdraw(int id) async* {
+    final before = state;
+
     try {
-      yield CityRequestInitial();
+      await _cityRequestsRepository.withdrawRequest(id);
+    } catch (e) {
+      if (before is CityRequestItems) {
+        yield CityRequestItems(
+          pendingItems: before.pendingItems,
+          approvedItems: before.approvedItems,
+          withdrawError: e,
+        );
+
+        return;
+      }
+    }
+
+    yield* _loadData(showLoading: false);
+  }
+
+  Stream<CityRequestState> _loadData({bool showLoading = true}) async* {
+    try {
+      if (showLoading) yield CityRequestInitial();
 
       final data = await _cityRequestsRepository.getRequests();
 
@@ -59,6 +83,7 @@ class CityRequestBloc extends Bloc<CityRequestEvent, CityRequestState>
 
     for (var e in newRequests) {
       yield CityPendingItem(
+        id: e.id,
         type: _getType(e),
         reason: e.reason,
         source: await _mapEntity(e.oldName, e.oldCountryCode),

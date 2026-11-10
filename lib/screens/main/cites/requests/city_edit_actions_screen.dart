@@ -28,8 +28,6 @@ class CityEditActionsScreen extends StatefulWidget {
 }
 
 class _CityEditActionsScreenState extends State<CityEditActionsScreen> {
-  final _formKey = GlobalKey<FormState>();
-
   late TextEditingController _cityNameController;
   late TextEditingController _reasonTextController;
 
@@ -61,7 +59,9 @@ class _CityEditActionsScreenState extends State<CityEditActionsScreen> {
   }
 
   void _revalidateForm() {
-    Future.delayed(Duration(milliseconds: 100), () async {
+    Future.delayed(const Duration(milliseconds: 100), () {
+      if (!mounted) return;
+
       setState(() {
         final currentCityItem = CityItem(
           _cityNameController.text,
@@ -69,7 +69,13 @@ class _CityEditActionsScreenState extends State<CityEditActionsScreen> {
         );
 
         // All fields are filled
-        final isFieldsFilled = _formKey.currentState?.validate() == true;
+        final isFieldsFilled =
+            _reasonTextController.text
+                .replaceAll(RegExp(r'\s'), '')
+                .isNotEmpty &&
+            (widget.action == CityEditAction.remove ||
+                (_cityNameController.text.isNotEmpty &&
+                    _currentCountry != null));
 
         // Needs any changes to proceed
         final wantsChanges = widget.action == CityEditAction.edit;
@@ -142,12 +148,9 @@ class _CityEditActionsScreenState extends State<CityEditActionsScreen> {
                   onBack: () => Navigator.maybePop(context),
                 ),
                 Expanded(
-                  child: Form(
-                    key: _formKey,
-                    child: SingleChildScrollView(
-                      padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
-                      child: _buildContent(context),
-                    ),
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.fromLTRB(16, 6, 16, 16),
+                    child: _buildContent(context),
                   ),
                 ),
                 Builder(
@@ -156,6 +159,7 @@ class _CityEditActionsScreenState extends State<CityEditActionsScreen> {
                     child: D2Button(
                       label: t.citiesRequest.send,
                       icon: D2Glyph.send,
+                      size: D2ButtonSize.large,
                       expand: true,
                       onPressed: _showSendButton
                           ? () {
@@ -196,7 +200,18 @@ class _CityEditActionsScreenState extends State<CityEditActionsScreen> {
           },
         );
       case CityEditAction.remove:
-        return RemoveCityLayout(reasonController: _reasonTextController);
+        return RemoveCityLayout(
+          reasonController: _reasonTextController,
+          onProposeEdit: () => Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (_) => CityEditActionsScreen(
+                action: CityEditAction.edit,
+                city: widget.city,
+              ),
+            ),
+          ),
+        );
       case CityEditAction.add:
         return AddCityLayout(
           cityNameController: _cityNameController,

@@ -7,13 +7,20 @@ import 'package:lets_play_cities/screens/main/cites/requests/widget/dense_city_i
 
 import 'common_fields.dart';
 
-/// Layout for renaming the city.
-/// Contains the following fields: new city name, new country name,
-/// renaming reason
+/// Layout for removing an existing city.
+/// Contains the current city, the removing reason and a way to propose an
+/// edit instead
 class RemoveCityLayout extends StatelessWidget {
   final TextEditingController reasonController;
 
-  const RemoveCityLayout({super.key, required this.reasonController});
+  /// Replaces the screen with the edit form
+  final VoidCallback onProposeEdit;
+
+  const RemoveCityLayout({
+    super.key,
+    required this.reasonController,
+    required this.onProposeEdit,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -22,13 +29,7 @@ class RemoveCityLayout extends StatelessWidget {
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
-      mainAxisAlignment: MainAxisAlignment.start,
       children: [
-        Text(
-          t.citiesRequest.removeCity,
-          style: D2Text.section.copyWith(color: c.ink),
-        ),
-        const SizedBox(height: 14.0),
         BlocBuilder<CityEditActionsBloc, CityEditActionsState>(
           builder: (context, state) {
             if (state is CityEditActionsData) {
@@ -37,27 +38,30 @@ class RemoveCityLayout extends StatelessWidget {
             return const SizedBox();
           },
         ),
-        const SizedBox(height: 26.0),
-        Text(
-          t.citiesRequest.removeReason,
-          style: D2Text.section.copyWith(color: c.ink),
-        ),
-        const SizedBox(height: 14.0),
-        const SizedBox(height: 10.0),
+        const SizedBox(height: 14),
         createRenameReasonField(
           context: context,
           t: t,
-          placeholder: t.citiesRequest.removeReasonHint,
           textEditingController: reasonController,
         ),
-        const SizedBox(height: 28.0),
-        Text(
-          t.citiesRequest.beforeSending,
-          style: D2Text.section.copyWith(fontSize: 14, color: c.ink),
-        ),
-        const SizedBox(height: 8.0),
+        const SizedBox(height: 18),
         createSuggestionRules(context, rules: t.citiesRequest.removingRules),
-        const SizedBox(height: 46.0),
+        const SizedBox(height: 4),
+        TextButton(
+          onPressed: onProposeEdit,
+          style: TextButton.styleFrom(
+            foregroundColor: c.violet,
+            minimumSize: const Size(0, 44),
+            padding: const EdgeInsets.symmetric(horizontal: 2),
+            alignment: Alignment.centerLeft,
+            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+            textStyle: D2Text.body.copyWith(
+              fontSize: 14,
+              decoration: TextDecoration.underline,
+            ),
+          ),
+          child: Text(t.citiesList.proposeEdit),
+        ),
       ],
     );
   }

@@ -29,6 +29,24 @@ Future<CountryListFilter?> showCountryFilterSheet(
   ),
 );
 
+/// Lets the player pick one country, for a form. Resolves to the tapped
+/// country, or `null` when the sheet is closed without picking.
+///
+/// [selected] is the code of the country picked now.
+Future<CountryEntity?> showCountryPickerSheet(
+  BuildContext context, {
+  required List<CountryEntity> countries,
+  int? selected,
+}) => showD2Sheet<CountryEntity>(
+  context,
+  builder: (context) => _CountryFilterSheet(
+    countries: countries,
+    selected: [?selected],
+    recent: const [],
+    single: true,
+  ),
+);
+
 /// Line of the list: a title (the group letter, or «Недавние») or a country
 sealed class _Line {
   const _Line();
@@ -55,10 +73,14 @@ class _CountryFilterSheet extends StatefulWidget {
   final List<int> selected;
   final List<int> recent;
 
+  /// Picks one country and closes at once, without the bottom buttons
+  final bool single;
+
   const _CountryFilterSheet({
     required this.countries,
     required this.selected,
     required this.recent,
+    this.single = false,
   });
 
   @override
@@ -80,7 +102,7 @@ class _CountryFilterSheetState extends State<_CountryFilterSheet> {
 
     final lines = <_Line>[];
 
-    if (query.isEmpty) {
+    if (query.isEmpty && !widget.single) {
       final recent = [
         for (final code in widget.recent)
           for (final country in _sorted)
@@ -196,41 +218,45 @@ class _CountryFilterSheetState extends State<_CountryFilterSheet> {
                     country: country,
                     first: first,
                     checked: _picked.contains(country.countryCode),
-                    onTap: () => _toggle(country.countryCode),
+                    single: widget.single,
+                    onTap: widget.single
+                        ? () => Navigator.of(context).pop(country)
+                        : () => _toggle(country.countryCode),
                   ),
                 },
               ),
             ),
-            DecoratedBox(
-              decoration: BoxDecoration(
-                border: Border(top: BorderSide(color: c.edge)),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(16, 12, 16, 14),
-                child: Row(
-                  children: [
-                    Expanded(
-                      flex: 10,
-                      child: D2Button(
-                        label: t.citiesList.reset,
-                        kind: D2ButtonKind.secondary,
-                        expand: true,
-                        onPressed: () => setState(_picked.clear),
+            if (!widget.single)
+              DecoratedBox(
+                decoration: BoxDecoration(
+                  border: Border(top: BorderSide(color: c.edge)),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 14),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        flex: 10,
+                        child: D2Button(
+                          label: t.citiesList.reset,
+                          kind: D2ButtonKind.secondary,
+                          expand: true,
+                          onPressed: () => setState(_picked.clear),
+                        ),
                       ),
-                    ),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      flex: 16,
-                      child: D2Button(
-                        label: t.apply,
-                        expand: true,
-                        onPressed: _apply,
+                      const SizedBox(width: 10),
+                      Expanded(
+                        flex: 16,
+                        child: D2Button(
+                          label: t.apply,
+                          expand: true,
+                          onPressed: _apply,
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
-            ),
           ],
         ),
       ),
@@ -242,12 +268,16 @@ class _CountryRow extends StatelessWidget {
   final CountryEntity country;
   final bool first;
   final bool checked;
+
+  /// Single choice: the picked row gets a plain check instead of a box
+  final bool single;
   final VoidCallback onTap;
 
   const _CountryRow({
     required this.country,
     required this.first,
     required this.checked,
+    required this.single,
     required this.onTap,
   });
 
@@ -281,21 +311,33 @@ class _CountryRow extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 12),
-              Container(
-                width: 26,
-                height: 26,
-                decoration: BoxDecoration(
-                  color: checked ? c.violet : c.surface,
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(
-                    color: checked ? c.violet : c.inkSoft,
-                    width: 2,
+              if (single)
+                SizedBox(
+                  width: 26,
+                  child: checked
+                      ? D2Icon(D2Glyph.check, size: 22, color: c.violet)
+                      : null,
+                )
+              else
+                Container(
+                  width: 26,
+                  height: 26,
+                  decoration: BoxDecoration(
+                    color: checked ? c.violet : c.surface,
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(
+                      color: checked ? c.violet : c.inkSoft,
+                      width: 2,
+                    ),
                   ),
+                  child: checked
+                      ? const D2Icon(
+                          D2Glyph.check,
+                          size: 18,
+                          color: Colors.white,
+                        )
+                      : null,
                 ),
-                child: checked
-                    ? const D2Icon(D2Glyph.check, size: 18, color: Colors.white)
-                    : null,
-              ),
             ],
           ),
         ),

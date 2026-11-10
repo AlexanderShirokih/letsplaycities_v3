@@ -153,6 +153,7 @@ void main() {
     final started = <GameConfig>[];
     await tester.pumpWidget(app(home(started: started)));
     await settle(tester);
+    expect(find.text(_t.online.friendsTab), findsOneWidget);
 
     await tester.tap(find.text(_t.online.connect));
     await settle(tester);
@@ -162,6 +163,8 @@ void main() {
     await settle(tester);
     expect(find.text(_t.online.awaitingForOpp), findsOneWidget);
     expect(find.text('0:00'), findsOneWidget);
+    // Nothing but the search while it runs
+    expect(find.text(_t.online.friendsTab), findsNothing);
 
     now = now.add(const Duration(seconds: 67));
     await tester.pump(const Duration(seconds: 1));
@@ -251,12 +254,15 @@ void main() {
     expect(find.bySemanticsLabel(RegExp(_t.online.lastSeen.now)), findsOne);
   });
 
-  testWidgets('without friends the block is hidden', (tester) async {
+  testWidgets('without friends the block hints at what will be there', (
+    tester,
+  ) async {
     useFakeConnection();
     await tester.pumpWidget(app(home()));
     await settle(tester);
 
-    expect(find.text(_t.online.friendsTab), findsNothing);
+    expect(find.text(_t.online.friendsTab), findsOneWidget);
+    expect(find.text(_t.online.friendsHint), findsOneWidget);
     expect(find.text(_t.online.allFriends), findsNothing);
   });
 
@@ -461,7 +467,7 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('Пригласить from a history opponent returns to the one home', (
+  testWidgets('Пригласить from a friend profile returns to the one home', (
     tester,
   ) async {
     final connection = useFakeConnection();
@@ -474,20 +480,7 @@ void main() {
           lastSeenAt: DateTime.now(),
         ),
       ]
-      ..profiles = {
-        2: userProfile(2, 'Пётр', friendship: Friendship.friends),
-        3: userProfile(3, 'Анна', friendship: Friendship.friends),
-      }
-      ..games = [
-        HistoryGame(
-          id: 1,
-          opponent: lpsUser(3, 'Анна'),
-          isFriend: true,
-          startedAt: DateTime(2026, 11, 1),
-          durationSec: 60,
-          words: 4,
-        ),
-      ];
+      ..profiles = {2: userProfile(2, 'Пётр', friendship: Friendship.friends)};
     await tester.pumpWidget(app(home()));
     await settle(tester);
 
@@ -495,16 +488,13 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.text('Пётр'));
     await tester.pumpAndSettle();
-    await tester.ensureVisible(find.text('Анна'));
-    await tester.tap(find.text('Анна'));
-    await tester.pumpAndSettle();
     await tester.tap(find.text(_t.online.invite));
     await settle(tester);
     await tester.pump(const Duration(seconds: 1));
 
     expect(find.byType(OnlineHomeScreen, skipOffstage: false), findsOneWidget);
-    expect(find.text(_t.online.awaitingForInvite(login: 'Анна')), findsOne);
-    expect(connection.sent, [const Invite(3)]);
+    expect(find.text(_t.online.awaitingForInvite(login: 'Пётр')), findsOne);
+    expect(connection.sent, [const Invite(2)]);
   });
 
   testWidgets('Пригласить from a results opponent returns to the one home', (

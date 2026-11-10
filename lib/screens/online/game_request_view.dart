@@ -100,7 +100,7 @@ class _GameRequestViewState extends State<GameRequestView> {
         GetIt.instance.currentScopeName != lanGameScopeName;
 
     return SingleChildScrollView(
-      padding: const EdgeInsets.fromLTRB(20, 8, 20, 20),
+      padding: const EdgeInsets.fromLTRB(20, 4, 20, 24),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -115,13 +115,13 @@ class _GameRequestViewState extends State<GameRequestView> {
               ),
             ),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 14),
           Text(
             t.online.invitesYou(name: name),
             textAlign: TextAlign.center,
             style: D2Text.title.copyWith(color: c.ink),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 22),
           if (canAccept) ...[
             D2Button(
               label: t.accept,
@@ -129,11 +129,12 @@ class _GameRequestViewState extends State<GameRequestView> {
               expand: true,
               onPressed: _accept,
             ),
-            const SizedBox(height: 10),
+            const SizedBox(height: 14),
           ],
           D2Button(
             label: t.decline,
-            kind: D2ButtonKind.secondary,
+            kind: D2ButtonKind.tonal,
+            size: D2ButtonSize.card,
             expand: true,
             onPressed: _decline,
           ),
