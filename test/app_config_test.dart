@@ -7,7 +7,6 @@ void main() {
 
     expect(config.restBaseUrl, 'https://lps.test:443/v1');
     expect(config.gameSocketUrl, 'wss://lps.test:443/v1/game');
-    expect(config.pinCertificate, isFalse);
   });
 
   test('a plain server uses http and ws', () {
@@ -17,11 +16,10 @@ void main() {
     expect(config.gameSocketUrl, 'ws://lps.test:8080/v1/game');
   });
 
-  test('a LAN server is plain, not pinned and on port 8988', () {
+  test('a LAN server is plain and on port 8988', () {
     final config = AppConfig.lan('192.168.1.5');
 
     expect(config.isSecure, isFalse);
-    expect(config.pinCertificate, isFalse);
     expect(config.port, 8988);
     expect(config.gameSocketUrl, 'ws://192.168.1.5:8988/v1/game');
   });
@@ -32,6 +30,5 @@ void main() {
 
     expect(config.restBaseUrl, 'https://api.qdstudio.ru:443/v1');
     expect(config.gameSocketUrl, 'wss://api.qdstudio.ru:443/v1/game');
-    expect(config.pinCertificate, isFalse);
   });
 }

@@ -4,7 +4,6 @@ import 'package:dio/dio.dart';
 import 'package:equatable/equatable.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter/services.dart';
 import 'package:get_it/get_it.dart';
 import 'package:lets_play_cities/app_config.dart';
 import 'package:lets_play_cities/base/achievements/achievements_service.dart';
@@ -29,7 +28,6 @@ import 'package:lets_play_cities/remote/client/api_dio.dart';
 import 'package:lets_play_cities/remote/firebase/firebase_service.dart';
 import 'package:lets_play_cities/remote/game_connection.dart';
 import 'package:lets_play_cities/remote/google_services_achievements.dart';
-import 'package:lets_play_cities/remote/http_overrides.dart';
 import 'package:lets_play_cities/remote/model/cloud_messaging_service.dart';
 import 'package:lets_play_cities/remote/server/local_game_server.dart';
 import 'package:lets_play_cities/remote/server/routes/routes.dart';
@@ -86,25 +84,6 @@ Future<void> injectRootDependencies(AppConfig appConfig) async {
     instanceName: themeModeNotifierName,
     dependsOn: [GamePreferences],
   );
-
-  // The certificate of a self-hosted server is trusted only if it is pinned
-  if (appConfig.pinCertificate) {
-    // PEM Certificate
-    getIt.registerSingletonAsync(
-      () => rootBundle.loadString('assets/cert/lps.pem'),
-      instanceName: 'lpsPemCertificate',
-    );
-
-    // Global HTTP Overrides Used by HTTP Clients
-    getIt.registerSingletonAsync<HttpOverrides>(
-      () =>
-          getIt.getAsync<String>(instanceName: 'lpsPemCertificate').then((pem) {
-            final newOverrides = MyHttpOverrides(pem);
-            HttpOverrides.global = newOverrides;
-            return newOverrides;
-          }),
-    );
-  }
 
   // Access token of the signed-in user on the main server
   getIt.registerSingleton<TokenStore>(const SecureTokenStore());

@@ -58,7 +58,6 @@ flutter:
     - assets/images/flags/
     - assets/sound/
     - assets/data/
-    - assets/cert/
 
   fonts:
     - family: Unbounded

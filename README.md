@@ -12,7 +12,6 @@ The server address is set at build time with `--dart-define`:
 | `LPS_HOST` | `api.qdstudio.ru` | Host of the main server |
 | `LPS_PORT` | `443` | Port of the REST API and the game WebSocket |
 | `LPS_SECURE` | `true` | `https`/`wss` instead of `http`/`ws` |
-| `LPS_PIN_CERT` | `false` | Trust only `assets/cert/lps.pem` |
 
 ```sh
 flutter run --dart-define=LPS_HOST=lps.example.com

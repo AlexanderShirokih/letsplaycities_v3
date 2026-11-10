@@ -11,7 +11,6 @@ class AppConfig extends Equatable {
     'LPS_SECURE',
     defaultValue: true,
   );
-  static const _kPinCertificate = bool.fromEnvironment('LPS_PIN_CERT');
 
   /// Path of the protocol version that the servers serve.
   static const _kApiPath = '/v1';
@@ -36,33 +35,24 @@ class AppConfig extends Equatable {
   /// Server port
   final int port;
 
-  /// `true` if only the certificate from `assets/cert/lps.pem` is trusted
-  final bool pinCertificate;
-
-  const AppConfig._(this.host, this.port, this.isSecure, this.pinCertificate);
+  const AppConfig._(this.host, this.port, this.isSecure);
 
   @override
-  List<Object> get props => [host, port, isSecure, pinCertificate];
+  List<Object> get props => [host, port, isSecure];
 
   /// Reads the main server settings from `--dart-define`:
-  /// `LPS_HOST` (api.qdstudio.ru), `LPS_PORT` (443), `LPS_SECURE` (true),
-  /// `LPS_PIN_CERT` (false).
-  factory AppConfig.fromEnvironment() => AppConfig.forHost(
-    _kHost,
-    port: _kPort,
-    isSecure: _kSecure,
-    pinCertificate: _kPinCertificate,
-  );
+  /// `LPS_HOST` (api.qdstudio.ru), `LPS_PORT` (443) and `LPS_SECURE` (true).
+  factory AppConfig.fromEnvironment() =>
+      AppConfig.forHost(_kHost, port: _kPort, isSecure: _kSecure);
 
   /// Main server at [host].
   factory AppConfig.forHost(
     String host, {
     int port = 443,
     bool isSecure = true,
-    bool pinCertificate = false,
-  }) => AppConfig._(host, port, isSecure, pinCertificate);
+  }) => AppConfig._(host, port, isSecure);
 
-  /// Game server in the local network: plain WS, no pinning.
+  /// Game server in the local network: plain WS.
   factory AppConfig.lan(String host, {int port = lanPort}) =>
-      AppConfig._(host, port, false, false);
+      AppConfig._(host, port, false);
 }
