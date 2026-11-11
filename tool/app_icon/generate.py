@@ -1,4 +1,4 @@
-"""Renders the D2 app icon («Плитки Г→А») for Android, iOS and VK.
+"""Renders the D2 app icon («Плитки Г→А») for Android, iOS, VK and OK.
 
 Run from the project root:
     python tool/app_icon/generate.py
@@ -11,6 +11,7 @@ import json
 from pathlib import Path
 
 import pathops
+from fontTools.misc.transform import Identity, Transform
 from fontTools.pens.svgPathPen import SVGPathPen
 from fontTools.pens.transformPen import TransformPen
 from fontTools.svgLib import SVGPath
@@ -24,12 +25,15 @@ OUT_SRC = ROOT / 'tool/app_icon'
 RES = ROOT / 'android/app/src/main/res'
 IOS = ROOT / 'ios/Runner/Assets.xcassets/AppIcon.appiconset'
 VK = OUT_SRC / 'vk'
+OK = OUT_SRC / 'ok'
 
 VIOLET = '#5B3DF5'
 INK = '#1B1340'
 WHITE = '#FFFFFF'
 ORANGE = '#FF7A1A'
 BLACK = '#000000'
+BG = '#F1EEFF'
+INK_SOFT = '#5B5480'
 
 # Adaptive icons show the middle 72 of the 108 dp canvas
 ADAPTIVE_VISIBLE = 72 / 108
@@ -46,71 +50,104 @@ BASELINE = 35.75
 # Gap that separates the tiles in the themed icon
 GAP = 4
 
-FONT = TTFont(ROOT / 'assets/fonts/Unbounded[wght].ttf')
-FONT = instantiateVariableFont(FONT, {'wght': 700})
-GLYPHS = FONT.getGlyphSet()
-CMAP = FONT.getBestCmap()
-UPEM = FONT['head'].unitsPerEm
+
+
+def load_font(name, weight):
+    font = instantiateVariableFont(TTFont(ROOT / f'assets/fonts/{name}[wght].ttf'), {'wght': weight})
+
+    return font.getGlyphSet(), font.getBestCmap(), font['head'].unitsPerEm
+
+
+UNBOUNDED = load_font('Unbounded', 700)
+RUBIK = load_font('Rubik', 500)
 
 
 def canvas(scale):
     """Maps the 100-unit tile box to the centre of the 108 canvas"""
-    return (scale, 0, 0, scale, 54 - 50 * scale, 54 - 50 * scale)
+    return Transform(scale, 0, 0, scale, 54 - 50 * scale, 54 - 50 * scale)
 
 
-def rect(scale, x, y, inset=0):
+def rect(transform, x, y, inset=0):
     markup = (
         f'<svg xmlns="http://www.w3.org/2000/svg"><rect x="{x - inset}" y="{y - inset}"'
         f' width="{TILE + 2 * inset}" height="{TILE + 2 * inset}" rx="{RADIUS + inset}"/></svg>'
     )
     path = pathops.Path()
-    SVGPath.fromstring(markup.encode(), transform=canvas(scale)).draw(path.getPen())
+    SVGPath.fromstring(markup.encode(), transform=transform).draw(path.getPen())
 
     return path
 
 
-def letter(scale, char, x, y):
-    """Glyph centred on its tile, with overlapping contours merged"""
-    name = CMAP[ord(char)]
-    k = FONT_SIZE / UPEM
-    left = x + TILE / 2 - GLYPHS[name].width * k / 2
+def text(transform, font, string, x, baseline, size, length=None):
+    """Outline of a line of text, overlapping contours merged.
+
+    With ``length`` the letter spacing is stretched to that width, as SVG textLength does.
+    """
+    glyphs, cmap, upem = font
+    k = size / upem
+    names = [cmap[ord(char)] for char in string]
+    natural = sum(glyphs[name].width for name in names) * k
+    spacing = (length - natural) / (len(names) - 1) if length else 0
     path = pathops.Path()
 
-    # Cyrillic А is a component of Latin A, the glyph set resolves it
-    pen = TransformPen(path.getPen(glyphSet=GLYPHS), canvas(scale))
-    GLYPHS[name].draw(TransformPen(pen, (k, 0, 0, -k, left, y + BASELINE)))
+    # Cyrillic letters may be components of Latin ones, the glyph set resolves them
+    pen = TransformPen(path.getPen(glyphSet=glyphs), transform)
+
+    for name in names:
+        glyphs[name].draw(TransformPen(pen, (k, 0, 0, -k, x, baseline)))
+        x += glyphs[name].width * k + spacing
 
     return pathops.simplify(path)
 
 
-def colored(scale):
+def letter(transform, char, x, y):
+    """Glyph centred on its tile"""
+    glyphs, cmap, upem = UNBOUNDED
+    width = glyphs[cmap[ord(char)]].width * FONT_SIZE / upem
+
+    return text(transform, UNBOUNDED, char, x + TILE / 2 - width / 2, y + BASELINE, FONT_SIZE)
+
+
+def colored(transform):
     """Both tiles as in D2-Brand: (path, fill, stroke, stroke width)"""
     layers = []
 
     for char, x, y, fill in TILES:
         layers += [
-            (rect(scale, x, y + SHADOW), INK, None, 0),
-            (rect(scale, x, y), fill, INK, BORDER * scale),
-            (letter(scale, char, x, y), INK, None, 0),
+            (rect(transform, x, y + SHADOW), INK, None, 0),
+            (rect(transform, x, y), fill, INK, BORDER * transform[0]),
+            (letter(transform, char, x, y), INK, None, 0),
         ]
 
     return layers
 
 
-def silhouette(scale):
+def silhouette(transform):
     """Themed icon: tiles with cut-out letters, each tile clears a gap in the one below"""
     layers = []
 
     for index, (char, x, y, _) in enumerate(TILES):
-        tile = pathops.op(rect(scale, x, y), letter(scale, char, x, y), pathops.PathOp.DIFFERENCE)
+        tile = pathops.op(rect(transform, x, y), letter(transform, char, x, y), pathops.PathOp.DIFFERENCE)
 
         for _, above_x, above_y, _ in TILES[index + 1:]:
-            gap = rect(scale, above_x, above_y, inset=GAP)
+            gap = rect(transform, above_x, above_y, inset=GAP)
             tile = pathops.op(tile, gap, pathops.PathOp.DIFFERENCE)
 
         layers.append((tile, BLACK, None, 0))
 
     return layers
+
+
+def lockup(transform):
+    """Main logo lockup of D2-Brand: tiles, «сыграем в» and «Города», 278.82×84"""
+    return colored(transform.translate(0, 4).scale(.76)) + [
+        (text(transform, RUBIK, 'сыграем в', 89, 24, 15), INK_SOFT, None, 0),
+        (text(transform, UNBOUNDED, 'Города', 88, 64, 37, length=176.82), INK, None, 0),
+    ]
+
+
+LOCKUP_WIDTH = 278.82
+LOCKUP_HEIGHT = 84
 
 
 def number(value):
@@ -126,7 +163,7 @@ def path_data(path):
     return pen.getCommands()
 
 
-def svg(background, layers):
+def svg(background, layers, width=108, height=108):
     body = ''.join(
         f'<path d="{path_data(path)}" fill="{fill}"'
         + (f' stroke="{stroke}" stroke-width="{number(width)}"' if stroke else '')
@@ -134,7 +171,7 @@ def svg(background, layers):
         for path, fill, stroke, width in layers
     )
 
-    return f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 108 108">{background}{body}</svg>'
+    return f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {number(width)} {number(height)}">{background}{body}</svg>'
 
 
 def vector(layers):
@@ -160,19 +197,30 @@ SQUARE = f'<rect width="108" height="108" fill="{VIOLET}"/>'
 ROUNDED = f'<rect width="108" height="108" rx="26" fill="{VIOLET}"/>'
 CIRCLE = f'<circle cx="54" cy="54" r="54" fill="{VIOLET}"/>'
 
-FULL = svg(SQUARE, colored(.64))
-LEGACY = svg(ROUNDED, colored(.64))
-LEGACY_ROUND = svg(CIRCLE, colored(.6))
+FULL = svg(SQUARE, colored(canvas(.64)))
+LEGACY = svg(ROUNDED, colored(canvas(.64)))
+LEGACY_ROUND = svg(CIRCLE, colored(canvas(.6)))
 
 # At 32 px the tiles need more room to stay readable
-SMALL = svg(SQUARE, colored(.84))
+SMALL = svg(SQUARE, colored(canvas(.84)))
 
-FOREGROUND = colored(.64 * ADAPTIVE_VISIBLE)
-MONOCHROME = silhouette(.64 * ADAPTIVE_VISIBLE)
+FOREGROUND = colored(canvas(.64 * ADAPTIVE_VISIBLE))
+MONOCHROME = silhouette(canvas(.64 * ADAPTIVE_VISIBLE))
 
 
-def render(source, size, path, opaque=False):
-    png = bytes(svg_to_bytes(svg_string=source, width=size, height=size))
+def banner(width, height, lockup_width):
+    """Logo lockup centred on the app background"""
+    k = lockup_width / LOCKUP_WIDTH
+    transform = Identity.translate((width - lockup_width) / 2, (height - LOCKUP_HEIGHT * k) / 2).scale(k)
+
+    return svg(f'<rect width="{width}" height="{height}" fill="{BG}"/>', lockup(transform), width, height)
+
+
+OK_BANNER = banner(1280, 720, 760)
+
+
+def render(source, size, path, opaque=False, height=None):
+    png = bytes(svg_to_bytes(svg_string=source, width=size, height=height or size))
     image = Image.open(io.BytesIO(png))
 
     if opaque:
@@ -211,6 +259,9 @@ def main():
 
     for size in (150, 278):
         render(FULL, size, VK / f'vk_{size}.png', opaque=True)
+
+    render(FULL, 512, OK / 'ok_512.png', opaque=True)
+    render(OK_BANNER, 1280, OK / 'ok_1280x720.png', opaque=True, height=720)
 
 
 if __name__ == '__main__':
