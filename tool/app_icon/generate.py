@@ -3,15 +3,17 @@
 Run from the project root:
     python tool/app_icon/generate.py
 
-Needs fonttools, resvg-py and pillow.
+Needs fonttools, skia-pathops, resvg-py and pillow.
 """
 
 import io
 import json
 from pathlib import Path
 
+import pathops
 from fontTools.pens.svgPathPen import SVGPathPen
 from fontTools.pens.transformPen import TransformPen
+from fontTools.svgLib import SVGPath
 from fontTools.ttLib import TTFont
 from fontTools.varLib.instancer import instantiateVariableFont
 from PIL import Image
@@ -27,76 +29,146 @@ VIOLET = '#5B3DF5'
 INK = '#1B1340'
 WHITE = '#FFFFFF'
 ORANGE = '#FF7A1A'
+BLACK = '#000000'
 
 # Adaptive icons show the middle 72 of the 108 dp canvas
 ADAPTIVE_VISIBLE = 72 / 108
 
+# Tile layout of D2-Brand in a 100-unit box: top-left corners of the two tiles
+TILES = [('Г', 6, 4, WHITE), ('А', 40, 38, ORANGE)]
+TILE = 52
+RADIUS = 12
+BORDER = 3
+SHADOW = 5
+FONT_SIZE = 26
+BASELINE = 35.75
 
-def letter_paths():
-    font = TTFont(ROOT / 'assets/fonts/Unbounded[wght].ttf')
-    font = instantiateVariableFont(font, {'wght': 700})
-    glyphs = font.getGlyphSet()
-    cmap = font.getBestCmap()
-    upem = font['head'].unitsPerEm
+# Gap that separates the tiles in the themed icon
+GAP = 4
 
-    def path(char, center_x, baseline_y, size=26):
-        name = cmap[ord(char)]
-        scale = size / upem
-        advance = glyphs[name].width * scale
-        pen = SVGPathPen(glyphs)
-        transform = (scale, 0, 0, -scale, center_x - advance / 2, baseline_y)
-        glyphs[name].draw(TransformPen(pen, transform))
-
-        return pen.getCommands()
-
-    return path('Г', 32, 39.75), path('А', 66, 73.75)
+FONT = TTFont(ROOT / 'assets/fonts/Unbounded[wght].ttf')
+FONT = instantiateVariableFont(FONT, {'wght': 700})
+GLYPHS = FONT.getGlyphSet()
+CMAP = FONT.getBestCmap()
+UPEM = FONT['head'].unitsPerEm
 
 
-G_PATH, A_PATH = letter_paths()
+def canvas(scale):
+    """Maps the 100-unit tile box to the centre of the 108 canvas"""
+    return (scale, 0, 0, scale, 54 - 50 * scale, 54 - 50 * scale)
 
 
-def tiles(scale):
-    """Both tiles in the 108 canvas, as in D2-Brand"""
-    return f'''<g transform="translate(54 54) scale({scale}) translate(-50 -50)">
-<rect x="6" y="9" width="52" height="52" rx="12" fill="{INK}"/>
-<rect x="6" y="4" width="52" height="52" rx="12" fill="{WHITE}" stroke="{INK}" stroke-width="3"/>
-<path d="{G_PATH}" fill="{INK}"/>
-<rect x="40" y="43" width="52" height="52" rx="12" fill="{INK}"/>
-<rect x="40" y="38" width="52" height="52" rx="12" fill="{ORANGE}" stroke="{INK}" stroke-width="3"/>
-<path d="{A_PATH}" fill="{INK}"/>
-</g>'''
+def rect(scale, x, y, inset=0):
+    markup = (
+        f'<svg xmlns="http://www.w3.org/2000/svg"><rect x="{x - inset}" y="{y - inset}"'
+        f' width="{TILE + 2 * inset}" height="{TILE + 2 * inset}" rx="{RADIUS + inset}"/></svg>'
+    )
+    path = pathops.Path()
+    SVGPath.fromstring(markup.encode(), transform=canvas(scale)).draw(path.getPen())
+
+    return path
 
 
-def mono_tiles(scale):
-    """Silhouette for themed icons: tiles with cut-out letters, a gap between tiles"""
-    return f'''<defs>
-<mask id="g" maskUnits="userSpaceOnUse" x="0" y="0" width="100" height="100">
-<rect width="100" height="100" fill="#fff"/>
-<path d="{G_PATH}" fill="#000"/>
-<rect x="40" y="38" width="52" height="52" rx="12" fill="#000" stroke="#000" stroke-width="8"/>
-</mask>
-<mask id="a" maskUnits="userSpaceOnUse" x="0" y="0" width="100" height="100">
-<rect width="100" height="100" fill="#fff"/>
-<path d="{A_PATH}" fill="#000"/>
-</mask>
-</defs>
-<g transform="translate(54 54) scale({scale}) translate(-50 -50)">
-<rect x="6" y="4" width="52" height="52" rx="12" mask="url(#g)"/>
-<rect x="40" y="38" width="52" height="52" rx="12" mask="url(#a)"/>
-</g>'''
+def letter(scale, char, x, y):
+    """Glyph centred on its tile, with overlapping contours merged"""
+    name = CMAP[ord(char)]
+    k = FONT_SIZE / UPEM
+    left = x + TILE / 2 - GLYPHS[name].width * k / 2
+    path = pathops.Path()
+
+    # Cyrillic А is a component of Latin A, the glyph set resolves it
+    pen = TransformPen(path.getPen(glyphSet=GLYPHS), canvas(scale))
+    GLYPHS[name].draw(TransformPen(pen, (k, 0, 0, -k, left, y + BASELINE)))
+
+    return pathops.simplify(path)
 
 
-def svg(body):
-    return f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 108 108">{body}</svg>'
+def colored(scale):
+    """Both tiles as in D2-Brand: (path, fill, stroke, stroke width)"""
+    layers = []
+
+    for char, x, y, fill in TILES:
+        layers += [
+            (rect(scale, x, y + SHADOW), INK, None, 0),
+            (rect(scale, x, y), fill, INK, BORDER * scale),
+            (letter(scale, char, x, y), INK, None, 0),
+        ]
+
+    return layers
 
 
-FULL = svg(f'<rect width="108" height="108" fill="{VIOLET}"/>{tiles(.64)}')
-ROUNDED = svg(f'<rect width="108" height="108" rx="26" fill="{VIOLET}"/>{tiles(.64)}')
+def silhouette(scale):
+    """Themed icon: tiles with cut-out letters, each tile clears a gap in the one below"""
+    layers = []
+
+    for index, (char, x, y, _) in enumerate(TILES):
+        tile = pathops.op(rect(scale, x, y), letter(scale, char, x, y), pathops.PathOp.DIFFERENCE)
+
+        for _, above_x, above_y, _ in TILES[index + 1:]:
+            gap = rect(scale, above_x, above_y, inset=GAP)
+            tile = pathops.op(tile, gap, pathops.PathOp.DIFFERENCE)
+
+        layers.append((tile, BLACK, None, 0))
+
+    return layers
+
+
+def number(value):
+    text = f'{value:.3f}'.rstrip('0').rstrip('.')
+
+    return '0' if text == '-0' else text
+
+
+def path_data(path):
+    pen = SVGPathPen(None, ntos=number)
+    path.draw(pen)
+
+    return pen.getCommands()
+
+
+def svg(background, layers):
+    body = ''.join(
+        f'<path d="{path_data(path)}" fill="{fill}"'
+        + (f' stroke="{stroke}" stroke-width="{number(width)}"' if stroke else '')
+        + '/>'
+        for path, fill, stroke, width in layers
+    )
+
+    return f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 108 108">{background}{body}</svg>'
+
+
+def vector(layers):
+    paths = ''.join(
+        f'\n    <path\n        android:fillColor="{fill}"'
+        + (f'\n        android:strokeColor="{stroke}"\n        android:strokeWidth="{number(width)}"' if stroke else '')
+        + f'\n        android:pathData="{path_data(path)}" />'
+        for path, fill, stroke, width in layers
+    )
+
+    return f'''<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated by tool/app_icon/generate.py -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">{paths}
+</vector>
+'''
+
+
+SQUARE = f'<rect width="108" height="108" fill="{VIOLET}"/>'
+ROUNDED = f'<rect width="108" height="108" rx="26" fill="{VIOLET}"/>'
+CIRCLE = f'<circle cx="54" cy="54" r="54" fill="{VIOLET}"/>'
+
+FULL = svg(SQUARE, colored(.64))
+LEGACY = svg(ROUNDED, colored(.64))
+LEGACY_ROUND = svg(CIRCLE, colored(.6))
+
 # At 32 px the tiles need more room to stay readable
-SMALL = svg(f'<rect width="108" height="108" fill="{VIOLET}"/>{tiles(.84)}')
-ROUND = svg(f'<circle cx="54" cy="54" r="54" fill="{VIOLET}"/>{tiles(.6)}')
-FOREGROUND = svg(tiles(.64 * ADAPTIVE_VISIBLE))
-MONOCHROME = svg(mono_tiles(.64 * ADAPTIVE_VISIBLE))
+SMALL = svg(SQUARE, colored(.84))
+
+FOREGROUND = colored(.64 * ADAPTIVE_VISIBLE)
+MONOCHROME = silhouette(.64 * ADAPTIVE_VISIBLE)
 
 
 def render(source, size, path, opaque=False):
@@ -111,21 +183,20 @@ def render(source, size, path, opaque=False):
 
 
 def main():
-    for name, source in [
-        ('app_icon', FULL),
-        ('foreground', FOREGROUND),
-        ('monochrome', MONOCHROME),
-    ]:
-        (OUT_SRC / f'{name}.svg').write_text(source)
+    (OUT_SRC / 'app_icon.svg').write_text(FULL)
+    (OUT_SRC / 'foreground.svg').write_text(svg('', FOREGROUND))
+    (OUT_SRC / 'monochrome.svg').write_text(svg('', MONOCHROME))
 
+    (RES / 'drawable/ic_launcher_foreground.xml').write_text(vector(FOREGROUND))
+    (RES / 'drawable/ic_launcher_monochrome.xml').write_text(vector(MONOCHROME))
+
+    # Launchers below API 26 have no adaptive icons and take these
     densities = {'mdpi': 1, 'hdpi': 1.5, 'xhdpi': 2, 'xxhdpi': 3, 'xxxhdpi': 4}
 
     for density, factor in densities.items():
         folder = RES / f'mipmap-{density}'
-        render(ROUNDED, round(48 * factor), folder / 'ic_launcher.png')
-        render(ROUND, round(48 * factor), folder / 'ic_launcher_round.png')
-        render(FOREGROUND, round(108 * factor), folder / 'ic_launcher_foreground.png')
-        render(MONOCHROME, round(108 * factor), folder / 'ic_launcher_monochrome.png')
+        render(LEGACY, round(48 * factor), folder / 'ic_launcher.png')
+        render(LEGACY_ROUND, round(48 * factor), folder / 'ic_launcher_round.png')
 
     render(FULL, 512, ROOT / 'android/app/src/main/ic_launcher-playstore.png', opaque=True)
 
