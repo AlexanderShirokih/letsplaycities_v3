@@ -8,6 +8,7 @@ Needs fonttools, skia-pathops, resvg-py and pillow.
 
 import io
 import json
+import math
 from pathlib import Path
 
 import pathops
@@ -34,6 +35,13 @@ ORANGE = '#FF7A1A'
 BLACK = '#000000'
 BG = '#F1EEFF'
 INK_SOFT = '#5B5480'
+EDGE = '#D6CEFA'
+YELLOW = '#FFC93C'
+MINT = '#52D6A4'
+SKY = '#8EC9FF'
+
+# Highlighted last letter of a city
+LETTER = '#B84E00'
 
 # Adaptive icons show the middle 72 of the 108 dp canvas
 ADAPTIVE_VISIBLE = 72 / 108
@@ -67,15 +75,27 @@ def canvas(scale):
     return Transform(scale, 0, 0, scale, 54 - 50 * scale, 54 - 50 * scale)
 
 
-def rect(transform, x, y, inset=0):
-    markup = (
-        f'<svg xmlns="http://www.w3.org/2000/svg"><rect x="{x - inset}" y="{y - inset}"'
-        f' width="{TILE + 2 * inset}" height="{TILE + 2 * inset}" rx="{RADIUS + inset}"/></svg>'
-    )
+def shape(transform, markup):
+    """Outline of SVG shape markup such as a rect or a path"""
     path = pathops.Path()
-    SVGPath.fromstring(markup.encode(), transform=transform).draw(path.getPen())
+    source = f'<svg xmlns="http://www.w3.org/2000/svg">{markup}</svg>'
+    SVGPath.fromstring(source.encode(), transform=transform).draw(path.getPen())
 
     return path
+
+
+def rect(transform, x, y, inset=0, width=TILE, height=TILE, radius=RADIUS):
+    return shape(
+        transform,
+        f'<rect x="{x - inset}" y="{y - inset}" width="{width + 2 * inset}"'
+        f' height="{height + 2 * inset}" rx="{radius + inset}"/>',
+    )
+
+
+def advance(font, string, size):
+    glyphs, cmap, upem = font
+
+    return sum(glyphs[cmap[ord(char)]].width for char in string) * size / upem
 
 
 def text(transform, font, string, x, baseline, size, length=None):
@@ -102,24 +122,23 @@ def text(transform, font, string, x, baseline, size, length=None):
 
 def letter(transform, char, x, y):
     """Glyph centred on its tile"""
-    glyphs, cmap, upem = UNBOUNDED
-    width = glyphs[cmap[ord(char)]].width * FONT_SIZE / upem
+    width = advance(UNBOUNDED, char, FONT_SIZE)
 
     return text(transform, UNBOUNDED, char, x + TILE / 2 - width / 2, y + BASELINE, FONT_SIZE)
 
 
+def tile(transform, char, x, y, fill):
+    """One letter tile with its hard shadow"""
+    return [
+        (rect(transform, x, y + SHADOW), INK, None, 0),
+        (rect(transform, x, y), fill, INK, BORDER * transform[0]),
+        (letter(transform, char, x, y), INK, None, 0),
+    ]
+
+
 def colored(transform):
     """Both tiles as in D2-Brand: (path, fill, stroke, stroke width)"""
-    layers = []
-
-    for char, x, y, fill in TILES:
-        layers += [
-            (rect(transform, x, y + SHADOW), INK, None, 0),
-            (rect(transform, x, y), fill, INK, BORDER * transform[0]),
-            (letter(transform, char, x, y), INK, None, 0),
-        ]
-
-    return layers
+    return [layer for char, x, y, fill in TILES for layer in tile(transform, char, x, y, fill)]
 
 
 def silhouette(transform):
@@ -138,11 +157,11 @@ def silhouette(transform):
     return layers
 
 
-def lockup(transform):
+def lockup(transform, caption=INK_SOFT, title=INK):
     """Main logo lockup of D2-Brand: tiles, «сыграем в» and «Города», 278.82×84"""
     return colored(transform.translate(0, 4).scale(.76)) + [
-        (text(transform, RUBIK, 'сыграем в', 89, 24, 15), INK_SOFT, None, 0),
-        (text(transform, UNBOUNDED, 'Города', 88, 64, 37, length=176.82), INK, None, 0),
+        (text(transform, RUBIK, 'сыграем в', 89, 24, 15), caption, None, 0),
+        (text(transform, UNBOUNDED, 'Города', 88, 64, 37, length=176.82), title, None, 0),
     ]
 
 
@@ -208,15 +227,85 @@ FOREGROUND = colored(canvas(.64 * ADAPTIVE_VISIBLE))
 MONOCHROME = silhouette(canvas(.64 * ADAPTIVE_VISIBLE))
 
 
-def banner(width, height, lockup_width):
-    """Logo lockup centred on the app background"""
+# Letter tiles scattered around the banner: letter, left, top, size, fill, turn in degrees
+BANNER_TILES = [
+    ('К', 56, 64, 124, YELLOW, -12),
+    ('Р', 1096, 44, 112, WHITE, 10),
+    ('Т', 36, 492, 118, SKY, 8),
+    ('Н', 1108, 506, 132, MINT, -8),
+    ('Л', 252, 600, 78, ORANGE, 14),
+    ('М', 940, 612, 78, YELLOW, -10),
+]
+
+# A round of the game: each city starts with the last letter of the one before
+BANNER_CHAIN = ['Москва', 'Анапа', 'Астана']
+CHAIN_SIZE = 34
+CHAIN_PAD = 26
+CHAIN_HEIGHT = 74
+CHAIN_ARROW = 64
+
+
+def scattered(char, x, y, size, fill, turn):
+    k = size / TILE
+    transform = (
+        Identity.translate(x + size / 2, y + size / 2)
+        .rotate(math.radians(turn))
+        .translate(-size / 2, -size / 2)
+        .scale(k)
+    )
+
+    return tile(transform, char, 0, 0, fill)
+
+
+def city(x, y, name):
+    """City pill with its last letter highlighted"""
+    width = advance(UNBOUNDED, name, CHAIN_SIZE) + 2 * CHAIN_PAD
+    baseline = y + CHAIN_HEIGHT / 2 + CHAIN_SIZE * .36
+    head = name[:-1]
+    left = x + CHAIN_PAD
+
+    return width, [
+        (rect(Identity, x, y + 6, width=width, height=CHAIN_HEIGHT, radius=20), INK, None, 0),
+        (rect(Identity, x, y, width=width, height=CHAIN_HEIGHT, radius=20), WHITE, INK, 4),
+        (text(Identity, UNBOUNDED, head, left, baseline, CHAIN_SIZE), INK, None, 0),
+        (text(Identity, UNBOUNDED, name[-1], left + advance(UNBOUNDED, head, CHAIN_SIZE), baseline, CHAIN_SIZE), LETTER, None, 0),
+    ]
+
+
+def arrow(x, y):
+    return shape(Identity.translate(x, y), '<path d="M14 -6H34V-15L50 0 34 15V6H14Z"/>')
+
+
+def chain(width, y):
+    pills = [advance(UNBOUNDED, name, CHAIN_SIZE) + 2 * CHAIN_PAD for name in BANNER_CHAIN]
+    x = (width - sum(pills) - CHAIN_ARROW * (len(pills) - 1)) / 2
+    layers = []
+
+    for index, name in enumerate(BANNER_CHAIN):
+        pill, parts = city(x, y, name)
+        layers += parts
+        x += pill
+
+        if index < len(BANNER_CHAIN) - 1:
+            layers.append((arrow(x, y + CHAIN_HEIGHT / 2), WHITE, None, 0))
+            x += CHAIN_ARROW
+
+    return layers
+
+
+def banner(width, height):
+    """Logo over a round of the game, with letter tiles around"""
+    lockup_width = 640
     k = lockup_width / LOCKUP_WIDTH
-    transform = Identity.translate((width - lockup_width) / 2, (height - LOCKUP_HEIGHT * k) / 2).scale(k)
+    logo = Identity.translate((width - lockup_width) / 2, 128).scale(k)
+    layers = [layer for spec in BANNER_TILES for layer in scattered(*spec)]
+    layers += lockup(logo, caption=EDGE, title=WHITE)
+    layers += chain(width, 436)
 
-    return svg(f'<rect width="{width}" height="{height}" fill="{BG}"/>', lockup(transform), width, height)
+    return svg(f'<rect width="{width}" height="{height}" fill="{VIOLET}"/>', layers, width, height)
 
 
-OK_BANNER = banner(1280, 720, 760)
+OK_BANNER = banner(1280, 720)
 
 
 def render(source, size, path, opaque=False, height=None):
