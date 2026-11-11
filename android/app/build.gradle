@@ -6,21 +6,30 @@ plugins {
     id "dev.flutter.flutter-gradle-plugin"
 }
 
+// The release key may come from android/key.properties (git-ignored, with the keys
+// storeFile, storePassword, keyAlias and keyPassword) or from the Gradle properties below.
+def keyProps = new Properties()
+def keyPropsFile = rootProject.file("key.properties")
+
+if (keyPropsFile.exists()) {
+    keyPropsFile.withInputStream { keyProps.load(it) }
+}
+
 def hasSigningProps = { List<String> names -> names.every { project.hasProperty(it) } }
 def hasTestSigning = hasSigningProps(["store_pass", "store_file", "lps_alias"])
-def hasReleaseSigning = hasSigningProps(["store_pass_release", "store_file_release",
-                                         "lps_alias_release", "lps_alias_pass_release"])
+def hasKeyPropsSigning = ["storeFile", "storePassword", "keyAlias", "keyPassword"].every { keyProps.getProperty(it) }
+def hasReleaseSigning = hasKeyPropsSigning || hasSigningProps(["store_pass_release", "store_file_release",
+                                                               "lps_alias_release", "lps_alias_pass_release"])
 
 // Without the release keystore the release build type falls back to the debug key, so that
 // `flutter run --release` works locally. Such an artifact is rejected by stores, cannot update
-// a store install, and breaks Google, Facebook and VK sign-in bound to the release certificate.
+// a store install, and breaks Google, VK and Odnoklassniki sign-in bound to the release certificate.
 // Warn on every release build: the task declares no outputs, so Gradle never skips it as
 // up-to-date. QUIET level, because Flutter runs Gradle with -q.
 if (!hasReleaseSigning) {
     def warnDebugSignedRelease = tasks.register("warnDebugSignedRelease") {
         doLast { task ->
-            task.logger.quiet("WARNING: release signing properties (store_pass_release, store_file_release, " +
-                    "lps_alias_release, lps_alias_pass_release) are missing. " +
+            task.logger.quiet("WARNING: the release key is not configured (fill in android/key.properties). " +
                     "This release build is signed with the DEBUG key and must not be distributed.")
         }
     }
@@ -66,10 +75,17 @@ android {
 
         if (hasReleaseSigning) {
             release {
-                storeFile = file(project.property("store_file_release") as String)
-                storePassword = file(project.property("store_pass_release") as String).text
-                keyPassword = project.property("lps_alias_pass_release") as String
-                keyAlias = project.property("lps_alias_release") as String
+                if (hasKeyPropsSigning) {
+                    storeFile = file(keyProps.getProperty("storeFile"))
+                    storePassword = keyProps.getProperty("storePassword")
+                    keyPassword = keyProps.getProperty("keyPassword")
+                    keyAlias = keyProps.getProperty("keyAlias")
+                } else {
+                    storeFile = file(project.property("store_file_release") as String)
+                    storePassword = file(project.property("store_pass_release") as String).text
+                    keyPassword = project.property("lps_alias_pass_release") as String
+                    keyAlias = project.property("lps_alias_release") as String
+                }
             }
         }
     }
@@ -94,7 +110,6 @@ dependencies {
 
     implementation "com.vk:androidsdk:2.7.0"
     implementation "ru.ok:odnoklassniki-android-sdk:2.1.8"
-    implementation "com.facebook.android:facebook-login:9.0.0"
 
     // Keep the BoM in sync with FirebaseSDKVersion of the firebase_core plugin.
     implementation platform("com.google.firebase:firebase-bom:35.1.0")

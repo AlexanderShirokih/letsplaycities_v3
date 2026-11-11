@@ -73,6 +73,7 @@ void main() {
     expect(find.text(t.online.title), findsOneWidget);
     expect(find.text(t.login.google), findsOneWidget);
     expect(find.text(t.login.vkId), findsOneWidget);
+    expect(find.text(t.login.ok), findsOneWidget);
     expect(find.text(t.login.orGuest), findsOneWidget);
     expect(find.text('Мария'), findsOneWidget);
   });
@@ -93,6 +94,10 @@ void main() {
   });
 
   testWidgets('login shows server message on forbidden_name', (tester) async {
+    // Four sign-in buttons and the guest row need more than the default 600px
+    tester.view.physicalSize = const Size(800, 1000);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
     register(
       const ApiException(400, 'forbidden_name', 'Это имя использовать нельзя'),
     );

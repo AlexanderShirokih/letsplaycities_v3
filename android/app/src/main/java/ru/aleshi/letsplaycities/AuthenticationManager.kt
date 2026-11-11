@@ -98,7 +98,6 @@ class AuthenticationManager(binaryMessenger: BinaryMessenger, activity: Activity
         return when (service) {
             ServiceType.Vkontakte -> VKontakteService()
             ServiceType.Odnoklassniki -> OdnoklassnikiService()
-            ServiceType.Facebook -> FacebookService()
             ServiceType.Google -> GoogleService()
         }
     }

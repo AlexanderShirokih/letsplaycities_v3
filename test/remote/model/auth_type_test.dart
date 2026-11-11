@@ -8,7 +8,6 @@ void main() {
     AuthType.google: 'gl',
     AuthType.vkontakte: 'vk',
     AuthType.odnoklassniki: 'ok',
-    AuthType.facebook: 'fb',
   };
 
   // Full names are used by the game server and the REST API ('authType').
@@ -17,7 +16,6 @@ void main() {
     AuthType.google: 'Google',
     AuthType.vkontakte: 'Vkontakte',
     AuthType.odnoklassniki: 'Odnoklassniki',
-    AuthType.facebook: 'Facebook',
   };
 
   group('short name', () {

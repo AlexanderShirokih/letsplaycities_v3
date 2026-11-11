@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The VK SDK looks this resource up by name at run time, so the
+     resource shrinker sees no references and drops it from the release build. -->
+<resources
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:keep="@integer/com_vk_sdk_AppId" />

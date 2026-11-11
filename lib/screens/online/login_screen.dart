@@ -125,6 +125,15 @@ class _LoginScreenState extends State<LoginScreen> {
                         expand: true,
                         onPressed: () => signIn(AuthType.vkontakte),
                       ),
+                      const SizedBox(height: 16),
+                      D2Button(
+                        label: t.login.ok,
+                        leading: const D2OkMark(),
+                        kind: D2ButtonKind.outline,
+                        size: D2ButtonSize.large,
+                        expand: true,
+                        onPressed: () => signIn(AuthType.odnoklassniki),
+                      ),
                       Padding(
                         padding: const EdgeInsets.only(top: 28, bottom: 16),
                         child: _GuestDivider(label: t.login.orGuest),

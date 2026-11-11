@@ -4,8 +4,6 @@
     <string name="app_name">Сыграем в Города</string>
     <string name="share_with">Поделиться с помощью</string>
     <integer name="com_vk_sdk_AppId">6613684</integer>
-    <string name="facebook_app_id">1023004964531266</string>
-    <string name="fb_login_protocol_scheme">fb1023004964531266</string>
 
     <string name="no_play_services">Возможно у вас не установлены Сервисы Google Play</string>
     <string name="no_game_services">Для авторизации установите приложении Play Игры</string>

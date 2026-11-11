@@ -13,7 +13,7 @@ class LpsUser extends Equatable {
   /// Version of the avatar, `null` if the user has none
   final String? avatarHash;
 
-  /// Origin of the account: `native`, `google`, `vk`, `ok` or `fb`
+  /// Origin of the account: `native`, `google`, `vk` or `ok`
   final String provider;
 
   /// Time of the last authorized request of the user

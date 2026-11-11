@@ -901,6 +901,9 @@ class Translations$login$ru {
 	/// ru: 'Войти через VK ID'
 	String get vkId => 'Войти через VK ID';
 
+	/// ru: 'Войти через Одноклассники'
+	String get ok => 'Войти через Одноклассники';
+
 	/// ru: 'или играть как гость'
 	String get orGuest => 'или играть как гость';
 

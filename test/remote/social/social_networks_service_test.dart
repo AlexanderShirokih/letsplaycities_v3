@@ -17,7 +17,6 @@ void main() {
     AuthType.google: 'gl',
     AuthType.vkontakte: 'vk',
     AuthType.odnoklassniki: 'ok',
-    AuthType.facebook: 'fb',
   };
 
   late List<MethodCall> calls;

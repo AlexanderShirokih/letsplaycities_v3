@@ -3,8 +3,7 @@ enum AuthType {
   native('nv', 'Native', 'native'),
   google('gl', 'Google', 'google'),
   vkontakte('vk', 'Vkontakte', 'vk'),
-  odnoklassniki('ok', 'Odnoklassniki', 'ok'),
-  facebook('fb', 'Facebook', 'fb');
+  odnoklassniki('ok', 'Odnoklassniki', 'ok');
 
   const AuthType(this.shortName, this.fullName, this.provider);
 

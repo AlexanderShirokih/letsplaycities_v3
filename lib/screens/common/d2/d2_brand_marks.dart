@@ -9,6 +9,7 @@ abstract final class D2BrandColors {
   static const googleGreen = Color(0xFF34A853);
   static const googleBlue = Color(0xFF4285F4);
   static const vkBlue = Color(0xFF0077FF);
+  static const okOrange = Color(0xFFEE8208);
 }
 
 /// Four-colored "G" ring of the Google button (view box 24x24)
@@ -57,6 +58,34 @@ class D2VkMark extends StatelessWidget {
   const D2VkMark({super.key, this.size = 24});
 
   @override
+  Widget build(BuildContext context) =>
+      _D2LetterMark(label: 'VK', color: D2BrandColors.vkBlue, size: size);
+}
+
+/// Orange rounded square with "OK"
+class D2OkMark extends StatelessWidget {
+  final double size;
+
+  const D2OkMark({super.key, this.size = 24});
+
+  @override
+  Widget build(BuildContext context) =>
+      _D2LetterMark(label: 'OK', color: D2BrandColors.okOrange, size: size);
+}
+
+/// A rounded square of the network color with its letters
+class _D2LetterMark extends StatelessWidget {
+  final String label;
+  final Color color;
+  final double size;
+
+  const _D2LetterMark({
+    required this.label,
+    required this.color,
+    required this.size,
+  });
+
+  @override
   Widget build(BuildContext context) => ExcludeSemantics(
     child: SizedBox.square(
       dimension: size,
@@ -64,12 +93,12 @@ class D2VkMark extends StatelessWidget {
         padding: EdgeInsets.all(size * 1.5 / 24),
         child: DecoratedBox(
           decoration: BoxDecoration(
-            color: D2BrandColors.vkBlue,
+            color: color,
             borderRadius: BorderRadius.circular(size * 6.5 / 24),
           ),
           child: Center(
             child: Text(
-              'VK',
+              label,
               style: D2Text.small.copyWith(
                 fontWeight: FontWeight.w700,
                 fontSize: size * 10 / 24,
