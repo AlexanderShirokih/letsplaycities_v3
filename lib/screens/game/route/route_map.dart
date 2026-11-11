@@ -6,7 +6,7 @@ import 'package:lets_play_cities/base/geo/geo_point.dart';
 import 'package:lets_play_cities/base/geo/world_outline.dart';
 import 'package:lets_play_cities/base/users.dart';
 
-import '../../common/d2/d2_colors.dart';
+import '../../common/design/app_colors.dart';
 
 /// Shifts every longitude by a multiple of 360 so that the distance to the
 /// previous one never exceeds 180 degrees: the route crosses the antimeridian
@@ -197,7 +197,7 @@ class RouteMap extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colors = D2Colors.of(context);
+    final colors = AppColors.of(context);
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     Widget map = RepaintBoundary(
@@ -207,7 +207,7 @@ class RouteMap extends StatelessWidget {
           legs: legs,
           colorOf: colorOf,
           highlight: highlight,
-          // The land is a darker violet than the water, in the D2 palette
+          // The land is a darker violet than the water, in the app palette
           water: isDark
               ? colors.bg
               : Color.lerp(colors.surface, colors.bg, 0.5)!,

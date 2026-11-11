@@ -12,7 +12,7 @@ import 'package:lets_play_cities/remote/auth/token_store.dart';
 import 'package:lets_play_cities/remote/model/cloud_messaging_service.dart';
 import 'package:lets_play_cities/remote/social/social_networks_service.dart';
 import 'package:lets_play_cities/screens/common/authentication_view.dart';
-import 'package:lets_play_cities/screens/common/d2/d2.dart';
+import 'package:lets_play_cities/screens/common/design/design.dart';
 import 'package:lets_play_cities/screens/online/login_screen.dart';
 import 'package:lets_play_cities/utils/error_logger.dart';
 
@@ -81,7 +81,7 @@ void main() {
     await tester.pumpWidget(
       withTranslations(
         MaterialApp(
-          theme: buildD2Theme(Brightness.light),
+          theme: buildAppTheme(Brightness.light),
           home: AuthenticationView(
             key: UniqueKey(),
             onLoggedIn: (_) => const Text('signed in'),

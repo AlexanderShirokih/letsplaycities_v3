@@ -12,7 +12,7 @@ import 'package:lets_play_cities/remote/game_connection.dart';
 import 'package:lets_play_cities/remote/model/cloud_messages.dart';
 import 'package:lets_play_cities/remote/model/social.dart';
 import 'package:lets_play_cities/remote/protocol/game_messages.dart';
-import 'package:lets_play_cities/screens/common/d2/d2.dart';
+import 'package:lets_play_cities/screens/common/design/design.dart';
 import 'package:lets_play_cities/screens/multiplayer/lan_scope.dart';
 import 'package:lets_play_cities/screens/online/game_request_view.dart';
 import 'package:lets_play_cities/screens/online/online_home_screen.dart';
@@ -73,7 +73,7 @@ void main() {
     addTearDown(tester.view.resetPhysicalSize);
 
     final context = tester.element(find.byType(Scaffold).first);
-    showD2Sheet<void>(
+    showAppSheet<void>(
       context,
       builder: (_) => GameRequestView(
         request: _request,
@@ -108,7 +108,7 @@ void main() {
     expect(find.text(_t.online.invitesYou(name: 'Alice')), findsOneWidget);
     expect(find.text(_t.accept), findsOneWidget);
     expect(find.text(_t.decline), findsOneWidget);
-    expect(find.byType(D2Avatar), findsOneWidget);
+    expect(find.byType(AppAvatar), findsOneWidget);
     expect(repository.userCalls, [false]);
   });
 

@@ -8,7 +8,7 @@ import 'package:lets_play_cities/i18n/strings.g.dart';
 import 'package:lets_play_cities/remote/api_repository.dart';
 import 'package:lets_play_cities/remote/client/api_exception.dart';
 import 'package:lets_play_cities/screens/common/common_widgets.dart';
-import 'package:lets_play_cities/screens/common/d2/d2.dart';
+import 'package:lets_play_cities/screens/common/design/design.dart';
 import 'package:lets_play_cities/screens/common/error_texts.dart';
 
 import 'common_online_widgets.dart';
@@ -244,7 +244,7 @@ class _LoadMoreState extends State<_LoadMore> {
   Widget build(BuildContext context) => Padding(
     padding: const EdgeInsets.all(16),
     child: Center(
-      child: CircularProgressIndicator(color: D2Colors.of(context).violet),
+      child: CircularProgressIndicator(color: AppColors.of(context).violet),
     ),
   );
 }
@@ -258,7 +258,7 @@ class _RetryMore extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final c = D2Colors.of(context);
+    final c = AppColors.of(context);
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8),
@@ -267,22 +267,22 @@ class _RetryMore extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              D2Icon(D2Glyph.warning, size: 20, color: c.error),
+              AppIcon(AppGlyph.warning, size: 20, color: c.error),
               const SizedBox(width: 8),
               Flexible(
                 child: Text(
                   errorText(context.t, error),
                   textAlign: TextAlign.center,
-                  style: D2Text.bodyRegular.copyWith(color: c.inkSoft),
+                  style: AppText.bodyRegular.copyWith(color: c.inkSoft),
                 ),
               ),
             ],
           ),
           const SizedBox(height: 8),
-          D2Button(
+          AppButton(
             label: context.t.online.reload,
-            icon: D2Glyph.replay,
-            kind: D2ButtonKind.secondary,
+            icon: AppGlyph.replay,
+            kind: AppButtonKind.secondary,
             onPressed: onRetry,
           ),
         ],

@@ -10,7 +10,7 @@ import 'package:lets_play_cities/base/platform/share.dart';
 import 'package:lets_play_cities/base/users.dart';
 import 'package:lets_play_cities/i18n/enum_labels.dart';
 import 'package:lets_play_cities/i18n/strings.g.dart';
-import 'package:lets_play_cities/screens/common/d2/d2.dart';
+import 'package:lets_play_cities/screens/common/design/design.dart';
 import 'package:lets_play_cities/screens/game/route/route_format.dart';
 import 'package:lets_play_cities/screens/game/route/route_map.dart';
 import 'package:lets_play_cities/screens/game/user_avatar.dart';
@@ -96,11 +96,11 @@ class _RouteResultsScreenState extends State<RouteResultsScreen> {
   }
 
   Widget _buildHeader(BuildContext context, Translations t) {
-    final c = D2Colors.of(context);
+    final c = AppColors.of(context);
     final (glyph, tile) = switch (result.matchResult) {
-      MatchResult.win => (D2Glyph.trophy, c.yellow),
-      MatchResult.lose => (D2Glyph.surrender, c.yellow),
-      MatchResult.draw => (D2Glyph.equal, c.sky),
+      MatchResult.win => (AppGlyph.trophy, c.yellow),
+      MatchResult.lose => (AppGlyph.surrender, c.yellow),
+      MatchResult.draw => (AppGlyph.equal, c.sky),
     };
 
     return Column(
@@ -119,10 +119,10 @@ class _RouteResultsScreenState extends State<RouteResultsScreen> {
             ],
           ),
           alignment: Alignment.center,
-          child: D2Icon(
+          child: AppIcon(
             glyph,
             size: 38,
-            color: D2Colors.light.ink,
+            color: AppColors.light.ink,
             strokeWidth: 2.25,
           ),
         ),
@@ -130,7 +130,7 @@ class _RouteResultsScreenState extends State<RouteResultsScreen> {
         Text(
           result.matchResult.label(t),
           textAlign: TextAlign.center,
-          style: D2Text.display.copyWith(fontSize: 30, color: c.ink),
+          style: AppText.display.copyWith(fontSize: 30, color: c.ink),
         ),
         // A finished route needs no reason, only an early end does
         if (result.finishType != MoveFinishType.routeCompleted) ...[
@@ -138,7 +138,7 @@ class _RouteResultsScreenState extends State<RouteResultsScreen> {
           Text(
             result.finishType.finishDescription(t, result.finishRequester.name),
             textAlign: TextAlign.center,
-            style: D2Text.bodyRegular.copyWith(color: c.inkSoft),
+            style: AppText.bodyRegular.copyWith(color: c.inkSoft),
           ),
         ],
       ],
@@ -146,10 +146,10 @@ class _RouteResultsScreenState extends State<RouteResultsScreen> {
   }
 
   Widget _buildKmCard(BuildContext context, Translations t) {
-    final c = D2Colors.of(context);
+    final c = AppColors.of(context);
     final opponent = result.opponent;
 
-    return D2Card(
+    return AppCard(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
       child: Column(
         children: [
@@ -174,7 +174,7 @@ class _RouteResultsScreenState extends State<RouteResultsScreen> {
     Translations t,
     List<RouteLeg> accepted,
   ) {
-    final c = D2Colors.of(context);
+    final c = AppColors.of(context);
     final last = accepted.isEmpty ? null : accepted.last.city;
 
     return Container(
@@ -205,15 +205,15 @@ class _RouteResultsScreenState extends State<RouteResultsScreen> {
     Translations t,
     List<RouteLeg> accepted,
   ) {
-    final c = D2Colors.of(context);
+    final c = AppColors.of(context);
     final countries = {
       for (final leg in accepted)
         if (leg.countryCode != 0) leg.countryCode,
     };
     final longest = _longestLeg();
-    final valueStyle = D2Text.title.copyWith(fontSize: 20, color: c.ink);
+    final valueStyle = AppText.title.copyWith(fontSize: 20, color: c.ink);
 
-    return D2Card(
+    return AppCard(
       padding: EdgeInsets.zero,
       child: IntrinsicHeight(
         child: Row(
@@ -226,7 +226,7 @@ class _RouteResultsScreenState extends State<RouteResultsScreen> {
               ),
             ),
             Container(width: 2, color: c.bg),
-            // 1 : 1.7 : 1, as in D2-RouteResults
+            // 1 : 1.7 : 1, as in the RouteResults design
             Expanded(
               flex: 17,
               child: _Metric(
@@ -239,7 +239,7 @@ class _RouteResultsScreenState extends State<RouteResultsScreen> {
                       TextSpan(text: formatKm(longest?.$1.km ?? 0)),
                       TextSpan(
                         text: '$kmSpace${t.route.km}',
-                        style: D2Text.small.copyWith(
+                        style: AppText.small.copyWith(
                           fontSize: 13,
                           color: c.ink,
                         ),
@@ -333,10 +333,10 @@ class _RouteResultsScreenState extends State<RouteResultsScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        D2Button(
+        AppButton(
           label: t.gameResults.playAgain,
-          icon: D2Glyph.replay,
-          size: D2ButtonSize.large,
+          icon: AppGlyph.replay,
+          size: AppButtonSize.large,
           expand: true,
           onPressed: () =>
               Navigator.pushReplacement(context, replayRoute(config)),
@@ -345,10 +345,10 @@ class _RouteResultsScreenState extends State<RouteResultsScreen> {
         Row(
           children: [
             Expanded(
-              child: D2Button(
+              child: AppButton(
                 label: t.gameResults.toMenu,
-                icon: D2Glyph.exit,
-                kind: D2ButtonKind.secondary,
+                icon: AppGlyph.exit,
+                kind: AppButtonKind.secondary,
                 expand: true,
                 onPressed: () =>
                     Navigator.popUntil(context, (route) => route.isFirst),
@@ -358,10 +358,10 @@ class _RouteResultsScreenState extends State<RouteResultsScreen> {
               const SizedBox(width: 10),
               Expanded(
                 flex: 2,
-                child: D2Button(
+                child: AppButton(
                   label: t.route.share,
-                  icon: D2Glyph.share,
-                  kind: D2ButtonKind.secondary,
+                  icon: AppGlyph.share,
+                  kind: AppButtonKind.secondary,
                   expand: true,
                   onPressed: _onSharePressed,
                 ),
@@ -387,30 +387,30 @@ class _KmRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final c = D2Colors.of(context);
+    final c = AppColors.of(context);
     final color = routeKmColorOf(user, c);
 
     return SizedBox(
       height: 36,
       child: Row(
         children: [
-          buildD2AvatarForUser(user, size: 32),
+          buildAppAvatarForUser(user, size: 32),
           const SizedBox(width: 10),
           Expanded(
             child: Text(
               nameOverride ?? user.name,
               overflow: TextOverflow.ellipsis,
-              style: D2Text.body.copyWith(fontSize: 15, color: c.ink),
+              style: AppText.body.copyWith(fontSize: 15, color: c.ink),
             ),
           ),
           Text.rich(
             TextSpan(
-              style: D2Text.score.copyWith(fontSize: 18, color: color),
+              style: AppText.score.copyWith(fontSize: 18, color: color),
               children: [
                 TextSpan(text: formatKm(km)),
                 TextSpan(
                   text: '$kmSpace${context.t.route.km}',
-                  style: D2Text.small.copyWith(
+                  style: AppText.small.copyWith(
                     fontSize: 13,
                     color: user.position == Position.left ? color : c.ink,
                   ),
@@ -436,7 +436,7 @@ class _Metric extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final c = D2Colors.of(context);
+    final c = AppColors.of(context);
     final spoken = label.replaceAll('\n', ' ');
 
     return Semantics(
@@ -452,7 +452,7 @@ class _Metric extends StatelessWidget {
             Text(
               label,
               textAlign: TextAlign.center,
-              style: D2Text.small.copyWith(
+              style: AppText.small.copyWith(
                 fontWeight: FontWeight.w400,
                 color: c.inkSoft,
               ),

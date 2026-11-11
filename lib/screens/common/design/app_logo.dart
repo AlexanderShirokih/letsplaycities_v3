@@ -1,20 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:lets_play_cities/i18n/strings.g.dart';
-import 'package:lets_play_cities/screens/common/d2/d2_colors.dart';
-import 'package:lets_play_cities/screens/common/d2/d2_text.dart';
+import 'package:lets_play_cities/screens/common/design/app_colors.dart';
+import 'package:lets_play_cities/screens/common/design/app_text.dart';
 
 /// Logo of two tiles, "Г" and "А" (view box 100x100)
-class D2Logo extends StatelessWidget {
+class AppLogo extends StatelessWidget {
   final double size;
 
-  const D2Logo({super.key, this.size = 116});
+  const AppLogo({super.key, this.size = 116});
 
   @override
   Widget build(BuildContext context) {
-    final c = D2Colors.of(context);
+    final c = AppColors.of(context);
 
     return Semantics(
-      label: t.d2.logoSemantics,
+      label: t.design.logoSemantics,
       image: true,
       excludeSemantics: true,
       child: CustomPaint(size: Size.square(size), painter: _LogoPainter(c)),
@@ -23,7 +23,7 @@ class D2Logo extends StatelessWidget {
 }
 
 class _LogoPainter extends CustomPainter {
-  final D2Colors c;
+  final AppColors c;
 
   const _LogoPainter(this.c);
 
@@ -62,9 +62,9 @@ class _LogoPainter extends CustomPainter {
     final painter = TextPainter(
       text: TextSpan(
         text: letter,
-        style: D2Text.title.copyWith(
+        style: AppText.title.copyWith(
           fontSize: 26,
-          color: fill == c.surface ? c.ink : D2Colors.light.ink,
+          color: fill == c.surface ? c.ink : AppColors.light.ink,
         ),
       ),
       textDirection: TextDirection.ltr,

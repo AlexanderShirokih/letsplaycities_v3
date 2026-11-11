@@ -4,7 +4,7 @@ import 'package:lets_play_cities/base/game/game_item.dart';
 import 'package:lets_play_cities/base/game/rules/route_rules.dart';
 import 'package:lets_play_cities/i18n/strings.g.dart';
 import 'package:lets_play_cities/i18n/time_format.dart';
-import 'package:lets_play_cities/screens/common/d2/d2.dart';
+import 'package:lets_play_cities/screens/common/design/design.dart';
 import 'package:lets_play_cities/utils/minutes_seconds.dart';
 import 'package:lets_play_cities/utils/string_utils.dart';
 
@@ -66,7 +66,7 @@ class HotseatTurnView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = context.t;
-    final c = D2Colors.of(context);
+    final c = AppColors.of(context);
     final active = players[activeIndex];
 
     return ColoredBox(
@@ -81,7 +81,7 @@ class HotseatTurnView extends StatelessWidget {
               hasScrollBody: false,
               child: Column(
                 children: [
-                  D2ScreenHeader(onBack: onBack),
+                  AppScreenHeader(onBack: onBack),
                   Expanded(
                     child: Padding(
                       padding: const EdgeInsets.fromLTRB(16, 4, 16, 24),
@@ -99,17 +99,17 @@ class HotseatTurnView extends StatelessWidget {
                               ),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
-                              style: D2Text.section.copyWith(
+                              style: AppText.section.copyWith(
                                 fontSize: 13,
                                 color: c.ink,
                               ),
                             ),
                           ],
                           Expanded(child: _buildMove(context, c, t)),
-                          D2Button(
+                          AppButton(
                             label: t.hotseat.ready,
-                            icon: D2Glyph.play,
-                            size: D2ButtonSize.large,
+                            icon: AppGlyph.play,
+                            size: AppButtonSize.large,
                             expand: true,
                             onPressed: onReady,
                           ),
@@ -126,7 +126,7 @@ class HotseatTurnView extends StatelessWidget {
     );
   }
 
-  Widget _buildTitle(D2Colors c, Translations t, HotseatPlayer active) {
+  Widget _buildTitle(AppColors c, Translations t, HotseatPlayer active) {
     final name = active.controller?.text.trim() ?? '';
 
     return Column(
@@ -134,14 +134,14 @@ class HotseatTurnView extends StatelessWidget {
         Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            D2Icon(D2Glyph.phone, size: 18, color: c.inkSoft),
+            AppIcon(AppGlyph.phone, size: 18, color: c.inkSoft),
             const SizedBox(width: 6),
             Flexible(
               child: Text(
                 t.hotseat.passPhone,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: D2Text.body.copyWith(fontSize: 15, color: c.inkSoft),
+                style: AppText.body.copyWith(fontSize: 15, color: c.inkSoft),
               ),
             ),
           ],
@@ -157,7 +157,7 @@ class HotseatTurnView extends StatelessWidget {
               textAlign: TextAlign.center,
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
-              style: D2Text.display.copyWith(height: 1.15, color: c.ink),
+              style: AppText.display.copyWith(height: 1.15, color: c.ink),
             ),
           ),
         ),
@@ -181,7 +181,7 @@ class HotseatTurnView extends StatelessWidget {
     ],
   );
 
-  Widget _buildMove(BuildContext context, D2Colors c, Translations t) {
+  Widget _buildMove(BuildContext context, AppColors c, Translations t) {
     final city = lastCity;
     final timed = timeLimit > 0;
 
@@ -193,10 +193,10 @@ class HotseatTurnView extends StatelessWidget {
         // The caption is only read out: the tile speaks for itself
         Semantics(
           label: t.game.cityOnLetter,
-          child: D2TimerRing(
+          child: AppTimerRing(
             size: 132,
             progress: timed ? 1 : 0,
-            child: D2LetterTile(
+            child: AppLetterTile(
               letter.isEmpty ? t.game.letterAny : letter.toUpperCase(),
               size: 72,
               semanticLabel: letter.isEmpty ? t.game.letterAnySemantics : null,
@@ -212,12 +212,12 @@ class HotseatTurnView extends StatelessWidget {
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                D2Icon(D2Glyph.pause, size: 16, color: c.inkSoft),
+                AppIcon(AppGlyph.pause, size: 16, color: c.inkSoft),
                 const SizedBox(width: 5),
                 Text(
                   formatClock(timeLimit),
                   maxLines: 1,
-                  style: D2Text.section.copyWith(color: c.inkSoft),
+                  style: AppText.section.copyWith(color: c.inkSoft),
                 ),
               ],
             ),
@@ -276,10 +276,10 @@ class _PlayerCardState extends State<_PlayerCard> {
 
   @override
   Widget build(BuildContext context) {
-    final c = D2Colors.of(context);
-    final onCard = active ? D2Colors.light.surface : c.ink;
-    final soft = active ? D2Colors.light.edge : c.inkSoft;
-    final nameStyle = D2Text.body.copyWith(fontSize: 15, color: onCard);
+    final c = AppColors.of(context);
+    final onCard = active ? AppColors.light.surface : c.ink;
+    final soft = active ? AppColors.light.edge : c.inkSoft;
+    final nameStyle = AppText.body.copyWith(fontSize: 15, color: onCard);
     final controller = player.controller;
 
     final Widget name = controller == null
@@ -347,7 +347,7 @@ class _PlayerCardState extends State<_PlayerCard> {
                           height: 44,
                           child: Align(
                             alignment: Alignment.centerRight,
-                            child: D2Icon(D2Glyph.edit, size: 16, color: soft),
+                            child: AppIcon(AppGlyph.edit, size: 16, color: soft),
                           ),
                         ),
                       ),
@@ -362,7 +362,7 @@ class _PlayerCardState extends State<_PlayerCard> {
                     ? '${formatKm(player.score)}$kmSpace${context.t.route.km}'
                     : '${player.score}',
                 maxLines: 1,
-                style: D2Text.score.copyWith(
+                style: AppText.score.copyWith(
                   fontSize: 26,
                   height: 1,
                   color: onCard,
@@ -375,21 +375,21 @@ class _PlayerCardState extends State<_PlayerCard> {
     );
   }
 
-  Widget _buildNumber(D2Colors c) => ExcludeSemantics(
+  Widget _buildNumber(AppColors c) => ExcludeSemantics(
     child: Container(
       width: 30,
       height: 30,
       alignment: Alignment.center,
       decoration: BoxDecoration(
-        color: active ? D2Colors.light.surface : c.yellow,
+        color: active ? AppColors.light.surface : c.yellow,
         borderRadius: BorderRadius.circular(9),
       ),
       child: Text(
         '$number',
-        style: D2Text.score.copyWith(
+        style: AppText.score.copyWith(
           fontSize: 14,
           height: 1,
-          color: D2Colors.light.ink,
+          color: AppColors.light.ink,
         ),
       ),
     ),
@@ -404,7 +404,7 @@ class _LastCity extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final c = D2Colors.of(context);
+    final c = AppColors.of(context);
     final name = city.city.toTitleCase();
 
     return Semantics(

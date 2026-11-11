@@ -8,7 +8,7 @@ import 'package:lets_play_cities/base/game/game_mode.dart';
 import 'package:lets_play_cities/base/preferences.dart';
 import 'package:lets_play_cities/remote/auth.dart';
 import 'package:lets_play_cities/remote/model/lps_user.dart';
-import 'package:lets_play_cities/screens/common/d2/d2.dart';
+import 'package:lets_play_cities/screens/common/design/design.dart';
 import 'package:lets_play_cities/screens/main/home_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -39,7 +39,7 @@ Widget _app(
   value: prefs,
   child: withTranslations(
     MaterialApp(
-      theme: buildD2Theme(Brightness.light),
+      theme: buildAppTheme(Brightness.light),
       builder: (context, child) => MediaQuery(
         data: MediaQuery.of(context).copyWith(disableAnimations: !animate),
         child: child!,
@@ -119,7 +119,7 @@ void main() {
         prefs,
         withTranslations(
           MaterialApp(
-            theme: buildD2Theme(Brightness.light),
+            theme: buildAppTheme(Brightness.light),
             builder: (context, child) => MediaQuery(
               data: MediaQuery.of(context)
                   .copyWith(textScaler: const TextScaler.linear(1.3)),
@@ -150,7 +150,7 @@ void main() {
         prefs,
         withTranslations(
           MaterialApp(
-            theme: buildD2Theme(Brightness.light),
+            theme: buildAppTheme(Brightness.light),
             home: Scaffold(
               body: HomeScreen(
                 actions: _noop,
@@ -163,10 +163,10 @@ void main() {
     );
     await tester.pump();
 
-    final avatar = tester.widget<D2Avatar>(
+    final avatar = tester.widget<AppAvatar>(
       find.descendant(
         of: find.byTooltip('Профиль'),
-        matching: find.byType(D2Avatar),
+        matching: find.byType(AppAvatar),
       ),
     );
     expect(avatar.initials, 'М');
@@ -184,7 +184,7 @@ void main() {
         prefs,
         withTranslations(
           MaterialApp(
-            theme: buildD2Theme(Brightness.light),
+            theme: buildAppTheme(Brightness.light),
             builder: _still,
             home: Scaffold(
               body: HomeScreen(

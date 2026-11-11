@@ -9,7 +9,7 @@ import 'package:lets_play_cities/remote/api_repository_factory.dart';
 import 'package:lets_play_cities/remote/client/remote_game_client.dart';
 import 'package:lets_play_cities/remote/game_connection.dart';
 import 'package:lets_play_cities/remote/model/cloud_messages.dart';
-import 'package:lets_play_cities/screens/common/d2/d2.dart';
+import 'package:lets_play_cities/screens/common/design/design.dart';
 import 'package:lets_play_cities/screens/online/common_online_widgets.dart';
 import 'package:lets_play_cities/screens/multiplayer/lan_scope.dart';
 import 'package:lets_play_cities/screens/online/game_master.dart';
@@ -91,7 +91,7 @@ class _GameRequestViewState extends State<GameRequestView> {
   @override
   Widget build(BuildContext context) {
     final t = context.t;
-    final c = D2Colors.of(context);
+    final c = AppColors.of(context);
     final name = widget.request.fromName;
     // A running game cannot take another one: the server would answer
     // invalid_state
@@ -108,7 +108,7 @@ class _GameRequestViewState extends State<GameRequestView> {
           Center(
             child: FutureBuilder<String?>(
               future: _pictureUrl,
-              builder: (context, picture) => D2Avatar.user(
+              builder: (context, picture) => AppAvatar.user(
                 pictureUrl: picture.data,
                 initials: nameInitial(name),
                 size: 64,
@@ -119,22 +119,22 @@ class _GameRequestViewState extends State<GameRequestView> {
           Text(
             t.online.invitesYou(name: name),
             textAlign: TextAlign.center,
-            style: D2Text.title.copyWith(color: c.ink),
+            style: AppText.title.copyWith(color: c.ink),
           ),
           const SizedBox(height: 22),
           if (canAccept) ...[
-            D2Button(
+            AppButton(
               label: t.accept,
-              size: D2ButtonSize.large,
+              size: AppButtonSize.large,
               expand: true,
               onPressed: _accept,
             ),
             const SizedBox(height: 14),
           ],
-          D2Button(
+          AppButton(
             label: t.decline,
-            kind: D2ButtonKind.tonal,
-            size: D2ButtonSize.card,
+            kind: AppButtonKind.tonal,
+            size: AppButtonSize.card,
             expand: true,
             onPressed: _decline,
           ),

@@ -7,7 +7,7 @@ import 'package:lets_play_cities/i18n/strings.g.dart';
 import 'package:lets_play_cities/remote/remote_host.dart';
 import 'package:lets_play_cities/remote/server/probe/network_discovery.dart';
 import 'package:lets_play_cities/screens/common/base_bloc_builder.dart';
-import 'package:lets_play_cities/screens/common/d2/d2.dart';
+import 'package:lets_play_cities/screens/common/design/design.dart';
 import 'package:lets_play_cities/utils/error_logger.dart';
 
 /// Screen used to search all game server hosts on local network
@@ -19,7 +19,7 @@ class SearchingHostsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final c = D2Colors.of(context);
+    final c = AppColors.of(context);
 
     return Scaffold(
       backgroundColor: c.bg,
@@ -54,7 +54,7 @@ class SearchingHostsScreen extends StatelessWidget {
 
   Widget _buildResult(BuildContext context, HostSearchingResult result) {
     final t = context.t;
-    final c = D2Colors.of(context);
+    final c = AppColors.of(context);
     void retry() {
       context.read<SearchingForHostsBloc>().add(StartSearchingEvent());
     }
@@ -63,13 +63,13 @@ class SearchingHostsScreen extends StatelessWidget {
 
     return Column(
       children: [
-        D2ScreenHeader(
+        AppScreenHeader(
           title: t.multiplayer.gamesNearby,
           onBack: () => Navigator.of(context).maybePop(),
           actions: [
             if (result.isCompleted && !nothingFound)
-              D2IconButton(
-                D2Glyph.replay,
+              AppIconButton(
+                AppGlyph.replay,
                 tooltip: t.multiplayer.retry,
                 onPressed: retry,
               ),
@@ -80,19 +80,19 @@ class SearchingHostsScreen extends StatelessWidget {
             padding: const EdgeInsets.fromLTRB(16, 4, 16, 16),
             children: [
               if (!result.isCompleted)
-                Center(child: D2Radar(size: 200, center: _RadarCenter())),
+                Center(child: AppRadar(size: 200, center: _RadarCenter())),
               if (nothingFound) ...[
                 const SizedBox(height: 24),
                 Text(
                   t.multiplayer.nothingFound,
                   textAlign: TextAlign.center,
-                  style: D2Text.title.copyWith(color: c.ink),
+                  style: AppText.title.copyWith(color: c.ink),
                 ),
                 const SizedBox(height: 16),
                 Center(
-                  child: D2Button(
+                  child: AppButton(
                     label: t.multiplayer.retry,
-                    icon: D2Glyph.replay,
+                    icon: AppGlyph.replay,
                     onPressed: retry,
                   ),
                 ),
@@ -112,7 +112,7 @@ class SearchingHostsScreen extends StatelessWidget {
 class _RadarCenter extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    final c = D2Colors.of(context);
+    final c = AppColors.of(context);
 
     return Container(
       width: 36,
@@ -123,7 +123,7 @@ class _RadarCenter extends StatelessWidget {
         border: Border.all(color: c.shadow, width: 2.5),
       ),
       alignment: Alignment.center,
-      child: D2Icon(D2Glyph.wifi, size: 20, color: D2Colors.light.surface),
+      child: AppIcon(AppGlyph.wifi, size: 20, color: AppColors.light.surface),
     );
   }
 }
@@ -135,7 +135,7 @@ class _HostList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final c = D2Colors.of(context);
+    final c = AppColors.of(context);
 
     return Container(
       clipBehavior: Clip.antiAlias,
@@ -164,7 +164,7 @@ class _HostRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final c = D2Colors.of(context);
+    final c = AppColors.of(context);
 
     return InkWell(
       onTap: () => Navigator.pop(context, host),
@@ -182,10 +182,10 @@ class _HostRow extends StatelessWidget {
                   borderRadius: BorderRadius.circular(13),
                 ),
                 alignment: Alignment.center,
-                child: D2Icon(
-                  D2Glyph.phone,
+                child: AppIcon(
+                  AppGlyph.phone,
                   size: 22,
-                  color: D2Colors.light.ink,
+                  color: AppColors.light.ink,
                 ),
               ),
               const SizedBox(width: 12),
@@ -195,12 +195,12 @@ class _HostRow extends StatelessWidget {
                   children: [
                     Text(
                       host.hostName,
-                      style: D2Text.body.copyWith(color: c.ink),
+                      style: AppText.body.copyWith(color: c.ink),
                     ),
                     const SizedBox(height: 3),
                     Text(
                       host.address,
-                      style: D2Text.caption.copyWith(color: c.inkSoft),
+                      style: AppText.caption.copyWith(color: c.inkSoft),
                     ),
                   ],
                 ),
@@ -208,7 +208,7 @@ class _HostRow extends StatelessWidget {
               const SizedBox(width: 8),
               Transform.flip(
                 flipX: true,
-                child: D2Icon(D2Glyph.back, size: 20, color: c.inkSoft),
+                child: AppIcon(AppGlyph.back, size: 20, color: c.inkSoft),
               ),
             ],
           ),

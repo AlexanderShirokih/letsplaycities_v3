@@ -13,7 +13,7 @@ import 'package:lets_play_cities/remote/client/api_dio.dart';
 import 'package:lets_play_cities/remote/game_connection.dart';
 import 'package:lets_play_cities/remote/remote_host.dart';
 import 'package:lets_play_cities/remote/server/server_game_controller.dart';
-import 'package:lets_play_cities/screens/common/d2/d2.dart';
+import 'package:lets_play_cities/screens/common/design/design.dart';
 import 'package:lets_play_cities/screens/multiplayer/lan_scope.dart';
 import 'package:lets_play_cities/screens/online/game_waiting_room_screen.dart';
 import 'package:lets_play_cities/utils/error_logger.dart';
@@ -33,7 +33,7 @@ class LocalMultiplayerScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = context.t;
-    final c = D2Colors.of(context);
+    final c = AppColors.of(context);
     final getIt = GetIt.instance;
 
     return Scaffold(
@@ -50,7 +50,7 @@ class LocalMultiplayerScreen extends StatelessWidget {
           child: BlocConsumer<LocalMultiplayerBloc, LocalMultiplayerState>(
             builder: (context, state) => Column(
               children: [
-                D2ScreenHeader(
+                AppScreenHeader(
                   title: t.multiplayer.wifiTitle,
                   onBack: () => Navigator.of(context).maybePop(),
                 ),
@@ -142,7 +142,7 @@ class _ActionsView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = context.t;
-    final c = D2Colors.of(context);
+    final c = AppColors.of(context);
     final bloc = context.read<LocalMultiplayerBloc>();
 
     return ListView(
@@ -153,19 +153,19 @@ class _ActionsView extends StatelessWidget {
         else
           _ActionCard(
             color: c.orange,
-            foreground: D2Colors.light.ink,
+            foreground: AppColors.light.ink,
             title: t.multiplayer.createGame,
-            illustration: D2Glyph.phone,
-            action: D2Glyph.plus,
+            illustration: AppGlyph.phone,
+            action: AppGlyph.plus,
             onTap: () => bloc.add(const LocalMultiplayerCreate()),
           ),
         const SizedBox(height: 16),
         _ActionCard(
           color: c.violet,
-          foreground: D2Colors.light.surface,
+          foreground: AppColors.light.surface,
           title: t.multiplayer.join,
-          illustration: D2Glyph.search,
-          action: D2Glyph.back,
+          illustration: AppGlyph.search,
+          action: AppGlyph.back,
           flipAction: true,
           onTap: () =>
               Navigator.push<RemoteHost?>(
@@ -181,12 +181,12 @@ class _ActionsView extends StatelessWidget {
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            D2Icon(D2Glyph.wifi, size: 18, color: c.inkSoft),
+            AppIcon(AppGlyph.wifi, size: 18, color: c.inkSoft),
             const SizedBox(width: 8),
             Flexible(
               child: Text(
                 t.multiplayer.sameWifi,
-                style: D2Text.caption.copyWith(color: c.inkSoft, fontSize: 14),
+                style: AppText.caption.copyWith(color: c.inkSoft, fontSize: 14),
               ),
             ),
           ],
@@ -205,7 +205,7 @@ class _CardFrame extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final c = D2Colors.of(context);
+    final c = AppColors.of(context);
 
     return Container(
       constraints: const BoxConstraints(minHeight: 200),
@@ -226,8 +226,8 @@ class _ActionCard extends StatelessWidget {
   final Color color;
   final Color foreground;
   final String title;
-  final D2Glyph illustration;
-  final D2Glyph action;
+  final AppGlyph illustration;
+  final AppGlyph action;
   final bool flipAction;
   final VoidCallback onTap;
 
@@ -243,7 +243,7 @@ class _ActionCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    Widget actionIcon = D2Icon(action, color: D2Colors.light.ink);
+    Widget actionIcon = AppIcon(action, color: AppColors.light.ink);
     if (flipAction) {
       actionIcon = Transform.flip(flipX: true, child: actionIcon);
     }
@@ -262,7 +262,7 @@ class _ActionCard extends StatelessWidget {
               Positioned(
                 right: 0,
                 bottom: 0,
-                child: D2Icon(
+                child: AppIcon(
                   illustration,
                   size: 110,
                   strokeWidth: 2,
@@ -275,7 +275,7 @@ class _ActionCard extends StatelessWidget {
                 children: [
                   Text(
                     title,
-                    style: D2Text.title.copyWith(
+                    style: AppText.title.copyWith(
                       color: foreground,
                       fontSize: 21,
                       height: 1.15,
@@ -286,7 +286,7 @@ class _ActionCard extends StatelessWidget {
                     width: 50,
                     height: 50,
                     decoration: BoxDecoration(
-                      color: D2Colors.light.surface,
+                      color: AppColors.light.surface,
                       borderRadius: BorderRadius.circular(16),
                     ),
                     alignment: Alignment.center,
@@ -311,11 +311,11 @@ class _WaitingCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = context.t;
-    final ink = D2Colors.light.ink;
-    final text = D2Text.body.copyWith(color: ink, fontSize: 15);
+    final ink = AppColors.light.ink;
+    final text = AppText.body.copyWith(color: ink, fontSize: 15);
 
     return _CardFrame(
-      color: D2Colors.of(context).orange,
+      color: AppColors.of(context).orange,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -325,7 +325,7 @@ class _WaitingCard extends StatelessWidget {
             children: [
               Text(
                 t.multiplayer.visibleNearby,
-                style: D2Text.title.copyWith(
+                style: AppText.title.copyWith(
                   color: ink,
                   fontSize: 21,
                   height: 1.15,
@@ -335,7 +335,7 @@ class _WaitingCard extends StatelessWidget {
                 const SizedBox(height: 8),
                 Row(
                   children: [
-                    D2Icon(D2Glyph.phone, size: 18, color: ink),
+                    AppIcon(AppGlyph.phone, size: 18, color: ink),
                     const SizedBox(width: 6),
                     Flexible(
                       child: Text(
@@ -361,9 +361,9 @@ class _WaitingCard extends StatelessWidget {
               const SizedBox(width: 8),
               Expanded(child: Text(t.multiplayer.waitingOpponent, style: text)),
               const SizedBox(width: 8),
-              D2Button(
+              AppButton(
                 label: t.multiplayer.cancelCreate,
-                kind: D2ButtonKind.secondary,
+                kind: AppButtonKind.secondary,
                 onPressed: () => context.read<LocalMultiplayerBloc>().add(
                   const LocalMultiplayerCancel(),
                 ),

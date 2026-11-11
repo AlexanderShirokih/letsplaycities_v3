@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:lets_play_cities/i18n/strings.g.dart';
-import 'package:lets_play_cities/screens/common/d2/d2.dart';
+import 'package:lets_play_cities/screens/common/design/design.dart';
 
 typedef ConfirmationCallback = void Function(bool isOk);
 
@@ -22,10 +22,10 @@ Future<bool?> showConfirmationDialog(
   ConfirmationCallback? callback,
 }) => showDialog<bool>(
   context: context,
-  barrierColor: D2Colors.of(context).shadow.withValues(alpha: 0.55),
+  barrierColor: AppColors.of(context).shadow.withValues(alpha: 0.55),
   builder: (BuildContext context) {
     final t = context.t;
-    final c = D2Colors.of(context);
+    final c = AppColors.of(context);
 
     return Dialog(
       backgroundColor: c.surface,
@@ -40,7 +40,7 @@ Future<bool?> showConfirmationDialog(
           children: [
             Text(
               title,
-              style: D2Text.display.copyWith(fontSize: 20, color: c.ink),
+              style: AppText.display.copyWith(fontSize: 20, color: c.ink),
             ),
             if (message != null) ...[
               const SizedBox(height: 8),
@@ -48,7 +48,7 @@ Future<bool?> showConfirmationDialog(
                 child: SingleChildScrollView(
                   child: Text(
                     message,
-                    style: D2Text.bodyRegular.copyWith(
+                    style: AppText.bodyRegular.copyWith(
                       fontSize: 16,
                       height: 1.4,
                       color: c.inkSoft,
@@ -112,11 +112,11 @@ class _DialogButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final c = D2Colors.of(context);
+    final c = AppColors.of(context);
     final fill = !confirm ? c.bg : (destructive ? c.error : c.orange);
     final fg = !confirm ? c.ink : (destructive ? Colors.white : c.ink);
     final radius = BorderRadius.circular(16);
-    final style = confirm ? D2Text.cta.copyWith(fontSize: 15) : D2Text.body;
+    final style = confirm ? AppText.cta.copyWith(fontSize: 15) : AppText.body;
 
     return Semantics(
       button: true,

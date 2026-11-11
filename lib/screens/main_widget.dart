@@ -13,7 +13,7 @@ import 'package:lets_play_cities/remote/api_repository_factory.dart';
 import 'package:lets_play_cities/remote/game_connection.dart';
 import 'package:lets_play_cities/remote/model/cloud_messages.dart';
 import 'package:lets_play_cities/remote/model/cloud_messaging_service.dart';
-import 'package:lets_play_cities/screens/common/d2/d2.dart';
+import 'package:lets_play_cities/screens/common/design/design.dart';
 import 'package:lets_play_cities/screens/root/root_screen.dart';
 import 'package:lets_play_cities/screens/online/game_request_view.dart';
 
@@ -51,8 +51,8 @@ class _LetsPlayCitiesAppState extends State<LetsPlayCitiesApp> {
                   locale: TranslationProvider.of(context).flutterLocale,
                   supportedLocales: AppLocaleUtils.supportedLocales,
                   localizationsDelegates: GlobalMaterialLocalizations.delegates,
-                  theme: buildD2Theme(Brightness.light),
-                  darkTheme: buildD2Theme(Brightness.dark),
+                  theme: buildAppTheme(Brightness.light),
+                  darkTheme: buildAppTheme(Brightness.dark),
                   themeMode: mode.asThemeMode,
                   home: _buildAppHome(),
                 ),
@@ -85,7 +85,7 @@ class _LetsPlayCitiesAppState extends State<LetsPlayCitiesApp> {
             .where((event) => event is GameRequest)
             .cast<GameRequest>(),
         onData: (request) {
-          showD2Sheet<void>(
+          showAppSheet<void>(
             context,
             builder: (_) => GameRequestView(
               request: request,

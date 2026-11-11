@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:lets_play_cities/screens/common/d2/d2_colors.dart';
+import 'package:lets_play_cities/screens/common/design/app_colors.dart';
 
 /// Bottom sheet on the surface color with a drag handle
-Future<T?> showD2Sheet<T>(
+Future<T?> showAppSheet<T>(
   BuildContext context, {
   required WidgetBuilder builder,
 }) {
-  final c = D2Colors.of(context);
+  final c = AppColors.of(context);
 
   return showModalBottomSheet<T>(
     context: context,

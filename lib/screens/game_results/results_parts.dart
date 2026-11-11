@@ -3,7 +3,7 @@ import 'package:lets_play_cities/base/game/combo.dart';
 import 'package:lets_play_cities/base/game/game_summary.dart';
 import 'package:lets_play_cities/i18n/enum_labels.dart';
 import 'package:lets_play_cities/i18n/strings.g.dart';
-import 'package:lets_play_cities/screens/common/d2/d2.dart';
+import 'package:lets_play_cities/screens/common/design/design.dart';
 import 'package:lets_play_cities/screens/game/cities_list.dart';
 import 'package:lets_play_cities/screens/game/combo_badge.dart';
 import 'package:lets_play_cities/utils/minutes_seconds.dart';
@@ -18,7 +18,7 @@ class ResultMetric extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final c = D2Colors.of(context);
+    final c = AppColors.of(context);
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(6, 10, 6, 11),
@@ -30,7 +30,7 @@ class ResultMetric extends StatelessWidget {
           Text(
             label,
             textAlign: TextAlign.center,
-            style: D2Text.small.copyWith(
+            style: AppText.small.copyWith(
               fontWeight: FontWeight.w400,
               color: c.inkSoft,
             ),
@@ -50,7 +50,7 @@ class ResultComboCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final c = D2Colors.of(context);
+    final c = AppColors.of(context);
     final t = context.t;
     final tile = switch (type) {
       ComboType.quickTime => c.yellow,
@@ -78,17 +78,17 @@ class ResultComboCard extends StatelessWidget {
               borderRadius: BorderRadius.circular(11),
             ),
             alignment: Alignment.center,
-            child: D2Icon(
+            child: AppIcon(
               ComboBadgeWidget.glyphOf(type),
               size: 22,
-              color: D2Colors.light.ink,
+              color: AppColors.light.ink,
               strokeWidth: 2.25,
             ),
           ),
           const SizedBox(height: 6),
           Text(
             type.label(t),
-            style: D2Text.small.copyWith(
+            style: AppText.small.copyWith(
               fontSize: 13,
               fontWeight: FontWeight.w700,
               color: c.ink,
@@ -97,7 +97,7 @@ class ResultComboCard extends StatelessWidget {
           const SizedBox(height: 4),
           Text(
             t.gameResults.comboTimes(count: ComboSystem.badgeValue(level)),
-            style: D2Text.small.copyWith(
+            style: AppText.small.copyWith(
               fontWeight: FontWeight.w400,
               color: c.inkSoft,
             ),
@@ -118,10 +118,10 @@ class ResultMetrics extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = context.t;
 
-    final c = D2Colors.of(context);
+    final c = AppColors.of(context);
     final longest = summary.longestCity;
 
-    return D2Card(
+    return AppCard(
       padding: EdgeInsets.zero,
       child: Column(
         children: [
@@ -133,7 +133,7 @@ class ResultMetrics extends StatelessWidget {
                     label: t.gameResults.cities,
                     value: Text(
                       '${summary.citiesCount}',
-                      style: D2Text.title.copyWith(fontSize: 20, color: c.ink),
+                      style: AppText.title.copyWith(fontSize: 20, color: c.ink),
                     ),
                   ),
                 ),
@@ -143,7 +143,7 @@ class ResultMetrics extends StatelessWidget {
                     label: t.gameResults.time,
                     value: Text(
                       formatClock(summary.duration.inSeconds),
-                      style: D2Text.title.copyWith(fontSize: 20, color: c.ink),
+                      style: AppText.title.copyWith(fontSize: 20, color: c.ink),
                     ),
                   ),
                 ),

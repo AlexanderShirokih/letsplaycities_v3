@@ -11,7 +11,7 @@ import 'package:lets_play_cities/base/game/management.dart';
 import 'package:lets_play_cities/base/repos.dart';
 import 'package:lets_play_cities/base/users.dart';
 import 'package:lets_play_cities/i18n/strings.g.dart';
-import 'package:lets_play_cities/screens/common/d2/d2.dart';
+import 'package:lets_play_cities/screens/common/design/design.dart';
 import 'package:lets_play_cities/screens/game/chat_sheet.dart';
 import 'package:lets_play_cities/screens/game/cities_list.dart';
 import 'package:lets_play_cities/screens/game/top_bar.dart';
@@ -72,7 +72,7 @@ void main() {
     await tester.pumpWidget(
       withTranslations(
         MaterialApp(
-          theme: buildD2Theme(Brightness.light),
+          theme: buildAppTheme(Brightness.light),
           home: Builder(
             builder: (context) => MediaQuery(
               data: MediaQuery.of(context)
@@ -156,7 +156,7 @@ void main() {
     await tester.pumpAndSettle();
     expect(inSheet(find.text('Ход!')), findsOneWidget);
 
-    await tester.tap(find.bySemanticsLabel(t.d2.close));
+    await tester.tap(find.bySemanticsLabel(t.design.close));
     await tester.pumpAndSettle();
     expect(find.byType(ChatSheet), findsNothing);
     expect(find.text('1'), findsNothing);

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:lets_play_cities/base/dictionary/country_entity.dart';
 import 'package:lets_play_cities/i18n/strings.g.dart';
-import 'package:lets_play_cities/screens/common/d2/d2.dart';
+import 'package:lets_play_cities/screens/common/design/design.dart';
 import 'package:lets_play_cities/screens/game/cities_list.dart';
 import 'package:lets_play_cities/screens/main/cites/list/country_filter_sheet.dart';
 
@@ -11,7 +11,7 @@ const _reasonLength = 120;
 /// Rubik of the given [weight]; the font is variable, so the variation is
 /// set along with the weight
 TextStyle _rubik(double size, int weight, Color color) =>
-    D2Text.bodyRegular.copyWith(
+    AppText.bodyRegular.copyWith(
       fontSize: size,
       fontWeight: FontWeight.values[weight ~/ 100 - 1],
       fontVariations: [FontVariation('wght', weight.toDouble())],
@@ -19,13 +19,13 @@ TextStyle _rubik(double size, int weight, Color color) =>
     );
 
 /// Box of the form inputs: surface, rounded, with a hard shadow
-BoxDecoration _boxDecoration(D2Colors c) => BoxDecoration(
+BoxDecoration _boxDecoration(AppColors c) => BoxDecoration(
   borderRadius: BorderRadius.circular(14),
   boxShadow: [BoxShadow(color: c.edge, offset: const Offset(0, 3))],
 );
 
 /// Caption over a form input
-Widget _label(D2Colors c, String text) => Padding(
+Widget _label(AppColors c, String text) => Padding(
   padding: const EdgeInsets.only(left: 2, bottom: 6),
   child: Text(text, style: _rubik(14, 500, c.ink)),
 );
@@ -59,8 +59,8 @@ class _RequestTextFieldState extends State<RequestTextField> {
 
   @override
   Widget build(BuildContext context) {
-    final c = D2Colors.of(context);
-    final style = D2Text.bodyRegular.copyWith(fontSize: 16, color: c.ink);
+    final c = AppColors.of(context);
+    final style = AppText.bodyRegular.copyWith(fontSize: 16, color: c.ink);
     final error = _touched ? widget.validator(widget.controller.text) : null;
 
     OutlineInputBorder border(Color color) => OutlineInputBorder(
@@ -101,7 +101,7 @@ class _RequestTextFieldState extends State<RequestTextField> {
         if (error != null)
           Padding(
             padding: const EdgeInsets.fromLTRB(2, 6, 2, 0),
-            child: Text(error, style: D2Text.caption.copyWith(color: c.error)),
+            child: Text(error, style: AppText.caption.copyWith(color: c.error)),
           ),
         if (widget.multiline)
           Align(
@@ -112,7 +112,7 @@ class _RequestTextFieldState extends State<RequestTextField> {
                 valueListenable: widget.controller,
                 builder: (context, value, _) => Text(
                   '${value.text.characters.length} / $_reasonLength',
-                  style: D2Text.small.copyWith(color: c.inkSoft),
+                  style: AppText.small.copyWith(color: c.inkSoft),
                 ),
               ),
             ),
@@ -142,7 +142,7 @@ Widget createCountrySelector({
   required bool isLoading,
   required void Function(CountryEntity) onCountryChanged,
 }) {
-  final c = D2Colors.of(context);
+  final c = AppColors.of(context);
 
   Future<void> pick() async {
     final country = await showCountryPickerSheet(
@@ -182,7 +182,7 @@ Widget createCountrySelector({
           ),
         ),
         const SizedBox(width: 10),
-        D2Icon(D2Glyph.chevron, size: 20, color: c.inkSoft),
+        AppIcon(AppGlyph.chevron, size: 20, color: c.inkSoft),
       ],
     );
   }
@@ -244,7 +244,7 @@ Widget createSuggestionRules(
   required List<String> rules,
 }) {
   final t = context.t;
-  final c = D2Colors.of(context);
+  final c = AppColors.of(context);
 
   return Column(
     crossAxisAlignment: CrossAxisAlignment.start,
@@ -274,7 +274,7 @@ class _Rule extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final c = D2Colors.of(context);
+    final c = AppColors.of(context);
     final lines = text.split('\n');
 
     return Row(
@@ -282,7 +282,7 @@ class _Rule extends StatelessWidget {
       children: [
         Padding(
           padding: const EdgeInsets.only(top: 1),
-          child: D2Icon(D2Glyph.check, size: 18, color: c.violet),
+          child: AppIcon(AppGlyph.check, size: 18, color: c.violet),
         ),
         const SizedBox(width: 10),
         Expanded(
@@ -306,7 +306,7 @@ class _Rule extends StatelessWidget {
   }
 
   /// `~x~` is struck out, `*x*` is emphasized
-  TextSpan _example(D2Colors c, String text) {
+  TextSpan _example(AppColors c, String text) {
     final spans = <TextSpan>[];
     var last = 0;
 

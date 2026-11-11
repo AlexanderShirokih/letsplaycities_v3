@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:lets_play_cities/screens/common/d2/d2_colors.dart';
+import 'package:lets_play_cities/screens/common/design/app_colors.dart';
 
-class D2Card extends StatelessWidget {
+class AppCard extends StatelessWidget {
   final Widget child;
   final EdgeInsets padding;
 
-  const D2Card({
+  const AppCard({
     super.key,
     required this.child,
     this.padding = const EdgeInsets.all(14),
@@ -13,7 +13,7 @@ class D2Card extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final c = D2Colors.of(context);
+    final c = AppColors.of(context);
 
     return Container(
       padding: padding,

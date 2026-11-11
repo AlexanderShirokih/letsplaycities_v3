@@ -1,7 +1,7 @@
 import 'dart:ui';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:lets_play_cities/screens/common/d2/svg_path.dart';
+import 'package:lets_play_cities/screens/common/design/svg_path.dart';
 
 Offset _mid(Path p) {
   final m = p.computeMetrics().first;

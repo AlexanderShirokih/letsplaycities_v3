@@ -6,7 +6,7 @@ import 'package:lets_play_cities/base/game/game_item.dart';
 import 'package:lets_play_cities/base/repos.dart';
 import 'package:lets_play_cities/base/users.dart';
 import 'package:lets_play_cities/i18n/strings.g.dart';
-import 'package:lets_play_cities/screens/common/d2/d2.dart';
+import 'package:lets_play_cities/screens/common/design/design.dart';
 
 import 'message_bubble.dart';
 import 'user_avatar.dart';
@@ -52,7 +52,7 @@ class _ChatButtonState extends State<ChatButton> {
       _unread = 0;
     });
 
-    await showD2Sheet<void>(context, builder: (_) => ChatSheet(_repository));
+    await showAppSheet<void>(context, builder: (_) => ChatSheet(_repository));
 
     if (mounted) setState(() => _open = false);
   }
@@ -61,10 +61,10 @@ class _ChatButtonState extends State<ChatButton> {
   Widget build(BuildContext context) {
     final t = context.t;
 
-    return D2Button(
+    return AppButton(
       label: t.game.chat,
-      icon: D2Glyph.chat,
-      kind: D2ButtonKind.secondary,
+      icon: AppGlyph.chat,
+      kind: AppButtonKind.secondary,
       badge: _unread,
       semanticLabel: _unread > 0 ? t.game.chatUnread(count: _unread) : null,
       onPressed: _openChat,
@@ -102,7 +102,7 @@ class _ChatSheetState extends State<ChatSheet> {
   @override
   Widget build(BuildContext context) {
     final t = context.t;
-    final c = D2Colors.of(context);
+    final c = AppColors.of(context);
     final items = widget.repository.gameItemsRepository;
 
     return Padding(
@@ -118,12 +118,12 @@ class _ChatSheetState extends State<ChatSheet> {
                   Expanded(
                     child: Text(
                       t.game.chat,
-                      style: D2Text.title.copyWith(color: c.ink),
+                      style: AppText.title.copyWith(color: c.ink),
                     ),
                   ),
-                  D2IconButton(
-                    D2Glyph.close,
-                    tooltip: t.d2.close,
+                  AppIconButton(
+                    AppGlyph.close,
+                    tooltip: t.design.close,
                     onPressed: () => Navigator.of(context).pop(),
                   ),
                 ],
@@ -181,7 +181,7 @@ class _ChatSheetState extends State<ChatSheet> {
                           onSubmitted: (_) => _send(),
                           textCapitalization: TextCapitalization.sentences,
                           cursorColor: c.violet,
-                          style: D2Text.bodyRegular.copyWith(
+                          style: AppText.bodyRegular.copyWith(
                             fontSize: 16,
                             color: c.ink,
                           ),
@@ -189,7 +189,7 @@ class _ChatSheetState extends State<ChatSheet> {
                             isCollapsed: true,
                             border: InputBorder.none,
                             hintText: t.game.messageHint,
-                            hintStyle: D2Text.bodyRegular.copyWith(
+                            hintStyle: AppText.bodyRegular.copyWith(
                               fontSize: 16,
                               color: c.inkSoft,
                             ),
@@ -198,8 +198,8 @@ class _ChatSheetState extends State<ChatSheet> {
                       ),
                     ),
                     const SizedBox(width: 10),
-                    D2SquareButton(
-                      D2Glyph.send,
+                    AppSquareButton(
+                      AppGlyph.send,
                       tooltip: t.game.send,
                       width: 52,
                       height: 52,
@@ -240,7 +240,7 @@ class _ChatRow extends StatelessWidget {
         children: [
           if (!isMine) ...[
             lastOfOwner
-                ? buildD2AvatarForUser(message.owner, size: _avatarSize)
+                ? buildAppAvatarForUser(message.owner, size: _avatarSize)
                 : const SizedBox(width: _avatarSize),
             const SizedBox(width: 8),
           ],

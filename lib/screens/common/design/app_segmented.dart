@@ -1,17 +1,17 @@
 import 'package:flutter/material.dart';
-import 'package:lets_play_cities/screens/common/d2/d2_colors.dart';
-import 'package:lets_play_cities/screens/common/d2/d2_icons.dart';
-import 'package:lets_play_cities/screens/common/d2/d2_text.dart';
+import 'package:lets_play_cities/screens/common/design/app_colors.dart';
+import 'package:lets_play_cities/screens/common/design/app_icons.dart';
+import 'package:lets_play_cities/screens/common/design/app_text.dart';
 
-class D2Segmented<T> extends StatelessWidget {
+class AppSegmented<T> extends StatelessWidget {
   final List<(T, String)> items;
   final T? selected;
   final ValueChanged<T> onChanged;
 
   /// Glyphs shown before the labels of the items that have one
-  final Map<T, D2Glyph> icons;
+  final Map<T, AppGlyph> icons;
 
-  const D2Segmented({
+  const AppSegmented({
     super.key,
     required this.items,
     required this.selected,
@@ -21,7 +21,7 @@ class D2Segmented<T> extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final c = D2Colors.of(context);
+    final c = AppColors.of(context);
 
     return Container(
       padding: const EdgeInsets.all(3),
@@ -54,7 +54,7 @@ class D2Segmented<T> extends StatelessWidget {
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           if (icons[value] case final glyph?) ...[
-                            D2Icon(
+                            AppIcon(
                               glyph,
                               size: 20,
                               color: value == selected
@@ -66,7 +66,7 @@ class D2Segmented<T> extends StatelessWidget {
                           Text(
                             label,
                             maxLines: 1,
-                            style: D2Text.body.copyWith(
+                            style: AppText.body.copyWith(
                               fontSize: 14,
                               color: value == selected
                                   ? Colors.white

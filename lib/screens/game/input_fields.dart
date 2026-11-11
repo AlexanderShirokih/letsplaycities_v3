@@ -5,7 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lets_play_cities/base/repos.dart';
 import 'package:lets_play_cities/i18n/strings.g.dart';
-import 'package:lets_play_cities/screens/common/d2/d2.dart';
+import 'package:lets_play_cities/screens/common/design/design.dart';
 import 'package:lets_play_cities/screens/game/voice_recognition_view.dart';
 
 import 'city_checking_result_bar.dart';
@@ -24,7 +24,7 @@ class InputFieldsGroup extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final c = D2Colors.of(context);
+    final c = AppColors.of(context);
 
     return Container(
       decoration: BoxDecoration(
@@ -108,7 +108,7 @@ class _CityInputFieldState extends State<_CityInputField> {
 
   @override
   Widget build(BuildContext context) {
-    final c = D2Colors.of(context);
+    final c = AppColors.of(context);
 
     return Column(
       mainAxisSize: MainAxisSize.min,
@@ -138,8 +138,8 @@ class _CityInputFieldState extends State<_CityInputField> {
               ),
             ),
             const SizedBox(width: 10),
-            D2SquareButton(
-              D2Glyph.send,
+            AppSquareButton(
+              AppGlyph.send,
               tooltip: context.t.game.send,
               onPressed: () => _onSubmit(inputController.text),
             ),
@@ -154,9 +154,9 @@ class _CityInputFieldState extends State<_CityInputField> {
     );
   }
 
-  Widget _buildTextField(D2Colors c) {
+  Widget _buildTextField(AppColors c) {
     final t = context.t;
-    final style = D2Text.body.copyWith(fontSize: 19, color: c.ink);
+    final style = AppText.body.copyWith(fontSize: 19, color: c.ink);
 
     return TextField(
       // No context menu: pasting city names is not allowed.

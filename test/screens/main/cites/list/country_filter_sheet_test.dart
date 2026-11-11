@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:lets_play_cities/base/cities_list/cities_list_filter.dart';
 import 'package:lets_play_cities/base/dictionary/country_entity.dart';
-import 'package:lets_play_cities/screens/common/d2/d2.dart';
+import 'package:lets_play_cities/screens/common/design/design.dart';
 import 'package:lets_play_cities/screens/main/cites/list/country_filter_sheet.dart';
 
 import '../../../../i18n/translations_harness.dart';
@@ -36,7 +36,7 @@ void main() {
     await tester.pumpWidget(
       withTranslations(
         MaterialApp(
-          theme: buildD2Theme(Brightness.light),
+          theme: buildAppTheme(Brightness.light),
           builder: (context, child) => MediaQuery(
             data: MediaQuery.of(context)
                 .copyWith(textScaler: TextScaler.linear(narrow ? 1.3 : 1)),
@@ -165,7 +165,7 @@ void main() {
     await tester.pumpWidget(
       withTranslations(
         MaterialApp(
-          theme: buildD2Theme(Brightness.light),
+          theme: buildAppTheme(Brightness.light),
           home: Scaffold(
             body: Builder(
               builder: (context) => TextButton(

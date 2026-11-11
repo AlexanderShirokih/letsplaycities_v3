@@ -1,15 +1,15 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
-import 'package:lets_play_cities/screens/common/d2/d2_buttons.dart';
-import 'package:lets_play_cities/screens/common/d2/d2_colors.dart';
-import 'package:lets_play_cities/screens/common/d2/d2_icons.dart';
-import 'package:lets_play_cities/screens/common/d2/d2_text.dart';
+import 'package:lets_play_cities/screens/common/design/app_buttons.dart';
+import 'package:lets_play_cities/screens/common/design/app_colors.dart';
+import 'package:lets_play_cities/screens/common/design/app_icons.dart';
+import 'package:lets_play_cities/screens/common/design/app_text.dart';
 
 /// A screen state without content: [art], [title], an optional [text] and
 /// [extra] under it, and an optional large button at the bottom. Fills the
 /// space it is given; the middle part scrolls when it does not fit.
-class D2EmptyState extends StatelessWidget {
+class AppEmptyState extends StatelessWidget {
   final Widget art;
   final String title;
   final String? text;
@@ -19,13 +19,13 @@ class D2EmptyState extends StatelessWidget {
 
   /// Label of the bottom button; the button is hidden when `null`
   final String? actionLabel;
-  final D2Glyph? actionIcon;
+  final AppGlyph? actionIcon;
   final VoidCallback? onAction;
 
   /// Goes under the bottom button, like a secondary button
   final Widget? secondaryAction;
 
-  const D2EmptyState({
+  const AppEmptyState({
     super.key,
     required this.art,
     required this.title,
@@ -39,7 +39,7 @@ class D2EmptyState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final c = D2Colors.of(context);
+    final c = AppColors.of(context);
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
@@ -56,7 +56,7 @@ class D2EmptyState extends StatelessWidget {
                     Text(
                       title,
                       textAlign: TextAlign.center,
-                      style: D2Text.display.copyWith(
+                      style: AppText.display.copyWith(
                         fontSize: 24,
                         color: c.ink,
                       ),
@@ -66,7 +66,7 @@ class D2EmptyState extends StatelessWidget {
                       Text(
                         text!,
                         textAlign: TextAlign.center,
-                        style: D2Text.bodyRegular.copyWith(
+                        style: AppText.bodyRegular.copyWith(
                           fontSize: 16,
                           height: 1.4,
                           color: c.inkSoft,
@@ -81,10 +81,10 @@ class D2EmptyState extends StatelessWidget {
           ),
           if (actionLabel != null) ...[
             const SizedBox(height: 12),
-            D2Button(
+            AppButton(
               label: actionLabel!,
               icon: actionIcon,
-              size: D2ButtonSize.large,
+              size: AppButtonSize.large,
               expand: true,
               onPressed: onAction,
             ),
@@ -101,21 +101,21 @@ class D2EmptyState extends StatelessWidget {
 
 /// Art of an empty state: a tilted tile with [glyph] on a pale circle, an
 /// optional round [badge] at its corner and three bits of confetti.
-class D2TileArt extends StatelessWidget {
-  final D2Glyph glyph;
+class AppTileArt extends StatelessWidget {
+  final AppGlyph glyph;
 
   /// Glyph of the orange mark at the top right corner of the tile
-  final D2Glyph? badge;
+  final AppGlyph? badge;
 
   /// Fill of the tile, the surface color by default
   final Color? tileColor;
 
-  const D2TileArt({super.key, required this.glyph, this.badge, this.tileColor});
+  const AppTileArt({super.key, required this.glyph, this.badge, this.tileColor});
 
   @override
   Widget build(BuildContext context) {
-    final c = D2Colors.of(context);
-    final onTile = tileColor == null ? c.ink : D2Colors.light.ink;
+    final c = AppColors.of(context);
+    final onTile = tileColor == null ? c.ink : AppColors.light.ink;
 
     return SizedBox(
       width: 220,
@@ -141,7 +141,7 @@ class D2TileArt extends StatelessWidget {
                     BoxShadow(color: c.shadow, offset: const Offset(0, 6)),
                   ],
                 ),
-                child: D2Icon(
+                child: AppIcon(
                   glyph,
                   size: 48,
                   color: onTile,
@@ -166,7 +166,7 @@ class D2TileArt extends StatelessWidget {
                     BoxShadow(color: c.shadow, offset: const Offset(0, 4)),
                   ],
                 ),
-                child: D2Icon(badge!, size: 22, color: D2Colors.light.ink),
+                child: AppIcon(badge!, size: 22, color: AppColors.light.ink),
               ),
             ),
           Positioned(
@@ -183,12 +183,12 @@ class D2TileArt extends StatelessWidget {
 }
 
 /// Art of the empty statistics: three growing bars on a pale circle
-class D2BarsArt extends StatelessWidget {
-  const D2BarsArt({super.key});
+class AppBarsArt extends StatelessWidget {
+  const AppBarsArt({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final c = D2Colors.of(context);
+    final c = AppColors.of(context);
 
     Widget bar(double left, double height, Color color) => Positioned(
       left: left,
@@ -241,7 +241,7 @@ class _Halo extends StatelessWidget {
     width: 136,
     height: 136,
     decoration: BoxDecoration(
-      color: D2Colors.of(context).surface.withValues(alpha: 0.6),
+      color: AppColors.of(context).surface.withValues(alpha: 0.6),
       shape: BoxShape.circle,
     ),
   );
@@ -271,7 +271,7 @@ class _Bit extends StatelessWidget {
         color: color,
         shape: radius == null ? BoxShape.circle : BoxShape.rectangle,
         borderRadius: radius == null ? null : BorderRadius.circular(radius!),
-        border: Border.all(color: D2Colors.of(context).shadow, width: 2),
+        border: Border.all(color: AppColors.of(context).shadow, width: 2),
       ),
     ),
   );

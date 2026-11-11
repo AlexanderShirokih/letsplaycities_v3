@@ -7,7 +7,7 @@ import 'package:lets_play_cities/base/data.dart';
 import 'package:lets_play_cities/base/game/management.dart';
 import 'package:lets_play_cities/base/repos.dart';
 import 'package:lets_play_cities/base/users.dart';
-import 'package:lets_play_cities/screens/common/d2/d2.dart';
+import 'package:lets_play_cities/screens/common/design/design.dart';
 import 'package:lets_play_cities/screens/game/cities_list.dart';
 
 import 'fake_game_session.dart';
@@ -111,9 +111,9 @@ void main() {
     }
 
     final letter = spans.singleWhere((span) => span.text == 'н');
-    expect(letter.style?.color, D2Colors.light.letter);
+    expect(letter.style?.color, AppColors.light.letter);
 
     final tail = spans.singleWhere((span) => span.text == 'ь');
-    expect(tail.style?.color, D2Colors.light.inkSoft);
+    expect(tail.style?.color, AppColors.light.inkSoft);
   });
 }

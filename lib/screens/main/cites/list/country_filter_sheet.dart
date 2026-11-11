@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:lets_play_cities/base/cities_list/cities_list_filter.dart';
 import 'package:lets_play_cities/base/dictionary/country_entity.dart';
 import 'package:lets_play_cities/i18n/strings.g.dart';
-import 'package:lets_play_cities/screens/common/d2/d2.dart';
+import 'package:lets_play_cities/screens/common/design/design.dart';
 import 'package:lets_play_cities/screens/game/cities_list.dart';
-import 'package:lets_play_cities/screens/main/cites/list/widgets/d2_search_field.dart';
+import 'package:lets_play_cities/screens/main/cites/list/widgets/app_search_field.dart';
 
 /// Space above the sheet, where the page shows through the scrim
 const _sheetTopGap = 72.0;
@@ -20,7 +20,7 @@ Future<CountryListFilter?> showCountryFilterSheet(
   required List<CountryEntity> countries,
   List<int>? selected,
   required List<int> recent,
-}) => showD2Sheet<CountryListFilter>(
+}) => showAppSheet<CountryListFilter>(
   context,
   builder: (context) => _CountryFilterSheet(
     countries: countries,
@@ -37,7 +37,7 @@ Future<CountryEntity?> showCountryPickerSheet(
   BuildContext context, {
   required List<CountryEntity> countries,
   int? selected,
-}) => showD2Sheet<CountryEntity>(
+}) => showAppSheet<CountryEntity>(
   context,
   builder: (context) => _CountryFilterSheet(
     countries: countries,
@@ -150,7 +150,7 @@ class _CountryFilterSheetState extends State<_CountryFilterSheet> {
   @override
   Widget build(BuildContext context) {
     final t = context.t;
-    final c = D2Colors.of(context);
+    final c = AppColors.of(context);
     final media = MediaQuery.of(context);
     final lines = _lines();
 
@@ -168,9 +168,9 @@ class _CountryFilterSheetState extends State<_CountryFilterSheet> {
                 padding: const EdgeInsets.fromLTRB(10, 0, 16, 0),
                 child: Row(
                   children: [
-                    D2IconButton(
-                      D2Glyph.back,
-                      tooltip: t.d2.back,
+                    AppIconButton(
+                      AppGlyph.back,
+                      tooltip: t.design.back,
                       onPressed: () => Navigator.of(context).pop(),
                     ),
                     const SizedBox(width: 6),
@@ -179,7 +179,7 @@ class _CountryFilterSheetState extends State<_CountryFilterSheet> {
                         t.citiesList.countriesTitle,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: D2Text.title.copyWith(color: c.ink),
+                        style: AppText.title.copyWith(color: c.ink),
                       ),
                     ),
                   ],
@@ -188,7 +188,7 @@ class _CountryFilterSheetState extends State<_CountryFilterSheet> {
             ),
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 2, 16, 8),
-              child: D2SearchField(
+              child: AppSearchField(
                 flat: true,
                 hint: t.citiesList.countrySearch,
                 onChanged: (text) => setState(() => _query = text),
@@ -206,8 +206,8 @@ class _CountryFilterSheetState extends State<_CountryFilterSheet> {
                       child: Text(
                         text,
                         style: recent
-                            ? D2Text.caption.copyWith(color: c.inkSoft)
-                            : D2Text.display.copyWith(
+                            ? AppText.caption.copyWith(color: c.inkSoft)
+                            : AppText.display.copyWith(
                                 fontSize: 14,
                                 color: c.ink,
                               ),
@@ -237,9 +237,9 @@ class _CountryFilterSheetState extends State<_CountryFilterSheet> {
                     children: [
                       Expanded(
                         flex: 10,
-                        child: D2Button(
+                        child: AppButton(
                           label: t.citiesList.reset,
-                          kind: D2ButtonKind.secondary,
+                          kind: AppButtonKind.secondary,
                           expand: true,
                           onPressed: () => setState(_picked.clear),
                         ),
@@ -247,7 +247,7 @@ class _CountryFilterSheetState extends State<_CountryFilterSheet> {
                       const SizedBox(width: 10),
                       Expanded(
                         flex: 16,
-                        child: D2Button(
+                        child: AppButton(
                           label: t.apply,
                           expand: true,
                           onPressed: _apply,
@@ -283,7 +283,7 @@ class _CountryRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final c = D2Colors.of(context);
+    final c = AppColors.of(context);
 
     return Semantics(
       checked: checked,
@@ -307,7 +307,7 @@ class _CountryRow extends StatelessWidget {
               Expanded(
                 child: Text(
                   country.name,
-                  style: D2Text.body.copyWith(color: c.ink),
+                  style: AppText.body.copyWith(color: c.ink),
                 ),
               ),
               const SizedBox(width: 12),
@@ -315,7 +315,7 @@ class _CountryRow extends StatelessWidget {
                 SizedBox(
                   width: 26,
                   child: checked
-                      ? D2Icon(D2Glyph.check, size: 22, color: c.violet)
+                      ? AppIcon(AppGlyph.check, size: 22, color: c.violet)
                       : null,
                 )
               else
@@ -331,8 +331,8 @@ class _CountryRow extends StatelessWidget {
                     ),
                   ),
                   child: checked
-                      ? const D2Icon(
-                          D2Glyph.check,
+                      ? const AppIcon(
+                          AppGlyph.check,
                           size: 18,
                           color: Colors.white,
                         )

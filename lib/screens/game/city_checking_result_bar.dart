@@ -5,7 +5,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lets_play_cities/base/game/management/word_checking_result.dart';
 import 'package:lets_play_cities/base/repos.dart';
 import 'package:lets_play_cities/i18n/strings.g.dart';
-import 'package:lets_play_cities/screens/common/d2/d2.dart';
+import 'package:lets_play_cities/screens/common/design/design.dart';
 import 'package:lets_play_cities/utils/string_utils.dart';
 
 /// The error of the word checking under the input field, or the corrections
@@ -119,7 +119,7 @@ class _CityCheckingResultBarState extends State<CityCheckingResultBar>
     GameSessionRepository repo,
     List<String> corrections,
   ) {
-    final c = D2Colors.of(context);
+    final c = AppColors.of(context);
     final radius = BorderRadius.circular(14);
 
     return Padding(
@@ -130,7 +130,7 @@ class _CityCheckingResultBarState extends State<CityCheckingResultBar>
         children: [
           Text(
             context.t.game.corrections,
-            style: D2Text.body.copyWith(fontSize: 13, color: c.inkSoft),
+            style: AppText.body.copyWith(fontSize: 13, color: c.inkSoft),
           ),
           const SizedBox(height: 6),
           SingleChildScrollView(
@@ -153,7 +153,7 @@ class _CityCheckingResultBarState extends State<CityCheckingResultBar>
                           child: Text(
                             correction.toTitleCase(),
                             maxLines: 1,
-                            style: D2Text.body.copyWith(color: c.ink),
+                            style: AppText.body.copyWith(color: c.ink),
                           ),
                         ),
                       ),
@@ -168,7 +168,7 @@ class _CityCheckingResultBarState extends State<CityCheckingResultBar>
   }
 
   Widget _createNotificationBox(BuildContext context, String message) {
-    final c = D2Colors.of(context);
+    final c = AppColors.of(context);
 
     return Padding(
       padding: const EdgeInsets.only(top: 6),
@@ -177,12 +177,12 @@ class _CityCheckingResultBarState extends State<CityCheckingResultBar>
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            D2Icon(D2Glyph.warning, size: 18, color: c.error),
+            AppIcon(AppGlyph.warning, size: 18, color: c.error),
             const SizedBox(width: 8),
             Expanded(
               child: Text(
                 message,
-                style: D2Text.body.copyWith(fontSize: 14, color: c.error),
+                style: AppText.body.copyWith(fontSize: 14, color: c.error),
               ),
             ),
           ],

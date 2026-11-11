@@ -12,7 +12,7 @@ import 'package:lets_play_cities/i18n/enum_labels.dart';
 import 'package:lets_play_cities/i18n/strings.g.dart';
 import 'package:lets_play_cities/remote/account.dart';
 import 'package:lets_play_cities/remote/remote_player.dart';
-import 'package:lets_play_cities/screens/common/d2/d2.dart';
+import 'package:lets_play_cities/screens/common/design/design.dart';
 import 'package:lets_play_cities/screens/game/game_screen.dart';
 import 'package:lets_play_cities/screens/game/hotseat_setup_screen.dart';
 import 'package:lets_play_cities/screens/game/user_avatar.dart';
@@ -100,11 +100,11 @@ class _GameResultsScreenState extends State<GameResultsScreen> {
       : content;
 
   Widget _buildHeader(BuildContext context, Translations t) {
-    final c = D2Colors.of(context);
+    final c = AppColors.of(context);
     final (glyph, tile) = switch (_gameResult.matchResult) {
-      MatchResult.win => (D2Glyph.trophy, c.yellow),
-      MatchResult.lose => (D2Glyph.surrender, c.yellow),
-      MatchResult.draw => (D2Glyph.equal, c.sky),
+      MatchResult.win => (AppGlyph.trophy, c.yellow),
+      MatchResult.lose => (AppGlyph.surrender, c.yellow),
+      MatchResult.draw => (AppGlyph.equal, c.sky),
     };
 
     return Column(
@@ -123,10 +123,10 @@ class _GameResultsScreenState extends State<GameResultsScreen> {
             ],
           ),
           alignment: Alignment.center,
-          child: D2Icon(
+          child: AppIcon(
             glyph,
             size: 38,
-            color: D2Colors.light.ink,
+            color: AppColors.light.ink,
             strokeWidth: 2.25,
           ),
         ),
@@ -134,7 +134,7 @@ class _GameResultsScreenState extends State<GameResultsScreen> {
         Text(
           _gameResult.matchResult.label(t),
           textAlign: TextAlign.center,
-          style: D2Text.display.copyWith(fontSize: 30, color: c.ink),
+          style: AppText.display.copyWith(fontSize: 30, color: c.ink),
         ),
         const SizedBox(height: 6),
         Text(
@@ -143,17 +143,17 @@ class _GameResultsScreenState extends State<GameResultsScreen> {
             _gameResult.finishRequester.name,
           ),
           textAlign: TextAlign.center,
-          style: D2Text.bodyRegular.copyWith(color: c.inkSoft),
+          style: AppText.bodyRegular.copyWith(color: c.inkSoft),
         ),
       ],
     );
   }
 
   Widget _buildScoreCard(BuildContext context) {
-    final c = D2Colors.of(context);
+    final c = AppColors.of(context);
     final opponent = _gameResult.opponent;
 
-    return D2Card(
+    return AppCard(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
       child: Column(
         children: [
@@ -177,7 +177,7 @@ class _GameResultsScreenState extends State<GameResultsScreen> {
     yield const SizedBox(height: 16);
     yield Text(
       t.gameResults.comboTitle,
-      style: D2Text.section.copyWith(color: D2Colors.of(context).ink),
+      style: AppText.section.copyWith(color: AppColors.of(context).ink),
     );
     yield const SizedBox(height: 8);
     yield ResultCombos(best);
@@ -193,12 +193,12 @@ class _GameResultsScreenState extends State<GameResultsScreen> {
 
     if (opponents.isEmpty) return;
 
-    final c = D2Colors.of(context);
+    final c = AppColors.of(context);
 
     yield const SizedBox(height: 16);
     yield Text(
       t.gameResults.youPlayedWith,
-      style: D2Text.section.copyWith(color: c.ink),
+      style: AppText.section.copyWith(color: c.ink),
     );
 
     for (final opp in opponents) {
@@ -213,21 +213,21 @@ class _GameResultsScreenState extends State<GameResultsScreen> {
             ),
           ),
         ),
-        child: D2Card(
+        child: AppCard(
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
           child: Row(
             children: [
-              buildD2AvatarForUser(opp, size: 32),
+              buildAppAvatarForUser(opp, size: 32),
               const SizedBox(width: 10),
               Expanded(
                 child: Text(
                   opp.accountInfo.name,
                   overflow: TextOverflow.ellipsis,
-                  style: D2Text.body.copyWith(fontSize: 15, color: c.ink),
+                  style: AppText.body.copyWith(fontSize: 15, color: c.ink),
                 ),
               ),
               const SizedBox(width: 10),
-              D2Icon(D2Glyph.more, size: 20, color: c.inkSoft),
+              AppIcon(AppGlyph.more, size: 20, color: c.inkSoft),
             ],
           ),
         ),
@@ -241,10 +241,10 @@ class _GameResultsScreenState extends State<GameResultsScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        D2Button(
+        AppButton(
           label: t.gameResults.playAgain,
-          icon: D2Glyph.replay,
-          size: D2ButtonSize.large,
+          icon: AppGlyph.replay,
+          size: AppButtonSize.large,
           expand: true,
           onPressed: () => _gameConfig.gameMode.isLocal
               ? Navigator.pushReplacement(context, replayRoute(_gameConfig))
@@ -259,10 +259,10 @@ class _GameResultsScreenState extends State<GameResultsScreen> {
         Row(
           children: [
             Expanded(
-              child: D2Button(
+              child: AppButton(
                 label: t.gameResults.toMenu,
-                icon: D2Glyph.exit,
-                kind: D2ButtonKind.secondary,
+                icon: AppGlyph.exit,
+                kind: AppButtonKind.secondary,
                 expand: true,
                 onPressed: () =>
                     Navigator.popUntil(context, (route) => route.isFirst),
@@ -271,10 +271,10 @@ class _GameResultsScreenState extends State<GameResultsScreen> {
             if (canShare) ...[
               const SizedBox(width: 10),
               Expanded(
-                child: D2Button(
+                child: AppButton(
                   label: t.gameResults.share,
-                  icon: D2Glyph.share,
-                  kind: D2ButtonKind.secondary,
+                  icon: AppGlyph.share,
+                  kind: AppButtonKind.secondary,
                   expand: true,
                   onPressed: _onSharePressed,
                 ),
@@ -342,24 +342,24 @@ class _ScoreRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final c = D2Colors.of(context);
+    final c = AppColors.of(context);
 
     return SizedBox(
       height: 36,
       child: Row(
         children: [
-          buildD2AvatarForUser(user, size: 32),
+          buildAppAvatarForUser(user, size: 32),
           const SizedBox(width: 10),
           Expanded(
             child: Text(
               user.name,
               overflow: TextOverflow.ellipsis,
-              style: D2Text.body.copyWith(fontSize: 15, color: c.ink),
+              style: AppText.body.copyWith(fontSize: 15, color: c.ink),
             ),
           ),
           Text(
             '${user.score}',
-            style: D2Text.score.copyWith(fontSize: 22, color: scoreColor),
+            style: AppText.score.copyWith(fontSize: 22, color: scoreColor),
           ),
         ],
       ),
@@ -442,7 +442,7 @@ class _ConfettiColors {
   _ConfettiColors(this.fills, this.ink);
 
   factory _ConfettiColors.of(BuildContext context) {
-    final c = D2Colors.of(context);
+    final c = AppColors.of(context);
 
     return _ConfettiColors([
       c.orange,

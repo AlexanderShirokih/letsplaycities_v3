@@ -1,19 +1,19 @@
 import 'package:flutter/material.dart';
-import 'package:lets_play_cities/screens/common/d2/d2_colors.dart';
+import 'package:lets_play_cities/screens/common/design/app_colors.dart';
 
 /// Three violet rings that grow and fade one after another around [center].
 /// With animations disabled the rings stand still.
-class D2Radar extends StatefulWidget {
+class AppRadar extends StatefulWidget {
   final Widget? center;
   final double size;
 
-  const D2Radar({super.key, this.center, this.size = 160});
+  const AppRadar({super.key, this.center, this.size = 160});
 
   @override
-  State<D2Radar> createState() => _D2RadarState();
+  State<AppRadar> createState() => _AppRadarState();
 }
 
-class _D2RadarState extends State<D2Radar> with SingleTickerProviderStateMixin {
+class _AppRadarState extends State<AppRadar> with SingleTickerProviderStateMixin {
   static const _period = Duration(milliseconds: 2400);
 
   /// Delay between the rings, a third of the period
@@ -49,7 +49,7 @@ class _D2RadarState extends State<D2Radar> with SingleTickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
-    final c = D2Colors.of(context);
+    final c = AppColors.of(context);
 
     return ExcludeSemantics(
       child: SizedBox.square(

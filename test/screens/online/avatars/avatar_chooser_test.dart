@@ -6,7 +6,7 @@ import 'package:get_it/get_it.dart';
 import 'package:lets_play_cities/remote/account_manager.dart';
 import 'package:lets_play_cities/remote/client/api_exception.dart';
 import 'package:lets_play_cities/i18n/strings.g.dart';
-import 'package:lets_play_cities/screens/common/d2/d2.dart';
+import 'package:lets_play_cities/screens/common/design/design.dart';
 import 'package:lets_play_cities/screens/online/avatars/avatar_chooser.dart';
 
 import '../../../i18n/translations_harness.dart';
@@ -35,7 +35,7 @@ void main() {
             body: Builder(
               builder: (context) => TextButton(
                 onPressed: () =>
-                    showD2Sheet<void>(context, builder: (_) => chooser()),
+                    showAppSheet<void>(context, builder: (_) => chooser()),
                 child: const Text('open'),
               ),
             ),

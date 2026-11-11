@@ -8,7 +8,7 @@ import 'package:lets_play_cities/remote/api_repository.dart';
 import 'package:lets_play_cities/remote/api_repository_factory.dart';
 import 'package:lets_play_cities/remote/model/lps_user.dart';
 import 'package:lets_play_cities/remote/model/social.dart';
-import 'package:lets_play_cities/screens/common/d2/d2.dart';
+import 'package:lets_play_cities/screens/common/design/design.dart';
 import 'package:lets_play_cities/screens/online/common_online_widgets.dart';
 import 'package:lets_play_cities/screens/online/friends.dart';
 import 'package:lets_play_cities/screens/online/game_master.dart';
@@ -148,7 +148,7 @@ class _OnlineHomeScreenState extends State<OnlineHomeScreen>
   @override
   Widget build(BuildContext context) {
     final t = context.t;
-    final c = D2Colors.of(context);
+    final c = AppColors.of(context);
     final account = context.watch<RemoteAccount>();
 
     return MultiRepositoryProvider(
@@ -163,7 +163,7 @@ class _OnlineHomeScreenState extends State<OnlineHomeScreen>
             body: SafeArea(
               child: Column(
                 children: [
-                  D2ScreenHeader(
+                  AppScreenHeader(
                     title: t.online.title,
                     onBack: () => Navigator.of(context).maybePop(),
                   ),
@@ -242,7 +242,7 @@ class _FriendsBlock extends StatelessWidget {
     if (!loaded) return const SizedBox.shrink();
 
     final t = context.t;
-    final c = D2Colors.of(context);
+    final c = AppColors.of(context);
 
     if (friends.isEmpty) {
       return Padding(
@@ -252,7 +252,7 @@ class _FriendsBlock extends StatelessWidget {
           children: [
             Text(
               t.online.friendsTab,
-              style: D2Text.section.copyWith(fontSize: 16, color: c.ink),
+              style: AppText.section.copyWith(fontSize: 16, color: c.ink),
             ),
             const SizedBox(height: 10),
             Container(
@@ -263,12 +263,12 @@ class _FriendsBlock extends StatelessWidget {
               ),
               child: Row(
                 children: [
-                  D2Icon(D2Glyph.friends, size: 24, color: c.inkSoft),
+                  AppIcon(AppGlyph.friends, size: 24, color: c.inkSoft),
                   const SizedBox(width: 12),
                   Expanded(
                     child: Text(
                       t.online.friendsHint,
-                      style: D2Text.bodyRegular.copyWith(
+                      style: AppText.bodyRegular.copyWith(
                         fontSize: 14,
                         height: 1.35,
                         color: c.inkSoft,
@@ -293,7 +293,7 @@ class _FriendsBlock extends StatelessWidget {
               Expanded(
                 child: Text(
                   t.online.friendsTab,
-                  style: D2Text.section.copyWith(fontSize: 16, color: c.ink),
+                  style: AppText.section.copyWith(fontSize: 16, color: c.ink),
                 ),
               ),
               TextButton(
@@ -307,20 +307,20 @@ class _FriendsBlock extends StatelessWidget {
                   children: [
                     Text(
                       t.online.allFriends,
-                      style: D2Text.body.copyWith(
+                      style: AppText.body.copyWith(
                         fontSize: 14,
                         color: c.violet,
                       ),
                     ),
                     const SizedBox(width: 4),
-                    D2Icon(D2Glyph.chevron, size: 18, color: c.violet),
+                    AppIcon(AppGlyph.chevron, size: 18, color: c.violet),
                   ],
                 ),
               ),
             ],
           ),
           const SizedBox(height: 6),
-          D2Card(
+          AppCard(
             padding: EdgeInsets.zero,
             child: Column(
               children: [
@@ -346,7 +346,7 @@ class _FriendRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = context.t;
-    final c = D2Colors.of(context);
+    final c = AppColors.of(context);
     final online = user.isOnline(DateTime.now());
 
     return ConstrainedBox(
@@ -387,7 +387,7 @@ class _FriendRow extends StatelessWidget {
                     user.name,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: D2Text.body.copyWith(fontSize: 15, color: c.ink),
+                    style: AppText.body.copyWith(fontSize: 15, color: c.ink),
                   ),
                 ),
               ),
@@ -397,9 +397,9 @@ class _FriendRow extends StatelessWidget {
                 constraints: BoxConstraints(
                   maxWidth: constraints.maxWidth * _buttonShare,
                 ),
-                child: D2Button(
+                child: AppButton(
                   label: t.online.inviteShort,
-                  kind: D2ButtonKind.accent,
+                  kind: AppButtonKind.accent,
                   semanticLabel: t.online.inviteNamed(name: user.name),
                   onPressed: () => onInvite(user),
                 ),

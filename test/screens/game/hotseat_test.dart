@@ -14,7 +14,7 @@ import 'package:lets_play_cities/base/stt/bloc/voice_recognition_bloc.dart';
 import 'package:lets_play_cities/base/stt/voice_recognition_service.dart';
 import 'package:lets_play_cities/base/users.dart';
 import 'package:lets_play_cities/i18n/strings.g.dart';
-import 'package:lets_play_cities/screens/common/d2/d2.dart';
+import 'package:lets_play_cities/screens/common/design/design.dart';
 import 'package:lets_play_cities/screens/game/game_layout.dart';
 import 'package:lets_play_cities/screens/game/hotseat_handoff.dart';
 import 'package:lets_play_cities/screens/game/hotseat_setup_screen.dart';
@@ -42,7 +42,7 @@ void _useNarrowScreen(WidgetTester tester) {
 
 Widget _app(Widget home, {double textScale = 1}) => withTranslations(
   MaterialApp(
-    theme: buildD2Theme(Brightness.light),
+    theme: buildAppTheme(Brightness.light),
     builder: (context, child) => MediaQuery(
       data: MediaQuery.of(context)
           .copyWith(textScaler: TextScaler.linear(textScale)),
@@ -140,7 +140,7 @@ void main() {
 
       await tester.tap(
         find
-            .byWidgetPredicate((w) => w is D2Icon && w.glyph == D2Glyph.edit)
+            .byWidgetPredicate((w) => w is AppIcon && w.glyph == AppGlyph.edit)
             .first,
       );
       await tester.pump();
@@ -288,7 +288,7 @@ void main() {
       await tester.pump();
       await tester.pump();
 
-      await tester.tap(find.byTooltip(t.d2.back));
+      await tester.tap(find.byTooltip(t.design.back));
       await tester.pump();
 
       expect(pops, 1);

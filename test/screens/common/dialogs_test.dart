@@ -101,7 +101,7 @@ void main() {
     final trace = find.textContaining('trace-line', findRichText: true);
     expect(trace, findsNothing);
 
-    await tester.tap(find.text(AppLocale.ru.buildSync().d2.details));
+    await tester.tap(find.text(AppLocale.ru.buildSync().design.details));
     await tester.pump();
     expect(trace, findsOneWidget);
     expect(tester.takeException(), isNull);

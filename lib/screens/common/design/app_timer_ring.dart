@@ -1,16 +1,16 @@
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
-import 'package:lets_play_cities/screens/common/d2/d2_colors.dart';
+import 'package:lets_play_cities/screens/common/design/app_colors.dart';
 
 /// Ring with an arc of [progress] (0..1) that ends at 12 o'clock: as the
 /// progress falls, the arc empties clockwise like a clock hand
-class D2TimerRing extends StatelessWidget {
+class AppTimerRing extends StatelessWidget {
   final double progress;
   final Widget child;
   final double size;
 
-  const D2TimerRing({
+  const AppTimerRing({
     super.key,
     required this.progress,
     required this.child,
@@ -19,7 +19,7 @@ class D2TimerRing extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final c = D2Colors.of(context);
+    final c = AppColors.of(context);
 
     return SizedBox.square(
       dimension: size,

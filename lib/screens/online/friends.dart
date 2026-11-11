@@ -5,7 +5,7 @@ import 'package:lets_play_cities/i18n/last_seen.dart';
 import 'package:lets_play_cities/i18n/strings.g.dart';
 import 'package:lets_play_cities/remote/model/lps_user.dart';
 import 'package:lets_play_cities/remote/model/social.dart';
-import 'package:lets_play_cities/screens/common/d2/d2.dart';
+import 'package:lets_play_cities/screens/common/design/design.dart';
 import 'package:lets_play_cities/screens/online/profile.dart';
 
 import 'base_list_fetching_screen_mixin.dart';
@@ -41,8 +41,8 @@ class OnlineFriendsScreen extends StatelessWidget
   ) => _FriendsBody(entries: data, onInvite: onInvite);
 
   @override
-  Widget getOnListEmptyPlaceHolder(BuildContext context) => D2EmptyState(
-    art: const D2TileArt(glyph: D2Glyph.friends),
+  Widget getOnListEmptyPlaceHolder(BuildContext context) => AppEmptyState(
+    art: const AppTileArt(glyph: AppGlyph.friends),
     title: context.t.online.friendsEmptyTitle,
     text: context.t.online.noFriendsPlaceholder,
   );
@@ -72,7 +72,7 @@ class _FriendsBodyState extends State<_FriendsBody> {
   @override
   Widget build(BuildContext context) {
     final t = context.t;
-    final c = D2Colors.of(context);
+    final c = AppColors.of(context);
     final found = widget.entries.where(_matches).toList();
     final friendCount = widget.entries
         .where((e) => e.status == FriendStatus.friends)
@@ -94,7 +94,7 @@ class _FriendsBodyState extends State<_FriendsBody> {
           const SizedBox(height: 18),
           Text(
             t.online.friendRequests,
-            style: D2Text.section.copyWith(color: c.ink),
+            style: AppText.section.copyWith(color: c.ink),
           ),
           const SizedBox(height: 8),
           for (final request in requests) ...[
@@ -110,18 +110,18 @@ class _FriendsBodyState extends State<_FriendsBody> {
             children: [
               Text(
                 t.online.myFriends,
-                style: D2Text.section.copyWith(color: c.ink),
+                style: AppText.section.copyWith(color: c.ink),
               ),
               const SizedBox(width: 8),
               Text(
                 '$friendCount',
-                style: D2Text.body.copyWith(color: c.inkSoft),
+                style: AppText.body.copyWith(color: c.inkSoft),
               ),
             ],
           ),
           const SizedBox(height: 8),
           if (friends.isNotEmpty)
-            D2Card(
+            AppCard(
               padding: EdgeInsets.zero,
               child: Column(
                 children: [
@@ -148,21 +148,21 @@ class _SearchField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final c = D2Colors.of(context);
+    final c = AppColors.of(context);
 
-    return D2Card(
+    return AppCard(
       padding: const EdgeInsets.symmetric(horizontal: 14),
       child: Row(
         children: [
-          D2Icon(D2Glyph.search, size: 22, color: c.inkSoft),
+          AppIcon(AppGlyph.search, size: 22, color: c.inkSoft),
           const SizedBox(width: 10),
           Expanded(
             child: TextField(
               onChanged: onChanged,
-              style: D2Text.bodyRegular.copyWith(fontSize: 16, color: c.ink),
+              style: AppText.bodyRegular.copyWith(fontSize: 16, color: c.ink),
               decoration: InputDecoration(
                 hintText: context.t.online.searchHint,
-                hintStyle: D2Text.bodyRegular.copyWith(
+                hintStyle: AppText.bodyRegular.copyWith(
                   fontSize: 16,
                   color: c.inkSoft,
                 ),
@@ -190,12 +190,12 @@ class _RequestCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = context.t;
-    final c = D2Colors.of(context);
+    final c = AppColors.of(context);
     final user = entry.user;
     final incoming = entry.status == FriendStatus.incoming;
     final bloc = context.read<UserActionsBloc>();
 
-    return D2Card(
+    return AppCard(
       padding: const EdgeInsets.all(12),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -219,11 +219,11 @@ class _RequestCard extends StatelessWidget {
                     children: [
                       Text(
                         user.name,
-                        style: D2Text.body.copyWith(color: c.ink),
+                        style: AppText.body.copyWith(color: c.ink),
                       ),
                       Text(
                         incoming ? 'ID ${user.id}' : t.online.requestSent,
-                        style: D2Text.caption.copyWith(color: c.inkSoft),
+                        style: AppText.caption.copyWith(color: c.inkSoft),
                       ),
                     ],
                   ),
@@ -236,9 +236,9 @@ class _RequestCard extends StatelessWidget {
             Row(
               children: [
                 Expanded(
-                  child: D2Button(
+                  child: AppButton(
                     label: t.online.declineFriendshipRequest,
-                    kind: D2ButtonKind.tonal,
+                    kind: AppButtonKind.tonal,
                     expand: true,
                     onPressed: () => bloc.add(
                       UserEvent(
@@ -251,9 +251,9 @@ class _RequestCard extends StatelessWidget {
                 ),
                 const SizedBox(width: 10),
                 Expanded(
-                  child: D2Button(
+                  child: AppButton(
                     label: t.online.acceptFriendshipRequest,
-                    kind: D2ButtonKind.accent,
+                    kind: AppButtonKind.accent,
                     expand: true,
                     onPressed: () => bloc.add(
                       UserEvent(
@@ -267,9 +267,9 @@ class _RequestCard extends StatelessWidget {
               ],
             )
           else
-            D2Button(
+            AppButton(
               label: t.online.cancelFriendshipRequest,
-              kind: D2ButtonKind.tonal,
+              kind: AppButtonKind.tonal,
               expand: true,
               onPressed: () => bloc.add(
                 UserEvent(
@@ -296,7 +296,7 @@ class _FriendRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = context.t;
-    final c = D2Colors.of(context);
+    final c = AppColors.of(context);
     final now = DateTime.now();
     final online = user.isOnline(now);
     final bloc = context.read<UserActionsBloc>();
@@ -339,10 +339,10 @@ class _FriendRow extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(user.name, style: D2Text.body.copyWith(color: c.ink)),
+                  Text(user.name, style: AppText.body.copyWith(color: c.ink)),
                   Text(
                     formatLastSeen(t, user.lastSeenAt, now),
-                    style: D2Text.caption.copyWith(
+                    style: AppText.caption.copyWith(
                       color: online ? c.ink : c.inkSoft,
                       fontWeight: online ? FontWeight.w500 : null,
                     ),
@@ -352,16 +352,16 @@ class _FriendRow extends StatelessWidget {
             ),
             if (online) ...[
               const SizedBox(width: 6),
-              D2Button(
+              AppButton(
                 label: t.online.inviteShort,
-                kind: D2ButtonKind.accent,
+                kind: AppButtonKind.accent,
                 semanticLabel: t.online.inviteNamed(name: user.name),
                 onPressed: () => inviteFriend(context, user, onInvite),
               ),
             ],
             PopupMenuButton<_FriendMenu>(
               tooltip: user.name,
-              icon: D2Icon(D2Glyph.more, size: 22, color: c.ink),
+              icon: AppIcon(AppGlyph.more, size: 22, color: c.ink),
               onSelected: (item) => bloc.add(switch (item) {
                 _FriendMenu.remove => UserEvent(
                   user,
@@ -380,13 +380,13 @@ class _FriendRow extends StatelessWidget {
               itemBuilder: (_) => [
                 PopupMenuItem(
                   value: _FriendMenu.remove,
-                  child: Text(t.online.removeFromFriends, style: D2Text.body),
+                  child: Text(t.online.removeFromFriends, style: AppText.body),
                 ),
                 PopupMenuItem(
                   value: _FriendMenu.block,
                   child: Text(
                     t.online.ban,
-                    style: D2Text.body.copyWith(color: c.error),
+                    style: AppText.body.copyWith(color: c.error),
                   ),
                 ),
               ],

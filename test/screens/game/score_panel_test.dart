@@ -8,7 +8,7 @@ import 'package:lets_play_cities/base/game/management.dart';
 import 'package:lets_play_cities/base/repos.dart';
 import 'package:lets_play_cities/base/users.dart';
 import 'package:lets_play_cities/i18n/strings.g.dart';
-import 'package:lets_play_cities/screens/common/d2/d2.dart';
+import 'package:lets_play_cities/screens/common/design/design.dart';
 import 'package:lets_play_cities/screens/game/score_panel.dart';
 
 import '../../i18n/translations_harness.dart';
@@ -40,7 +40,7 @@ void main() {
     await tester.pumpWidget(
       withTranslations(
         MaterialApp(
-          theme: buildD2Theme(Brightness.light),
+          theme: buildAppTheme(Brightness.light),
           home: Builder(
             builder: (context) => MediaQuery(
               data: MediaQuery.of(context)
@@ -110,7 +110,7 @@ void main() {
     expect(find.text('0:14'), findsNothing);
     expect(find.textContaining(':'), findsNothing);
     expect(
-      find.byWidgetPredicate((w) => w is D2Icon && w.glyph == D2Glyph.timer),
+      find.byWidgetPredicate((w) => w is AppIcon && w.glyph == AppGlyph.timer),
       findsNothing,
     );
   });

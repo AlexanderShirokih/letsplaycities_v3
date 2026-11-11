@@ -3,7 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lets_play_cities/base/remote/bloc/user_actions_bloc.dart';
 import 'package:lets_play_cities/i18n/strings.g.dart';
 import 'package:lets_play_cities/remote/model/lps_user.dart';
-import 'package:lets_play_cities/screens/common/d2/d2.dart';
+import 'package:lets_play_cities/screens/common/design/design.dart';
 import 'package:lets_play_cities/screens/online/profile.dart';
 
 import 'base_list_fetching_screen_mixin.dart';
@@ -19,8 +19,8 @@ class OnlineBanlistScreen extends StatelessWidget
   const OnlineBanlistScreen({super.key});
 
   @override
-  Widget getOnListEmptyPlaceHolder(BuildContext context) => D2EmptyState(
-    art: const D2TileArt(glyph: D2Glyph.ban),
+  Widget getOnListEmptyPlaceHolder(BuildContext context) => AppEmptyState(
+    art: const AppTileArt(glyph: AppGlyph.ban),
     title: context.t.online.blacklistEmptyTitle,
   );
 
@@ -64,7 +64,7 @@ class _BannedListState extends State<_BannedList> {
 
   @override
   Widget build(BuildContext context) {
-    final c = D2Colors.of(context);
+    final c = AppColors.of(context);
     final users = [
       for (final user in widget.users)
         if (!_hidden.contains(user.id)) user,
@@ -77,7 +77,7 @@ class _BannedListState extends State<_BannedList> {
           : ListView(
               padding: const EdgeInsets.fromLTRB(16, 6, 16, 16),
               children: [
-                D2Card(
+                AppCard(
                   padding: EdgeInsets.zero,
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(18),
@@ -105,7 +105,7 @@ class _BannedRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = context.t;
-    final c = D2Colors.of(context);
+    final c = AppColors.of(context);
 
     return InkWell(
       onTap: () => Navigator.push(
@@ -125,13 +125,13 @@ class _BannedRow extends StatelessWidget {
                   user.name,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: D2Text.body.copyWith(fontSize: 15, color: c.ink),
+                  style: AppText.body.copyWith(fontSize: 15, color: c.ink),
                 ),
               ),
               const SizedBox(width: 8),
-              D2Button(
+              AppButton(
                 label: t.online.unban,
-                kind: D2ButtonKind.tonal,
+                kind: AppButtonKind.tonal,
                 semanticLabel: t.online.unbanNamed(name: user.name),
                 onPressed: () => context.read<UserActionsBloc>().add(
                   UserEvent(

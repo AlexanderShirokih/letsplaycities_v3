@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:lets_play_cities/base/game/game_config.dart';
 import 'package:lets_play_cities/i18n/strings.g.dart';
-import 'package:lets_play_cities/screens/common/d2/d2.dart';
+import 'package:lets_play_cities/screens/common/design/design.dart';
 import 'package:lets_play_cities/screens/game/game_screen.dart';
 import 'package:lets_play_cities/utils/string_utils.dart';
 
@@ -66,7 +66,7 @@ class _FirstTimeOnBoardingScreenState extends State<FirstTimeOnBoardingScreen> {
   @override
   Widget build(BuildContext context) {
     final t = context.t;
-    final c = D2Colors.of(context);
+    final c = AppColors.of(context);
     final s = t.firstTimeScreen;
     final last = _page == _total - 1;
 
@@ -82,7 +82,7 @@ class _FirstTimeOnBoardingScreenState extends State<FirstTimeOnBoardingScreen> {
         text: s.step2Text,
       ),
       _RulesPage(
-        art: D2TileArt(glyph: D2Glyph.trophy, tileColor: c.yellow),
+        art: AppTileArt(glyph: AppGlyph.trophy, tileColor: c.yellow),
         title: s.step3Title,
         text: s.step3Text,
       ),
@@ -105,7 +105,7 @@ class _FirstTimeOnBoardingScreenState extends State<FirstTimeOnBoardingScreen> {
                     minimumSize: const Size(44, 44),
                     padding: const EdgeInsets.symmetric(horizontal: 8),
                     foregroundColor: c.inkSoft,
-                    textStyle: D2Text.body.copyWith(fontSize: 15),
+                    textStyle: AppText.body.copyWith(fontSize: 15),
                   ),
                   child: Text(s.skip),
                 ),
@@ -145,10 +145,10 @@ class _FirstTimeOnBoardingScreenState extends State<FirstTimeOnBoardingScreen> {
                     ),
                   ),
                   const SizedBox(height: 24),
-                  D2Button(
+                  AppButton(
                     label: last ? t.home.play : s.next,
-                    icon: last ? D2Glyph.play : null,
-                    size: D2ButtonSize.large,
+                    icon: last ? AppGlyph.play : null,
+                    size: AppButtonSize.large,
                     expand: true,
                     onPressed: _next,
                   ),
@@ -176,7 +176,7 @@ class _RulesPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final c = D2Colors.of(context);
+    final c = AppColors.of(context);
 
     return LayoutBuilder(
       builder: (context, constraints) => SingleChildScrollView(
@@ -196,13 +196,13 @@ class _RulesPage extends StatelessWidget {
                   Text(
                     title,
                     textAlign: TextAlign.center,
-                    style: D2Text.display.copyWith(fontSize: 24, color: c.ink),
+                    style: AppText.display.copyWith(fontSize: 24, color: c.ink),
                   ),
                   const SizedBox(height: 10),
                   Text(
                     text,
                     textAlign: TextAlign.center,
-                    style: D2Text.bodyRegular.copyWith(
+                    style: AppText.bodyRegular.copyWith(
                       fontSize: 16,
                       height: 1.4,
                       color: c.inkSoft,
@@ -240,9 +240,9 @@ class _WordLadder extends StatelessWidget {
       offset + upperTo.length * (_tileWidth + _gap),
     ].reduce((a, b) => a > b ? a : b);
 
-    Widget tile(String letter, D2TileColor color) => Padding(
+    Widget tile(String letter, AppTileColor color) => Padding(
       padding: const EdgeInsets.only(right: _gap),
-      child: D2LetterTile(
+      child: AppLetterTile(
         letter,
         size: _tileWidth,
         height: 44,
@@ -268,10 +268,10 @@ class _WordLadder extends StatelessWidget {
                   tile(
                     upperFrom[i],
                     i == move
-                        ? D2TileColor.orange
+                        ? AppTileColor.orange
                         : i > move
-                        ? D2TileColor.ghost
-                        : D2TileColor.white,
+                        ? AppTileColor.ghost
+                        : AppTileColor.white,
                   ),
               ],
             ),
@@ -284,7 +284,7 @@ class _WordLadder extends StatelessWidget {
                   for (var i = 0; i < upperTo.length; i++)
                     tile(
                       upperTo[i],
-                      i == 0 ? D2TileColor.orange : D2TileColor.white,
+                      i == 0 ? AppTileColor.orange : AppTileColor.white,
                     ),
                 ],
               ),

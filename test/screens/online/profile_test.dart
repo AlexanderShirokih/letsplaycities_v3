@@ -6,7 +6,7 @@ import 'package:lets_play_cities/i18n/strings.g.dart';
 import 'package:lets_play_cities/remote/auth.dart';
 import 'package:lets_play_cities/remote/model/lps_user.dart';
 import 'package:lets_play_cities/remote/model/social.dart';
-import 'package:lets_play_cities/screens/common/d2/d2.dart';
+import 'package:lets_play_cities/screens/common/design/design.dart';
 import 'package:lets_play_cities/screens/online/profile.dart';
 
 import 'online_fakes.dart';
@@ -67,13 +67,13 @@ void main() {
       await showAlicesProfile(tester);
       final addToFriends = find.ancestor(
         of: find.text(t.online.addToFriend),
-        matching: find.byType(D2Button),
+        matching: find.byType(AppButton),
       );
 
       await tester.tap(addToFriends);
       await pullToRefresh(tester);
 
-      expect(tester.widget<D2Button>(addToFriends).onPressed, isNull);
+      expect(tester.widget<AppButton>(addToFriends).onPressed, isNull);
 
       request.complete();
       await tester.pumpAndSettle();

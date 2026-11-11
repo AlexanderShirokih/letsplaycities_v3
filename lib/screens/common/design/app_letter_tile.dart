@@ -1,51 +1,51 @@
 import 'package:flutter/material.dart';
 import 'package:lets_play_cities/i18n/strings.g.dart';
-import 'package:lets_play_cities/screens/common/d2/d2_colors.dart';
-import 'package:lets_play_cities/screens/common/d2/d2_text.dart';
+import 'package:lets_play_cities/screens/common/design/app_colors.dart';
+import 'package:lets_play_cities/screens/common/design/app_text.dart';
 
 /// [ghost] is an empty outlined tile: a letter that does not count
-enum D2TileColor { white, orange, yellow, ghost }
+enum AppTileColor { white, orange, yellow, ghost }
 
-class D2LetterTile extends StatelessWidget {
+class AppLetterTile extends StatelessWidget {
   final String letter;
   final double size;
 
   /// Height of a tile that is not square, [size] by default
   final double? height;
-  final D2TileColor color;
+  final AppTileColor color;
 
   /// Replaces «Буква хода: [letter]» for screen readers
   final String? semanticLabel;
 
-  const D2LetterTile(
+  const AppLetterTile(
     this.letter, {
     super.key,
     this.size = 56,
     this.height,
-    this.color = D2TileColor.orange,
+    this.color = AppTileColor.orange,
     this.semanticLabel,
   });
 
   @override
   Widget build(BuildContext context) {
-    final c = D2Colors.of(context);
+    final c = AppColors.of(context);
     final fill = switch (color) {
-      D2TileColor.white => c.surface,
-      D2TileColor.orange => c.orange,
-      D2TileColor.yellow => c.yellow,
-      D2TileColor.ghost => null,
+      AppTileColor.white => c.surface,
+      AppTileColor.orange => c.orange,
+      AppTileColor.yellow => c.yellow,
+      AppTileColor.ghost => null,
     };
     final onFill = switch (color) {
-      D2TileColor.white => c.ink,
-      D2TileColor.ghost => c.inkSoft,
-      _ => D2Colors.light.ink,
+      AppTileColor.white => c.ink,
+      AppTileColor.ghost => c.inkSoft,
+      _ => AppColors.light.ink,
     };
-    final ghost = color == D2TileColor.ghost;
+    final ghost = color == AppTileColor.ghost;
     final h = height ?? size;
     final shadow = h >= 44 ? 4.0 : 3.0;
 
     return Semantics(
-      label: semanticLabel ?? t.d2.letterSemantics(letter: letter),
+      label: semanticLabel ?? t.design.letterSemantics(letter: letter),
       excludeSemantics: true,
       child: Container(
         width: size,
@@ -61,7 +61,7 @@ class D2LetterTile extends StatelessWidget {
         ),
         child: Text(
           letter,
-          style: D2Text.display.copyWith(
+          style: AppText.display.copyWith(
             fontSize: size * 0.5,
             height: 1,
             color: onFill,

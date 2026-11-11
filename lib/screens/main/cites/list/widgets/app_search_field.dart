@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
-import 'package:lets_play_cities/screens/common/d2/d2.dart';
+import 'package:lets_play_cities/screens/common/design/design.dart';
 
 /// Search input of the cities screens: a rounded box with a magnifier.
 /// [flat] drops the shadow and fills the box with the page color, for use on
 /// a surface-colored sheet.
-class D2SearchField extends StatelessWidget {
+class AppSearchField extends StatelessWidget {
   final String hint;
   final ValueChanged<String> onChanged;
   final bool flat;
 
-  const D2SearchField({
+  const AppSearchField({
     super.key,
     required this.hint,
     required this.onChanged,
@@ -18,8 +18,8 @@ class D2SearchField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final c = D2Colors.of(context);
-    final style = D2Text.body.copyWith(color: c.ink);
+    final c = AppColors.of(context);
+    final style = AppText.body.copyWith(color: c.ink);
 
     return Container(
       constraints: const BoxConstraints(minHeight: 48),
@@ -33,7 +33,7 @@ class D2SearchField extends StatelessWidget {
       ),
       child: Row(
         children: [
-          D2Icon(D2Glyph.search, size: 22, color: c.inkSoft),
+          AppIcon(AppGlyph.search, size: 22, color: c.inkSoft),
           const SizedBox(width: 8),
           Expanded(
             child: TextField(

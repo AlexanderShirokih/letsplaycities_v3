@@ -4,7 +4,7 @@ import 'package:lets_play_cities/base/game/bloc/game_bloc.dart';
 import 'package:lets_play_cities/base/game/game_config.dart';
 import 'package:lets_play_cities/base/game/game_mode.dart';
 import 'package:lets_play_cities/i18n/strings.g.dart';
-import 'package:lets_play_cities/screens/common/d2/d2.dart';
+import 'package:lets_play_cities/screens/common/design/design.dart';
 import 'package:lets_play_cities/screens/common/dialogs.dart';
 
 import 'first_time_onboarding_screen.dart';
@@ -44,7 +44,7 @@ class _GameMenuButtonState extends State<GameMenuButton> {
   Widget build(BuildContext context) {
     final gameConfig = widget.gameConfig;
     final t = context.t;
-    final c = D2Colors.of(context);
+    final c = AppColors.of(context);
     final local = gameConfig.gameMode.isLocal;
 
     // Dialogs and routes are opened from this context: the menu items are
@@ -89,21 +89,21 @@ class _GameMenuButtonState extends State<GameMenuButton> {
       menuChildren: [
         if (local) ...[
           // Nothing to do: the menu closes when an item is activated.
-          _MenuItem(D2Glyph.resume, t.game.resume, onPressed: () {}),
-          _MenuItem(D2Glyph.rules, t.game.rules, onPressed: showRules),
+          _MenuItem(AppGlyph.resume, t.game.resume, onPressed: () {}),
+          _MenuItem(AppGlyph.rules, t.game.rules, onPressed: showRules),
         ],
-        _MenuItem(D2Glyph.exit, t.game.exitToMenu, onPressed: exitToMenu),
+        _MenuItem(AppGlyph.exit, t.game.exitToMenu, onPressed: exitToMenu),
         _MenuItem(
-          D2Glyph.surrender,
+          AppGlyph.surrender,
           t.game.surrenderMenu,
           color: c.error,
           onPressed: surrender,
         ),
       ],
-      builder: (context, controller, _) => D2Button(
+      builder: (context, controller, _) => AppButton(
         label: t.game.pause,
-        icon: D2Glyph.pause,
-        kind: D2ButtonKind.secondary,
+        icon: AppGlyph.pause,
+        kind: AppButtonKind.secondary,
         onPressed: () =>
             controller.isOpen ? controller.close() : controller.open(),
       ),
@@ -112,7 +112,7 @@ class _GameMenuButtonState extends State<GameMenuButton> {
 }
 
 class _MenuItem extends StatelessWidget {
-  final D2Glyph glyph;
+  final AppGlyph glyph;
   final String label;
   final Color? color;
   final VoidCallback onPressed;
@@ -126,7 +126,7 @@ class _MenuItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final fg = color ?? D2Colors.of(context).ink;
+    final fg = color ?? AppColors.of(context).ink;
 
     return MenuItemButton(
       onPressed: onPressed,
@@ -140,9 +140,9 @@ class _MenuItem extends StatelessWidget {
         shape: WidgetStatePropertyAll(
           RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
         ),
-        textStyle: WidgetStatePropertyAll(D2Text.body.copyWith(fontSize: 15)),
+        textStyle: WidgetStatePropertyAll(AppText.body.copyWith(fontSize: 15)),
       ),
-      leadingIcon: D2Icon(glyph, size: 20, color: fg),
+      leadingIcon: AppIcon(glyph, size: 20, color: fg),
       child: Text(label),
     );
   }

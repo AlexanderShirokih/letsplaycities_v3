@@ -1,29 +1,29 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:lets_play_cities/base/dictionary/dictionary.dart';
-import 'package:lets_play_cities/screens/common/d2/d2.dart';
+import 'package:lets_play_cities/screens/common/design/design.dart';
 
 Widget _wrap(Widget child) => MaterialApp(
-  theme: buildD2Theme(Brightness.light),
+  theme: buildAppTheme(Brightness.light),
   home: Scaffold(body: Center(child: child)),
 );
 
 void main() {
-  testWidgets('D2Button calls onPressed and shows label', (tester) async {
+  testWidgets('AppButton calls onPressed and shows label', (tester) async {
     var taps = 0;
 
     await tester.pumpWidget(
-      _wrap(D2Button(label: 'Играть', onPressed: () => taps++)),
+      _wrap(AppButton(label: 'Играть', onPressed: () => taps++)),
     );
     await tester.tap(find.text('Играть'));
 
     expect(taps, 1);
   });
 
-  testWidgets('disabled D2Button ignores taps', (tester) async {
+  testWidgets('disabled AppButton ignores taps', (tester) async {
     final handle = tester.ensureSemantics();
 
-    await tester.pumpWidget(_wrap(const D2Button(label: 'Играть')));
+    await tester.pumpWidget(_wrap(const AppButton(label: 'Играть')));
     final top = tester.getTopLeft(find.text('Играть')).dy;
     final gesture = await tester.startGesture(
       tester.getCenter(find.text('Играть')),
@@ -41,8 +41,8 @@ void main() {
     handle.dispose();
   });
 
-  testWidgets('pressed D2Button sinks by its shadow height', (tester) async {
-    await tester.pumpWidget(_wrap(D2Button(label: 'Играть', onPressed: () {})));
+  testWidgets('pressed AppButton sinks by its shadow height', (tester) async {
+    await tester.pumpWidget(_wrap(AppButton(label: 'Играть', onPressed: () {})));
     final top = tester.getTopLeft(find.text('Играть')).dy;
     final gesture = await tester.startGesture(
       tester.getCenter(find.text('Играть')),
@@ -55,12 +55,12 @@ void main() {
     await gesture.up();
   });
 
-  testWidgets('D2Segmented reports picked value', (tester) async {
+  testWidgets('AppSegmented reports picked value', (tester) async {
     Difficulty? picked;
 
     await tester.pumpWidget(
       _wrap(
-        D2Segmented<Difficulty>(
+        AppSegmented<Difficulty>(
           items: const [
             (Difficulty.easy, 'Легко'),
             (Difficulty.medium, 'Нормально'),
@@ -84,49 +84,49 @@ void main() {
     );
   });
 
-  testWidgets('D2Switch toggles', (tester) async {
+  testWidgets('AppSwitch toggles', (tester) async {
     bool? value;
 
     await tester.pumpWidget(
-      _wrap(D2Switch(value: false, onChanged: (v) => value = v)),
+      _wrap(AppSwitch(value: false, onChanged: (v) => value = v)),
     );
-    await tester.tap(find.byType(D2Switch));
+    await tester.tap(find.byType(AppSwitch));
 
     expect(value, isTrue);
   });
 
-  testWidgets('D2LetterTile has semantics label', (tester) async {
-    await tester.pumpWidget(_wrap(const D2LetterTile('М')));
+  testWidgets('AppLetterTile has semantics label', (tester) async {
+    await tester.pumpWidget(_wrap(const AppLetterTile('М')));
 
     expect(find.bySemanticsLabel('Буква хода: М'), findsOneWidget);
   });
 
-  testWidgets('D2BottomNav selects tab', (tester) async {
+  testWidgets('AppBottomNav selects tab', (tester) async {
     int? selected;
 
     await tester.pumpWidget(
-      _wrap(D2BottomNav(index: 0, onSelect: (i) => selected = i)),
+      _wrap(AppBottomNav(index: 0, onSelect: (i) => selected = i)),
     );
     await tester.tap(find.text('Города'));
 
     expect(selected, 1);
   });
 
-  testWidgets('D2IconButton exposes tooltip as semantics', (tester) async {
+  testWidgets('AppIconButton exposes tooltip as semantics', (tester) async {
     await tester.pumpWidget(
-      _wrap(D2IconButton(D2Glyph.back, tooltip: 'Назад', onPressed: () {})),
+      _wrap(AppIconButton(AppGlyph.back, tooltip: 'Назад', onPressed: () {})),
     );
 
     expect(find.bySemanticsLabel('Назад'), findsOneWidget);
   });
 
-  testWidgets('D2Icon paints every glyph', (tester) async {
+  testWidgets('AppIcon paints every glyph', (tester) async {
     await tester.pumpWidget(
-      _wrap(Wrap(children: [for (final g in D2Glyph.values) D2Icon(g)])),
+      _wrap(Wrap(children: [for (final g in AppGlyph.values) AppIcon(g)])),
     );
 
     expect(tester.takeException(), isNull);
-    expect(find.byType(D2Icon), findsNWidgets(D2Glyph.values.length));
+    expect(find.byType(AppIcon), findsNWidgets(AppGlyph.values.length));
   });
 
   testWidgets('logo, avatars, ring, header, card build', (tester) async {
@@ -134,12 +134,12 @@ void main() {
       _wrap(
         Column(
           children: [
-            const D2Logo(),
-            const D2Avatar.computer(),
-            const D2Avatar.user(initials: 'АБ'),
-            const D2TimerRing(progress: 0.4, child: Text('12')),
-            D2ScreenHeader(title: 'Заголовок', onBack: () {}),
-            const D2Card(child: Text('x')),
+            const AppLogo(),
+            const AppAvatar.computer(),
+            const AppAvatar.user(initials: 'АБ'),
+            const AppTimerRing(progress: 0.4, child: Text('12')),
+            AppScreenHeader(title: 'Заголовок', onBack: () {}),
+            const AppCard(child: Text('x')),
           ],
         ),
       ),
@@ -149,14 +149,14 @@ void main() {
     expect(find.text('Заголовок'), findsOneWidget);
   });
 
-  testWidgets('showD2Sheet shows builder content', (tester) async {
+  testWidgets('showAppSheet shows builder content', (tester) async {
     await tester.pumpWidget(
       MaterialApp(
-        theme: buildD2Theme(Brightness.light),
+        theme: buildAppTheme(Brightness.light),
         home: Builder(
           builder: (context) => TextButton(
             onPressed: () =>
-                showD2Sheet<void>(context, builder: (_) => const Text('лист')),
+                showAppSheet<void>(context, builder: (_) => const Text('лист')),
             child: const Text('open'),
           ),
         ),
@@ -168,7 +168,7 @@ void main() {
     expect(find.text('лист'), findsOneWidget);
   });
 
-  testWidgets('D2EmptyState fits a short screen and runs its action', (
+  testWidgets('AppEmptyState fits a short screen and runs its action', (
     tester,
   ) async {
     tester.view.physicalSize = const Size(320, 420);
@@ -178,8 +178,8 @@ void main() {
 
     await tester.pumpWidget(
       _wrap(
-        D2EmptyState(
-          art: const D2TileArt(glyph: D2Glyph.cities, badge: D2Glyph.plus),
+        AppEmptyState(
+          art: const AppTileArt(glyph: AppGlyph.cities, badge: AppGlyph.plus),
           title: 'Заявок пока нет',
           text: 'Предложите город или правку — ответ появится здесь',
           actionLabel: 'Предложить город',
@@ -196,12 +196,12 @@ void main() {
     expect(taps, 1);
   });
 
-  testWidgets('D2EmptyState without an action shows no button', (tester) async {
+  testWidgets('AppEmptyState without an action shows no button', (tester) async {
     await tester.pumpWidget(
-      _wrap(const D2EmptyState(art: D2BarsArt(), title: 'Пока пусто')),
+      _wrap(const AppEmptyState(art: AppBarsArt(), title: 'Пока пусто')),
     );
 
     expect(tester.takeException(), isNull);
-    expect(find.byType(D2Button), findsNothing);
+    expect(find.byType(AppButton), findsNothing);
   });
 }

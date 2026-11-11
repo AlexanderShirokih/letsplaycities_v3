@@ -9,7 +9,7 @@ import 'package:lets_play_cities/remote/api_repository_factory.dart';
 import 'package:lets_play_cities/remote/auth.dart';
 import 'package:lets_play_cities/remote/auth/token_store.dart';
 import 'package:lets_play_cities/remote/server/server_game_controller.dart';
-import 'package:lets_play_cities/screens/common/d2/d2.dart';
+import 'package:lets_play_cities/screens/common/design/design.dart';
 import 'package:lets_play_cities/screens/multiplayer/lan_scope.dart';
 import 'package:lets_play_cities/screens/multiplayer/local_multiplayer_screen.dart';
 import 'package:lets_play_cities/screens/online/game_waiting_room_screen.dart';
@@ -65,7 +65,7 @@ class _FakePreferences extends Fake implements GamePreferences {
 
 Widget _app() => withTranslations(
   MaterialApp(
-    theme: buildD2Theme(Brightness.light),
+    theme: buildAppTheme(Brightness.light),
     home: const LocalMultiplayerScreen(),
   ),
 );
@@ -191,7 +191,7 @@ void main() {
       await tester.pumpWidget(
         withTranslations(
           MaterialApp(
-            theme: buildD2Theme(Brightness.light),
+            theme: buildAppTheme(Brightness.light),
             builder: (context, child) => MediaQuery(
               data: MediaQuery.of(context)
                   .copyWith(textScaler: const TextScaler.linear(1.3)),

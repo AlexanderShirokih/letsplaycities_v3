@@ -15,7 +15,7 @@ import 'package:lets_play_cities/remote/client/remote_game_client.dart';
 import 'package:lets_play_cities/remote/game_connection.dart';
 import 'package:lets_play_cities/remote/protocol/game_messages.dart'
     show InviteStatusKind, ProtocolError;
-import 'package:lets_play_cities/screens/common/d2/d2.dart';
+import 'package:lets_play_cities/screens/common/design/design.dart';
 import 'package:lets_play_cities/screens/common/error_texts.dart';
 import 'package:lets_play_cities/screens/game/game_screen.dart';
 import 'package:lets_play_cities/screens/online/common_online_widgets.dart';
@@ -99,14 +99,14 @@ class GameWaitingRoomScreenStandalone extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final c = D2Colors.of(context);
+    final c = AppColors.of(context);
 
     return Scaffold(
       backgroundColor: c.bg,
       body: SafeArea(
         child: Column(
           children: [
-            D2ScreenHeader(
+            AppScreenHeader(
               title: isLocal
                   ? context.t.multiplayer.wifiTitle
                   : context.t.online.title,
@@ -172,17 +172,17 @@ class GameWaitingRoomScreen extends StatelessWidget {
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  D2Icon(
-                    D2Glyph.wifi,
+                  AppIcon(
+                    AppGlyph.wifi,
                     size: 18,
-                    color: D2Colors.of(context).inkSoft,
+                    color: AppColors.of(context).inkSoft,
                   ),
                   const SizedBox(width: 8),
                   Flexible(
                     child: Text(
                       context.t.multiplayer.sameWifi,
-                      style: D2Text.caption.copyWith(
-                        color: D2Colors.of(context).inkSoft,
+                      style: AppText.caption.copyWith(
+                        color: AppColors.of(context).inkSoft,
                         fontSize: 14,
                       ),
                     ),
@@ -257,7 +257,7 @@ class WaitingRoomCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) =>
       BlocBuilder<WaitingRoomBloc, WaitingRoomState>(
-        builder: (context, state) => D2Card(
+        builder: (context, state) => AppCard(
           padding: const EdgeInsets.fromLTRB(16, 18, 16, 16),
           child: Semantics(liveRegion: true, child: _content(context, state)),
         ),
@@ -265,20 +265,20 @@ class WaitingRoomCard extends StatelessWidget {
 
   Widget _content(BuildContext context, WaitingRoomState state) {
     final t = context.t;
-    final c = D2Colors.of(context);
+    final c = AppColors.of(context);
     final bloc = context.read<WaitingRoomBloc>();
 
-    Widget find() => D2Button(
+    Widget find() => AppButton(
       label: t.online.connect,
-      icon: D2Glyph.search,
-      size: D2ButtonSize.large,
+      icon: AppGlyph.search,
+      size: AppButtonSize.large,
       expand: true,
       onPressed: () => bloc.add(const FindPressed()),
     );
 
-    Widget cancel(String label) => D2Button(
+    Widget cancel(String label) => AppButton(
       label: label,
-      kind: D2ButtonKind.tonal,
+      kind: AppButtonKind.tonal,
       expand: true,
       onPressed: () {
         bloc.add(const CancelPressed());
@@ -289,30 +289,30 @@ class WaitingRoomCard extends StatelessWidget {
     Widget title(String text) => Text(
       text,
       textAlign: TextAlign.center,
-      style: D2Text.title.copyWith(color: c.ink),
+      style: AppText.title.copyWith(color: c.ink),
     );
 
     Widget note(String text) => Text(
       text,
       textAlign: TextAlign.center,
-      style: D2Text.bodyRegular.copyWith(color: c.inkSoft),
+      style: AppText.bodyRegular.copyWith(color: c.inkSoft),
     );
 
     final children = switch (state) {
       Idle() || Starting() || Failed() => [find()],
       Connecting() => [
-        D2Radar(size: 120, center: avatar),
+        AppRadar(size: 120, center: avatar),
         title(t.online.connectingToServer),
         cancel(t.cancel),
       ],
       Queued(:final since) => [
-        D2Radar(size: 176, center: avatar),
+        AppRadar(size: 176, center: avatar),
         title(t.online.awaitingForOpp),
         _QueueTimer(since: since, clock: clock ?? DateTime.now),
         cancel(t.cancel),
       ],
       Inviting(:final target) => [
-        D2Radar(size: 176, center: lpsUserAvatar(context, target, size: 64)),
+        AppRadar(size: 176, center: lpsUserAvatar(context, target, size: 64)),
         title(t.online.awaitingForInvite(login: target.name)),
         cancel(t.online.cancelInvite),
       ],
@@ -334,7 +334,7 @@ class WaitingRoomCard extends StatelessWidget {
       children: [
         for (var i = 0; i < children.length; i++) ...[
           if (i > 0) const SizedBox(height: 10),
-          if (children[i] is D2Radar || children[i] is D2Avatar)
+          if (children[i] is AppRadar || children[i] is AppAvatar)
             Center(child: children[i])
           else
             children[i],
@@ -390,7 +390,7 @@ class _QueueTimerState extends State<_QueueTimer> {
 
   @override
   Widget build(BuildContext context) {
-    final c = D2Colors.of(context);
+    final c = AppColors.of(context);
     final elapsed = widget.clock().difference(widget.since);
     final seconds = elapsed.isNegative ? 0 : elapsed.inSeconds;
     final text =
@@ -402,9 +402,9 @@ class _QueueTimerState extends State<_QueueTimer> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          D2Icon(D2Glyph.timer, size: 16, color: c.inkSoft),
+          AppIcon(AppGlyph.timer, size: 16, color: c.inkSoft),
           const SizedBox(width: 6),
-          Text(text, style: D2Text.section.copyWith(color: c.inkSoft)),
+          Text(text, style: AppText.section.copyWith(color: c.inkSoft)),
         ],
       ),
     );

@@ -10,7 +10,7 @@ import 'package:lets_play_cities/base/preferences.dart';
 import 'package:lets_play_cities/base/repositories/cities/city_repository.dart';
 import 'package:lets_play_cities/base/repositories/cities/country_repository.dart';
 import 'package:lets_play_cities/remote/city_requests_repository.dart';
-import 'package:lets_play_cities/screens/common/d2/d2.dart';
+import 'package:lets_play_cities/screens/common/design/design.dart';
 import 'package:lets_play_cities/screens/main/cites/list/cities_list_screen.dart';
 
 import '../../../../i18n/translations_harness.dart';
@@ -97,7 +97,7 @@ void main() {
         value: prefs,
         child: withTranslations(
           MaterialApp(
-            theme: buildD2Theme(Brightness.light),
+            theme: buildAppTheme(Brightness.light),
             builder: (context, child) => MediaQuery(
               data: MediaQuery.of(context)
                   .copyWith(textScaler: TextScaler.linear(narrow ? 1.3 : 1)),

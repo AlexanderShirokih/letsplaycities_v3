@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:lets_play_cities/i18n/strings.g.dart';
-import 'package:lets_play_cities/screens/common/d2/d2.dart';
+import 'package:lets_play_cities/screens/common/design/design.dart';
 
 /// A view for showing exceptions
 class ErrorHandlerView extends StatefulWidget {
@@ -19,7 +19,7 @@ class _ErrorHandlerViewState extends State<ErrorHandlerView> {
   @override
   Widget build(BuildContext context) {
     final t = context.t;
-    final c = D2Colors.of(context);
+    final c = AppColors.of(context);
     const mono = TextStyle(
       fontFamily: 'Menlo',
       fontFamilyFallback: ['monospace', 'Courier'],
@@ -27,8 +27,8 @@ class _ErrorHandlerViewState extends State<ErrorHandlerView> {
       height: 1.5,
     );
 
-    return D2EmptyState(
-      art: D2TileArt(glyph: D2Glyph.warning, tileColor: c.yellow),
+    return AppEmptyState(
+      art: AppTileArt(glyph: AppGlyph.warning, tileColor: c.yellow),
       title: t.errors.crashTitle,
       text: t.errors.crashHint,
       extra: _expanded
@@ -61,14 +61,14 @@ class _ErrorHandlerViewState extends State<ErrorHandlerView> {
             )
           : null,
       actionLabel: t.back,
-      actionIcon: D2Glyph.back,
+      actionIcon: AppGlyph.back,
       onAction: () => Navigator.maybePop(context),
       secondaryAction: Semantics(
         expanded: _expanded,
-        child: D2Button(
-          label: _expanded ? t.errors.hideDetails : t.d2.details,
-          kind: D2ButtonKind.secondary,
-          size: D2ButtonSize.large,
+        child: AppButton(
+          label: _expanded ? t.errors.hideDetails : t.design.details,
+          kind: AppButtonKind.secondary,
+          size: AppButtonSize.large,
           expand: true,
           onPressed: () => setState(() => _expanded = !_expanded),
         ),

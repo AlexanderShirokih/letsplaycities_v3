@@ -8,12 +8,12 @@ import 'package:lets_play_cities/i18n/strings.g.dart';
 import 'package:lets_play_cities/remote/auth.dart';
 import 'package:lets_play_cities/remote/client/api_exception.dart';
 import 'package:lets_play_cities/screens/common/common_widgets.dart';
-import 'package:lets_play_cities/screens/common/d2/d2.dart';
+import 'package:lets_play_cities/screens/common/design/design.dart';
 
 /// Shortest name the server accepts, after trimming
 const _minNameLength = 2;
 
-/// Sign-in to the online game (`D2-Login`): Google, VK ID or a guest name
+/// Sign-in to the online game (Login): Google, VK ID or a guest name
 class LoginScreen extends StatefulWidget {
   final VoidCallback onLoggedIn;
 
@@ -45,7 +45,7 @@ class _LoginScreenState extends State<LoginScreen> {
     final getIt = GetIt.instance;
 
     return Scaffold(
-      backgroundColor: D2Colors.of(context).bg,
+      backgroundColor: AppColors.of(context).bg,
       body: SafeArea(
         child: BlocProvider(
           create: (_) => LoginBloc(
@@ -74,14 +74,14 @@ class _LoginScreenState extends State<LoginScreen> {
 
   Widget _buildChoices(BuildContext context) {
     final t = context.t;
-    final c = D2Colors.of(context);
+    final c = AppColors.of(context);
 
     void signIn(AuthType type) =>
         context.read<LoginBloc>().add(LoginSocialEvent(type));
 
     return Column(
       children: [
-        D2ScreenHeader(onBack: () => Navigator.of(context).maybePop()),
+        AppScreenHeader(onBack: () => Navigator.of(context).maybePop()),
         Expanded(
           child: CustomScrollView(
             slivers: [
@@ -97,40 +97,40 @@ class _LoginScreenState extends State<LoginScreen> {
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              const D2Logo(size: 116),
+                              const AppLogo(size: 116),
                               const SizedBox(height: 20),
                               Text(
                                 t.online.title,
                                 textAlign: TextAlign.center,
-                                style: D2Text.display.copyWith(color: c.ink),
+                                style: AppText.display.copyWith(color: c.ink),
                               ),
                             ],
                           ),
                         ),
                       ),
-                      D2Button(
+                      AppButton(
                         label: t.login.google,
-                        leading: const D2GoogleMark(),
-                        kind: D2ButtonKind.outline,
-                        size: D2ButtonSize.large,
+                        leading: const AppGoogleMark(),
+                        kind: AppButtonKind.outline,
+                        size: AppButtonSize.large,
                         expand: true,
                         onPressed: () => signIn(AuthType.google),
                       ),
                       const SizedBox(height: 16),
-                      D2Button(
+                      AppButton(
                         label: t.login.vkId,
-                        leading: const D2VkMark(),
-                        kind: D2ButtonKind.outline,
-                        size: D2ButtonSize.large,
+                        leading: const AppVkMark(),
+                        kind: AppButtonKind.outline,
+                        size: AppButtonSize.large,
                         expand: true,
                         onPressed: () => signIn(AuthType.vkontakte),
                       ),
                       const SizedBox(height: 16),
-                      D2Button(
+                      AppButton(
                         label: t.login.ok,
-                        leading: const D2OkMark(),
-                        kind: D2ButtonKind.outline,
-                        size: D2ButtonSize.large,
+                        leading: const AppOkMark(),
+                        kind: AppButtonKind.outline,
+                        size: AppButtonSize.large,
                         expand: true,
                         onPressed: () => signIn(AuthType.odnoklassniki),
                       ),
@@ -150,9 +150,9 @@ class _LoginScreenState extends State<LoginScreen> {
                           const SizedBox(width: 10),
                           ListenableBuilder(
                             listenable: _name,
-                            builder: (context, _) => D2Button(
+                            builder: (context, _) => AppButton(
                               label: t.login.play,
-                              size: D2ButtonSize.large,
+                              size: AppButtonSize.large,
                               onPressed:
                                   _name.text.trim().length < _minNameLength
                                   ? null
@@ -198,7 +198,7 @@ class _GuestDivider extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final c = D2Colors.of(context);
+    final c = AppColors.of(context);
 
     return Row(
       children: [
@@ -210,7 +210,7 @@ class _GuestDivider extends StatelessWidget {
             child: Text(
               label,
               textAlign: TextAlign.center,
-              style: D2Text.bodyRegular.copyWith(
+              style: AppText.bodyRegular.copyWith(
                 fontSize: 14,
                 color: c.inkSoft,
               ),
@@ -251,8 +251,8 @@ class _NameFieldState extends State<_NameField> {
 
   @override
   Widget build(BuildContext context) {
-    final c = D2Colors.of(context);
-    final style = D2Text.body.copyWith(fontSize: 17);
+    final c = AppColors.of(context);
+    final style = AppText.body.copyWith(fontSize: 17);
 
     return Container(
       height: 58,

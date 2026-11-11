@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:lets_play_cities/remote/remote_host.dart';
 import 'package:lets_play_cities/remote/server/probe/network_discovery.dart';
-import 'package:lets_play_cities/screens/common/d2/d2.dart';
+import 'package:lets_play_cities/screens/common/design/design.dart';
 import 'package:lets_play_cities/screens/multiplayer/searching_hosts_screen.dart';
 
 import '../../i18n/translations_harness.dart';
@@ -44,7 +44,7 @@ Widget _app(
   double textScale = 1,
 }) => withTranslations(
   MaterialApp(
-    theme: buildD2Theme(Brightness.light),
+    theme: buildAppTheme(Brightness.light),
     builder: (context, child) => MediaQuery(
       data: MediaQuery.of(context)
           .copyWith(textScaler: TextScaler.linear(textScale)),

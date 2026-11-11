@@ -15,7 +15,7 @@ import 'package:lets_play_cities/i18n/enum_labels.dart';
 import 'package:lets_play_cities/i18n/strings.g.dart';
 import 'package:lets_play_cities/remote/api_repository_factory.dart';
 import 'package:lets_play_cities/remote/auth.dart';
-import 'package:lets_play_cities/screens/common/d2/d2.dart';
+import 'package:lets_play_cities/screens/common/design/design.dart';
 import 'package:lets_play_cities/screens/profile/profile_tab.dart';
 import 'package:lets_play_cities/screens/root/root_screen.dart';
 import 'package:lets_play_cities/utils/error_logger.dart';
@@ -109,7 +109,7 @@ void main() {
     await tester.pumpWidget(
       withTranslations(
         MaterialApp(
-          theme: buildD2Theme(Brightness.light),
+          theme: buildAppTheme(Brightness.light),
           builder: (context, child) => MediaQuery(
             data: MediaQuery.of(context)
                 .copyWith(textScaler: TextScaler.linear(narrow ? 1.3 : 1)),
@@ -235,7 +235,7 @@ void main() {
         value: fakePrefs,
         child: withTranslations(
           MaterialApp(
-            theme: buildD2Theme(Brightness.light),
+            theme: buildAppTheme(Brightness.light),
             home: Scaffold(
               body: RootScreen(
                 initialTab: profileTabIndex,
@@ -259,7 +259,7 @@ void main() {
     expect(locked, findsOneWidget);
 
     fakePrefs.achievementsProgress = {Achievement.use3Tips.wireName: 3};
-    final nav = find.byType(D2BottomNav);
+    final nav = find.byType(AppBottomNav);
     await tester.tap(
       find.descendant(of: nav, matching: find.text(t.home.play)),
     );

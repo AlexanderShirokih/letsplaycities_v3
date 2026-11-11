@@ -1,22 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:lets_play_cities/i18n/strings.g.dart';
-import 'package:lets_play_cities/screens/common/d2/d2_colors.dart';
-import 'package:lets_play_cities/screens/common/d2/d2_icons.dart';
-import 'package:lets_play_cities/screens/common/d2/d2_text.dart';
+import 'package:lets_play_cities/screens/common/design/app_colors.dart';
+import 'package:lets_play_cities/screens/common/design/app_icons.dart';
+import 'package:lets_play_cities/screens/common/design/app_text.dart';
 
-class D2BottomNav extends StatelessWidget {
+class AppBottomNav extends StatelessWidget {
   final int index;
   final ValueChanged<int> onSelect;
 
-  const D2BottomNav({super.key, required this.index, required this.onSelect});
+  const AppBottomNav({super.key, required this.index, required this.onSelect});
 
   @override
   Widget build(BuildContext context) {
-    final c = D2Colors.of(context);
+    final c = AppColors.of(context);
     final tabs = [
-      (D2Glyph.play, t.d2.nav.play),
-      (D2Glyph.cities, t.d2.nav.cities),
-      (D2Glyph.profile, t.d2.nav.profile),
+      (AppGlyph.play, t.design.nav.play),
+      (AppGlyph.cities, t.design.nav.cities),
+      (AppGlyph.profile, t.design.nav.profile),
     ];
 
     return DecoratedBox(
@@ -51,7 +51,7 @@ class D2BottomNav extends StatelessWidget {
 }
 
 class _Tab extends StatelessWidget {
-  final D2Glyph glyph;
+  final AppGlyph glyph;
   final String label;
   final bool active;
   final VoidCallback onTap;
@@ -65,7 +65,7 @@ class _Tab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final c = D2Colors.of(context);
+    final c = AppColors.of(context);
 
     return Semantics(
       button: true,
@@ -84,7 +84,7 @@ class _Tab extends StatelessWidget {
                 color: active ? c.violet : null,
                 borderRadius: BorderRadius.circular(12),
               ),
-              child: D2Icon(
+              child: AppIcon(
                 glyph,
                 size: 22,
                 color: active ? Colors.white : c.inkSoft,
@@ -95,7 +95,7 @@ class _Tab extends StatelessWidget {
               label,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              style: D2Text.small.copyWith(
+              style: AppText.small.copyWith(
                 fontWeight: active ? FontWeight.w700 : FontWeight.w500,
                 fontVariations: [FontVariation('wght', active ? 700 : 500)],
                 color: active ? c.ink : c.inkSoft,

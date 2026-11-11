@@ -2,7 +2,7 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:lets_play_cities/i18n/strings.g.dart';
-import 'package:lets_play_cities/screens/common/d2/d2.dart';
+import 'package:lets_play_cities/screens/common/design/design.dart';
 
 /// Two letter tiles hopping one after another and a message under them
 class LoadingView extends StatefulWidget {
@@ -63,7 +63,7 @@ class _LoadingViewState extends State<LoadingView>
     super.dispose();
   }
 
-  Widget _tile(String letter, D2TileColor color, double angle, double phase) =>
+  Widget _tile(String letter, AppTileColor color, double angle, double phase) =>
       AnimatedBuilder(
         animation: _controller,
         builder: (context, child) => Transform.translate(
@@ -73,14 +73,14 @@ class _LoadingViewState extends State<LoadingView>
         child: Transform.rotate(
           angle: angle * pi / 180,
           child: ExcludeSemantics(
-            child: D2LetterTile(letter, size: 58, height: 62, color: color),
+            child: AppLetterTile(letter, size: 58, height: 62, color: color),
           ),
         ),
       );
 
   @override
   Widget build(BuildContext context) {
-    final c = D2Colors.of(context);
+    final c = AppColors.of(context);
 
     // Material: the view is also shown with no Scaffold above it, where the
     // text would get the debug style on a black background
@@ -96,9 +96,9 @@ class _LoadingViewState extends State<LoadingView>
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
-                  _tile('Г', D2TileColor.white, -6, 0),
+                  _tile('Г', AppTileColor.white, -6, 0),
                   const SizedBox(width: 10),
-                  _tile('А', D2TileColor.orange, 5, _delay),
+                  _tile('А', AppTileColor.orange, 5, _delay),
                 ],
               ),
             ),
@@ -110,7 +110,7 @@ class _LoadingViewState extends State<LoadingView>
                 child: Text(
                   widget._text,
                   textAlign: TextAlign.center,
-                  style: D2Text.body.copyWith(color: c.inkSoft),
+                  style: AppText.body.copyWith(color: c.inkSoft),
                 ),
               ),
             ),

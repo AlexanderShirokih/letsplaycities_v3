@@ -1,7 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:lets_play_cities/screens/common/d2/d2.dart';
+import 'package:lets_play_cities/screens/common/design/design.dart';
 import 'package:lets_play_cities/screens/main/cites/list/cities_list_screen.dart';
 import 'package:lets_play_cities/screens/main/home_screen.dart';
 import 'package:lets_play_cities/screens/profile/profile_tab.dart';
@@ -88,7 +88,7 @@ class RootScreenState extends State<RootScreen> {
               ],
             ),
           ),
-          D2BottomNav(index: _index, onSelect: select),
+          AppBottomNav(index: _index, onSelect: select),
         ],
       ),
     );

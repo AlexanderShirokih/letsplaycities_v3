@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:lets_play_cities/base/achievements/achievements.dart';
 import 'package:lets_play_cities/i18n/enum_labels.dart';
 import 'package:lets_play_cities/i18n/strings.g.dart';
-import 'package:lets_play_cities/screens/common/d2/d2.dart';
+import 'package:lets_play_cities/screens/common/design/design.dart';
 import 'package:lets_play_cities/screens/profile/passport_card.dart';
 
 /// Horizontal strip of every achievement, the received ones first
@@ -22,7 +22,7 @@ class AchievementsRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = context.t;
-    final c = D2Colors.of(context);
+    final c = AppColors.of(context);
     final all = [
       ...Achievement.values.where(isUnlocked),
       ...Achievement.values.where((a) => !isUnlocked(a)),
@@ -43,11 +43,11 @@ class AchievementsRow extends StatelessWidget {
               children: [
                 Text(
                   t.profile.achievements,
-                  style: D2Text.section.copyWith(color: c.ink),
+                  style: AppText.section.copyWith(color: c.ink),
                 ),
                 ProfileLink(
                   label: t.profile.rating,
-                  glyph: D2Glyph.trophy,
+                  glyph: AppGlyph.trophy,
                   onPressed: onRating,
                 ),
               ],
@@ -74,7 +74,7 @@ class AchievementsRow extends StatelessWidget {
   }
 
   void _showAll(BuildContext context, List<Achievement> all) {
-    showD2Sheet<void>(
+    showAppSheet<void>(
       context,
       builder: (_) => SingleChildScrollView(
         padding: const EdgeInsets.fromLTRB(8, 0, 8, 16),
@@ -100,7 +100,7 @@ class _AchievementTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = context.t;
-    final c = D2Colors.of(context);
+    final c = AppColors.of(context);
     final title = achievement.label(t);
     final (glyph, color) = _look(achievement, c);
 
@@ -130,7 +130,7 @@ class _AchievementTile extends StatelessWidget {
                       ]
                     : null,
               ),
-              child: D2Icon(
+              child: AppIcon(
                 glyph,
                 size: 24,
                 color: unlocked ? c.shadow : c.inkSoft,
@@ -142,7 +142,7 @@ class _AchievementTile extends StatelessWidget {
               child: Text(
                 title,
                 textAlign: TextAlign.center,
-                style: D2Text.small.copyWith(
+                style: AppText.small.copyWith(
                   height: 1.2,
                   color: unlocked ? c.ink : c.inkSoft,
                 ),
@@ -154,20 +154,20 @@ class _AchievementTile extends StatelessWidget {
     );
   }
 
-  static (D2Glyph, Color) _look(Achievement a, D2Colors c) => switch (a) {
+  static (AppGlyph, Color) _look(Achievement a, AppColors c) => switch (a) {
     Achievement.write15Cities ||
     Achievement.write80Cities ||
-    Achievement.write500Cities => (D2Glyph.cities, c.mint),
+    Achievement.write500Cities => (AppGlyph.cities, c.mint),
     Achievement.write50CitiesInGame ||
-    Achievement.write100CitiesInGame => (D2Glyph.bolt, c.yellow),
-    Achievement.use3Tips || Achievement.use30Tips => (D2Glyph.hint, c.yellow),
-    Achievement.add1Friend => (D2Glyph.friends, c.sky),
-    Achievement.playInHardMode => (D2Glyph.gauge, c.orange),
+    Achievement.write100CitiesInGame => (AppGlyph.bolt, c.yellow),
+    Achievement.use3Tips || Achievement.use30Tips => (AppGlyph.hint, c.yellow),
+    Achievement.add1Friend => (AppGlyph.friends, c.sky),
+    Achievement.playInHardMode => (AppGlyph.gauge, c.orange),
     Achievement.reachScore1000Pts ||
     Achievement.reachScore5000Pts ||
-    Achievement.reachScore25000Pts => (D2Glyph.star, c.yellow),
-    Achievement.loginViaSocial => (D2Glyph.profile, c.sky),
-    Achievement.changeTheme => (D2Glyph.moon, c.sky),
-    Achievement.playOnline3Times => (D2Glyph.online, c.mint),
+    Achievement.reachScore25000Pts => (AppGlyph.star, c.yellow),
+    Achievement.loginViaSocial => (AppGlyph.profile, c.sky),
+    Achievement.changeTheme => (AppGlyph.moon, c.sky),
+    Achievement.playOnline3Times => (AppGlyph.online, c.mint),
   };
 }

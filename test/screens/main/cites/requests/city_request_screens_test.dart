@@ -7,7 +7,7 @@ import 'package:lets_play_cities/base/dictionary/country_entity.dart';
 import 'package:lets_play_cities/base/repositories/cities/city_repository.dart';
 import 'package:lets_play_cities/base/repositories/cities/country_repository.dart';
 import 'package:lets_play_cities/remote/city_requests_repository.dart';
-import 'package:lets_play_cities/screens/common/d2/d2.dart';
+import 'package:lets_play_cities/screens/common/design/design.dart';
 import 'package:lets_play_cities/screens/main/cites/model/city_edit_action.dart';
 import 'package:lets_play_cities/screens/main/cites/requests/city_edit_actions_screen.dart';
 import 'package:lets_play_cities/screens/main/cites/requests/city_requests_list_screen.dart';
@@ -102,7 +102,7 @@ void main() {
     await tester.pumpWidget(
       withTranslations(
         MaterialApp(
-          theme: buildD2Theme(Brightness.light),
+          theme: buildAppTheme(Brightness.light),
           builder: (context, child) => MediaQuery(
             data: MediaQuery.of(context)
                 .copyWith(textScaler: const TextScaler.linear(1.3)),
@@ -212,7 +212,7 @@ void main() {
       expect(find.text('Отправить'), findsOneWidget);
       expect(tester.takeException(), isNull);
 
-      final button = tester.widget<D2Button>(find.byType(D2Button).last);
+      final button = tester.widget<AppButton>(find.byType(AppButton).last);
       expect(button.onPressed, isNull);
     });
   }
@@ -221,7 +221,7 @@ void main() {
     await pump(tester, const CityEditActionsScreen(action: CityEditAction.add));
 
     VoidCallback? onPressed() =>
-        tester.widget<D2Button>(find.byType(D2Button).last).onPressed;
+        tester.widget<AppButton>(find.byType(AppButton).last).onPressed;
 
     await tester.enterText(find.byType(TextField).first, 'Новоград');
     await tester.pumpAndSettle();

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:lets_play_cities/base/game/combo.dart';
 import 'package:lets_play_cities/i18n/enum_labels.dart';
 import 'package:lets_play_cities/i18n/strings.g.dart';
-import 'package:lets_play_cities/screens/common/d2/d2.dart';
+import 'package:lets_play_cities/screens/common/design/design.dart';
 
 /// Used to display users combos.
 class ComboBadgeWidget extends StatelessWidget {
@@ -35,7 +35,7 @@ class ComboBadgeWidget extends StatelessWidget {
     ComboType comboType,
     int multiplier,
   ) {
-    final onYellow = D2Colors.light.ink;
+    final onYellow = AppColors.light.ink;
 
     return Tooltip(
       message: comboType.label(t),
@@ -43,17 +43,17 @@ class ComboBadgeWidget extends StatelessWidget {
         height: 24,
         padding: const EdgeInsets.symmetric(horizontal: 6),
         decoration: BoxDecoration(
-          color: D2Colors.of(context).yellow,
+          color: AppColors.of(context).yellow,
           borderRadius: BorderRadius.circular(8),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            D2Icon(glyphOf(comboType), size: 14, color: onYellow),
+            AppIcon(glyphOf(comboType), size: 14, color: onYellow),
             const SizedBox(width: 3),
             Text(
               '×$multiplier',
-              style: D2Text.small.copyWith(color: onYellow, height: 1),
+              style: AppText.small.copyWith(color: onYellow, height: 1),
             ),
           ],
         ),
@@ -62,11 +62,11 @@ class ComboBadgeWidget extends StatelessWidget {
   }
 
   /// The icon of a combo [type]
-  static D2Glyph glyphOf(ComboType type) => switch (type) {
-    ComboType.quickTime => D2Glyph.bolt,
-    ComboType.shortWord => D2Glyph.star,
-    ComboType.longWord => D2Glyph.gauge,
-    ComboType.sameCountry => D2Glyph.cities,
-    ComboType.differentCountries => D2Glyph.globe,
+  static AppGlyph glyphOf(ComboType type) => switch (type) {
+    ComboType.quickTime => AppGlyph.bolt,
+    ComboType.shortWord => AppGlyph.star,
+    ComboType.longWord => AppGlyph.gauge,
+    ComboType.sameCountry => AppGlyph.cities,
+    ComboType.differentCountries => AppGlyph.globe,
   };
 }

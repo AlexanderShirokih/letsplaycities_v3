@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:lets_play_cities/screens/common/d2/d2_colors.dart';
-import 'package:lets_play_cities/screens/common/d2/d2_icons.dart';
-import 'package:lets_play_cities/screens/common/d2/d2_text.dart';
+import 'package:lets_play_cities/screens/common/design/app_colors.dart';
+import 'package:lets_play_cities/screens/common/design/app_icons.dart';
+import 'package:lets_play_cities/screens/common/design/app_text.dart';
 
 /// Border of a disabled button
 const _disabledBorder = Color(0xFFB9AEF0);
 
-enum D2ButtonKind {
+enum AppButtonKind {
   /// Orange with an outline
   primary,
 
@@ -30,7 +30,7 @@ enum D2ButtonKind {
   onCard,
 }
 
-enum D2ButtonSize {
+enum AppButtonSize {
   /// Height 44
   medium,
 
@@ -159,15 +159,15 @@ class _DashedPainter extends BoxPainter {
   }
 }
 
-class D2Button extends StatelessWidget {
+class AppButton extends StatelessWidget {
   final String label;
-  final D2Glyph? icon;
+  final AppGlyph? icon;
 
   /// Replaces [icon] with a mark of its own, like the Google "G"
   final Widget? leading;
   final VoidCallback? onPressed;
-  final D2ButtonKind kind;
-  final D2ButtonSize size;
+  final AppButtonKind kind;
+  final AppButtonSize size;
   final bool expand;
 
   /// Counter in the top right corner, hidden when `null` or zero
@@ -176,14 +176,14 @@ class D2Button extends StatelessWidget {
   /// Replaces the label for screen readers
   final String? semanticLabel;
 
-  const D2Button({
+  const AppButton({
     super.key,
     required this.label,
     this.icon,
     this.leading,
     this.onPressed,
-    this.kind = D2ButtonKind.primary,
-    this.size = D2ButtonSize.medium,
+    this.kind = AppButtonKind.primary,
+    this.size = AppButtonSize.medium,
     this.expand = false,
     this.badge,
     this.semanticLabel,
@@ -191,41 +191,41 @@ class D2Button extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final c = D2Colors.of(context);
-    final large = size == D2ButtonSize.large;
+    final c = AppColors.of(context);
+    final large = size == AppButtonSize.large;
     final enabled = onPressed != null;
 
     final (fill, border, fg, shadow) = switch (kind) {
-      D2ButtonKind.primary => (c.orange, c.shadow, c.ink, c.shadow),
-      D2ButtonKind.accent => (c.violet, c.shadow, Colors.white, c.shadow),
-      D2ButtonKind.secondary => (c.surface, null, c.ink, c.edge),
-      D2ButtonKind.tonal => (c.bg, null, c.ink, c.edge),
-      D2ButtonKind.hint => (
+      AppButtonKind.primary => (c.orange, c.shadow, c.ink, c.shadow),
+      AppButtonKind.accent => (c.violet, c.shadow, Colors.white, c.shadow),
+      AppButtonKind.secondary => (c.surface, null, c.ink, c.edge),
+      AppButtonKind.tonal => (c.bg, null, c.ink, c.edge),
+      AppButtonKind.hint => (
         c.yellow,
         null,
-        D2Colors.light.ink,
+        AppColors.light.ink,
         c.shadow.withAlpha(56),
       ),
-      D2ButtonKind.outline => (c.surface, c.shadow, c.ink, c.shadow),
-      D2ButtonKind.onCard => (
-        D2Colors.light.surface,
+      AppButtonKind.outline => (c.surface, c.shadow, c.ink, c.shadow),
+      AppButtonKind.onCard => (
+        AppColors.light.surface,
         c.shadow,
-        D2Colors.light.ink,
+        AppColors.light.ink,
         c.shadow,
       ),
     };
 
     final bordered = border != null;
     final (height, radius, fontSize, iconSize, padding) = switch (size) {
-      D2ButtonSize.medium => (44.0, 14.0, 14.0, 20.0, 14.0),
-      D2ButtonSize.card => (48.0, 16.0, 15.0, 20.0, 20.0),
-      D2ButtonSize.large => (58.0, 18.0, 18.0, 24.0, 20.0),
+      AppButtonSize.medium => (44.0, 14.0, 14.0, 20.0, 14.0),
+      AppButtonSize.card => (48.0, 16.0, 15.0, 20.0, 20.0),
+      AppButtonSize.large => (58.0, 18.0, 18.0, 24.0, 20.0),
     };
     final style = switch (kind) {
-      D2ButtonKind.outline => D2Text.body,
-      D2ButtonKind.secondary ||
-      D2ButtonKind.tonal when !large => D2Text.body.copyWith(fontSize: 15),
-      _ => D2Text.cta.copyWith(fontSize: fontSize),
+      AppButtonKind.outline => AppText.body,
+      AppButtonKind.secondary ||
+      AppButtonKind.tonal when !large => AppText.body.copyWith(fontSize: 15),
+      _ => AppText.cta.copyWith(fontSize: fontSize),
     };
     final textColor = enabled ? fg : c.inkSoft;
 
@@ -249,7 +249,7 @@ class D2Button extends StatelessWidget {
               leading!,
               const SizedBox(width: 12),
             ] else if (icon != null) ...[
-              D2Icon(icon!, size: iconSize, color: textColor),
+              AppIcon(icon!, size: iconSize, color: textColor),
               const SizedBox(width: 8),
             ],
             Flexible(
@@ -285,13 +285,13 @@ class D2Button extends StatelessWidget {
 }
 
 /// 44x44 icon button. [tooltip] is also its semantics label.
-class D2IconButton extends StatelessWidget {
-  final D2Glyph glyph;
+class AppIconButton extends StatelessWidget {
+  final AppGlyph glyph;
   final String tooltip;
   final VoidCallback? onPressed;
   final int? badge;
 
-  const D2IconButton(
+  const AppIconButton(
     this.glyph, {
     super.key,
     required this.tooltip,
@@ -301,7 +301,7 @@ class D2IconButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final c = D2Colors.of(context);
+    final c = AppColors.of(context);
     final enabled = onPressed != null;
 
     return Semantics(
@@ -326,7 +326,7 @@ class D2IconButton extends StatelessWidget {
               height: 44,
               onPressed: onPressed,
               child: Center(
-                child: D2Icon(
+                child: AppIcon(
                   glyph,
                   size: 22,
                   color: enabled ? c.ink : c.inkSoft,
@@ -350,7 +350,7 @@ class _Badge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final c = D2Colors.of(context);
+    final c = AppColors.of(context);
 
     return Container(
       constraints: const BoxConstraints(minWidth: 18),
@@ -364,10 +364,10 @@ class _Badge extends StatelessWidget {
       ),
       child: Text(
         '$count',
-        style: D2Text.small.copyWith(
+        style: AppText.small.copyWith(
           fontSize: 11,
           height: 1,
-          color: D2Colors.light.ink,
+          color: AppColors.light.ink,
         ),
       ),
     );
@@ -376,14 +376,14 @@ class _Badge extends StatelessWidget {
 
 /// Violet button with only a white glyph, like «Отправить».
 /// [tooltip] is its semantics label.
-class D2SquareButton extends StatelessWidget {
-  final D2Glyph glyph;
+class AppSquareButton extends StatelessWidget {
+  final AppGlyph glyph;
   final String tooltip;
   final VoidCallback? onPressed;
   final double width;
   final double height;
 
-  const D2SquareButton(
+  const AppSquareButton(
     this.glyph, {
     super.key,
     required this.tooltip,
@@ -394,7 +394,7 @@ class D2SquareButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final c = D2Colors.of(context);
+    final c = AppColors.of(context);
     final enabled = onPressed != null;
 
     return Semantics(
@@ -414,7 +414,7 @@ class D2SquareButton extends StatelessWidget {
         height: height,
         onPressed: onPressed,
         child: Center(
-          child: D2Icon(
+          child: AppIcon(
             glyph,
             size: 26,
             strokeWidth: 3,

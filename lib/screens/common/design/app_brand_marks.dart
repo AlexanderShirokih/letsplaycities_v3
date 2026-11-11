@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:lets_play_cities/screens/common/d2/d2_text.dart';
-import 'package:lets_play_cities/screens/common/d2/svg_path.dart';
+import 'package:lets_play_cities/screens/common/design/app_text.dart';
+import 'package:lets_play_cities/screens/common/design/svg_path.dart';
 
 /// Colors of the sign-in marks, the same in both themes
-abstract final class D2BrandColors {
+abstract final class AppBrandColors {
   static const googleRed = Color(0xFFEA4335);
   static const googleYellow = Color(0xFFFBBC05);
   static const googleGreen = Color(0xFF34A853);
@@ -13,10 +13,10 @@ abstract final class D2BrandColors {
 }
 
 /// Four-colored "G" ring of the Google button (view box 24x24)
-class D2GoogleMark extends StatelessWidget {
+class AppGoogleMark extends StatelessWidget {
   final double size;
 
-  const D2GoogleMark({super.key, this.size = 24});
+  const AppGoogleMark({super.key, this.size = 24});
 
   @override
   Widget build(BuildContext context) => ExcludeSemantics(
@@ -26,10 +26,10 @@ class D2GoogleMark extends StatelessWidget {
 
 class _GooglePainter extends CustomPainter {
   static final _arcs = [
-    ('M18.43 6.6A8.4 8.4 0 0 0 4.73 7.8', D2BrandColors.googleRed),
-    ('M4.73 7.8A8.4 8.4 0 0 0 4.73 16.2', D2BrandColors.googleYellow),
-    ('M4.73 16.2A8.4 8.4 0 0 0 18.43 17.4', D2BrandColors.googleGreen),
-    ('M12 12h8.4A8.4 8.4 0 0 1 18.43 17.4', D2BrandColors.googleBlue),
+    ('M18.43 6.6A8.4 8.4 0 0 0 4.73 7.8', AppBrandColors.googleRed),
+    ('M4.73 7.8A8.4 8.4 0 0 0 4.73 16.2', AppBrandColors.googleYellow),
+    ('M4.73 16.2A8.4 8.4 0 0 0 18.43 17.4', AppBrandColors.googleGreen),
+    ('M12 12h8.4A8.4 8.4 0 0 1 18.43 17.4', AppBrandColors.googleBlue),
   ].map((arc) => (parseSvgPath(arc.$1), arc.$2)).toList();
 
   @override
@@ -52,34 +52,34 @@ class _GooglePainter extends CustomPainter {
 }
 
 /// Blue rounded square with "VK"
-class D2VkMark extends StatelessWidget {
+class AppVkMark extends StatelessWidget {
   final double size;
 
-  const D2VkMark({super.key, this.size = 24});
+  const AppVkMark({super.key, this.size = 24});
 
   @override
   Widget build(BuildContext context) =>
-      _D2LetterMark(label: 'VK', color: D2BrandColors.vkBlue, size: size);
+      _AppLetterMark(label: 'VK', color: AppBrandColors.vkBlue, size: size);
 }
 
 /// Orange rounded square with "OK"
-class D2OkMark extends StatelessWidget {
+class AppOkMark extends StatelessWidget {
   final double size;
 
-  const D2OkMark({super.key, this.size = 24});
+  const AppOkMark({super.key, this.size = 24});
 
   @override
   Widget build(BuildContext context) =>
-      _D2LetterMark(label: 'OK', color: D2BrandColors.okOrange, size: size);
+      _AppLetterMark(label: 'OK', color: AppBrandColors.okOrange, size: size);
 }
 
 /// A rounded square of the network color with its letters
-class _D2LetterMark extends StatelessWidget {
+class _AppLetterMark extends StatelessWidget {
   final String label;
   final Color color;
   final double size;
 
-  const _D2LetterMark({
+  const _AppLetterMark({
     required this.label,
     required this.color,
     required this.size,
@@ -99,7 +99,7 @@ class _D2LetterMark extends StatelessWidget {
           child: Center(
             child: Text(
               label,
-              style: D2Text.small.copyWith(
+              style: AppText.small.copyWith(
                 fontWeight: FontWeight.w700,
                 fontSize: size * 10 / 24,
                 height: 1,

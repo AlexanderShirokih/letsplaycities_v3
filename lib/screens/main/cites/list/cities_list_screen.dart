@@ -7,11 +7,11 @@ import 'package:lets_play_cities/base/cities_list/cities_list_entry.dart';
 import 'package:lets_play_cities/base/preferences.dart';
 import 'package:lets_play_cities/i18n/strings.g.dart';
 import 'package:lets_play_cities/remote/city_requests_repository.dart';
-import 'package:lets_play_cities/screens/common/d2/d2.dart';
+import 'package:lets_play_cities/screens/common/design/design.dart';
 import 'package:lets_play_cities/screens/main/cites/list/country_filter_sheet.dart';
 import 'package:lets_play_cities/screens/main/cites/list/requests_count_cubit.dart';
 import 'package:lets_play_cities/screens/main/cites/list/widgets/city_list_item.dart';
-import 'package:lets_play_cities/screens/main/cites/list/widgets/d2_search_field.dart';
+import 'package:lets_play_cities/screens/main/cites/list/widgets/app_search_field.dart';
 import 'package:lets_play_cities/screens/main/cites/model/city_edit_action.dart';
 import 'package:lets_play_cities/screens/main/cites/requests/city_edit_actions_screen.dart';
 import 'package:lets_play_cities/screens/main/cites/requests/city_requests_list_screen.dart';
@@ -100,7 +100,7 @@ class _CitiesListScreenState extends State<CitiesListScreen> {
   @override
   Widget build(BuildContext context) {
     final t = context.t;
-    final c = D2Colors.of(context);
+    final c = AppColors.of(context);
 
     return MultiBlocProvider(
       providers: [
@@ -154,9 +154,9 @@ class _CitiesListScreenState extends State<CitiesListScreen> {
                 bottom: 18,
                 child: Align(
                   alignment: Alignment.centerRight,
-                  child: D2Button(
+                  child: AppButton(
                     label: t.citiesList.proposeCity,
-                    icon: D2Glyph.plus,
+                    icon: AppGlyph.plus,
                     onPressed: () => _push(
                       CityEditActionsScreen(action: CityEditAction.add),
                     ),
@@ -179,7 +179,7 @@ class _Header extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = context.t;
-    final c = D2Colors.of(context);
+    final c = AppColors.of(context);
 
     return SizedBox(
       height: 56,
@@ -192,7 +192,7 @@ class _Header extends StatelessWidget {
                 t.citiesList.title,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: D2Text.display.copyWith(fontSize: 22, color: c.ink),
+                style: AppText.display.copyWith(fontSize: 22, color: c.ink),
               ),
             ),
             const SizedBox(width: 12),
@@ -200,9 +200,9 @@ class _Header extends StatelessWidget {
               child: Align(
                 alignment: Alignment.centerRight,
                 child: BlocBuilder<RequestsCountCubit, int?>(
-                  builder: (context, count) => D2Button(
+                  builder: (context, count) => AppButton(
                     label: t.citiesList.myRequests,
-                    kind: D2ButtonKind.secondary,
+                    kind: AppButtonKind.secondary,
                     badge: count,
                     onPressed: onRequests,
                   ),
@@ -244,7 +244,7 @@ class _SearchRow extends StatelessWidget {
         builder: (context, constraints) => Row(
           children: [
             Expanded(
-              child: D2SearchField(
+              child: AppSearchField(
                 hint: t.citiesList.searchHint,
                 onChanged: onChanged,
               ),
@@ -252,10 +252,10 @@ class _SearchRow extends StatelessWidget {
             const SizedBox(width: 10),
             ConstrainedBox(
               constraints: BoxConstraints(maxWidth: constraints.maxWidth * 0.5),
-              child: D2Button(
+              child: AppButton(
                 label: label,
-                icon: D2Glyph.countries,
-                kind: D2ButtonKind.secondary,
+                icon: AppGlyph.countries,
+                kind: AppButtonKind.secondary,
                 onPressed: state is CitiesListDataState
                     ? onPickCountries
                     : null,

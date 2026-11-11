@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:lets_play_cities/base/cities_list/city_item.dart';
 import 'package:lets_play_cities/i18n/strings.g.dart';
-import 'package:lets_play_cities/screens/common/d2/d2.dart';
+import 'package:lets_play_cities/screens/common/design/design.dart';
 import 'package:lets_play_cities/screens/game/cities_list.dart';
 
 /// Shows card that describes approved or pending request
@@ -30,13 +30,13 @@ class RequestItemCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = context.t;
-    final c = D2Colors.of(context);
+    final c = AppColors.of(context);
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 10),
       child: SizedBox(
         width: double.infinity,
-        child: D2Card(
+        child: AppCard(
           padding: const EdgeInsets.all(12),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -81,7 +81,7 @@ class RequestItemCard extends StatelessWidget {
 
   Widget _header(BuildContext context) {
     final t = context.t;
-    final c = D2Colors.of(context);
+    final c = AppColors.of(context);
     // No icon: a plus or a pencil here looks like a button
     final label = switch (cardType) {
       RequestItemType.add => t.citiesRequest.typeAdd,
@@ -98,7 +98,7 @@ class RequestItemCard extends StatelessWidget {
               label,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              style: D2Text.small.copyWith(fontSize: 13, color: c.inkSoft),
+              style: AppText.small.copyWith(fontSize: 13, color: c.inkSoft),
             ),
           ),
           if (isApproved != null) ...[
@@ -113,7 +113,7 @@ class RequestItemCard extends StatelessWidget {
                 minimumSize: const Size(44, 44),
                 padding: const EdgeInsets.symmetric(horizontal: 8),
                 tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                textStyle: D2Text.body.copyWith(fontSize: 14),
+                textStyle: AppText.body.copyWith(fontSize: 14),
               ),
               child: Text(t.citiesRequest.withdraw),
             ),
@@ -124,7 +124,7 @@ class RequestItemCard extends StatelessWidget {
 
   Widget _statusPill(BuildContext context, bool approved) {
     final t = context.t;
-    final c = D2Colors.of(context);
+    final c = AppColors.of(context);
     // The error red is too dim as a text on a dark surface, so there the
     // pill is filled with it.
     final dark = Theme.of(context).brightness == Brightness.dark;
@@ -148,8 +148,8 @@ class RequestItemCard extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          D2Icon(
-            approved ? D2Glyph.check : D2Glyph.close,
+          AppIcon(
+            approved ? AppGlyph.check : AppGlyph.close,
             size: 16,
             color: color,
           ),
@@ -158,7 +158,7 @@ class RequestItemCard extends StatelessWidget {
             approved
                 ? t.citiesRequest.statusApproved
                 : t.citiesRequest.statusDeclined,
-            style: D2Text.small.copyWith(fontSize: 13, color: color),
+            style: AppText.small.copyWith(fontSize: 13, color: color),
           ),
         ],
       ),
@@ -172,7 +172,7 @@ class RequestItemCard extends StatelessWidget {
     bool strike = false,
     bool showCountry = true,
   }) {
-    final c = D2Colors.of(context);
+    final c = AppColors.of(context);
 
     return ConstrainedBox(
       constraints: const BoxConstraints(minHeight: 32),
@@ -193,8 +193,8 @@ class RequestItemCard extends StatelessWidget {
                     overflow: TextOverflow.ellipsis,
                     style:
                         (strike
-                                ? D2Text.bodyRegular.copyWith(fontSize: 16)
-                                : D2Text.body)
+                                ? AppText.bodyRegular.copyWith(fontSize: 16)
+                                : AppText.body)
                             .copyWith(
                               height: 1.25,
                               decoration: strike
@@ -216,7 +216,7 @@ class RequestItemCard extends StatelessWidget {
 
   /// The country after the city name. Its width is capped, so a long city
   /// name gets the rest of the row instead of a half of it.
-  Widget _countryName(D2Colors c, String name) => Padding(
+  Widget _countryName(AppColors c, String name) => Padding(
     padding: const EdgeInsets.only(left: 10),
     child: ConstrainedBox(
       constraints: const BoxConstraints(maxWidth: 110),
@@ -224,7 +224,7 @@ class RequestItemCard extends StatelessWidget {
         name,
         maxLines: 1,
         overflow: TextOverflow.ellipsis,
-        style: D2Text.caption.copyWith(color: c.inkSoft),
+        style: AppText.caption.copyWith(color: c.inkSoft),
       ),
     ),
   );
@@ -232,7 +232,7 @@ class RequestItemCard extends StatelessWidget {
   /// Old name struck out, the new one under it
   Widget _editedCity(BuildContext context) {
     final t = context.t;
-    final c = D2Colors.of(context);
+    final c = AppColors.of(context);
     final old = from;
     final changed = to;
 
@@ -252,8 +252,8 @@ class RequestItemCard extends StatelessWidget {
                   child: SizedBox(
                     width: 28,
                     child: Center(
-                      child: D2Icon(
-                        D2Glyph.turnRight,
+                      child: AppIcon(
+                        AppGlyph.turnRight,
                         size: 20,
                         color: c.inkSoft,
                       ),
@@ -271,7 +271,7 @@ class RequestItemCard extends StatelessWidget {
                           changed.cityName,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: D2Text.body.copyWith(
+                          style: AppText.body.copyWith(
                             height: 1.25,
                             color: c.ink,
                           ),
@@ -294,14 +294,14 @@ class RequestItemCard extends StatelessWidget {
     );
   }
 
-  Widget _note(D2Colors c, String? label, String text) => Column(
+  Widget _note(AppColors c, String? label, String text) => Column(
     crossAxisAlignment: CrossAxisAlignment.start,
     children: [
       if (label != null)
-        Text(label, style: D2Text.small.copyWith(color: c.inkSoft)),
+        Text(label, style: AppText.small.copyWith(color: c.inkSoft)),
       Text(
         text,
-        style: D2Text.bodyRegular.copyWith(
+        style: AppText.bodyRegular.copyWith(
           fontSize: 14,
           height: 1.4,
           color: c.ink,
@@ -322,13 +322,13 @@ class RequestItemCardShimmered extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final c = D2Colors.of(context);
+    final c = AppColors.of(context);
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 10),
       child: SizedBox(
         width: double.infinity,
-        child: D2Card(
+        child: AppCard(
           padding: const EdgeInsets.all(12),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -376,7 +376,7 @@ class RequestItemCardShimmered extends StatelessWidget {
   }
 
   Widget _block(
-    D2Colors c,
+    AppColors c,
     double width,
     double height, {
     double radius = 4,

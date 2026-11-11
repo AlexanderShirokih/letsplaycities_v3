@@ -16,7 +16,7 @@ import 'package:lets_play_cities/remote/model/lps_user.dart';
 import 'package:lets_play_cities/remote/model/social.dart';
 import 'package:lets_play_cities/remote/exceptions.dart';
 import 'package:lets_play_cities/screens/common/common_widgets.dart';
-import 'package:lets_play_cities/screens/common/d2/d2.dart';
+import 'package:lets_play_cities/screens/common/design/design.dart';
 import 'package:lets_play_cities/screens/common/error_texts.dart';
 import 'package:lets_play_cities/screens/common/utils.dart';
 import 'package:lets_play_cities/screens/online/banlist.dart';
@@ -76,7 +76,7 @@ class _ProfileFrame extends StatelessWidget {
   Widget build(BuildContext context) => SafeArea(
     child: Column(
       children: [
-        D2ScreenHeader(
+        AppScreenHeader(
           onBack: () => Navigator.of(context).maybePop(),
           actions: actions,
         ),
@@ -113,7 +113,7 @@ class _OnlineProfileViewStandaloneState
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: D2Colors.of(context).bg,
+      backgroundColor: AppColors.of(context).bg,
       body: FutureBuilder<RemoteAccount?>(
         future: _account,
         builder: (context, lastSignedInAccount) {
@@ -173,7 +173,7 @@ class OnlineProfileView extends StatefulWidget {
     void Function(LpsUser friend)? onInvite,
   }) => MaterialPageRoute(
     builder: (ctx) => Scaffold(
-      backgroundColor: D2Colors.of(ctx).bg,
+      backgroundColor: AppColors.of(ctx).bg,
       body: RepositoryProvider.value(
         value: context.read<ApiRepository>(),
         child: OnlineProfileView(userId: userId, onInvite: onInvite),
@@ -310,14 +310,14 @@ class _OnlineProfileViewState extends State<OnlineProfileView> {
     BuildContext context,
     Translations t,
   ) {
-    final c = D2Colors.of(context);
+    final c = AppColors.of(context);
     final user = data.user;
 
     return Row(
       children: [
         InkWell(
           onTap: isOwner
-              ? () => showD2Sheet<void>(
+              ? () => showAppSheet<void>(
                   context,
                   builder: (_) => AvatarChooserView(
                     context.read<ApiRepository>(),
@@ -352,7 +352,7 @@ class _OnlineProfileViewState extends State<OnlineProfileView> {
                 user.name,
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
-                style: D2Text.title.copyWith(fontSize: 20, color: c.ink),
+                style: AppText.title.copyWith(fontSize: 20, color: c.ink),
               ),
               const SizedBox(height: 5),
               Wrap(
@@ -361,7 +361,7 @@ class _OnlineProfileViewState extends State<OnlineProfileView> {
                 children: [
                   Text(
                     'ID ${user.id}',
-                    style: D2Text.caption.copyWith(color: c.inkSoft),
+                    style: AppText.caption.copyWith(color: c.inkSoft),
                   ),
                   _showOnlineStatus(isOwner, t, user),
                 ],
@@ -376,7 +376,7 @@ class _OnlineProfileViewState extends State<OnlineProfileView> {
   /// The «⋮» menu of the header
   Widget _buildMenu(UserProfile data, BuildContext context) {
     final t = context.t;
-    final c = D2Colors.of(context);
+    final c = AppColors.of(context);
     final user = data.user;
     final canRemove =
         data.friendship == Friendship.friends && !data.blocked.isBlockingMe;
@@ -389,7 +389,7 @@ class _OnlineProfileViewState extends State<OnlineProfileView> {
       builder: (context, state) => PopupMenuButton<_ProfileMenu>(
         enabled: state is! UserProcessingActionState,
         tooltip: user.name,
-        icon: D2Icon(D2Glyph.more, size: 22, color: c.ink),
+        icon: AppIcon(AppGlyph.more, size: 22, color: c.ink),
         onSelected: (item) => _userActionsBloc.add(switch (item) {
           _ProfileMenu.remove => UserEvent(
             user,
@@ -405,13 +405,13 @@ class _OnlineProfileViewState extends State<OnlineProfileView> {
           if (canRemove)
             PopupMenuItem(
               value: _ProfileMenu.remove,
-              child: Text(t.online.removeFromFriends, style: D2Text.body),
+              child: Text(t.online.removeFromFriends, style: AppText.body),
             ),
           PopupMenuItem(
             value: _ProfileMenu.ban,
             child: Text(
               t.online.ban,
-              style: D2Text.body.copyWith(color: c.error),
+              style: AppText.body.copyWith(color: c.error),
             ),
           ),
         ],
@@ -481,7 +481,7 @@ class _OnlineProfileViewState extends State<OnlineProfileView> {
     Translations t,
     bool disabled,
   ) {
-    final c = D2Colors.of(context);
+    final c = AppColors.of(context);
     final user = data.user;
 
     VoidCallback? act(UserEvent event) =>
@@ -489,12 +489,12 @@ class _OnlineProfileViewState extends State<OnlineProfileView> {
 
     Widget blockedMe() => Row(
       children: [
-        D2Icon(D2Glyph.ban, size: 20, color: c.error),
+        AppIcon(AppGlyph.ban, size: 20, color: c.error),
         const SizedBox(width: 8),
         Expanded(
           child: Text(
             t.online.inputBan,
-            style: D2Text.bodyRegular.copyWith(
+            style: AppText.bodyRegular.copyWith(
               fontWeight: FontWeight.w500,
               fontVariations: const [FontVariation('wght', 500)],
               color: c.error,
@@ -505,19 +505,19 @@ class _OnlineProfileViewState extends State<OnlineProfileView> {
     );
 
     if (data.blocked.isBlockedByMe) {
-      final card = D2Card(
+      final card = AppCard(
         padding: const EdgeInsets.all(12),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Row(
               children: [
-                D2Icon(D2Glyph.ban, size: 20, color: c.ink),
+                AppIcon(AppGlyph.ban, size: 20, color: c.ink),
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
                     t.online.inYourBlacklist,
-                    style: D2Text.bodyRegular.copyWith(
+                    style: AppText.bodyRegular.copyWith(
                       fontWeight: FontWeight.w500,
                       fontVariations: const [FontVariation('wght', 500)],
                       color: c.ink,
@@ -527,9 +527,9 @@ class _OnlineProfileViewState extends State<OnlineProfileView> {
               ],
             ),
             const SizedBox(height: 12),
-            D2Button(
+            AppButton(
               label: t.online.unban,
-              kind: D2ButtonKind.tonal,
+              kind: AppButtonKind.tonal,
               expand: true,
               onPressed: act(
                 UserEvent(
@@ -555,34 +555,34 @@ class _OnlineProfileViewState extends State<OnlineProfileView> {
 
     switch (data.friendship) {
       case Friendship.friends:
-        return D2Button(
+        return AppButton(
           label: t.online.invite,
-          icon: D2Glyph.play,
-          kind: D2ButtonKind.accent,
-          size: D2ButtonSize.large,
+          icon: AppGlyph.play,
+          kind: AppButtonKind.accent,
+          size: AppButtonSize.large,
           expand: true,
           onPressed: disabled
               ? null
               : () => inviteFriend(context, user, widget.onInvite),
         );
       case Friendship.none:
-        return D2Button(
+        return AppButton(
           label: t.online.addToFriend,
-          icon: D2Glyph.userPlus,
-          kind: D2ButtonKind.accent,
-          size: D2ButtonSize.large,
+          icon: AppGlyph.userPlus,
+          kind: AppButtonKind.accent,
+          size: AppButtonSize.large,
           expand: true,
           onPressed: act(UserEvent(user, UserUserAction.addToFriends)),
         );
       case Friendship.outgoing:
-        return D2Card(
+        return AppCard(
           padding: const EdgeInsets.fromLTRB(14, 8, 8, 8),
           child: Row(
             children: [
               Expanded(
                 child: Text(
                   t.online.requestSent,
-                  style: D2Text.bodyRegular.copyWith(
+                  style: AppText.bodyRegular.copyWith(
                     fontWeight: FontWeight.w500,
                     fontVariations: const [FontVariation('wght', 500)],
                     color: c.ink,
@@ -590,23 +590,23 @@ class _OnlineProfileViewState extends State<OnlineProfileView> {
                 ),
               ),
               const SizedBox(width: 12),
-              D2Button(
+              AppButton(
                 label: t.online.cancelInvite,
-                kind: D2ButtonKind.tonal,
+                kind: AppButtonKind.tonal,
                 onPressed: act(UserEvent(user, UserUserAction.cancelRequest)),
               ),
             ],
           ),
         );
       case Friendship.incoming:
-        return D2Card(
+        return AppCard(
           padding: const EdgeInsets.all(12),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Text(
                 t.online.wantsFriendship,
-                style: D2Text.bodyRegular.copyWith(
+                style: AppText.bodyRegular.copyWith(
                   fontWeight: FontWeight.w500,
                   fontVariations: const [FontVariation('wght', 500)],
                   color: c.ink,
@@ -616,9 +616,9 @@ class _OnlineProfileViewState extends State<OnlineProfileView> {
               Row(
                 children: [
                   Expanded(
-                    child: D2Button(
+                    child: AppButton(
                       label: t.decline,
-                      kind: D2ButtonKind.tonal,
+                      kind: AppButtonKind.tonal,
                       expand: true,
                       onPressed: act(
                         UserEvent(user, UserUserAction.declineRequest),
@@ -627,9 +627,9 @@ class _OnlineProfileViewState extends State<OnlineProfileView> {
                   ),
                   const SizedBox(width: 10),
                   Expanded(
-                    child: D2Button(
+                    child: AppButton(
                       label: t.accept,
-                      kind: D2ButtonKind.accent,
+                      kind: AppButtonKind.accent,
                       expand: true,
                       onPressed: act(
                         UserEvent(user, UserUserAction.acceptRequest),
@@ -651,22 +651,22 @@ class _OnlineProfileViewState extends State<OnlineProfileView> {
   ) sync* {
     if (!isOwner) return;
     yield const SizedBox(height: 20);
-    yield D2Card(
+    yield AppCard(
       padding: EdgeInsets.zero,
       child: Column(
         children: [
           _buildNavigationButton(
-            D2Glyph.friends,
+            AppGlyph.friends,
             t.online.friendsTab,
             () => OnlineFriendsScreen(onInvite: widget.onInvite),
           ),
           _buildNavigationButton(
-            D2Glyph.history,
+            AppGlyph.history,
             t.online.historyTab,
             () => OnlineHistoryScreen(onInvite: widget.onInvite),
           ),
           _buildNavigationButton(
-            D2Glyph.ban,
+            AppGlyph.ban,
             t.online.blacklistTab,
             () => OnlineBanlistScreen(),
           ),
@@ -676,11 +676,11 @@ class _OnlineProfileViewState extends State<OnlineProfileView> {
   }
 
   Widget _buildNavigationButton(
-    D2Glyph icon,
+    AppGlyph icon,
     String label,
     Widget Function() destinationScreen,
   ) {
-    final c = D2Colors.of(context);
+    final c = AppColors.of(context);
 
     return InkWell(
       onTap: () => Navigator.push(
@@ -694,7 +694,7 @@ class _OnlineProfileViewState extends State<OnlineProfileView> {
               body: SafeArea(
                 child: Column(
                   children: [
-                    D2ScreenHeader(
+                    AppScreenHeader(
                       title: label,
                       onBack: () => Navigator.maybePop(ctx),
                     ),
@@ -712,10 +712,10 @@ class _OnlineProfileViewState extends State<OnlineProfileView> {
           padding: const EdgeInsets.symmetric(horizontal: 14),
           child: Row(
             children: [
-              D2Icon(icon, size: 22, color: c.ink),
+              AppIcon(icon, size: 22, color: c.ink),
               const SizedBox(width: 12),
               Expanded(
-                child: Text(label, style: D2Text.body.copyWith(color: c.ink)),
+                child: Text(label, style: AppText.body.copyWith(color: c.ink)),
               ),
             ],
           ),
@@ -725,7 +725,7 @@ class _OnlineProfileViewState extends State<OnlineProfileView> {
   }
 
   Widget _showOnlineStatus(bool isOwner, Translations t, LpsUser user) {
-    final c = D2Colors.of(context);
+    final c = AppColors.of(context);
     final now = DateTime.now();
     final online = isOwner || user.isOnline(now);
 
@@ -744,7 +744,7 @@ class _OnlineProfileViewState extends State<OnlineProfileView> {
               const SizedBox(width: 6),
               Text(
                 t.online.lastSeen.now,
-                style: D2Text.caption.copyWith(
+                style: AppText.caption.copyWith(
                   fontWeight: FontWeight.w500,
                   fontVariations: const [FontVariation('wght', 500)],
                   color: c.ink,
@@ -754,7 +754,7 @@ class _OnlineProfileViewState extends State<OnlineProfileView> {
           )
         : Text(
             formatLastSeen(t, user.lastSeenAt, now),
-            style: D2Text.caption.copyWith(color: c.inkSoft),
+            style: AppText.caption.copyWith(color: c.inkSoft),
           );
   }
 

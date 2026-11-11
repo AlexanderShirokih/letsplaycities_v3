@@ -5,7 +5,7 @@ import 'package:lets_play_cities/base/geo/world_outline.dart';
 import 'package:lets_play_cities/base/users.dart';
 import 'package:lets_play_cities/i18n/enum_labels.dart';
 import 'package:lets_play_cities/i18n/strings.g.dart';
-import 'package:lets_play_cities/screens/common/d2/d2.dart';
+import 'package:lets_play_cities/screens/common/design/design.dart';
 import 'package:lets_play_cities/screens/game/route/route_format.dart';
 import 'package:lets_play_cities/screens/game/route/route_map.dart';
 
@@ -50,7 +50,7 @@ class RouteShareCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final c = D2Colors.of(context);
+    final c = AppColors.of(context);
     final t = context.t;
 
     return SizedBox(
@@ -65,19 +65,19 @@ class RouteShareCard extends StatelessWidget {
             children: [
               Row(
                 children: [
-                  const D2Logo(size: 44),
+                  const AppLogo(size: 44),
                   const SizedBox(width: 12),
                   Expanded(
                     child: Text(
                       matchResult.label(t),
                       overflow: TextOverflow.ellipsis,
-                      style: D2Text.title.copyWith(fontSize: 22, color: c.ink),
+                      style: AppText.title.copyWith(fontSize: 22, color: c.ink),
                     ),
                   ),
                 ],
               ),
               const SizedBox(height: 12),
-              D2Card(
+              AppCard(
                 padding: const EdgeInsets.symmetric(
                   horizontal: 14,
                   vertical: 8,
@@ -121,7 +121,7 @@ class RouteShareCard extends StatelessWidget {
   }
 
   Widget _row(BuildContext context, User user) {
-    final c = D2Colors.of(context);
+    final c = AppColors.of(context);
     final color = routeKmColorOf(user, c);
 
     return SizedBox(
@@ -132,17 +132,17 @@ class RouteShareCard extends StatelessWidget {
             child: Text(
               user.name,
               overflow: TextOverflow.ellipsis,
-              style: D2Text.body.copyWith(fontSize: 15, color: c.ink),
+              style: AppText.body.copyWith(fontSize: 15, color: c.ink),
             ),
           ),
           Text.rich(
             TextSpan(
-              style: D2Text.score.copyWith(fontSize: 18, color: color),
+              style: AppText.score.copyWith(fontSize: 18, color: color),
               children: [
                 TextSpan(text: formatKm(route.km[user] ?? 0)),
                 TextSpan(
                   text: '$kmSpace${context.t.route.km}',
-                  style: D2Text.small.copyWith(fontSize: 13, color: c.ink),
+                  style: AppText.small.copyWith(fontSize: 13, color: c.ink),
                 ),
               ],
             ),

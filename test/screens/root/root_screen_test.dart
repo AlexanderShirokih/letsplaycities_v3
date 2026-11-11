@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:lets_play_cities/screens/common/d2/d2.dart';
+import 'package:lets_play_cities/screens/common/design/design.dart';
 import 'package:lets_play_cities/screens/root/root_screen.dart';
 
 import '../../i18n/translations_harness.dart';
 
 Widget _app(List<WidgetBuilder> tabs) => withTranslations(
   MaterialApp(
-    theme: buildD2Theme(Brightness.light),
+    theme: buildAppTheme(Brightness.light),
     home: Scaffold(body: RootScreen(tabsOverride: tabs)),
   ),
 );

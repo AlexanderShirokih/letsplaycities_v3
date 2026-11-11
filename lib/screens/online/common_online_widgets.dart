@@ -6,13 +6,13 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lets_play_cities/i18n/strings.g.dart';
 import 'package:lets_play_cities/remote/api_repository.dart';
 import 'package:lets_play_cities/remote/model/lps_user.dart';
-import 'package:lets_play_cities/screens/common/d2/d2.dart';
+import 'package:lets_play_cities/screens/common/design/design.dart';
 import 'package:lets_play_cities/screens/common/error_texts.dart';
 
 /// Shows widget with error messages
 Widget showError(BuildContext context, Object error) {
   final t = context.t;
-  final c = D2Colors.of(context);
+  final c = AppColors.of(context);
   final noConnection = error.toString().isEmpty;
 
   return Center(
@@ -23,8 +23,8 @@ Widget showError(BuildContext context, Object error) {
         children: [
           ExcludeSemantics(
             child: FittedBox(
-              child: D2TileArt(
-                glyph: noConnection ? D2Glyph.wifi : D2Glyph.warning,
+              child: AppTileArt(
+                glyph: noConnection ? AppGlyph.wifi : AppGlyph.warning,
               ),
             ),
           ),
@@ -32,14 +32,14 @@ Widget showError(BuildContext context, Object error) {
           Text(
             noConnection ? t.online.loadingError : t.online.unkError,
             textAlign: TextAlign.center,
-            style: D2Text.title.copyWith(color: c.ink),
+            style: AppText.title.copyWith(color: c.ink),
           ),
           if (!noConnection) ...[
             const SizedBox(height: 8),
             Text(
               errorText(t, error),
               textAlign: TextAlign.center,
-              style: D2Text.bodyRegular.copyWith(color: c.inkSoft),
+              style: AppText.bodyRegular.copyWith(color: c.inkSoft),
             ),
           ],
         ],
@@ -50,7 +50,7 @@ Widget showError(BuildContext context, Object error) {
 
 /// Shows loading widget (progress indicatior with loading string)
 Widget showLoadingWidget(BuildContext context) {
-  final c = D2Colors.of(context);
+  final c = AppColors.of(context);
 
   return Center(
     child: Column(
@@ -60,14 +60,14 @@ Widget showLoadingWidget(BuildContext context) {
         const SizedBox(height: 12),
         Text(
           context.t.online.loading,
-          style: D2Text.bodyRegular.copyWith(color: c.inkSoft),
+          style: AppText.bodyRegular.copyWith(color: c.inkSoft),
         ),
       ],
     ),
   );
 }
 
-/// «Нет связи с сервером» of D2: the illustration, the title, [errorMessage]
+/// «Нет связи с сервером»: the illustration, the title, [errorMessage]
 /// or the hint, «Повторить» that runs [onReload] and «В меню».
 class ConnectionErrorView extends StatelessWidget {
   final String? errorMessage;
@@ -86,7 +86,7 @@ class ConnectionErrorView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = context.t;
-    final c = D2Colors.of(context);
+    final c = AppColors.of(context);
 
     return Scaffold(
       backgroundColor: c.bg,
@@ -108,7 +108,7 @@ class ConnectionErrorView extends StatelessWidget {
                         Text(
                           t.online.noConnection,
                           textAlign: TextAlign.center,
-                          style: D2Text.display.copyWith(
+                          style: AppText.display.copyWith(
                             fontSize: 24,
                             color: c.ink,
                           ),
@@ -117,7 +117,7 @@ class ConnectionErrorView extends StatelessWidget {
                         Text(
                           errorMessage ?? t.online.noConnectionHint,
                           textAlign: TextAlign.center,
-                          style: D2Text.bodyRegular.copyWith(
+                          style: AppText.bodyRegular.copyWith(
                             fontSize: 16,
                             color: c.inkSoft,
                           ),
@@ -127,19 +127,19 @@ class ConnectionErrorView extends StatelessWidget {
                   ),
                 ),
               ),
-              D2Button(
+              AppButton(
                 label: t.online.reload,
-                icon: D2Glyph.replay,
-                size: D2ButtonSize.large,
+                icon: AppGlyph.replay,
+                size: AppButtonSize.large,
                 expand: true,
                 onPressed: onReload,
               ),
               const SizedBox(height: 14),
-              D2Button(
+              AppButton(
                 label: t.online.toMenu,
-                icon: D2Glyph.exit,
-                kind: D2ButtonKind.secondary,
-                size: D2ButtonSize.large,
+                icon: AppGlyph.exit,
+                kind: AppButtonKind.secondary,
+                size: AppButtonSize.large,
                 expand: true,
                 onPressed:
                     onMenu ??
@@ -162,17 +162,17 @@ class _NoConnectionArt extends StatelessWidget {
   @override
   Widget build(BuildContext context) => CustomPaint(
     size: const Size(248, 150),
-    painter: _NoConnectionPainter(D2Colors.of(context)),
+    painter: _NoConnectionPainter(AppColors.of(context)),
   );
 }
 
 class _NoConnectionPainter extends CustomPainter {
-  final D2Colors c;
+  final AppColors c;
 
   const _NoConnectionPainter(this.c);
 
   /// Always white: on the violet card and on the red mark
-  static final _white = D2Colors.light.surface;
+  static final _white = AppColors.light.surface;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -286,7 +286,7 @@ String nameInitial(String name) =>
 
 /// Avatar of [user] on the server of the [ApiRepository] in the widget tree
 Widget lpsUserAvatar(BuildContext context, LpsUser user, {double size = 44}) =>
-    D2Avatar.user(
+    AppAvatar.user(
       pictureUrl: context.read<ApiRepository>().avatarUrl(user),
       initials: nameInitial(user.name),
       size: size,

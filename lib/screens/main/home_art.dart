@@ -2,13 +2,13 @@ import 'dart:math' as math;
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:lets_play_cities/screens/common/d2/d2.dart';
+import 'package:lets_play_cities/screens/common/design/design.dart';
 
 /// The cards of the home screen
 enum HomeArt { computer, twoPlayers, wifi, online }
 
 /// Background of a home card: a chain of cities drifting in rows and an
-/// illustration, drawn by the SVG of the D2-Home artboard
+/// illustration, drawn by the SVG of the Home artboard
 class HomeCardArt extends StatefulWidget {
   final HomeArt art;
 
@@ -54,7 +54,7 @@ class _HomeCardArtState extends State<HomeCardArt>
 
   @override
   Widget build(BuildContext context) {
-    final colors = D2Colors.of(context);
+    final colors = AppColors.of(context);
 
     return ExcludeSemantics(
       child: Stack(
@@ -105,7 +105,7 @@ const _cities = [
 /// the left
 class _CityDriftPainter extends CustomPainter {
   final HomeArt art;
-  final D2Colors c;
+  final AppColors c;
   final ValueListenable<double> time;
 
   /// Pixels per second
@@ -129,7 +129,7 @@ class _CityDriftPainter extends CustomPainter {
       HomeArt.computer || HomeArt.twoPlayers => 0.08,
       HomeArt.wifi || HomeArt.online => 0.07,
     };
-    final style = D2Text.display.copyWith(
+    final style = AppText.display.copyWith(
       fontSize: 20,
       color: c.shadow.withValues(alpha: opacity),
     );
@@ -187,7 +187,7 @@ class _CityDriftPainter extends CustomPainter {
 /// The illustration of a home card
 class _HomeArtPainter extends CustomPainter {
   final HomeArt art;
-  final D2Colors c;
+  final AppColors c;
 
   _HomeArtPainter(this.art, this.c);
 
@@ -354,7 +354,7 @@ class _HomeArtPainter extends CustomPainter {
     double x,
     double baseline,
   ) {
-    final style = D2Text.display.copyWith(fontSize: fontSize, color: _ink);
+    final style = AppText.display.copyWith(fontSize: fontSize, color: _ink);
     final painter = _painter(letter, style);
     _text(canvas, letter, style, x - painter.width / 2, baseline);
   }

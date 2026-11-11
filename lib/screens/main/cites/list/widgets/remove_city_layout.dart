@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lets_play_cities/base/cities_list/bloc/city_edit_actions_bloc.dart';
 import 'package:lets_play_cities/i18n/strings.g.dart';
-import 'package:lets_play_cities/screens/common/d2/d2.dart';
+import 'package:lets_play_cities/screens/common/design/design.dart';
 import 'package:lets_play_cities/screens/main/cites/requests/widget/dense_city_item_card.dart';
 
 import 'common_fields.dart';
@@ -25,7 +25,7 @@ class RemoveCityLayout extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = context.t;
-    final c = D2Colors.of(context);
+    final c = AppColors.of(context);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -55,7 +55,7 @@ class RemoveCityLayout extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 2),
             alignment: Alignment.centerLeft,
             tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-            textStyle: D2Text.body.copyWith(
+            textStyle: AppText.body.copyWith(
               fontSize: 14,
               decoration: TextDecoration.underline,
             ),

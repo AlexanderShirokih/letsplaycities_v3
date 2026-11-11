@@ -9,7 +9,7 @@ import 'package:lets_play_cities/base/repositories/cities/country_repository.dar
 import 'package:lets_play_cities/base/scoring.dart';
 import 'package:lets_play_cities/base/preferences.dart';
 import 'package:lets_play_cities/i18n/strings.g.dart';
-import 'package:lets_play_cities/screens/common/d2/d2.dart';
+import 'package:lets_play_cities/screens/common/design/design.dart';
 import 'package:lets_play_cities/screens/game/cities_list.dart';
 import 'package:lets_play_cities/utils/string_utils.dart';
 
@@ -33,11 +33,11 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
     final scoringSet = _getOrCreate(context.watch<GamePreferences>());
 
     return Scaffold(
-      backgroundColor: D2Colors.of(context).bg,
+      backgroundColor: AppColors.of(context).bg,
       body: SafeArea(
         child: Column(
           children: [
-            D2ScreenHeader(
+            AppScreenHeader(
               title: t.stats.title,
               onBack: () => Navigator.of(context).maybePop(),
             ),
@@ -87,8 +87,8 @@ class _StatisticsListState extends State<_StatisticsList> {
     final total = _intOf(groups, groupParts);
 
     if (total == 0) {
-      return D2EmptyState(
-        art: const D2BarsArt(),
+      return AppEmptyState(
+        art: const AppBarsArt(),
         title: _t.stats.emptyTitle,
         text: _t.stats.emptyText,
       );
@@ -121,7 +121,7 @@ class _StatisticsListState extends State<_StatisticsList> {
   }
 
   Widget _buildParts(ScoringGroup group, int total) {
-    final c = D2Colors.of(context);
+    final c = AppColors.of(context);
     final modes = [
       (fieldAndroid, c.violet),
       (fieldOnline, c.orange),
@@ -133,7 +133,7 @@ class _StatisticsListState extends State<_StatisticsList> {
         if (_valueOf(group, name) > 0) (_valueOf(group, name), color),
     ];
 
-    return D2Card(
+    return AppCard(
       padding: const EdgeInsets.fromLTRB(14, 14, 14, 10),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -148,7 +148,7 @@ class _StatisticsListState extends State<_StatisticsList> {
                   '$total',
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: D2Text.display.copyWith(fontSize: 40, color: c.ink),
+                  style: AppText.display.copyWith(fontSize: 40, color: c.ink),
                 ),
               ),
               const SizedBox(width: 8),
@@ -157,7 +157,7 @@ class _StatisticsListState extends State<_StatisticsList> {
                   _t.stats.games(count: total),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: D2Text.body.copyWith(fontSize: 15, color: c.inkSoft),
+                  style: AppText.body.copyWith(fontSize: 15, color: c.inkSoft),
                 ),
               ),
             ],
@@ -220,7 +220,7 @@ class _StatisticsListState extends State<_StatisticsList> {
       return null;
     }
 
-    final c = D2Colors.of(context);
+    final c = AppColors.of(context);
     final hours = seconds ~/ 3600;
     final minutes = seconds % 3600 ~/ 60;
     final time = hours > 0
@@ -229,7 +229,7 @@ class _StatisticsListState extends State<_StatisticsList> {
 
     return _Section(
       title: _t.stats.groups[groupOnline]!,
-      child: D2Card(
+      child: AppCard(
         padding: EdgeInsets.zero,
         child: Column(
           children: [
@@ -256,7 +256,7 @@ class _StatisticsListState extends State<_StatisticsList> {
                     Flexible(
                       child: Text(
                         _t.stats.timeInGame,
-                        style: D2Text.bodyRegular.copyWith(
+                        style: AppText.bodyRegular.copyWith(
                           fontSize: 14,
                           color: c.inkSoft,
                         ),
@@ -265,7 +265,7 @@ class _StatisticsListState extends State<_StatisticsList> {
                     const SizedBox(width: 12),
                     Text(
                       time,
-                      style: D2Text.body.copyWith(
+                      style: AppText.body.copyWith(
                         fontSize: 14,
                         fontWeight: FontWeight.w700,
                         fontVariations: const [FontVariation('wght', 700)],
@@ -287,13 +287,13 @@ class _StatisticsListState extends State<_StatisticsList> {
       return null;
     }
 
-    final c = D2Colors.of(context);
+    final c = AppColors.of(context);
     final tiles = {
-      fieldQuickTime: (c.yellow, D2Colors.light.ink, D2Glyph.bolt),
-      fieldShortWord: (c.sky, D2Colors.light.ink, D2Glyph.star),
-      fieldLongWord: (c.orange, D2Colors.light.ink, D2Glyph.gauge),
-      fieldSameCountry: (c.edge, c.ink, D2Glyph.cities),
-      fieldDiffCountry: (c.mint, D2Colors.light.ink, D2Glyph.globe),
+      fieldQuickTime: (c.yellow, AppColors.light.ink, AppGlyph.bolt),
+      fieldShortWord: (c.sky, AppColors.light.ink, AppGlyph.star),
+      fieldLongWord: (c.orange, AppColors.light.ink, AppGlyph.gauge),
+      fieldSameCountry: (c.edge, c.ink, AppGlyph.cities),
+      fieldDiffCountry: (c.mint, AppColors.light.ink, AppGlyph.globe),
     };
 
     return _Section(
@@ -364,7 +364,7 @@ class _StatisticsListState extends State<_StatisticsList> {
       return null;
     }
 
-    final c = D2Colors.of(context);
+    final c = AppColors.of(context);
     final max = countries.first.$2;
     final shown = _allCountries
         ? countries
@@ -408,14 +408,14 @@ class _StatisticsListState extends State<_StatisticsList> {
                       Flexible(
                         child: Text(
                           _t.profile.moreCountries(count: rest),
-                          style: D2Text.body.copyWith(
+                          style: AppText.body.copyWith(
                             fontSize: 14,
                             color: c.violet,
                           ),
                         ),
                       ),
                       const SizedBox(width: 4),
-                      D2Icon(D2Glyph.chevron, size: 18, color: c.violet),
+                      AppIcon(AppGlyph.chevron, size: 18, color: c.violet),
                     ],
                   ),
                 ),
@@ -468,7 +468,7 @@ class _Section extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final c = D2Colors.of(context);
+    final c = AppColors.of(context);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -484,14 +484,14 @@ class _Section extends StatelessWidget {
                   title,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: D2Text.section.copyWith(color: c.ink),
+                  style: AppText.section.copyWith(color: c.ink),
                 ),
               ),
               if (count != null) ...[
                 const SizedBox(width: 8),
                 Text(
                   '$count',
-                  style: D2Text.body.copyWith(fontSize: 14, color: c.inkSoft),
+                  style: AppText.body.copyWith(fontSize: 14, color: c.inkSoft),
                 ),
               ],
             ],
@@ -516,7 +516,7 @@ class _LegendRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final c = D2Colors.of(context);
+    final c = AppColors.of(context);
 
     return ConstrainedBox(
       constraints: const BoxConstraints(minHeight: 28),
@@ -537,13 +537,13 @@ class _LegendRow extends StatelessWidget {
               name,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              style: D2Text.bodyRegular.copyWith(fontSize: 14, color: c.ink),
+              style: AppText.bodyRegular.copyWith(fontSize: 14, color: c.ink),
             ),
           ),
           const SizedBox(width: 10),
           Text(
             '$value',
-            style: D2Text.body.copyWith(
+            style: AppText.body.copyWith(
               fontSize: 14,
               fontWeight: FontWeight.w700,
               fontVariations: const [FontVariation('wght', 700)],
@@ -564,7 +564,7 @@ class _Metric extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final c = D2Colors.of(context);
+    final c = AppColors.of(context);
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 10),
@@ -572,13 +572,13 @@ class _Metric extends StatelessWidget {
         children: [
           Text(
             '$value',
-            style: D2Text.title.copyWith(fontSize: 20, color: c.ink),
+            style: AppText.title.copyWith(fontSize: 20, color: c.ink),
           ),
           const SizedBox(height: 3),
           Text(
             label,
             textAlign: TextAlign.center,
-            style: D2Text.small.copyWith(
+            style: AppText.small.copyWith(
               fontWeight: FontWeight.w400,
               fontVariations: const [FontVariation('wght', 400)],
               height: 1.25,
@@ -599,9 +599,9 @@ class _RowCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final c = D2Colors.of(context);
+    final c = AppColors.of(context);
 
-    return D2Card(
+    return AppCard(
       padding: EdgeInsets.zero,
       child: Column(
         children: [
@@ -631,7 +631,7 @@ class _StatRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final c = D2Colors.of(context);
+    final c = AppColors.of(context);
 
     return ConstrainedBox(
       constraints: const BoxConstraints(minHeight: 50),
@@ -642,7 +642,7 @@ class _StatRow extends StatelessWidget {
             if (lead != null) ...[lead!, const SizedBox(width: 12)],
             Expanded(child: _Name(name)),
             const SizedBox(width: 12),
-            Text(value, style: D2Text.section.copyWith(color: c.ink)),
+            Text(value, style: AppText.section.copyWith(color: c.ink)),
           ],
         ),
       ),
@@ -666,7 +666,7 @@ class _BarRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final c = D2Colors.of(context);
+    final c = AppColors.of(context);
 
     return ConstrainedBox(
       constraints: const BoxConstraints(minHeight: 50),
@@ -707,7 +707,7 @@ class _BarRow extends StatelessWidget {
               ),
             ),
             const SizedBox(width: 12),
-            Text('$count', style: D2Text.section.copyWith(color: c.ink)),
+            Text('$count', style: AppText.section.copyWith(color: c.ink)),
           ],
         ),
       ),
@@ -725,10 +725,10 @@ class _Name extends StatelessWidget {
     text,
     maxLines: 1,
     overflow: TextOverflow.ellipsis,
-    style: D2Text.body.copyWith(
+    style: AppText.body.copyWith(
       fontSize: 15,
       height: 1.25,
-      color: D2Colors.of(context).ink,
+      color: AppColors.of(context).ink,
     ),
   );
 }
@@ -744,9 +744,9 @@ class _Rank extends StatelessWidget {
     child: Text(
       '$place',
       textAlign: TextAlign.center,
-      style: D2Text.section.copyWith(
+      style: AppText.section.copyWith(
         fontSize: 13,
-        color: D2Colors.of(context).inkSoft,
+        color: AppColors.of(context).inkSoft,
       ),
     ),
   );
@@ -758,7 +758,7 @@ class _GlyphTile extends StatelessWidget {
   /// Color of the glyph: the tile colors are the same in both themes, except
   /// the edge one
   final Color onColor;
-  final D2Glyph glyph;
+  final AppGlyph glyph;
 
   const _GlyphTile({
     required this.color,
@@ -775,6 +775,6 @@ class _GlyphTile extends StatelessWidget {
       color: color,
       borderRadius: BorderRadius.circular(11),
     ),
-    child: D2Icon(glyph, size: 20, color: onColor),
+    child: AppIcon(glyph, size: 20, color: onColor),
   );
 }

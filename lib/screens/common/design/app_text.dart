@@ -1,8 +1,8 @@
 import 'package:flutter/painting.dart';
 
-/// D2 text styles. The fonts are variable, so each style sets both the
+/// Text styles. The fonts are variable, so each style sets both the
 /// weight and the `wght` variation.
-abstract final class D2Text {
+abstract final class AppText {
   static const unbounded = 'Unbounded';
   static const rubik = 'Rubik';
 

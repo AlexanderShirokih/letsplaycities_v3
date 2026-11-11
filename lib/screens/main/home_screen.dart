@@ -8,7 +8,7 @@ import 'package:lets_play_cities/base/game/game_mode.dart';
 import 'package:lets_play_cities/base/preferences.dart';
 import 'package:lets_play_cities/i18n/strings.g.dart';
 import 'package:lets_play_cities/remote/auth.dart';
-import 'package:lets_play_cities/screens/common/d2/d2.dart';
+import 'package:lets_play_cities/screens/common/design/design.dart';
 import 'package:lets_play_cities/screens/game/game_screen.dart';
 import 'package:lets_play_cities/screens/game/hotseat_setup_screen.dart';
 import 'package:lets_play_cities/screens/main/home_art.dart';
@@ -101,7 +101,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     final a = widget.actions ?? HomeActions.navigation(context);
     final t = context.t;
-    final c = D2Colors.of(context);
+    final c = AppColors.of(context);
 
     return ColoredBox(
       color: c.bg,
@@ -116,12 +116,12 @@ class _HomeScreenState extends State<HomeScreen> {
                 children: [
                   Expanded(
                     child: Semantics(
-                      label: t.d2.logoSemantics,
+                      label: t.design.logoSemantics,
                       header: true,
                       excludeSemantics: true,
                       child: Row(
                         children: [
-                          const D2Logo(size: 34),
+                          const AppLogo(size: 34),
                           const SizedBox(width: 6),
                           // A large text scale shrinks the wordmark instead
                           // of pushing the buttons out
@@ -131,7 +131,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               alignment: Alignment.centerLeft,
                               child: Text(
                                 t.home.title,
-                                style: D2Text.title.copyWith(
+                                style: AppText.title.copyWith(
                                   fontSize: 20,
                                   color: c.ink,
                                 ),
@@ -143,8 +143,8 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                   ),
                   const SizedBox(width: 10),
-                  D2IconButton(
-                    D2Glyph.settings,
+                  AppIconButton(
+                    AppGlyph.settings,
                     tooltip: t.home.settings,
                     onPressed: a.openSettings,
                   ),
@@ -228,7 +228,7 @@ class _HomeScreenState extends State<HomeScreen> {
 }
 
 /// Avatar of the signed-in account, or the initial of [fallbackName]
-/// «Классика | Маршрут» with a hint about the picked variant, as in D2-Home
+/// «Классика | Маршрут» with a hint about the picked variant, as in the Home design
 class _VariantSwitch extends StatelessWidget {
   final GameVariant selected;
   final ValueChanged<GameVariant> onChanged;
@@ -238,7 +238,7 @@ class _VariantSwitch extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = context.t;
-    final c = D2Colors.of(context);
+    final c = AppColors.of(context);
 
     return Container(
       padding: const EdgeInsets.fromLTRB(6, 6, 6, 12),
@@ -255,14 +255,14 @@ class _VariantSwitch extends StatelessWidget {
               _variantButton(
                 c,
                 GameVariant.classic,
-                D2Glyph.classic,
+                AppGlyph.classic,
                 t.route.variantClassic,
               ),
               const SizedBox(width: 6),
               _variantButton(
                 c,
                 GameVariant.route,
-                D2Glyph.route,
+                AppGlyph.route,
                 t.route.variantRoute,
               ),
             ],
@@ -277,7 +277,7 @@ class _VariantSwitch extends StatelessWidget {
                     ? t.route.hintClassic
                     : t.route.hintRoute,
                 textAlign: TextAlign.center,
-                style: D2Text.bodyRegular.copyWith(
+                style: AppText.bodyRegular.copyWith(
                   fontSize: 14,
                   height: 1.3,
                   color: c.inkSoft,
@@ -291,9 +291,9 @@ class _VariantSwitch extends StatelessWidget {
   }
 
   Widget _variantButton(
-    D2Colors c,
+    AppColors c,
     GameVariant value,
-    D2Glyph glyph,
+    AppGlyph glyph,
     String label,
   ) {
     final isSelected = value == selected;
@@ -320,12 +320,12 @@ class _VariantSwitch extends StatelessWidget {
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  D2Icon(glyph, size: 22, color: fg),
+                  AppIcon(glyph, size: 22, color: fg),
                   const SizedBox(width: 8),
                   Text(
                     label,
                     maxLines: 1,
-                    style: D2Text.section.copyWith(color: fg),
+                    style: AppText.section.copyWith(color: fg),
                   ),
                 ],
               ),
@@ -401,7 +401,7 @@ class _AccountAvatarState extends State<_AccountAvatar> {
   Widget build(BuildContext context) {
     final name = _account?.name ?? widget.fallbackName;
 
-    return D2Avatar.user(
+    return AppAvatar.user(
       pictureUrl: _account?.avatarUrl,
       initials: name.isEmpty ? '' : name.substring(0, 1).toUpperCase(),
       size: 44,
@@ -416,7 +416,7 @@ class _ComputerCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final c = D2Colors.of(context);
+    final c = AppColors.of(context);
 
     return _Card(
       color: c.orange,
@@ -436,7 +436,7 @@ class _ComputerCard extends StatelessWidget {
                     constraints: const BoxConstraints(maxWidth: 190),
                     child: Text(
                       context.t.home.vsComputer,
-                      style: D2Text.title.copyWith(
+                      style: AppText.title.copyWith(
                         fontSize: 20,
                         height: 1.15,
                         color: c.shadow,
@@ -444,11 +444,11 @@ class _ComputerCard extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 12),
-                  D2Button(
+                  AppButton(
                     label: context.t.home.play,
-                    icon: D2Glyph.play,
-                    kind: D2ButtonKind.onCard,
-                    size: D2ButtonSize.card,
+                    icon: AppGlyph.play,
+                    kind: AppButtonKind.onCard,
+                    size: AppButtonSize.card,
                     onPressed: onPlay,
                   ),
                 ],
@@ -471,7 +471,7 @@ class _Card extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final c = D2Colors.of(context);
+    final c = AppColors.of(context);
     final radius = BorderRadius.circular(24);
 
     return Container(
@@ -508,7 +508,7 @@ class _ModeTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final c = D2Colors.of(context);
+    final c = AppColors.of(context);
 
     return Semantics(
       button: true,
@@ -531,7 +531,7 @@ class _ModeTile extends StatelessWidget {
                     label,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: D2Text.title.copyWith(
+                    style: AppText.title.copyWith(
                       fontSize: fontSize,
                       height: 1.15,
                       color: c.shadow,

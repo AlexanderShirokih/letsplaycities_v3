@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:lets_play_cities/i18n/strings.g.dart';
-import 'package:lets_play_cities/screens/common/d2/d2.dart';
+import 'package:lets_play_cities/screens/common/design/design.dart';
 
 /// «Ход N из 15» and a segment per move: done ones violet, the current one
 /// yellow, the rest empty.
@@ -14,7 +14,7 @@ class RouteProgress extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final c = D2Colors.of(context);
+    final c = AppColors.of(context);
 
     return Row(
       children: [
@@ -23,7 +23,7 @@ class RouteProgress extends StatelessWidget {
             context.t.route.move(n: move, total: total),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            style: D2Text.section.copyWith(fontSize: 13, color: c.ink),
+            style: AppText.section.copyWith(fontSize: 13, color: c.ink),
           ),
         ),
         const SizedBox(width: 8),
@@ -42,7 +42,7 @@ class RouteProgress extends StatelessWidget {
     );
   }
 
-  Widget _segment(D2Colors c, int index) {
+  Widget _segment(AppColors c, int index) {
     final current = index == move;
 
     return Container(

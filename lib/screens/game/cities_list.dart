@@ -3,7 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lets_play_cities/base/data.dart';
 import 'package:lets_play_cities/base/game/game_item.dart';
 import 'package:lets_play_cities/base/repositories/game_session_repo.dart';
-import 'package:lets_play_cities/screens/common/d2/d2.dart';
+import 'package:lets_play_cities/screens/common/design/design.dart';
 import 'package:lets_play_cities/utils/string_utils.dart';
 
 import 'message_bubble.dart';
@@ -60,7 +60,7 @@ class GameItemListTile extends StatelessWidget {
   }
 
   Widget _buildCity(BuildContext context, CityInfo city) {
-    final c = D2Colors.of(context);
+    final c = AppColors.of(context);
 
     return Container(
       padding: const EdgeInsets.fromLTRB(9, 7, 12, 9),
@@ -86,21 +86,21 @@ class GameItemListTile extends StatelessWidget {
   }
 
   Widget _buildIcon(BuildContext context, CityInfo cityInfo) {
-    final c = D2Colors.of(context);
+    final c = AppColors.of(context);
 
     return switch (cityInfo.status) {
       CityStatus.ok => CityFlag(cityInfo.countryCode),
-      CityStatus.waiting => D2Icon(D2Glyph.timer, size: 20, color: c.inkSoft),
-      CityStatus.error => D2Icon(D2Glyph.warning, size: 20, color: c.error),
+      CityStatus.waiting => AppIcon(AppGlyph.timer, size: 20, color: c.inkSoft),
+      CityStatus.error => AppIcon(AppGlyph.warning, size: 20, color: c.error),
     };
   }
 }
 
 /// [city] with its last suitable letter highlighted and the letters after it
 /// dimmed
-TextSpan cityNameSpans(String city, D2Colors c, {double fontSize = 17}) {
-  final text = D2Text.body.copyWith(fontSize: fontSize, color: c.ink);
-  final letter = D2Text.body.copyWith(
+TextSpan cityNameSpans(String city, AppColors c, {double fontSize = 17}) {
+  final text = AppText.body.copyWith(fontSize: fontSize, color: c.ink);
+  final letter = AppText.body.copyWith(
     fontSize: fontSize,
     fontWeight: FontWeight.w700,
     fontVariations: const [FontVariation('wght', 700)],
@@ -137,7 +137,7 @@ class CityFlag extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final c = D2Colors.of(context);
+    final c = AppColors.of(context);
 
     return Container(
       width: width,

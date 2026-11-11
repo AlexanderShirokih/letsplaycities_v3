@@ -1,30 +1,30 @@
 import 'package:flutter/material.dart';
-import 'package:lets_play_cities/screens/common/d2/d2_colors.dart';
-import 'package:lets_play_cities/screens/common/d2/d2_icons.dart';
-import 'package:lets_play_cities/screens/common/d2/d2_text.dart';
-import 'package:lets_play_cities/screens/common/d2/svg_path.dart';
+import 'package:lets_play_cities/screens/common/design/app_colors.dart';
+import 'package:lets_play_cities/screens/common/design/app_icons.dart';
+import 'package:lets_play_cities/screens/common/design/app_text.dart';
+import 'package:lets_play_cities/screens/common/design/svg_path.dart';
 
-class D2Avatar extends StatelessWidget {
+class AppAvatar extends StatelessWidget {
   final String? pictureUrl;
   final String? initials;
   final double size;
   final bool _computer;
 
-  const D2Avatar.user({
+  const AppAvatar.user({
     super.key,
     this.pictureUrl,
     this.initials,
     this.size = 40,
   }) : _computer = false;
 
-  const D2Avatar.computer({super.key, this.size = 40})
+  const AppAvatar.computer({super.key, this.size = 40})
     : pictureUrl = null,
       initials = null,
       _computer = true;
 
   @override
   Widget build(BuildContext context) {
-    final c = D2Colors.of(context);
+    final c = AppColors.of(context);
     final radius = BorderRadius.circular(size * 0.275);
 
     if (_computer) {
@@ -38,10 +38,10 @@ class D2Avatar extends StatelessWidget {
 
     Widget fallback() => Center(
       child: initials == null || initials!.isEmpty
-          ? D2Icon(D2Glyph.profile, size: size * 0.55, color: c.inkSoft)
+          ? AppIcon(AppGlyph.profile, size: size * 0.55, color: c.inkSoft)
           : Text(
               initials!,
-              style: D2Text.section.copyWith(
+              style: AppText.section.copyWith(
                 fontSize: size * 0.38,
                 color: c.ink,
               ),

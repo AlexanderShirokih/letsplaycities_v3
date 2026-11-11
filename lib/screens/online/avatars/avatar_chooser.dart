@@ -5,7 +5,7 @@ import 'package:lets_play_cities/i18n/strings.g.dart';
 import 'package:get_it/get_it.dart';
 import 'package:lets_play_cities/remote/account_manager.dart';
 import 'package:lets_play_cities/remote/api_repository.dart';
-import 'package:lets_play_cities/screens/common/d2/d2.dart';
+import 'package:lets_play_cities/screens/common/design/design.dart';
 import 'package:lets_play_cities/screens/common/error_texts.dart';
 
 /// Used to update or delete user avatar
@@ -40,7 +40,7 @@ class _AvatarChooserViewState extends State<AvatarChooserView> {
   @override
   Widget build(BuildContext context) {
     final t = context.t;
-    final c = D2Colors.of(context);
+    final c = AppColors.of(context);
 
     return SafeArea(
       child: BlocConsumer<AvatarBloc, AvatarState>(
@@ -65,21 +65,21 @@ class _AvatarChooserViewState extends State<AvatarChooserView> {
                   padding: const EdgeInsets.fromLTRB(4, 0, 4, 6),
                   child: Text(
                     t.online.avatarTitle,
-                    style: D2Text.title.copyWith(color: c.ink),
+                    style: AppText.title.copyWith(color: c.ink),
                   ),
                 ),
                 _buildItem(
-                  D2Glyph.gallery,
+                  AppGlyph.gallery,
                   t.misc.gallery,
                   AvatarEvent.pickGalleryAvatarEvent,
                 ),
                 _buildItem(
-                  D2Glyph.camera,
+                  AppGlyph.camera,
                   t.misc.camera,
                   AvatarEvent.pickCameraAvatarEvent,
                 ),
                 _buildItem(
-                  D2Glyph.trash,
+                  AppGlyph.trash,
                   t.delete,
                   AvatarEvent.removeAvatarEvent,
                   destructive: true,
@@ -111,12 +111,12 @@ class _AvatarChooserViewState extends State<AvatarChooserView> {
   }
 
   Widget _buildItem(
-    D2Glyph icon,
+    AppGlyph icon,
     String title,
     AvatarEvent event, {
     bool destructive = false,
   }) {
-    final c = D2Colors.of(context);
+    final c = AppColors.of(context);
     final color = destructive ? c.error : c.ink;
 
     return InkWell(
@@ -134,11 +134,11 @@ class _AvatarChooserViewState extends State<AvatarChooserView> {
                   color: destructive ? c.error.withValues(alpha: 0.12) : c.bg,
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: Center(child: D2Icon(icon, size: 22, color: color)),
+                child: Center(child: AppIcon(icon, size: 22, color: color)),
               ),
               const SizedBox(width: 12),
               Expanded(
-                child: Text(title, style: D2Text.body.copyWith(color: color)),
+                child: Text(title, style: AppText.body.copyWith(color: color)),
               ),
             ],
           ),

@@ -2,7 +2,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:lets_play_cities/i18n/strings.g.dart';
-import 'package:lets_play_cities/screens/common/d2/d2.dart';
+import 'package:lets_play_cities/screens/common/design/design.dart';
 import 'package:lets_play_cities/screens/common/utils.dart';
 
 /// Visas shown before the overflow tile
@@ -14,10 +14,10 @@ const _tilts = [-6.0, 4.0, -3.0, 6.0, -5.0, 3.0];
 /// Link-like button with an optional leading glyph, 44 px tall
 class ProfileLink extends StatelessWidget {
   final String label;
-  final D2Glyph? glyph;
+  final AppGlyph? glyph;
   final VoidCallback onPressed;
 
-  /// Text and glyph color, [D2Colors.violet] by default
+  /// Text and glyph color, [AppColors.violet] by default
   final Color? color;
 
   const ProfileLink({
@@ -30,7 +30,7 @@ class ProfileLink extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = this.color ?? D2Colors.of(context).violet;
+    final color = this.color ?? AppColors.of(context).violet;
 
     return Semantics(
       button: true,
@@ -46,14 +46,14 @@ class ProfileLink extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               if (glyph != null) ...[
-                D2Icon(glyph!, size: 18, color: color),
+                AppIcon(glyph!, size: 18, color: color),
                 const SizedBox(width: 4),
               ],
-              Text(label, style: D2Text.small.copyWith(color: color)),
+              Text(label, style: AppText.small.copyWith(color: color)),
               if (glyph == null)
                 RotatedBox(
                   quarterTurns: 2,
-                  child: D2Icon(D2Glyph.back, size: 18, color: color),
+                  child: AppIcon(AppGlyph.back, size: 18, color: color),
                 ),
             ],
           ),
@@ -76,11 +76,11 @@ class PassportCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = context.t;
-    final c = D2Colors.of(context);
+    final c = AppColors.of(context);
     final shown = countries.take(passportVisaLimit).toList();
     final more = countries.length - shown.length;
 
-    return D2Card(
+    return AppCard(
       padding: const EdgeInsets.fromLTRB(12, 0, 12, 10),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -96,11 +96,11 @@ class PassportCard extends StatelessWidget {
                   children: [
                     Text(
                       t.profile.passport,
-                      style: D2Text.section.copyWith(color: c.ink),
+                      style: AppText.section.copyWith(color: c.ink),
                     ),
                     Text(
                       t.profile.countriesCount(count: countries.length),
-                      style: D2Text.small.copyWith(
+                      style: AppText.small.copyWith(
                         fontSize: 14,
                         color: c.inkSoft,
                       ),
@@ -142,7 +142,7 @@ class PassportCard extends StatelessWidget {
   }
 
   void _showAll(BuildContext context) {
-    showD2Sheet<void>(
+    showAppSheet<void>(
       context,
       builder: (_) => _AllCountries(countries: countries, names: names),
     );
@@ -158,7 +158,7 @@ class _Visa extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final c = D2Colors.of(context);
+    final c = AppColors.of(context);
     final color = [c.violet, c.letter, c.error, c.inkSoft][index % 4];
 
     return Semantics(
@@ -244,7 +244,7 @@ class _MoreTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final c = D2Colors.of(context);
+    final c = AppColors.of(context);
 
     return Semantics(
       label: context.t.profile.moreCountries(count: count),
@@ -257,7 +257,7 @@ class _MoreTile extends StatelessWidget {
           borderRadius: BorderRadius.circular(12),
           border: Border.all(color: c.edge, width: 2),
         ),
-        child: Text('+$count', style: D2Text.small.copyWith(color: c.violet)),
+        child: Text('+$count', style: AppText.small.copyWith(color: c.violet)),
       ),
     );
   }
@@ -272,7 +272,7 @@ class _AllCountries extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final c = D2Colors.of(context);
+    final c = AppColors.of(context);
 
     return ListView.builder(
       padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
@@ -290,7 +290,7 @@ class _AllCountries extends StatelessWidget {
             Expanded(
               child: Text(
                 names[countries[i]] ?? '${countries[i]}',
-                style: D2Text.body.copyWith(color: c.ink),
+                style: AppText.body.copyWith(color: c.ink),
               ),
             ),
           ],

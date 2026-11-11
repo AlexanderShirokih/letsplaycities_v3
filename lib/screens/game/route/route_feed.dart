@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:lets_play_cities/base/game/rules/route_leg.dart';
 import 'package:lets_play_cities/i18n/strings.g.dart';
-import 'package:lets_play_cities/screens/common/d2/d2.dart';
+import 'package:lets_play_cities/screens/common/design/design.dart';
 import 'package:lets_play_cities/utils/string_utils.dart';
 
 import '../cities_list.dart';
@@ -21,7 +21,7 @@ class RouteFeed extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final c = D2Colors.of(context);
+    final c = AppColors.of(context);
     final last = legs.reversed.take(count).toList(growable: false);
 
     return Container(
@@ -48,7 +48,7 @@ class RouteFeed extends StatelessWidget {
     );
   }
 
-  Widget _buildRow(BuildContext context, D2Colors c, RouteLeg leg) {
+  Widget _buildRow(BuildContext context, AppColors c, RouteLeg leg) {
     final t = context.t;
     final city = leg.city;
     final owner = leg.owner.name;
@@ -74,7 +74,7 @@ class RouteFeed extends StatelessWidget {
             t.route.skipped,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            style: D2Text.body.copyWith(color: c.inkSoft),
+            style: AppText.body.copyWith(color: c.inkSoft),
           ),
         ),
       ];
@@ -98,7 +98,7 @@ class RouteFeed extends StatelessWidget {
         Text(
           '+${formatKm(leg.km)}$kmSpace${t.route.km}',
           maxLines: 1,
-          style: D2Text.section.copyWith(
+          style: AppText.section.copyWith(
             fontSize: 13,
             color: routeKmColorOf(leg.owner, c),
           ),

@@ -8,7 +8,7 @@ import 'package:lets_play_cities/base/repositories/cities/country_repository.dar
 import 'package:lets_play_cities/i18n/strings.g.dart';
 import 'package:lets_play_cities/remote/city_requests_repository.dart';
 import 'package:lets_play_cities/screens/common/common_widgets.dart';
-import 'package:lets_play_cities/screens/common/d2/d2.dart';
+import 'package:lets_play_cities/screens/common/design/design.dart';
 import 'package:lets_play_cities/screens/common/error_texts.dart';
 import 'package:lets_play_cities/screens/main/cites/model/city_edit_action.dart';
 import 'package:shimmer/shimmer.dart';
@@ -72,7 +72,7 @@ class _CityRequestsListScreenState extends State<CityRequestsListScreen> {
       body: SafeArea(
         child: Column(
           children: [
-            D2ScreenHeader(
+            AppScreenHeader(
               title: t.citiesRequest.listTitle,
               onBack: () => Navigator.maybePop(context),
             ),
@@ -91,15 +91,15 @@ class _CityRequestsListScreenState extends State<CityRequestsListScreen> {
                     ),
                     CityRequestItems(:final pendingItems, :final approvedItems)
                         when pendingItems.isEmpty && approvedItems.isEmpty =>
-                      D2EmptyState(
-                        art: const D2TileArt(
-                          glyph: D2Glyph.cities,
-                          badge: D2Glyph.plus,
+                      AppEmptyState(
+                        art: const AppTileArt(
+                          glyph: AppGlyph.cities,
+                          badge: AppGlyph.plus,
                         ),
                         title: t.citiesRequest.listEmptyTitle,
                         text: t.citiesRequest.listEmpty,
                         actionLabel: t.citiesList.proposeCity,
-                        actionIcon: D2Glyph.plus,
+                        actionIcon: AppGlyph.plus,
                         onAction: () async {
                           final bloc = context.read<CityRequestBloc>();
 
@@ -168,13 +168,13 @@ class _CityRequestsListScreenState extends State<CityRequestsListScreen> {
                           ],
                         ),
                       ),
-                    NotAuthorizedError() => D2EmptyState(
-                      art: const D2TileArt(glyph: D2Glyph.profile),
+                    NotAuthorizedError() => AppEmptyState(
+                      art: const AppTileArt(glyph: AppGlyph.profile),
                       title: t.citiesRequest.signInTitle,
                       text: t.citiesRequest.signInToView,
                     ),
-                    CityRequestError(:final error) => D2EmptyState(
-                      art: const D2TileArt(glyph: D2Glyph.wifi),
+                    CityRequestError(:final error) => AppEmptyState(
+                      art: const AppTileArt(glyph: AppGlyph.wifi),
                       title: t.online.loadingError,
                       text: errorText(t, error),
                       actionLabel: t.online.reload,
@@ -218,7 +218,7 @@ class _CityRequestsListScreenState extends State<CityRequestsListScreen> {
     int count,
     List<Widget> cards,
   ) {
-    final c = D2Colors.of(context);
+    final c = AppColors.of(context);
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 10),
@@ -235,14 +235,14 @@ class _CityRequestsListScreenState extends State<CityRequestsListScreen> {
                   children: [
                     TextSpan(
                       text: '  $count',
-                      style: D2Text.small.copyWith(
+                      style: AppText.small.copyWith(
                         fontSize: 14,
                         color: c.inkSoft,
                       ),
                     ),
                   ],
                 ),
-                style: D2Text.section.copyWith(color: c.ink),
+                style: AppText.section.copyWith(color: c.ink),
               ),
             ),
           ),
@@ -253,7 +253,7 @@ class _CityRequestsListScreenState extends State<CityRequestsListScreen> {
   }
 
   Widget _shimmer(BuildContext context) {
-    final c = D2Colors.of(context);
+    final c = AppColors.of(context);
 
     return Shimmer.fromColors(
       baseColor: c.edge,

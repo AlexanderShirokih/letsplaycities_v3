@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
-/// D2 design tokens, available through [Theme.extension]
+/// Design tokens, available through [Theme.extension]
 @immutable
-class D2Colors extends ThemeExtension<D2Colors> {
+class AppColors extends ThemeExtension<AppColors> {
   final Color bg;
   final Color surface;
   final Color ink;
@@ -23,7 +23,7 @@ class D2Colors extends ThemeExtension<D2Colors> {
   /// Hard shadow of buttons
   final Color shadow;
 
-  const D2Colors({
+  const AppColors({
     required this.bg,
     required this.surface,
     required this.ink,
@@ -39,7 +39,7 @@ class D2Colors extends ThemeExtension<D2Colors> {
     required this.shadow,
   });
 
-  static const light = D2Colors(
+  static const light = AppColors(
     bg: Color(0xFFF1EEFF),
     surface: Color(0xFFFFFFFF),
     ink: Color(0xFF1B1340),
@@ -55,7 +55,7 @@ class D2Colors extends ThemeExtension<D2Colors> {
     shadow: Color(0xFF1B1340),
   );
 
-  static const dark = D2Colors(
+  static const dark = AppColors(
     bg: Color(0xFF151034),
     surface: Color(0xFF221A4D),
     ink: Color(0xFFF1EEFF),
@@ -73,11 +73,11 @@ class D2Colors extends ThemeExtension<D2Colors> {
   );
 
   /// Tokens of the theme in effect for [context]
-  static D2Colors of(BuildContext context) =>
-      Theme.of(context).extension<D2Colors>() ?? light;
+  static AppColors of(BuildContext context) =>
+      Theme.of(context).extension<AppColors>() ?? light;
 
   @override
-  D2Colors copyWith({
+  AppColors copyWith({
     Color? bg,
     Color? surface,
     Color? ink,
@@ -91,7 +91,7 @@ class D2Colors extends ThemeExtension<D2Colors> {
     Color? mint,
     Color? sky,
     Color? shadow,
-  }) => D2Colors(
+  }) => AppColors(
     bg: bg ?? this.bg,
     surface: surface ?? this.surface,
     ink: ink ?? this.ink,
@@ -108,10 +108,10 @@ class D2Colors extends ThemeExtension<D2Colors> {
   );
 
   @override
-  D2Colors lerp(ThemeExtension<D2Colors>? other, double t) {
-    if (other is! D2Colors) return this;
+  AppColors lerp(ThemeExtension<AppColors>? other, double t) {
+    if (other is! AppColors) return this;
 
-    return D2Colors(
+    return AppColors(
       bg: Color.lerp(bg, other.bg, t)!,
       surface: Color.lerp(surface, other.surface, t)!,
       ink: Color.lerp(ink, other.ink, t)!,

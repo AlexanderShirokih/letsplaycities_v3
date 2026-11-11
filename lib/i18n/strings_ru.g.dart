@@ -84,7 +84,7 @@ class Translations with BaseTranslations<AppLocale, Translations> {
 	late final Translations$online$ru online = Translations$online$ru._(_root);
 	late final Translations$achievements$ru achievements = Translations$achievements$ru._(_root);
 	late final Translations$misc$ru misc = Translations$misc$ru._(_root);
-	late final Translations$d2$ru d2 = Translations$d2$ru._(_root);
+	late final Translations$design$ru design = Translations$design$ru._(_root);
 }
 
 // Path: errors
@@ -1311,9 +1311,9 @@ class Translations$misc$ru {
 	String get gallery => 'Выбрать из галереи';
 }
 
-// Path: d2
-class Translations$d2$ru {
-	Translations$d2$ru._(this._root);
+// Path: design
+class Translations$design$ru {
+	Translations$design$ru._(this._root);
 
 	final Translations _root; // ignore: unused_field
 
@@ -1334,7 +1334,7 @@ class Translations$d2$ru {
 	/// ru: 'Сыграем в Города'
 	String get logoSemantics => 'Сыграем в Города';
 
-	late final Translations$d2$nav$ru nav = Translations$d2$nav$ru._(_root);
+	late final Translations$design$nav$ru nav = Translations$design$nav$ru._(_root);
 }
 
 // Path: game.combos
@@ -1567,9 +1567,9 @@ class Translations$online$invitationResult$ru {
 	String get replyRejected => 'Не удалось принять приглашение';
 }
 
-// Path: d2.nav
-class Translations$d2$nav$ru {
-	Translations$d2$nav$ru._(this._root);
+// Path: design.nav
+class Translations$design$nav$ru {
+	Translations$design$nav$ru._(this._root);
 
 	final Translations _root; // ignore: unused_field
 

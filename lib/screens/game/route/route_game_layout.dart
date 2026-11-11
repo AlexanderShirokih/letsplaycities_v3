@@ -10,7 +10,7 @@ import 'package:lets_play_cities/base/repos.dart';
 import 'package:lets_play_cities/base/repositories/cities/country_repository.dart';
 import 'package:lets_play_cities/base/stt/bloc/voice_recognition_bloc.dart';
 import 'package:lets_play_cities/i18n/strings.g.dart';
-import 'package:lets_play_cities/screens/common/d2/d2.dart';
+import 'package:lets_play_cities/screens/common/design/design.dart';
 import 'package:lets_play_cities/utils/string_utils.dart';
 
 import '../game_layout.dart';
@@ -185,7 +185,7 @@ class _RouteGameLayoutState extends State<RouteGameLayout> {
     List<RouteLeg> legs,
     double maxHeight,
   ) {
-    final c = D2Colors.of(context);
+    final c = AppColors.of(context);
     final cities = legs.where((leg) => !leg.skipped).toList(growable: false);
     final last = cities.lastOrNull?.city;
 

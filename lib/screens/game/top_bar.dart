@@ -8,7 +8,7 @@ import 'package:lets_play_cities/base/game/bloc/game_bloc.dart';
 import 'package:lets_play_cities/base/game/game_config.dart';
 import 'package:lets_play_cities/base/repos.dart';
 import 'package:lets_play_cities/i18n/strings.g.dart';
-import 'package:lets_play_cities/screens/common/d2/d2.dart';
+import 'package:lets_play_cities/screens/common/design/design.dart';
 import 'package:lets_play_cities/screens/common/dialogs.dart';
 import 'package:lets_play_cities/utils/minutes_seconds.dart';
 
@@ -105,10 +105,10 @@ class _HintButtonState extends State<_HintButton> {
     // button from twitching every second
     return ConstrainedBox(
       constraints: const BoxConstraints(minWidth: _minWidth),
-      child: D2Button(
+      child: AppButton(
         label: left > 0 ? formatClock(left) : t.game.hint,
-        icon: D2Glyph.hint,
-        kind: D2ButtonKind.hint,
+        icon: AppGlyph.hint,
+        kind: AppButtonKind.hint,
         semanticLabel: left > 0 ? t.game.hintIn(time: formatClock(left)) : null,
         onPressed: left > 0
             ? null

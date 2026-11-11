@@ -8,7 +8,7 @@ import 'package:lets_play_cities/base/repositories/cities/city_repository.dart';
 import 'package:lets_play_cities/base/repositories/cities/country_repository.dart';
 import 'package:lets_play_cities/i18n/strings.g.dart';
 import 'package:lets_play_cities/remote/city_requests_repository.dart';
-import 'package:lets_play_cities/screens/common/d2/d2.dart';
+import 'package:lets_play_cities/screens/common/design/design.dart';
 import 'package:lets_play_cities/screens/common/error_texts.dart';
 import 'package:lets_play_cities/screens/main/cites/list/widgets/add_city_layout.dart';
 import 'package:lets_play_cities/screens/main/cites/list/widgets/remove_city_layout.dart';
@@ -143,7 +143,7 @@ class _CityEditActionsScreenState extends State<CityEditActionsScreen> {
           child: SafeArea(
             child: Column(
               children: [
-                D2ScreenHeader(
+                AppScreenHeader(
                   title: _title(t),
                   onBack: () => Navigator.maybePop(context),
                 ),
@@ -156,10 +156,10 @@ class _CityEditActionsScreenState extends State<CityEditActionsScreen> {
                 Builder(
                   builder: (context) => Padding(
                     padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
-                    child: D2Button(
+                    child: AppButton(
                       label: t.citiesRequest.send,
-                      icon: D2Glyph.send,
-                      size: D2ButtonSize.large,
+                      icon: AppGlyph.send,
+                      size: AppButtonSize.large,
                       expand: true,
                       onPressed: _showSendButton
                           ? () {

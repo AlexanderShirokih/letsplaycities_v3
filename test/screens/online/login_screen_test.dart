@@ -6,7 +6,7 @@ import 'package:lets_play_cities/base/preferences.dart';
 import 'package:lets_play_cities/i18n/strings.g.dart';
 import 'package:lets_play_cities/remote/auth.dart';
 import 'package:lets_play_cities/remote/client/api_exception.dart';
-import 'package:lets_play_cities/screens/common/d2/d2.dart';
+import 'package:lets_play_cities/screens/common/design/design.dart';
 import 'package:lets_play_cities/screens/online/login_screen.dart';
 
 import '../../i18n/translations_harness.dart';
@@ -55,7 +55,7 @@ void main() {
     await tester.pumpWidget(
       withTranslations(
         MaterialApp(
-          theme: buildD2Theme(Brightness.light),
+          theme: buildAppTheme(Brightness.light),
           home: LoginScreen(onLoggedIn: () {}),
         ),
       ),
@@ -63,10 +63,10 @@ void main() {
     await tester.pumpAndSettle();
   }
 
-  D2Button playButton(WidgetTester tester) =>
-      tester.widget<D2Button>(find.widgetWithText(D2Button, t.login.play));
+  AppButton playButton(WidgetTester tester) =>
+      tester.widget<AppButton>(find.widgetWithText(AppButton, t.login.play));
 
-  testWidgets('login shows the D2 sign-in choices', (tester) async {
+  testWidgets('login shows the sign-in choices', (tester) async {
     register(const ApiException(500, 'internal'), lastName: 'Мария');
     await pump(tester);
 
@@ -134,7 +134,7 @@ void main() {
     await tester.pumpWidget(
       withTranslations(
         MaterialApp(
-          theme: buildD2Theme(Brightness.light),
+          theme: buildAppTheme(Brightness.light),
           builder: (context, child) => MediaQuery(
             data: MediaQuery.of(context)
                 .copyWith(textScaler: const TextScaler.linear(1.3)),

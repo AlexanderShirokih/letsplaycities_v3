@@ -7,7 +7,7 @@ import 'package:lets_play_cities/base/game/rules/route_rules.dart';
 import 'package:lets_play_cities/base/repos.dart';
 import 'package:lets_play_cities/base/users.dart';
 import 'package:lets_play_cities/i18n/strings.g.dart';
-import 'package:lets_play_cities/screens/common/d2/d2.dart';
+import 'package:lets_play_cities/screens/common/design/design.dart';
 
 import '../user_avatar.dart';
 import 'route_format.dart';
@@ -109,10 +109,10 @@ class _RouteScorePanelState extends State<RouteScorePanel> {
     final timeLimit = _session.timeLimit;
     final timed = timeLimit > 0;
 
-    Widget ring = D2TimerRing(
+    Widget ring = AppTimerRing(
       size: 76,
       progress: timed ? _secondsLeft / timeLimit : 0,
-      child: D2LetterTile(
+      child: AppLetterTile(
         _letter.isEmpty ? t.game.letterAny : _letter.toUpperCase(),
         size: 40,
         semanticLabel: _letter.isEmpty ? t.game.letterAnySemantics : null,
@@ -156,17 +156,17 @@ class _KmCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final c = D2Colors.of(context);
-    final onCard = active ? D2Colors.light.surface : c.ink;
+    final c = AppColors.of(context);
+    final onCard = active ? AppColors.light.surface : c.ink;
 
     Widget avatar = Container(
       foregroundDecoration: active
           ? BoxDecoration(
               borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: D2Colors.light.surface, width: 2),
+              border: Border.all(color: AppColors.light.surface, width: 2),
             )
           : null,
-      child: buildD2AvatarForUser(user, size: _avatarSize),
+      child: buildAppAvatarForUser(user, size: _avatarSize),
     );
 
     if (active && user is Player) {
@@ -187,7 +187,7 @@ class _KmCard extends StatelessWidget {
             user.name,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            style: D2Text.body.copyWith(fontSize: 13, color: onCard),
+            style: AppText.body.copyWith(fontSize: 13, color: onCard),
           ),
         ),
       ],
@@ -201,7 +201,7 @@ class _KmCard extends StatelessWidget {
           children: [
             TextSpan(
               text: formatKm(km),
-              style: D2Text.score.copyWith(
+              style: AppText.score.copyWith(
                 fontSize: 16,
                 height: 1.1,
                 color: active ? onCard : c.letter,
@@ -209,7 +209,7 @@ class _KmCard extends StatelessWidget {
             ),
             TextSpan(
               text: '$kmSpace${context.t.route.km}',
-              style: D2Text.body.copyWith(fontSize: 13, color: onCard),
+              style: AppText.body.copyWith(fontSize: 13, color: onCard),
             ),
           ],
         ),

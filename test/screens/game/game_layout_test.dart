@@ -12,7 +12,7 @@ import 'package:lets_play_cities/base/stt/bloc/voice_recognition_bloc.dart';
 import 'package:lets_play_cities/base/stt/voice_recognition_service.dart';
 import 'package:lets_play_cities/base/users.dart';
 import 'package:lets_play_cities/i18n/strings.g.dart';
-import 'package:lets_play_cities/screens/common/d2/d2.dart';
+import 'package:lets_play_cities/screens/common/design/design.dart';
 import 'package:lets_play_cities/screens/game/cities_list.dart';
 import 'package:lets_play_cities/screens/game/game_layout.dart';
 
@@ -67,7 +67,7 @@ void main() {
     await tester.pumpWidget(
       withTranslations(
         MaterialApp(
-          theme: buildD2Theme(Brightness.light),
+          theme: buildAppTheme(Brightness.light),
           home: Builder(
             builder: (context) => MediaQuery(
               data: MediaQuery.of(context)

@@ -1,7 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:lets_play_cities/i18n/strings.g.dart';
-import 'package:lets_play_cities/screens/common/d2/d2.dart';
+import 'package:lets_play_cities/screens/common/design/design.dart';
 
 /// Licenses of the packages in the app, read from [LicenseRegistry]
 class LicensesScreen extends StatefulWidget {
@@ -34,14 +34,14 @@ class _LicensesScreenState extends State<LicensesScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final c = D2Colors.of(context);
+    final c = AppColors.of(context);
 
     return Scaffold(
       backgroundColor: c.bg,
       body: SafeArea(
         child: Column(
           children: [
-            D2ScreenHeader(
+            AppScreenHeader(
               title: context.t.settings.licenses,
               onBack: () => Navigator.of(context).pop(),
             ),
@@ -91,25 +91,25 @@ class _PackageRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final c = D2Colors.of(context);
+    final c = AppColors.of(context);
 
     return Semantics(
       button: true,
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
         onTap: onTap,
-        child: D2Card(
+        child: AppCard(
           padding: const EdgeInsets.fromLTRB(14, 0, 12, 0),
           child: ConstrainedBox(
             constraints: const BoxConstraints(minHeight: 52),
             child: Row(
               children: [
                 Expanded(
-                  child: Text(name, style: D2Text.body.copyWith(color: c.ink)),
+                  child: Text(name, style: AppText.body.copyWith(color: c.ink)),
                 ),
                 RotatedBox(
                   quarterTurns: 2,
-                  child: D2Icon(D2Glyph.back, size: 18, color: c.inkSoft),
+                  child: AppIcon(AppGlyph.back, size: 18, color: c.inkSoft),
                 ),
               ],
             ),
@@ -129,7 +129,7 @@ class _LicenseText extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final c = D2Colors.of(context);
+    final c = AppColors.of(context);
     final paragraphs = [
       for (final (i, entry) in entries.indexed) ...[
         if (i > 0) null,
@@ -142,7 +142,7 @@ class _LicenseText extends StatelessWidget {
       body: SafeArea(
         child: Column(
           children: [
-            D2ScreenHeader(
+            AppScreenHeader(
               title: name,
               onBack: () => Navigator.of(context).pop(),
             ),
@@ -174,7 +174,7 @@ class _LicenseText extends StatelessWidget {
                           paragraph.indent == LicenseParagraph.centeredIndent
                           ? TextAlign.center
                           : TextAlign.start,
-                      style: D2Text.caption.copyWith(color: c.ink),
+                      style: AppText.caption.copyWith(color: c.ink),
                     ),
                   );
                 },

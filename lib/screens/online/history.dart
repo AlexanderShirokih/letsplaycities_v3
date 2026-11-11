@@ -5,7 +5,7 @@ import 'package:lets_play_cities/i18n/strings.g.dart';
 import 'package:lets_play_cities/i18n/time_format.dart';
 import 'package:lets_play_cities/remote/model/lps_user.dart';
 import 'package:lets_play_cities/remote/model/social.dart';
-import 'package:lets_play_cities/screens/common/d2/d2.dart';
+import 'package:lets_play_cities/screens/common/design/design.dart';
 import 'package:lets_play_cities/screens/online/base_list_fetching_screen_mixin.dart';
 import 'package:lets_play_cities/screens/online/common_online_widgets.dart';
 import 'package:lets_play_cities/screens/online/profile.dart';
@@ -48,8 +48,8 @@ class OnlineHistoryScreen extends StatelessWidget
   @override
   Widget getOnListEmptyPlaceHolder(BuildContext context) => embedded
       ? const SizedBox.shrink()
-      : D2EmptyState(
-          art: const D2TileArt(glyph: D2Glyph.history),
+      : AppEmptyState(
+          art: const AppTileArt(glyph: AppGlyph.history),
           title: context.t.online.historyEmptyTitle,
         );
 
@@ -76,7 +76,7 @@ class OnlineHistoryScreen extends StatelessWidget
               padding: const EdgeInsets.only(left: 4, bottom: 8),
               child: Text(
                 title,
-                style: D2Text.section.copyWith(color: D2Colors.of(context).ink),
+                style: AppText.section.copyWith(color: AppColors.of(context).ink),
               ),
             ),
           _CompactGames(games: data),
@@ -136,7 +136,7 @@ class _MonthHeader extends StatelessWidget {
     padding: const EdgeInsets.only(left: 4),
     child: Text(
       _withYear(context.t.online.months[date.month - 1], date, now),
-      style: D2Text.section.copyWith(color: D2Colors.of(context).ink),
+      style: AppText.section.copyWith(color: AppColors.of(context).ink),
     ),
   );
 }
@@ -149,9 +149,9 @@ class _RowsCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final c = D2Colors.of(context);
+    final c = AppColors.of(context);
 
-    return D2Card(
+    return AppCard(
       padding: EdgeInsets.zero,
       child: ClipRRect(
         borderRadius: BorderRadius.circular(18),
@@ -177,7 +177,7 @@ class _HistoryRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = context.t;
-    final c = D2Colors.of(context);
+    final c = AppColors.of(context);
     final date = game.startedAt;
 
     return InkWell(
@@ -214,10 +214,10 @@ class _HistoryRow extends StatelessWidget {
                             shape: BoxShape.circle,
                             border: Border.all(color: c.surface, width: 2),
                           ),
-                          child: D2Icon(
-                            D2Glyph.check,
+                          child: AppIcon(
+                            AppGlyph.check,
                             size: 11,
-                            color: D2Colors.light.surface,
+                            color: AppColors.light.surface,
                             strokeWidth: 3.4,
                           ),
                         ),
@@ -234,13 +234,13 @@ class _HistoryRow extends StatelessWidget {
                       game.opponent.name,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: D2Text.body.copyWith(fontSize: 15, color: c.ink),
+                      style: AppText.body.copyWith(fontSize: 15, color: c.ink),
                     ),
                     const SizedBox(height: 3),
                     Text(
                       '${t.online.wordsCount(count: game.words)}'
                       ' · ${formatMinutesSeconds(t, game.durationSec)}',
-                      style: D2Text.caption.copyWith(color: c.inkSoft),
+                      style: AppText.caption.copyWith(color: c.inkSoft),
                     ),
                   ],
                 ),
@@ -248,7 +248,7 @@ class _HistoryRow extends StatelessWidget {
               const SizedBox(width: 12),
               Text(
                 '${date.day} ${t.online.monthsShort[date.month - 1]}',
-                style: D2Text.caption.copyWith(color: c.inkSoft),
+                style: AppText.caption.copyWith(color: c.inkSoft),
               ),
             ],
           ),
@@ -267,7 +267,7 @@ class _CompactGames extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = context.t;
-    final c = D2Colors.of(context);
+    final c = AppColors.of(context);
     final now = DateTime.now();
 
     return _RowsCard(
@@ -289,13 +289,13 @@ class _CompactGames extends StatelessWidget {
                       ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: D2Text.body.copyWith(fontSize: 15, color: c.ink),
+                      style: AppText.body.copyWith(fontSize: 15, color: c.ink),
                     ),
                   ),
                   const SizedBox(width: 12),
                   Text(
                     t.online.wordsCount(count: game.words),
-                    style: D2Text.bodyRegular.copyWith(
+                    style: AppText.bodyRegular.copyWith(
                       fontSize: 14,
                       color: c.inkSoft,
                     ),
@@ -306,7 +306,7 @@ class _CompactGames extends StatelessWidget {
                     child: Text(
                       formatMinutesSeconds(t, game.durationSec),
                       textAlign: TextAlign.right,
-                      style: D2Text.bodyRegular.copyWith(
+                      style: AppText.bodyRegular.copyWith(
                         fontSize: 14,
                         color: c.inkSoft,
                       ),

@@ -6,7 +6,7 @@ import 'package:lets_play_cities/base/data.dart';
 import 'package:lets_play_cities/base/repos.dart';
 import 'package:lets_play_cities/base/users.dart';
 import 'package:lets_play_cities/i18n/strings.g.dart';
-import 'package:lets_play_cities/screens/common/d2/d2.dart';
+import 'package:lets_play_cities/screens/common/design/design.dart';
 import 'package:lets_play_cities/utils/minutes_seconds.dart';
 
 import 'combo_badge.dart';
@@ -96,7 +96,7 @@ class _ScorePanelState extends State<ScorePanel> {
 
   Widget _buildLetter(BuildContext context) {
     final t = context.t;
-    final c = D2Colors.of(context);
+    final c = AppColors.of(context);
     final timeLimit = _session.timeLimit;
     final timed = timeLimit > 0;
 
@@ -108,9 +108,9 @@ class _ScorePanelState extends State<ScorePanel> {
           // The caption is only read out: the tile speaks for itself
           Semantics(
             label: t.game.cityOnLetter,
-            child: D2TimerRing(
+            child: AppTimerRing(
               progress: timed ? _secondsLeft / timeLimit : 0,
-              child: D2LetterTile(
+              child: AppLetterTile(
                 _letter.isEmpty ? t.game.letterAny : _letter.toUpperCase(),
                 size: 56,
                 semanticLabel: _letter.isEmpty
@@ -127,13 +127,13 @@ class _ScorePanelState extends State<ScorePanel> {
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  D2Icon(D2Glyph.timer, size: 16, color: c.ink),
+                  AppIcon(AppGlyph.timer, size: 16, color: c.ink),
                   const SizedBox(width: 5),
                   Flexible(
                     child: Text(
                       formatClock(_secondsLeft),
                       maxLines: 1,
-                      style: D2Text.section.copyWith(color: c.ink),
+                      style: AppText.section.copyWith(color: c.ink),
                     ),
                   ),
                 ],
@@ -155,18 +155,18 @@ class _PlayerCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final c = D2Colors.of(context);
-    final onCard = active ? D2Colors.light.surface : c.ink;
+    final c = AppColors.of(context);
+    final onCard = active ? AppColors.light.surface : c.ink;
     const avatarSize = 40.0;
 
     Widget avatar = Container(
       foregroundDecoration: active
           ? BoxDecoration(
               borderRadius: BorderRadius.circular(avatarSize * 0.275),
-              border: Border.all(color: D2Colors.light.surface, width: 2),
+              border: Border.all(color: AppColors.light.surface, width: 2),
             )
           : null,
-      child: buildD2AvatarForUser(user, size: avatarSize),
+      child: buildAppAvatarForUser(user, size: avatarSize),
     );
 
     if (active && user is Player) {
@@ -181,7 +181,7 @@ class _PlayerCard extends StatelessWidget {
       user.name,
       maxLines: 1,
       overflow: TextOverflow.ellipsis,
-      style: D2Text.body.copyWith(fontSize: 13, color: onCard),
+      style: AppText.body.copyWith(fontSize: 13, color: onCard),
     );
 
     final score = FittedBox(
@@ -189,7 +189,7 @@ class _PlayerCard extends StatelessWidget {
       child: Text(
         '${user.score}',
         maxLines: 1,
-        style: D2Text.score.copyWith(fontSize: 24, height: 1.1, color: onCard),
+        style: AppText.score.copyWith(fontSize: 24, height: 1.1, color: onCard),
       ),
     );
 

@@ -9,7 +9,7 @@ import 'package:lets_play_cities/base/dictionary.dart';
 import 'package:lets_play_cities/base/preferences.dart';
 import 'package:lets_play_cities/base/themes/app_theme_mode.dart';
 import 'package:lets_play_cities/i18n/strings.g.dart';
-import 'package:lets_play_cities/screens/common/d2/d2.dart';
+import 'package:lets_play_cities/screens/common/design/design.dart';
 import 'package:lets_play_cities/screens/settings/licenses_screen.dart';
 import 'package:lets_play_cities/screens/settings/settings_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -58,7 +58,7 @@ void main() {
         value: prefs,
         child: withTranslations(
           MaterialApp(
-            theme: buildD2Theme(Brightness.light),
+            theme: buildAppTheme(Brightness.light),
             home: const SettingsScreen(),
           ),
         ),
@@ -77,7 +77,7 @@ void main() {
     expect(prefs.wordsDifficulty, Difficulty.hard);
     expect(
       tester
-          .widget<D2Segmented<Difficulty>>(find.byType(D2Segmented<Difficulty>))
+          .widget<AppSegmented<Difficulty>>(find.byType(AppSegmented<Difficulty>))
           .selected,
       Difficulty.hard,
     );
@@ -117,11 +117,11 @@ void main() {
     await pumpScreen(tester);
     expect(prefs.soundEnabled, isTrue);
 
-    await tester.tap(find.byType(D2Switch).at(2));
+    await tester.tap(find.byType(AppSwitch).at(2));
     await tester.pump();
 
     expect(prefs.soundEnabled, isFalse);
-    expect(tester.widget<D2Switch>(find.byType(D2Switch).at(2)).value, isFalse);
+    expect(tester.widget<AppSwitch>(find.byType(AppSwitch).at(2)).value, isFalse);
   });
 
   testWidgets('a stored timer outside the list selects no segment', (
@@ -132,7 +132,7 @@ void main() {
     await pumpScreen(tester);
 
     expect(
-      tester.widget<D2Segmented<int>>(find.byType(D2Segmented<int>)).selected,
+      tester.widget<AppSegmented<int>>(find.byType(AppSegmented<int>)).selected,
       isNull,
     );
     expect(prefs.timeLimit, 300);
@@ -141,18 +141,18 @@ void main() {
   testWidgets('the dictionary switch toggles never and daily', (tester) async {
     prefs.dictionaryUpdatePeriod = DictionaryUpdatePeriod.threeHours;
     await pumpScreen(tester);
-    final dict = find.byType(D2Switch).at(3);
-    expect(tester.widget<D2Switch>(dict).value, isTrue);
+    final dict = find.byType(AppSwitch).at(3);
+    expect(tester.widget<AppSwitch>(dict).value, isTrue);
 
     await tester.tap(dict);
     await tester.pump();
     expect(prefs.dictionaryUpdatePeriod, DictionaryUpdatePeriod.never);
-    expect(tester.widget<D2Switch>(dict).value, isFalse);
+    expect(tester.widget<AppSwitch>(dict).value, isFalse);
 
     await tester.tap(dict);
     await tester.pump();
     expect(prefs.dictionaryUpdatePeriod, DictionaryUpdatePeriod.daily);
-    expect(tester.widget<D2Switch>(dict).value, isTrue);
+    expect(tester.widget<AppSwitch>(dict).value, isTrue);
   });
 
   testWidgets('the licenses row opens the license page', (tester) async {

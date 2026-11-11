@@ -16,7 +16,7 @@ import 'package:lets_play_cities/remote/account_manager.dart';
 import 'package:lets_play_cities/remote/account.dart';
 import 'package:lets_play_cities/remote/api_repository.dart';
 import 'package:lets_play_cities/remote/api_repository_factory.dart';
-import 'package:lets_play_cities/screens/common/d2/d2.dart';
+import 'package:lets_play_cities/screens/common/design/design.dart';
 import 'package:lets_play_cities/screens/online/avatars/avatar_chooser.dart';
 import 'package:lets_play_cities/screens/online/banlist.dart';
 import 'package:lets_play_cities/screens/online/friends.dart';
@@ -183,7 +183,7 @@ class _ProfileTabState extends State<ProfileTab> {
   @override
   Widget build(BuildContext context) {
     final t = context.t;
-    final c = D2Colors.of(context);
+    final c = AppColors.of(context);
     final local = _local!;
     final achievements = GetIt.instance.get<LocalAchievementsService>();
     final service = GetIt.instance.get<AchievementsService>();
@@ -204,7 +204,7 @@ class _ProfileTabState extends State<ProfileTab> {
                     Expanded(
                       child: Text(
                         t.profile.title,
-                        style: D2Text.display.copyWith(
+                        style: AppText.display.copyWith(
                           fontSize: 22,
                           color: c.ink,
                         ),
@@ -213,7 +213,7 @@ class _ProfileTabState extends State<ProfileTab> {
                     if (_online != null)
                       ProfileLink(
                         label: t.online.signOut,
-                        glyph: D2Glyph.exit,
+                        glyph: AppGlyph.exit,
                         color: c.inkSoft,
                         onPressed: _signOut,
                       ),
@@ -243,7 +243,7 @@ class _ProfileTabState extends State<ProfileTab> {
                 onRating: service.showLeaderboardScreen,
               ),
               const SizedBox(height: 8),
-              D2Card(padding: EdgeInsets.zero, child: _rows(context)),
+              AppCard(padding: EdgeInsets.zero, child: _rows(context)),
             ],
           ),
         ),
@@ -253,37 +253,37 @@ class _ProfileTabState extends State<ProfileTab> {
 
   Widget _rows(BuildContext context) {
     final t = context.t;
-    final c = D2Colors.of(context);
+    final c = AppColors.of(context);
     final online = _online;
     final rows = [
       if (online != null) ...[
         _NavigationRow(
-          glyph: D2Glyph.friends,
+          glyph: AppGlyph.friends,
           label: t.profile.friends,
           onTap: () =>
               _openOnline(t.profile.friends, const OnlineFriendsScreen()),
         ),
         _NavigationRow(
-          glyph: D2Glyph.history,
+          glyph: AppGlyph.history,
           label: t.profile.history,
           onTap: () => _openOnline(t.profile.history, OnlineHistoryScreen()),
         ),
         _NavigationRow(
-          glyph: D2Glyph.ban,
+          glyph: AppGlyph.ban,
           label: t.profile.blacklist,
           onTap: () =>
               _openOnline(t.profile.blacklist, const OnlineBanlistScreen()),
         ),
       ],
       _NavigationRow(
-        glyph: D2Glyph.gauge,
+        glyph: AppGlyph.gauge,
         label: t.profile.stats,
         onTap: () =>
             Navigator.of(context)
                 .push(MaterialPageRoute(builder: (_) => StatisticsScreen())),
       ),
       _NavigationRow(
-        glyph: D2Glyph.settings,
+        glyph: AppGlyph.settings,
         label: t.profile.settings,
         onTap: () =>
             Navigator.of(context)
@@ -315,7 +315,7 @@ class _ProfileTabState extends State<ProfileTab> {
     final online = _online;
     if (online == null) return;
 
-    showD2Sheet<void>(
+    showAppSheet<void>(
       context,
       builder: (_) =>
           AvatarChooserView(online.repository, onAvatarUpdated: _loadAccount),
@@ -333,7 +333,7 @@ class _ProfileTabState extends State<ProfileTab> {
             body: SafeArea(
               child: Column(
                 children: [
-                  D2ScreenHeader(
+                  AppScreenHeader(
                     title: title,
                     onBack: () => Navigator.maybePop(context),
                   ),
@@ -364,7 +364,7 @@ class _Header extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = context.t;
-    final c = D2Colors.of(context);
+    final c = AppColors.of(context);
     final account = online?.account;
     final name = account?.name ?? t.players.player;
 
@@ -380,7 +380,7 @@ class _Header extends StatelessWidget {
           ),
         ],
       ),
-      child: D2Avatar.user(
+      child: AppAvatar.user(
         size: 72,
         pictureUrl: account?.avatarUrl,
         initials: name.isEmpty ? '' : name.substring(0, 1).toUpperCase(),
@@ -407,7 +407,7 @@ class _Header extends StatelessWidget {
                 name,
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
-                style: D2Text.title.copyWith(fontSize: 20, color: c.ink),
+                style: AppText.title.copyWith(fontSize: 20, color: c.ink),
               ),
               if (online != null) ...[
                 const SizedBox(height: 5),
@@ -417,7 +417,7 @@ class _Header extends StatelessWidget {
                   children: [
                     Text(
                       'ID ${online!.account.userId}',
-                      style: D2Text.caption.copyWith(color: c.inkSoft),
+                      style: AppText.caption.copyWith(color: c.inkSoft),
                     ),
                     Row(
                       mainAxisSize: MainAxisSize.min,
@@ -433,7 +433,7 @@ class _Header extends StatelessWidget {
                         const SizedBox(width: 6),
                         Text(
                           t.profile.online,
-                          style: D2Text.caption.copyWith(
+                          style: AppText.caption.copyWith(
                             fontWeight: FontWeight.w500,
                             color: c.ink,
                           ),
@@ -446,9 +446,9 @@ class _Header extends StatelessWidget {
                 const SizedBox(height: 8),
                 Align(
                   alignment: Alignment.centerLeft,
-                  child: D2Button(
+                  child: AppButton(
                     label: t.profile.signIn,
-                    kind: D2ButtonKind.accent,
+                    kind: AppButtonKind.accent,
                     onPressed: onSignIn,
                   ),
                 ),
@@ -495,17 +495,17 @@ class _Metric extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final c = D2Colors.of(context);
+    final c = AppColors.of(context);
 
     return Row(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.baseline,
       textBaseline: TextBaseline.alphabetic,
       children: [
-        Text(value, style: D2Text.section.copyWith(fontSize: 17, color: c.ink)),
+        Text(value, style: AppText.section.copyWith(fontSize: 17, color: c.ink)),
         const SizedBox(width: 6),
         Flexible(
-          child: Text(label, style: D2Text.caption.copyWith(color: c.inkSoft)),
+          child: Text(label, style: AppText.caption.copyWith(color: c.inkSoft)),
         ),
       ],
     );
@@ -513,7 +513,7 @@ class _Metric extends StatelessWidget {
 }
 
 class _NavigationRow extends StatelessWidget {
-  final D2Glyph glyph;
+  final AppGlyph glyph;
   final String label;
   final VoidCallback onTap;
 
@@ -525,7 +525,7 @@ class _NavigationRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final c = D2Colors.of(context);
+    final c = AppColors.of(context);
 
     return Semantics(
       button: true,
@@ -546,15 +546,15 @@ class _NavigationRow extends StatelessWidget {
                     color: c.bg,
                     borderRadius: BorderRadius.circular(10),
                   ),
-                  child: D2Icon(glyph, size: 20),
+                  child: AppIcon(glyph, size: 20),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
-                  child: Text(label, style: D2Text.body.copyWith(color: c.ink)),
+                  child: Text(label, style: AppText.body.copyWith(color: c.ink)),
                 ),
                 RotatedBox(
                   quarterTurns: 2,
-                  child: D2Icon(D2Glyph.back, size: 18, color: c.inkSoft),
+                  child: AppIcon(AppGlyph.back, size: 18, color: c.inkSoft),
                 ),
               ],
             ),

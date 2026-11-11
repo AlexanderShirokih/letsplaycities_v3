@@ -1,16 +1,16 @@
 import 'package:flutter/material.dart';
-import 'package:lets_play_cities/screens/common/d2/d2_colors.dart';
+import 'package:lets_play_cities/screens/common/design/app_colors.dart';
 
 /// On/off switch with a 48x28 track in a 60x44 touch target
-class D2Switch extends StatelessWidget {
+class AppSwitch extends StatelessWidget {
   final bool value;
   final ValueChanged<bool> onChanged;
 
-  const D2Switch({super.key, required this.value, required this.onChanged});
+  const AppSwitch({super.key, required this.value, required this.onChanged});
 
   @override
   Widget build(BuildContext context) {
-    final c = D2Colors.of(context);
+    final c = AppColors.of(context);
     final line = value ? c.violet : c.inkSoft;
 
     return Semantics(

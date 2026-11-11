@@ -15,7 +15,7 @@ import 'package:lets_play_cities/base/preferences.dart';
 import 'package:lets_play_cities/base/users.dart';
 import 'package:lets_play_cities/i18n/strings.g.dart';
 import 'package:lets_play_cities/screens/game/hotseat_setup_screen.dart';
-import 'package:lets_play_cities/screens/common/d2/d2.dart';
+import 'package:lets_play_cities/screens/common/design/design.dart';
 import 'package:lets_play_cities/screens/game_results/game_results_screen.dart';
 import 'package:lets_play_cities/screens/game_results/game_share_card.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -226,7 +226,7 @@ void main() {
       await tester.pumpWidget(
         withTranslations(
           MaterialApp(
-            theme: buildD2Theme(Brightness.light),
+            theme: buildAppTheme(Brightness.light),
             home: Center(
               child: GameShareCard(
                 GameResult(
