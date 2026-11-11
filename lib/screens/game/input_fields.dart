@@ -161,6 +161,9 @@ class _CityInputFieldState extends State<_CityInputField> {
     return TextField(
       // No context menu: pasting city names is not allowed.
       contextMenuBuilder: null,
+      // No keyboard hints: the answer must be typed, not autocompleted.
+      autocorrect: false,
+      enableSuggestions: false,
       autofocus: true,
       focusNode: _focus,
       onSubmitted: _onSubmit,
