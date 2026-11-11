@@ -27,6 +27,7 @@ RES = ROOT / 'android/app/src/main/res'
 IOS = ROOT / 'ios/Runner/Assets.xcassets/AppIcon.appiconset'
 VK = OUT_SRC / 'vk'
 OK = OUT_SRC / 'ok'
+PLAY = OUT_SRC / 'play'
 
 VIOLET = '#5B3DF5'
 INK = '#1B1340'
@@ -327,6 +328,21 @@ def banner(width, height):
 OK_BANNER = banner(1280, 720)
 
 
+def wide(source, width, height):
+    """The 16:9 banner fitted by height into a wider frame, the sides filled with the background"""
+    inner = 1280 * height / 720
+    nested = source.replace('<svg ', f'<svg x="{number((width - inner) / 2)}" width="{number(inner)}" height="{height}" ', 1)
+
+    return (
+        f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {width} {height}">'
+        f'<rect width="{width}" height="{height}" fill="{VIOLET}"/>{nested}</svg>'
+    )
+
+
+# Feature graphic for Google Play
+PLAY_BANNER = wide(OK_BANNER, 1024, 500)
+
+
 def render(source, size, path, opaque=False, height=None):
     png = bytes(svg_to_bytes(svg_string=source, width=size, height=height or size))
     image = Image.open(io.BytesIO(png))
@@ -370,6 +386,10 @@ def main():
 
     render(FULL, 512, OK / 'ok_512.png', opaque=True)
     render(OK_BANNER, 1280, OK / 'ok_1280x720.png', opaque=True, height=720)
+
+    PLAY.mkdir(exist_ok=True)
+    render(FULL, 512, PLAY / 'play_512.png', opaque=True)
+    render(PLAY_BANNER, 1024, PLAY / 'play_1024x500.png', opaque=True, height=500)
 
 
 if __name__ == '__main__':
