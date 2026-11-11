@@ -227,42 +227,76 @@ FOREGROUND = colored(canvas(.64 * ADAPTIVE_VISIBLE))
 MONOCHROME = silhouette(canvas(.64 * ADAPTIVE_VISIBLE))
 
 
-# Letter tiles scattered at the sides: letter, left, top, size, fill, turn in degrees
+# Letter tiles scattered on the logo side: letter, left, top, size, fill, turn in degrees
 BANNER_TILES = [
     ('К', 40, 56, 112, YELLOW, -12),
-    ('Л', 196, 300, 72, MINT, 10),
-    ('Т', 64, 476, 124, SKY, 8),
-    ('Р', 1104, 52, 112, MINT, 10),
-    ('Е', 1012, 300, 72, YELLOW, -10),
-    ('Н', 1100, 468, 128, SKY, -8),
+    ('Е', 404, 84, 72, MINT, 10),
+    ('Т', 64, 520, 124, SKY, 8),
+    ('Л', 430, 586, 72, ORANGE, -10),
 ]
 
-# Two cities laid out like a crossword: the second one grows down from the last
-# letter of the first
-ACROSS = 'Москва'
-DOWN = 'Анапа'
-CELL = 100
-CELL_GAP = 10
+# A round as it looks in the moves feed: players take turns, each city starts
+# with the last letter of the one before
+BANNER_CHAT = [('Москва', False), ('Анапа', True), ('Астана', False), ('Архангельск', True)]
+CHAT_LEFT = 628
+CHAT_RIGHT = 1196
+CHAT_TOP = 118
+CHAT_SIZE = 38
+CHAT_PAD = 28
+CHAT_HEIGHT = 80
+CHAT_GAP = 22
+CHAT_RADIUS = 24
+CHAT_TAIL = 6
 
-# Slight turns so the tiles look laid by hand
-JITTER = [-3, 2, -1, 3, -2, 1, -2, 3, -1, 2]
+
+def bubble(x, y, width, fill, mine):
+    """Message bubble with the sharp corner on the speaker's side, and its hard shadow"""
+    corner = x + width - 2 * CHAT_RADIUS if mine else x
+
+    def body(top):
+        round_part = rect(Identity, x, top, width=width, height=CHAT_HEIGHT, radius=CHAT_RADIUS)
+        tail = rect(
+            Identity, corner, top + CHAT_HEIGHT - 2 * CHAT_RADIUS,
+            width=2 * CHAT_RADIUS, height=2 * CHAT_RADIUS, radius=CHAT_TAIL,
+        )
+
+        return pathops.op(round_part, tail, pathops.PathOp.UNION)
+
+    return [(body(y + 6), INK, None, 0), (body(y), fill, INK, 4)]
 
 
-def crossword(x, y):
-    step = CELL + CELL_GAP
-    cells = [(char, x + i * step, y, WHITE) for i, char in enumerate(ACROSS)]
-    column = x + (len(ACROSS) - 1) * step
-    cells += [(char, column, y + i * step, YELLOW) for i, char in enumerate(DOWN) if i]
+def message(y, name, mine):
+    width = advance(RUBIK, name, CHAT_SIZE) + 2 * CHAT_PAD
+    x = CHAT_RIGHT - width if mine else CHAT_LEFT
+    baseline = y + CHAT_HEIGHT / 2 + CHAT_SIZE * .36
+    head = name[:-1]
+    left = x + CHAT_PAD
 
-    # The letter the next city starts with
-    shared = {len(ACROSS) - 1, len(cells) - 1}
+    return bubble(x, y, width, YELLOW if mine else WHITE, mine) + [
+        (text(Identity, RUBIK, head, left, baseline, CHAT_SIZE), INK, None, 0),
+        (text(Identity, RUBIK, name[-1], left + advance(RUBIK, head, CHAT_SIZE), baseline, CHAT_SIZE), LETTER, None, 0),
+    ]
+
+
+def typing(y):
+    """The next move is on its way"""
+    width = 120
+    dots = ''.join(
+        f'<circle cx="{CHAT_LEFT + 36 + i * 24}" cy="{y + CHAT_HEIGHT / 2}" r="7"/>' for i in range(3)
+    )
+
+    return bubble(CHAT_LEFT, y, width, WHITE, False) + [(shape(Identity, dots), INK_SOFT, None, 0)]
+
+
+def chat():
     layers = []
+    y = CHAT_TOP
 
-    for index, (char, left, top, fill) in enumerate(cells):
-        fill = ORANGE if index in shared else fill
-        layers += scattered(char.upper(), left, top, CELL, fill, JITTER[index % len(JITTER)])
+    for name, mine in BANNER_CHAT:
+        layers += message(y, name, mine)
+        y += CHAT_HEIGHT + CHAT_GAP
 
-    return layers
+    return layers + typing(y)
 
 
 def scattered(char, x, y, size, fill, turn):
@@ -278,22 +312,14 @@ def scattered(char, x, y, size, fill, turn):
 
 
 def banner(width, height):
-    """Logo tucked under a crossword of two cities, letter tiles at the sides"""
-    step = CELL + CELL_GAP
-    board_width = len(ACROSS) * step - CELL_GAP
-    board_height = len(DOWN) * step - CELL_GAP
-    x = (width - board_width) / 2
-    y = (height - board_height) / 2
-
-    # The logo fills the corner under the first word and left of the second one
-    pocket = board_width - step
-    lockup_width = pocket - 40
+    """Logo on the left, a round of the game as a chat on the right"""
+    lockup_width = 470
     k = lockup_width / LOCKUP_WIDTH
-    logo = Identity.translate(x, y + step + (board_height - step - LOCKUP_HEIGHT * k) / 2).scale(k)
+    logo = Identity.translate(84, (height - LOCKUP_HEIGHT * k) / 2).scale(k)
 
     layers = [layer for spec in BANNER_TILES for layer in scattered(*spec)]
-    layers += crossword(x, y)
     layers += lockup(logo, caption=EDGE, title=WHITE)
+    layers += chat()
 
     return svg(f'<rect width="{width}" height="{height}" fill="{VIOLET}"/>', layers, width, height)
 
