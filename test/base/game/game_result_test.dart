@@ -71,7 +71,7 @@ void main() {
     group('$scoringType', () {
       MatchResult resultFor(int ownerScore, int opponentScore) => _finish(
         scoringType: scoringType,
-        finishType: MoveFinishType.surrender,
+        finishType: MoveFinishType.disconnected,
         ownerScore: ownerScore,
         opponentScore: opponentScore,
       ).matchResult;
@@ -86,7 +86,7 @@ void main() {
         expect(resultFor(0, 0), MatchResult.draw);
       });
 
-      test('the owner who surrenders with more points still wins', () {
+      test('the user who surrenders loses whatever the points', () {
         final result = _finish(
           scoringType: scoringType,
           finishType: MoveFinishType.surrender,
@@ -95,8 +95,21 @@ void main() {
           ownersTurn: true,
         );
 
-        expect(result.matchResult, MatchResult.win);
+        expect(result.matchResult, MatchResult.lose);
         expect(result.finishRequester, same(result.owner));
+      });
+
+      test('the opponent who surrenders loses whatever the points', () {
+        expect(
+          _finish(
+            scoringType: scoringType,
+            finishType: MoveFinishType.surrender,
+            ownerScore: 20,
+            opponentScore: 30,
+            ownersTurn: false,
+          ).matchResult,
+          MatchResult.win,
+        );
       });
 
       test('a timeout is judged by the last move, not by points', () {

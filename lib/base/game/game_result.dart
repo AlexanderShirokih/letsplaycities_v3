@@ -45,7 +45,8 @@ class GameResultChecker {
     owner: owner,
     finishType: finishType,
     hasScore: scoringType != ScoringType.lastMove,
-    matchResult: serverAuthoritative
+    // The one who surrenders loses, whatever the points
+    matchResult: serverAuthoritative || finishType == MoveFinishType.surrender
         ? (identical(finishRequester, owner)
               ? MatchResult.lose
               : MatchResult.win)
