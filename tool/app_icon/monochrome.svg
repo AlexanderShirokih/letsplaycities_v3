@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 108 108"><defs>
+<mask id="g" maskUnits="userSpaceOnUse" x="0" y="0" width="100" height="100">
+<rect width="100" height="100" fill="#fff"/>
+<path d="M40.062567626953125 20.25V25.054728271484375H28.20657080078125L30.64013525390625 22.621163818359374V39.75H25.242615234375V20.25Z" fill="#000"/>
+<rect x="40" y="38" width="52" height="52" rx="12" fill="#000" stroke="#000" stroke-width="8"/>
+</mask>
+<mask id="a" maskUnits="userSpaceOnUse" x="0" y="0" width="100" height="100">
+<rect width="100" height="100" fill="#fff"/>
+<path d="M59.18536572265624 69.99557080078125V65.66403173828125H72.60657397460938V69.99557080078125ZM69.54371240234374 54.25 78.42013208007812 73.75H72.66381713867187L65.22257397460938 56.548359375000004H66.78256445312499L59.3413212890625 73.75H53.58500634765625L62.46142602539062 54.25Z" fill="#000"/>
+</mask>
+</defs>
+<g transform="translate(54 54) scale(0.42666666666666664) translate(-50 -50)">
+<rect x="6" y="4" width="52" height="52" rx="12" mask="url(#g)"/>
+<rect x="40" y="38" width="52" height="52" rx="12" mask="url(#a)"/>
+</g></svg>
