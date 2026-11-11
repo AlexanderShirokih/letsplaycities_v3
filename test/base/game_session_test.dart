@@ -153,7 +153,7 @@ class _ServerGame {
       scoreController: scores,
       achievements: _RecordingAchievements(),
       wordsDifficulty: () => Difficulty.easy,
-      rules: ClassicRules(scores, ScoringType.byScore),
+      rules: ClassicRules(scores),
       externalEvents: (_) => server.stream,
       serverAuthoritative: true,
     );
@@ -186,7 +186,7 @@ GameSession _gatedSession(
     scoreController: scores,
     achievements: _RecordingAchievements(),
     wordsDifficulty: () => Difficulty.easy,
-    rules: ClassicRules(scores, ScoringType.byScore),
+    rules: ClassicRules(scores),
     turnGate: gate,
   );
 }
@@ -346,7 +346,7 @@ void main() {
       scoreController: scores,
       achievements: _RecordingAchievements(),
       wordsDifficulty: () => Difficulty.easy,
-      rules: ClassicRules(scores, ScoringType.byScore),
+      rules: ClassicRules(scores),
     );
     var inputClosed = false;
     session.inputEvents.listen(null, onDone: () => inputClosed = true);
@@ -405,7 +405,7 @@ void main() {
         difficultyReads++;
         return difficulty;
       },
-      rules: ClassicRules(scores, ScoringType.byScore),
+      rules: ClassicRules(scores),
     );
     player.increaseScore(10);
 

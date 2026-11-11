@@ -133,17 +133,6 @@ void main() {
       expect(player.score, 7);
     });
 
-    test('LAST_MOVE gives no points, even with a combo', () {
-      final player = playerWithCombo();
-
-      _controller(
-        ScoringSet.initial(),
-        type: ScoringType.lastMove,
-      ).onMoveFinished(player, 'москва', 1000, const {});
-
-      expect(player.score, 0);
-    });
-
     test('the opponent scores but leaves the player\'s records alone', () {
       final set = ScoringSet.initial();
       final opponent = _Opponent();
@@ -304,13 +293,12 @@ void main() {
       }
     });
 
-    test('are counted in LAST_MOVE games, where nobody has points', () {
+    test('are counted in games where nobody has points', () {
       for (final mode in GameMode.values) {
         final set = ScoringSet.initial();
 
         _controller(
           set,
-          type: ScoringType.lastMove,
           mode: mode,
         ).onGameFinished(_result(_player(), hasScore: false));
 
@@ -318,13 +306,9 @@ void main() {
       }
     });
 
-    test('count online wins and losses in LAST_MOVE games', () {
+    test('count online wins and losses in games without points', () {
       final set = ScoringSet.initial();
-      final controller = _controller(
-        set,
-        type: ScoringType.lastMove,
-        mode: GameMode.network,
-      );
+      final controller = _controller(set, mode: GameMode.network);
       final owner = _player();
 
       controller.onGameFinished(
@@ -556,11 +540,12 @@ void main() {
       final player = _player();
 
       ScoreController.fromPrefs(
-        _Prefs(scoringType: ScoringType.lastMove),
+        _Prefs(scoringType: ScoringType.byTime),
         GameMode.playerVsAndroid,
       ).onMoveFinished(player, 'москва', 1000, const {});
 
-      expect(player.score, 0);
+      // By time: 2 points and 1 more for every 2 s left of 40 s
+      expect(player.score, 21);
     });
 
     test('without some groups still record a game', () {

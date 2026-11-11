@@ -44,7 +44,6 @@ class FakeGameSession extends GameSession {
                  mode,
                  (_) {},
                ),
-               ScoringType.byScore,
              ),
        );
 

@@ -79,7 +79,6 @@ void main() {
           GameMode.playerVsAndroid,
           (_) {},
         ),
-        ScoringType.byScore,
       ),
     );
 
@@ -108,7 +107,7 @@ void main() {
       overrides ?? _NoOverrides(),
       () => inputAcceptedCalls++,
       () {},
-      ClassicRules(scores, ScoringType.byScore),
+      ClassicRules(scores),
     );
 
     test('take the overridden country code over the dictionary one', () async {
@@ -179,7 +178,7 @@ void main() {
         _NoOverrides(),
         () => inputAcceptedCalls++,
         () {},
-        ClassicRules(scores, ScoringType.byScore),
+        ClassicRules(scores),
       );
       final events = <GameEvent>[
         const NotFound('масква'),
@@ -204,7 +203,7 @@ void main() {
         _NoOverrides(),
         () {},
         () => moveBeginsCalls++,
-        ClassicRules(_SpyScoreController(), ScoringType.byScore),
+        ClassicRules(_SpyScoreController()),
       );
       final player = newPlayer();
       final opponent = FakeOpponent();
@@ -225,7 +224,7 @@ void main() {
         _NoOverrides(),
         () => inputAcceptedCalls++,
         () {},
-        ClassicRules(_SpyScoreController(), ScoringType.byScore),
+        ClassicRules(_SpyScoreController()),
       );
       final ofOpponent = MoveSkipped(FakeOpponent());
       final ofPlayer = MoveSkipped(newPlayer());
@@ -256,7 +255,7 @@ void main() {
       _NoOverrides(),
       () {},
       () {},
-      ClassicRules(scores, ScoringType.byScore),
+      ClassicRules(scores),
     );
 
     test('is counted from the last first char change', () {

@@ -61,7 +61,6 @@ extension ScoringTypeLabel on ScoringType {
   String label(Translations t) => switch (this) {
     ScoringType.byScore => t.settings.scoringType.byScore,
     ScoringType.byTime => t.settings.scoringType.byTime,
-    ScoringType.lastMove => t.settings.scoringType.lastMove,
   };
 }
 

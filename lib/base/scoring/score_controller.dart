@@ -260,8 +260,6 @@ class ScoreController {
 
   int _getPoints(String word, int moveTime) {
     switch (_scoringType) {
-      case ScoringType.lastMove:
-        return 0;
       case ScoringType.byScore:
         return word.length;
       case ScoringType.byTime:

@@ -11,9 +11,7 @@ import 'package:lets_play_cities/base/users.dart';
 class ClassicRules implements MatchRules {
   final ScoreController _scoreController;
 
-  final ScoringType _scoringType;
-
-  ClassicRules(this._scoreController, this._scoringType);
+  ClassicRules(this._scoreController);
 
   @override
   void onAccepted(
@@ -46,7 +44,6 @@ class ClassicRules implements MatchRules {
   }) => GameResultChecker(
     users: users,
     owner: owner,
-    scoringType: _scoringType,
     finishType: finish.endType,
     finishRequester: finish.finishRequester,
     summary: summary,

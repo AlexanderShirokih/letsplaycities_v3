@@ -54,7 +54,6 @@ void main() {
     expect(ScoringType.values.map((v) => v.label(t)), [
       'По очкам',
       'По времени',
-      'До сдачи',
     ]);
   });
 

@@ -177,8 +177,7 @@
     },
     "scoring_type": {
       "by_score": "По очкам",
-      "by_time": "По времени",
-      "last_move": "До сдачи"
+      "by_time": "По времени"
     },
     "dict_upd_period": {
       "never": "Выкл",

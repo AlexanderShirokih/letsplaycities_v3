@@ -151,8 +151,14 @@ class SharedPreferencesGamePrefs extends GamePreferences {
   set timeLimit(int i) => _prefs.setInt('timeLimit', i);
 
   @override
-  ScoringType get scoringType =>
-      ScoringType.values[_prefs.getInt('scoringType') ?? 0];
+  ScoringType get scoringType {
+    final code = _prefs.getInt('scoringType') ?? 0;
+
+    // Code 2 was the removed «До сдачи» mode: it reads as by score now
+    return code < ScoringType.values.length
+        ? ScoringType.values[code]
+        : ScoringType.byScore;
+  }
 
   @override
   set scoringType(ScoringType s) => _prefs.setInt('scoringType', s.index);

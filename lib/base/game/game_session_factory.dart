@@ -54,7 +54,7 @@ class GameSessionFactory {
 
     switch (config.variant) {
       case GameVariant.classic:
-        rules = ClassicRules(scoreController, preferences.scoringType);
+        rules = ClassicRules(scoreController);
         gameDictionary = dictionary;
 
       case GameVariant.route:

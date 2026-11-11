@@ -41,7 +41,7 @@ GameSession _session() {
     scoreController: scores,
     achievements: StubAchievementsService(),
     wordsDifficulty: () => Difficulty.easy,
-    rules: ClassicRules(scores, ScoringType.byScore),
+    rules: ClassicRules(scores),
   );
 }
 

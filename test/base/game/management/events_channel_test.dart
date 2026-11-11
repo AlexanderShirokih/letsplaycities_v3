@@ -149,7 +149,6 @@ void main() {
               GameMode.playerVsAndroid,
               (_) {},
             ),
-            ScoringType.byScore,
           ),
         ),
       ]);

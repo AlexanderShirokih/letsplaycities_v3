@@ -14,11 +14,7 @@ const difficultyCodes = {
   Difficulty.hard: 2,
 };
 
-const scoringTypeCodes = {
-  ScoringType.byScore: 0,
-  ScoringType.byTime: 1,
-  ScoringType.lastMove: 2,
-};
+const scoringTypeCodes = {ScoringType.byScore: 0, ScoringType.byTime: 1};
 
 const updatePeriodCodes = {
   DictionaryUpdatePeriod.never: 0,
@@ -258,7 +254,8 @@ void main() {
       expect(prefs.isFirstLaunch, isFalse);
       expect(prefs.wordsDifficulty, Difficulty.hard);
       expect(prefs.timeLimit, 180);
-      expect(prefs.scoringType, ScoringType.lastMove);
+      // Code 2 was the removed «До сдачи» mode
+      expect(prefs.scoringType, ScoringType.byScore);
       expect(prefs.dictionaryUpdatePeriod, DictionaryUpdatePeriod.daily);
       expect(
         prefs.lastDictionaryCheckDate.millisecondsSinceEpoch,

@@ -1425,9 +1425,6 @@ class Translations$settings$scoringType$ru {
 
 	/// ru: 'По времени'
 	String get byTime => 'По времени';
-
-	/// ru: 'До сдачи'
-	String get lastMove => 'До сдачи';
 }
 
 // Path: settings.dictUpdPeriod
