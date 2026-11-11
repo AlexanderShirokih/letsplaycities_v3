@@ -83,6 +83,141 @@ const _answers = {
   'Я': ['Ярославль', 'Якутск', 'Ялта'],
 };
 
+/// More cities for a long game, after [_answers]
+const _more = {
+  'А': [
+    'Ангарск',
+    'Арзамас',
+    'Армавир',
+    'Ачинск',
+    'Аахен',
+    'Абердин',
+    'Аделаида',
+    'Акапулько',
+    'Алеппо',
+    'Алушта',
+    'Ашхабад',
+    'Аугсбург',
+  ],
+  'Б': [
+    'Балашиха',
+    'Батуми',
+    'Бийск',
+    'Бобруйск',
+    'Бордо',
+    'Брюгге',
+    'Бристоль',
+    'Брюссель',
+    'Бостон',
+  ],
+  'В': [
+    'Вязьма',
+    'Великий Новгород',
+    'Волгоград',
+    'Вологда',
+    'Воркута',
+    'Вроцлав',
+    'Венеция',
+    'Верона',
+  ],
+  'Г': [
+    'Глазго',
+    'Гент',
+    'Гавана',
+    'Гатчина',
+    'Грозный',
+    'Гуанчжоу',
+    'Гётеборг',
+  ],
+  'Д': [
+    'Дербент',
+    'Дзержинск',
+    'Дакар',
+    'Дамаск',
+    'Дрезден',
+    'Дижон',
+    'Даллас',
+  ],
+  'Е': ['Ейск', 'Евпатория', 'Енисейск', 'Егорьевск'],
+  'Ж': ['Жезказган', 'Жодино', 'Железногорск'],
+  'З': ['Звенигород', 'Зальцбург', 'Зарайск', 'Зугдиди'],
+  'И': ['Ивантеевка', 'Иваново', 'Ирбит', 'Инсбрук', 'Исфахан', 'Ишим'],
+  'К': [
+    'Кисловодск',
+    'Коломна',
+    'Королёв',
+    'Курган',
+    'Кельн',
+    'Краков',
+    'Киото',
+    'Кишинёв',
+    'Кутаиси',
+    'Калгари',
+  ],
+  'Л': ['Лейпциг', 'Лион', 'Лилль', 'Лима', 'Лобня', 'Луга', 'Люберцы'],
+  'М': [
+    'Махачкала',
+    'Мытищи',
+    'Мюнхен',
+    'Майами',
+    'Мумбаи',
+    'Магнитогорск',
+    'Мичуринск',
+  ],
+  'Н': [
+    'Нижний Новгород',
+    'Нижнекамск',
+    'Набережные Челны',
+    'Нант',
+    'Ницца',
+    'Нагоя',
+    'Новороссийск',
+    'Ногинск',
+  ],
+  'О': ['Обнинск', 'Одинцово', 'Орск', 'Окленд', 'Осака', 'Оксфорд', 'Орлеан'],
+  'П': [
+    'Петрозаводск',
+    'Подольск',
+    'Пушкин',
+    'Пиза',
+    'Порту',
+    'Пхукет',
+    'Пусан',
+    'Палермо',
+  ],
+  'Р': ['Ростов-на-Дону', 'Реутов', 'Рубцовск', 'Реймс', 'Рованиеми'],
+  'С': [
+    'Саранск',
+    'Северодвинск',
+    'Серпухов',
+    'Сыктывкар',
+    'Севилья',
+    'Сидней',
+    'Сантьяго',
+    'Солсбери',
+  ],
+  'Т': [
+    'Тамбов',
+    'Тольятти',
+    'Тобольск',
+    'Тюмень',
+    'Тбилиси',
+    'Тулуза',
+    'Турин',
+    'Таллин',
+  ],
+  'У': ['Улан-Удэ', 'Ухта', 'Углич', 'Ужгород', 'Ухань'],
+  'Ф': ['Фрязино', 'Фрайбург'],
+  'Х': ['Химки', 'Ханты-Мансийск', 'Хошимин', 'Хиросима', 'Ханой'],
+  'Ц': ['Цивильск', 'Цетине'],
+  'Ч': ['Чехов', 'Черкесск', 'Чернигов', 'Ченнаи', 'Чанчунь'],
+  'Ш': ['Шадринск', 'Шатура', 'Шымкент', 'Шеффилд'],
+  'Щ': ['Щучинск', 'Щигры'],
+  'Э': ['Электросталь', 'Эссен', 'Эрфурт', 'Эйлат'],
+  'Ю': ['Южно-Сахалинск', 'Юрмала', 'Юхнов'],
+  'Я': ['Ялуторовск', 'Ярцево'],
+};
+
 /// Walks the app on a clean device and takes the screens for store listings.
 ///
 /// Run on an emulator without accounts:
@@ -145,8 +280,11 @@ void main() {
     final used = <String>{};
     var moves = 0;
     var city = 'Москва';
+    var gameShot = false;
 
-    for (var attempt = 0; attempt < 40 && moves < 8; attempt++) {
+    // Play until Android runs out of moves and gives up: on the easy level
+    // it makes 20 to 27 of them
+    for (var attempt = 0; attempt < 120; attempt++) {
       tester.widget<TextField>(find.byType(TextField).last).controller!.text =
           city;
       await wait(tester, 300);
@@ -154,35 +292,41 @@ void main() {
       await wait(tester, 3500);
       used.add(city);
 
+      if (find.text('Сыграть ещё').evaluate().isNotEmpty) break;
+
+      // An accepted city clears the input, a rejected one stays with an error
+      final accepted = tester
+          .widget<TextField>(find.byType(TextField).last)
+          .controller!
+          .text
+          .isEmpty;
+
+      if (accepted) moves++;
+
+      if (accepted && moves >= 9 && !gameShot) {
+        await shot('02_game');
+        gameShot = true;
+      }
+
       final next = letter();
       dump('move $attempt, letter $next');
 
       if (next == null) break;
 
-      final options = (_answers[next.toUpperCase()] ?? [])
-          .where((c) => !used.contains(c))
-          .toList();
+      // Cities already in the feed, Android's ones too
+      final shown = texts().toSet();
+      final options = [
+        ...?_answers[next.toUpperCase()],
+        ...?_more[next.toUpperCase()],
+      ].where((c) => !used.contains(c) && !shown.contains(c)).toList();
 
-      if (options.isEmpty) break;
-
-      if (!texts().any((t) => t.contains(city))) {
-        // Not accepted: try the next city on the same letter
-      } else {
-        moves++;
-      }
-
+      expect(options, isNotEmpty, reason: 'no city left on $next');
       city = options.first;
     }
 
-    await shot('02_game');
-
-    await tester.tap(find.text('Пауза'));
-    await wait(tester);
-    await tester.tap(find.text('Сдаться…'));
-    await wait(tester);
-    await tester.tap(find.text('Сдаться').last);
-    await wait(tester, 4000);
+    await wait(tester, 2000);
     dump('results');
+    expect(find.text('Победа!'), findsOneWidget);
     await shot('03_results');
 
     await tester.tap(find.text('В меню').last);
