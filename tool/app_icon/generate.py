@@ -227,22 +227,42 @@ FOREGROUND = colored(canvas(.64 * ADAPTIVE_VISIBLE))
 MONOCHROME = silhouette(canvas(.64 * ADAPTIVE_VISIBLE))
 
 
-# Letter tiles scattered around the banner: letter, left, top, size, fill, turn in degrees
+# Letter tiles scattered at the sides: letter, left, top, size, fill, turn in degrees
 BANNER_TILES = [
-    ('К', 56, 64, 124, YELLOW, -12),
-    ('Р', 1096, 44, 112, WHITE, 10),
-    ('Т', 36, 492, 118, SKY, 8),
-    ('Н', 1108, 506, 132, MINT, -8),
-    ('Л', 252, 600, 78, ORANGE, 14),
-    ('М', 940, 612, 78, YELLOW, -10),
+    ('К', 40, 56, 112, YELLOW, -12),
+    ('Л', 196, 300, 72, MINT, 10),
+    ('Т', 64, 476, 124, SKY, 8),
+    ('Р', 1104, 52, 112, MINT, 10),
+    ('Е', 1012, 300, 72, YELLOW, -10),
+    ('Н', 1100, 468, 128, SKY, -8),
 ]
 
-# A round of the game: each city starts with the last letter of the one before
-BANNER_CHAIN = ['Москва', 'Анапа', 'Астана']
-CHAIN_SIZE = 34
-CHAIN_PAD = 26
-CHAIN_HEIGHT = 74
-CHAIN_ARROW = 64
+# Two cities laid out like a crossword: the second one grows down from the last
+# letter of the first
+ACROSS = 'Москва'
+DOWN = 'Анапа'
+CELL = 100
+CELL_GAP = 10
+
+# Slight turns so the tiles look laid by hand
+JITTER = [-3, 2, -1, 3, -2, 1, -2, 3, -1, 2]
+
+
+def crossword(x, y):
+    step = CELL + CELL_GAP
+    cells = [(char, x + i * step, y, WHITE) for i, char in enumerate(ACROSS)]
+    column = x + (len(ACROSS) - 1) * step
+    cells += [(char, column, y + i * step, YELLOW) for i, char in enumerate(DOWN) if i]
+
+    # The letter the next city starts with
+    shared = {len(ACROSS) - 1, len(cells) - 1}
+    layers = []
+
+    for index, (char, left, top, fill) in enumerate(cells):
+        fill = ORANGE if index in shared else fill
+        layers += scattered(char.upper(), left, top, CELL, fill, JITTER[index % len(JITTER)])
+
+    return layers
 
 
 def scattered(char, x, y, size, fill, turn):
@@ -257,50 +277,23 @@ def scattered(char, x, y, size, fill, turn):
     return tile(transform, char, 0, 0, fill)
 
 
-def city(x, y, name):
-    """City pill with its last letter highlighted"""
-    width = advance(UNBOUNDED, name, CHAIN_SIZE) + 2 * CHAIN_PAD
-    baseline = y + CHAIN_HEIGHT / 2 + CHAIN_SIZE * .36
-    head = name[:-1]
-    left = x + CHAIN_PAD
-
-    return width, [
-        (rect(Identity, x, y + 6, width=width, height=CHAIN_HEIGHT, radius=20), INK, None, 0),
-        (rect(Identity, x, y, width=width, height=CHAIN_HEIGHT, radius=20), WHITE, INK, 4),
-        (text(Identity, UNBOUNDED, head, left, baseline, CHAIN_SIZE), INK, None, 0),
-        (text(Identity, UNBOUNDED, name[-1], left + advance(UNBOUNDED, head, CHAIN_SIZE), baseline, CHAIN_SIZE), LETTER, None, 0),
-    ]
-
-
-def arrow(x, y):
-    return shape(Identity.translate(x, y), '<path d="M14 -6H34V-15L50 0 34 15V6H14Z"/>')
-
-
-def chain(width, y):
-    pills = [advance(UNBOUNDED, name, CHAIN_SIZE) + 2 * CHAIN_PAD for name in BANNER_CHAIN]
-    x = (width - sum(pills) - CHAIN_ARROW * (len(pills) - 1)) / 2
-    layers = []
-
-    for index, name in enumerate(BANNER_CHAIN):
-        pill, parts = city(x, y, name)
-        layers += parts
-        x += pill
-
-        if index < len(BANNER_CHAIN) - 1:
-            layers.append((arrow(x, y + CHAIN_HEIGHT / 2), WHITE, None, 0))
-            x += CHAIN_ARROW
-
-    return layers
-
-
 def banner(width, height):
-    """Logo over a round of the game, with letter tiles around"""
-    lockup_width = 640
+    """Logo tucked under a crossword of two cities, letter tiles at the sides"""
+    step = CELL + CELL_GAP
+    board_width = len(ACROSS) * step - CELL_GAP
+    board_height = len(DOWN) * step - CELL_GAP
+    x = (width - board_width) / 2
+    y = (height - board_height) / 2
+
+    # The logo fills the corner under the first word and left of the second one
+    pocket = board_width - step
+    lockup_width = pocket - 40
     k = lockup_width / LOCKUP_WIDTH
-    logo = Identity.translate((width - lockup_width) / 2, 128).scale(k)
+    logo = Identity.translate(x, y + step + (board_height - step - LOCKUP_HEIGHT * k) / 2).scale(k)
+
     layers = [layer for spec in BANNER_TILES for layer in scattered(*spec)]
+    layers += crossword(x, y)
     layers += lockup(logo, caption=EDGE, title=WHITE)
-    layers += chain(width, 436)
 
     return svg(f'<rect width="{width}" height="{height}" fill="{VIOLET}"/>', layers, width, height)
 
