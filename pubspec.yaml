@@ -1,7 +1,7 @@
 name: lets_play_cities
 description: Lets Play Cities Game
 
-version: 3.1.0+3100
+version: 3.2.0+3200
 
 environment:
   sdk: ^3.13.0
